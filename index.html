@@ -87,15 +87,36 @@ input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #0a0f17 inset!important;-we
 .pf-label{font-size:12px;color:var(--muted);margin:0 0 6px 4px;display:block}
 .pf-avatar{width:84px;height:84px;margin:0 auto 18px;font-size:28px;box-shadow:0 0 0 4px rgba(124,140,255,.18),0 14px 40px rgba(124,140,255,.35)}
 
-/* call */
-.call-card{width:min(410px,100%);padding:28px;text-align:center;border-radius:30px;background:radial-gradient(circle at 50% 0,rgba(124,140,255,.18),transparent 45%),#101722;border:1px solid var(--line);box-shadow:var(--shadow);animation:pop .4s var(--ease) both}
-.call-avatar{width:92px;height:92px;border-radius:50%;margin:5px auto 18px;display:grid;place-items:center;font-size:30px;font-weight:900;background:linear-gradient(135deg,#687cff,#a36eff);box-shadow:0 0 0 0 rgba(124,140,255,.5);animation:ring 1.8s ease-out infinite}
-@keyframes ring{to{box-shadow:0 0 0 26px rgba(124,140,255,0)}}
-.call-name{font-size:23px;font-weight:900}
-.call-state{color:var(--muted);margin:7px 0 22px}
-.call-timer{font-size:28px;font-variant-numeric:tabular-nums;margin-bottom:22px}
-.call-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+/* ===== PREMIUM CALL (from top + animation) ===== */
+#callOverlay{align-items:flex-start;justify-content:center;padding:48px 16px 0;background:rgba(0,0,0,.55);backdrop-filter:blur(18px)}
+#callOverlay:not(.mini) .call-card{
+  width:min(380px,100%);
+  padding:32px 28px 26px;
+  text-align:center;
+  border-radius:32px;
+  background:linear-gradient(165deg,rgba(28,34,52,.97),rgba(14,18,28,.98));
+  border:1px solid rgba(140,155,255,.22);
+  box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.06);
+  animation:callSlideDown .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes callSlideDown{
+  from{opacity:0;transform:translateY(-48px) scale(.94)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.call-avatar{
+  width:96px;height:96px;border-radius:50%;margin:0 auto 18px;
+  display:grid;place-items:center;font-size:32px;font-weight:900;
+  background:linear-gradient(135deg,#687cff,#a36eff);
+  box-shadow:0 0 0 0 rgba(124,140,255,.45),0 12px 40px rgba(104,124,255,.35);
+  animation:ring 1.8s ease-out infinite;
+}
+@keyframes ring{to{box-shadow:0 0 0 28px rgba(124,140,255,0),0 12px 40px rgba(104,124,255,.35)}}
+.call-name{font-size:24px;font-weight:900;letter-spacing:-.3px}
+.call-state{color:var(--muted);margin:8px 0 18px;font-size:14px}
+.call-timer{font-size:30px;font-variant-numeric:tabular-nums;margin-bottom:24px;font-weight:700;color:#c4cbff}
+.call-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .call-actions .wide{grid-column:1/-1}
+.call-actions .btn{min-height:50px;border-radius:16px;font-weight:800}
 
 /* chat */
 .chat-page{padding:0!important;display:flex;flex-direction:column;overflow:hidden!important;background:radial-gradient(circle at 85% 0,rgba(124,140,255,.10),transparent 40%),radial-gradient(circle at 0 100%,rgba(163,124,255,.08),transparent 40%),var(--bg)}
@@ -160,6 +181,38 @@ input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #0a0f17 inset!important;-we
 .pcard.on{border-color:var(--gc);box-shadow:0 0 22px -6px var(--gc)}
 .pcard em{width:14px;height:14px;border-radius:50%;background:var(--gc);display:block}
 .confetti{position:absolute;inset:0;display:grid;place-items:center;background:rgba(7,10,16,.72);backdrop-filter:blur(4px);z-index:9;font-size:26px;font-weight:900;animation:fadeIn .5s both;text-align:center}
+
+/* in-game voice + text controls */
+.game-comms{
+  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+  z-index:4000;display:flex;gap:10px;padding:8px 12px;
+  background:rgba(12,17,28,.92);border:1px solid rgba(140,155,255,.25);
+  border-radius:999px;backdrop-filter:blur(16px);
+  box-shadow:0 12px 40px rgba(0,0,0,.45);
+  animation:fadeIn .35s var(--ease) both;
+}
+.game-comms button{
+  width:46px;height:46px;border-radius:50%;
+  background:#171f2d;border:1px solid var(--line);color:#fff;
+  font-size:18px;display:grid;place-items:center;
+  transition:transform .15s,background .2s;
+}
+.game-comms button:active{transform:scale(.92)}
+.game-comms button.on{background:linear-gradient(135deg,#6f82ff,#9a74f0);border-color:transparent;box-shadow:0 6px 18px rgba(124,140,255,.4)}
+.game-comms button.muted{background:rgba(255,85,105,.2);color:#ff8797}
+.mini-chat-box{
+  position:fixed;bottom:150px;left:50%;transform:translateX(-50%);
+  width:min(340px,92vw);z-index:4001;
+  background:rgba(12,17,28,.96);border:1px solid rgba(140,155,255,.22);
+  border-radius:20px;padding:12px;backdrop-filter:blur(20px);
+  box-shadow:0 16px 50px rgba(0,0,0,.5);display:none;
+}
+.mini-chat-box.show{display:block;animation:fadeIn .3s both}
+.mini-chat-msgs{max-height:160px;overflow-y:auto;margin-bottom:10px;font-size:13px}
+.mini-chat-msgs div{padding:6px 10px;margin-bottom:4px;border-radius:12px;background:rgba(255,255,255,.05)}
+.mini-chat-in{display:flex;gap:8px}
+.mini-chat-in input{flex:1;height:40px;border-radius:12px;border:1px solid var(--line);background:#0a0f17;color:#fff;padding:0 12px;outline:none}
+.mini-chat-in button{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7889ff,#a077ff);color:#fff}
 </style>
 </head>
 
@@ -227,10 +280,22 @@ input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #0a0f17 inset!important;-we
 
 <div id="modalOverlay" class="overlay hidden"><div id="modalContent" class="modal"></div></div>
 
+<!-- In-game voice + text bar -->
+<div id="gameComms" class="game-comms hidden">
+  <button id="gcMic" title="Mic" onclick="toggleGameMic()">🎙</button>
+  <button id="gcText" title="Text" onclick="toggleMiniChat()">💬</button>
+  <button id="gcMute" title="Mute" onclick="toggleMute()">🔇</button>
+</div>
+<div id="miniChatBox" class="mini-chat-box">
+  <div id="miniChatMsgs" class="mini-chat-msgs"></div>
+  <div class="mini-chat-in">
+    <input id="miniChatInput" placeholder="Message…" autocomplete="off">
+    <button onclick="sendMiniChat()">➤</button>
+  </div>
 </div>
 
-
-  <script>
+</div>
+<script>
 const SUPABASE_URL="https://ktwluvpmzisonmootdqc.supabase.co";
 const SUPABASE_KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -252,7 +317,7 @@ function closeModal(){$("modalOverlay").classList.add("hidden")}
 function openModal(html){$("modalContent").innerHTML=html;$("modalOverlay").classList.remove("hidden")}
 $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
 
-/* stable viewport: keyboard khulne par page upar-niche nahi hilega */
+/* stable viewport */
 (function(){const set=()=>document.documentElement.style.setProperty("--vh",(window.visualViewport?.height||innerHeight)+"px");set();
 window.visualViewport?.addEventListener("resize",()=>{set();scrollTo(0,0)});addEventListener("resize",set);
 addEventListener("orientationchange",()=>setTimeout(set,250));document.addEventListener("focusout",()=>setTimeout(()=>scrollTo(0,0),60))})();
@@ -357,7 +422,7 @@ function createPeer(){
   pc.ontrack=e=>{let a=$("nexoraRemoteAudio");if(!a){a=document.createElement("audio");a.id="nexoraRemoteAudio";a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play().catch(()=>{})};
   pc.onconnectionstatechange=async()=>{
     const s=pc.connectionState;
-    if(s==="connected"){NEXORA.call.state="connected";callSet(NEXORA.call.targetName,"Connected");callUI(0,0,1,1);startCallTimer()}
+    if(s==="connected"){NEXORA.call.state="connected";callSet(NEXORA.call.targetName,"Connected");callUI(0,0,1,1);startCallTimer();showGameComms()}
     if(["failed","disconnected","closed"].includes(s)&&NEXORA.call.state!=="idle")await endCall("ended");
   };
   NEXORA.call.peer=pc;return pc;
@@ -405,6 +470,7 @@ async function acceptCall(){
     await pc.setLocalDescription(await pc.createAnswer());
     await sendSignal({type:"call-answer",to:NEXORA.call.targetId,callId:NEXORA.call.id,answer:pc.localDescription});
     try{await sb.from("calls").update({status:"accepted",started_at:new Date().toISOString()}).eq("id",NEXORA.call.id)}catch(_){}
+    showGameComms();
   }catch(e){toast(e.message||"Microphone permission failed.","error");await endCall("cancelled",true)}
 }
 async function declineCall(){
@@ -415,7 +481,7 @@ async function declineCall(){
 }
 async function endCall(status="ended",silent=false){
   const c=NEXORA.call;
-  if(c.state==="idle"){callHide();return}
+  if(c.state==="idle"){callHide();hideGameComms();return}
   stopCallTimeout();
   if(c.targetId&&!silent){try{await sendSignal({type:"call-ended",to:c.targetId,callId:c.id,status})}catch(_){}}
   if(c.id){try{await sb.from("calls").update({status,ended_at:new Date().toISOString()}).eq("id",c.id)}catch(_){}}
@@ -427,12 +493,14 @@ async function cleanupCall(){
   try{NEXORA.call.peer?.close()}catch(_){}
   const a=$("nexoraRemoteAudio");if(a){try{a.srcObject=null}catch(_){}a.remove()}
   NEXORA.call=IDLE_CALL();callHide();callUI(1,1,0,0);$("callMute").textContent="🎙 Mute";
+  hideGameComms();
 }
 async function toggleMute(){
   const s=NEXORA.call.stream;if(!s)return;
   NEXORA.call.muted=!NEXORA.call.muted;
   s.getAudioTracks().forEach(t=>t.enabled=!NEXORA.call.muted);
   $("callMute").textContent=NEXORA.call.muted?"🔇 Unmute":"🎙 Mute";
+  const gm=$("gcMute");if(gm){gm.classList.toggle("muted",NEXORA.call.muted);gm.textContent=NEXORA.call.muted?"🔇":"🎙"}
 }
 async function handleSignal(p){
   if(!p||p.from===NEXORA.user?.id)return;
@@ -456,11 +524,46 @@ $("callMute").onclick=toggleMute;
 addEventListener("pagehide",()=>{try{if(NEXORA.user)sb.from("profiles").update({online:false,last_seen:new Date().toISOString()}).eq("id",NEXORA.user.id)}catch(_){}});
 window.NEXORA=NEXORA;window.sb=sb;
 
+/* ---------- game voice + text (while playing) ---------- */
+function showGameComms(){
+  if(NEXORA.call.state==="connected"||NEXORA.call.state==="connecting"){
+    $("gameComms").classList.remove("hidden");
+    $("gcMic").classList.toggle("on",!NEXORA.call.muted);
+  }
+}
+function hideGameComms(){
+  $("gameComms").classList.add("hidden");
+  $("miniChatBox").classList.remove("show");
+}
+function toggleGameMic(){
+  if(NEXORA.call.state==="idle")return toast("Pehle call start karo");
+  toggleMute();
+  $("gcMic").classList.toggle("on",!NEXORA.call.muted);
+}
+function toggleMiniChat(){
+  $("miniChatBox").classList.toggle("show");
+  if($("miniChatBox").classList.contains("show"))$("miniChatInput").focus();
+}
+async function sendMiniChat(){
+  const inp=$("miniChatInput"),msg=inp.value.trim();if(!msg||!ACTIVE_CHAT)return;
+  inp.value="";
+  try{
+    const{data,error}=await sb.from("messages").insert({conversation_id:ACTIVE_CHAT.conversationId,sender_id:NEXORA.user.id,message:msg,message_type:"text"}).select().single();
+    if(error)throw error;
+    const box=$("miniChatMsgs");
+    box.insertAdjacentHTML("beforeend",`<div><b>You:</b> ${escapeHtml(msg)}</div>`);
+    box.scrollTop=box.scrollHeight;
+  }catch(e){toast(e.message||"Message failed","error")}
+}
+$("miniChatInput")?.addEventListener("keydown",e=>{if(e.key==="Enter")sendMiniChat()});
+
 /* ---------- navigation ---------- */
 function setPage(p){
   NEXORA.page=p;
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   ({home:renderHome,recent:renderRecent,connect:renderConnect,games:renderGames})[p]?.();
+  if(["games","chat"].includes(p)&&NEXORA.call.state==="connected")showGameComms();
+  else if(p!=="games"&&p!=="chat")hideGameComms();
 }
 document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
 async function getMyProfile(){
@@ -495,21 +598,19 @@ async function loadNotifications(){
 }
 async function loadConversations(){try{const{data,error}=await sb.rpc("nexora_my_conversations");if(error)throw error;return data||[]}catch(_){return[]}}
 
+const rowCard=(icon,title,sub,time,oc)=>`<button class="card row-card" onclick="${oc}"><div class="avatar">${icon}</div><div style="min-width:0;flex:1"><div style="font-weight:800">${title}</div><div style="color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div></div><div style="color:var(--muted);font-size:12px">${timeAgo(time)}</div></button>`;
 async function renderRecent(){
   $("main").innerHTML=`<section class="page"><h1 class="section-title">Recent</h1><div class="section-sub">Your latest activity</div><div id="recentContent"><div class="card" style="padding:22px;color:var(--muted)">Loading…</div></div></section>`;
   const[calls,notes,convs]=await Promise.all([loadCalls(),loadNotifications(),loadConversations()]);
   if(NEXORA.page!=="recent")return;
-  const row=(icon,title,sub,time,oc)=>`<button class="card row-card" onclick="${oc}"><div class="avatar">${icon}</div><div style="min-width:0;flex:1"><div style="font-weight:800">${title}</div><div style="color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div></div><div style="color:var(--muted);font-size:12px">${timeAgo(time)}</div></button>`;
+  const G={};calls.forEach(c=>{const inc=c.receiver_id===NEXORA.user.id,o=inc?c.caller_id:c.receiver_id;const g=G[o]=G[o]||{o,n:0,miss:0,last:c,inc};g.n++;if(c.status==="missed")g.miss++});
+  const ids=Object.keys(G);let names={};
+  if(ids.length){try{const{data}=await sb.from("profiles").select("id,username,display_name").in("id",ids);(data||[]).forEach(p=>names[p.id]=p.display_name||p.username)}catch(_){}}
   const items=[];
-  convs.forEach(c=>items.push({t:c.created_at||c.last_message_at,h:row(escapeHtml(initials(c.other_display_name||c.other_username)),escapeHtml(c.other_display_name||c.other_username),escapeHtml(c.last_message||"Start a conversation"),c.created_at,`openChat('${escapeAttr(c.conversation_id)}','${escapeAttr(c.other_id)}','${escapeAttr(c.other_username)}','${escapeAttr(c.other_display_name)}')`)}));
-  calls.forEach(c=>{
-    const inc=c.receiver_id===NEXORA.user.id,other=inc?c.caller_id:c.receiver_id;
-    let st=inc?"Incoming":"Outgoing",ic=inc?"📥":"📞";
-    const m={missed:["Missed","❌"],accepted:["Connected","✓"],declined:["Declined","↙️"],cancelled:["Cancelled","✕"]}[c.status];
-    if(m)[st,ic]=m;
-    items.push({t:c.created_at,h:row("☎",`${ic} ${st} call`,c.status==="accepted"&&c.started_at&&c.ended_at?"Duration "+duration(c.started_at,c.ended_at):"Tap to call back",c.created_at,`callbackUser('${escapeAttr(other)}')`)});
-  });
-  notes.forEach(n=>items.push({t:n.created_at,h:row("🔔",escapeHtml(n.title),escapeHtml(n.body||""),n.created_at,`openNotificationItem('${escapeAttr(n.id)}')`)}));
+  convs.forEach(c=>items.push({t:c.created_at||c.last_message_at,h:rowCard(escapeHtml(initials(c.other_display_name||c.other_username)),escapeHtml(c.other_display_name||c.other_username),escapeHtml(c.last_message||"Start a conversation"),c.created_at,`openChat('${escapeAttr(c.conversation_id)}','${escapeAttr(c.other_id)}','${escapeAttr(c.other_username)}','${escapeAttr(c.other_display_name)}')`)}));
+  Object.values(G).forEach(g=>{const nm=names[g.o]||"Unknown";
+    items.push({t:g.last.created_at,h:rowCard("☎",`${escapeHtml(nm)}<span class="cnt">${g.n}</span>`,`${g.n} call${g.n>1?"s":""}${g.miss?` · <span style="color:#ff8797">${g.miss} missed</span>`:""} · ${g.last.status==="accepted"?"last connected":g.last.status||"last call"}`,g.last.created_at,`callbackUser('${escapeAttr(g.o)}')`)})});
+  notes.forEach(n=>items.push({t:n.created_at,h:rowCard("🔔",escapeHtml(n.title),escapeHtml(n.body||""),n.created_at,`openNotificationItem('${escapeAttr(n.id)}')`)}));
   items.sort((a,b)=>new Date(b.t||0)-new Date(a.t||0));
   $("recentContent").innerHTML=items.length?items.map(x=>x.h).join(""):`<div class="card" style="padding:30px;text-align:center;color:var(--muted)">Nothing here yet.</div>`;
 }
@@ -592,8 +693,7 @@ async function randomCall(){
 }
 window.startCallByUser=startCallByUser;window.logout=logout;window.toast=toast;
 </script>
-
-  <style>
+<style>
 #callOverlay.mini{background:transparent;backdrop-filter:none;align-items:flex-start;justify-content:center;padding:76px 10px 0;pointer-events:none}
 .mini .call-card{pointer-events:auto;width:auto;max-width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;border-radius:26px;animation:none;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 .mini .call-avatar{width:36px;height:36px;margin:0;font-size:13px;animation:none}
@@ -618,25 +718,7 @@ let AC;function sfx(f=440,d=.08,t="sine",v=.05){try{AC=AC||new(window.AudioConte
 const myName=()=>NEXORA.profile?.display_name||NEXORA.profile?.username||"Player";
 
 /* ===== call: gameplay ke dauran mini bar ===== */
-const _cu=callUI;callUI=function(a,d,m,e){_cu(a,d,m,e);$("callOverlay").classList.toggle("mini",!!(m&&e&&!a&&!d))};
-
-/* ===== recent: ek insaan ki saari calls ek line me (naam + count) ===== */
-const rowCard=(icon,title,sub,time,oc)=>`<button class="card row-card" onclick="${oc}"><div class="avatar">${icon}</div><div style="min-width:0;flex:1"><div style="font-weight:800">${title}</div><div style="color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div></div><div style="color:var(--muted);font-size:12px">${timeAgo(time)}</div></button>`;
-async function renderRecent(){
-  $("main").innerHTML=`<section class="page"><h1 class="section-title">Recent</h1><div class="section-sub">Your latest activity</div><div id="recentContent"><div class="card" style="padding:22px;color:var(--muted)">Loading…</div></div></section>`;
-  const[calls,notes,convs]=await Promise.all([loadCalls(),loadNotifications(),loadConversations()]);
-  if(NEXORA.page!=="recent")return;
-  const G={};calls.forEach(c=>{const inc=c.receiver_id===NEXORA.user.id,o=inc?c.caller_id:c.receiver_id;const g=G[o]=G[o]||{o,n:0,miss:0,last:c,inc};g.n++;if(c.status==="missed")g.miss++});
-  const ids=Object.keys(G);let names={};
-  if(ids.length){try{const{data}=await sb.from("profiles").select("id,username,display_name").in("id",ids);(data||[]).forEach(p=>names[p.id]=p.display_name||p.username)}catch(_){}}
-  const items=[];
-  convs.forEach(c=>items.push({t:c.created_at||c.last_message_at,h:rowCard(escapeHtml(initials(c.other_display_name||c.other_username)),escapeHtml(c.other_display_name||c.other_username),escapeHtml(c.last_message||"Start a conversation"),c.created_at,`openChat('${escapeAttr(c.conversation_id)}','${escapeAttr(c.other_id)}','${escapeAttr(c.other_username)}','${escapeAttr(c.other_display_name)}')`)}));
-  Object.values(G).forEach(g=>{const nm=names[g.o]||"Unknown";
-    items.push({t:g.last.created_at,h:rowCard("☎",`${escapeHtml(nm)}<span class="cnt">${g.n}</span>`,`${g.n} call${g.n>1?"s":""}${g.miss?` · <span style="color:#ff8797">${g.miss} missed</span>`:""} · ${g.last.status==="accepted"?"last connected":g.last.status||"last call"}`,g.last.created_at,`callbackUser('${escapeAttr(g.o)}')`)})});
-  notes.forEach(n=>items.push({t:n.created_at,h:rowCard("🔔",escapeHtml(n.title),escapeHtml(n.body||""),n.created_at,`openNotificationItem('${escapeAttr(n.id)}')`)}));
-  items.sort((a,b)=>new Date(b.t||0)-new Date(a.t||0));
-  $("recentContent").innerHTML=items.length?items.map(x=>x.h).join(""):`<div class="card" style="padding:30px;text-align:center;color:var(--muted)">Nothing here yet.</div>`;
-}
+const _cu=callUI;callUI=function(a,d,m,e){_cu(a,d,m,e);$("callOverlay").classList.toggle("mini",!!(m&&e&&!a&&!d));if(m&&e)showGameComms()};
 
 /* ===== premium chat ===== */
 let ACTIVE_CHAT=null,CHAT_CHANNEL=null;
@@ -645,6 +727,7 @@ async function openChat(cid,otherId,username,dn){
     if(!cid){const{data,error}=await sb.rpc("nexora_get_or_create_dm",{target_username:username});if(error)throw error;cid=data}
     ACTIVE_CHAT={conversationId:cid,otherId,username,displayName:dn||username};
     NEXORA.page="chat";renderChat();await loadChatMessages();subscribeChat();
+    if(NEXORA.call.state==="connected")showGameComms();
   }catch(e){toast(e.message||"Could not open chat.","error")}
 }
 function renderChat(){
@@ -652,7 +735,9 @@ function renderChat(){
   $("main").innerHTML=`<section class="page chat-page">
    <div class="chat-head"><button class="icon-btn" onclick="setPage('recent')">‹</button><div class="avatar">${escapeHtml(initials(c.displayName))}</div>
     <div style="flex:1;min-width:0"><div class="nm">${escapeHtml(c.displayName)}</div><div class="un">@${escapeHtml(c.username)}</div></div>
-    <button class="icon-btn" title="Ludo khelo" onclick="sendGameInvite('${escapeAttr(c.otherId)}')">🎲</button>
+    <button class="icon-btn" title="Ludo" onclick="sendGameInvite('${escapeAttr(c.otherId)}')">🎲</button>
+    <button class="icon-btn" title="Tic-Tac-Toe" onclick="sendGameInvite('${escapeAttr(c.otherId)}','ttt')">✕</button>
+    <button class="icon-btn" title="Four in a Row" onclick="sendGameInvite('${escapeAttr(c.otherId)}','four')">🔴</button>
     <button class="icon-btn" onclick="startCallByUser('${escapeAttr(c.otherId)}','${escapeAttr(c.displayName)}')">📞</button></div>
    <div id="chatMessages" class="chat-body"></div>
    <div class="composer"><div class="composer-in"><input id="chatInput" placeholder="Message likho…" autocomplete="off" autocorrect="off" enterkeyhint="send">
@@ -683,7 +768,7 @@ async function sendChatMessage(){
 async function subscribeChat(){
   if(CHAT_CHANNEL){try{await sb.removeChannel(CHAT_CHANNEL)}catch(_){}}
   if(!ACTIVE_CHAT)return;
-  CHAT_CHANNEL=sb.channel("chat-"+ACTIVE_CHAT.conversationId).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conversation_id=eq."+ACTIVE_CHAT.conversationId},p=>{if(p.new.sender_id!==NEXORA.user.id)addMsg(p.new)}).subscribe();
+  CHAT_CHANNEL=sb.channel("chat-"+ACTIVE_CHAT.conversationId).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conversation_id=eq."+ACTIVE_CHAT.conversationId},p=>{if(p.new.sender_id!==NEXORA.user.id){addMsg(p.new);if($("miniChatBox")?.classList.contains("show")){const box=$("miniChatMsgs");box.insertAdjacentHTML("beforeend",`<div><b>${escapeHtml(ACTIVE_CHAT.displayName)}:</b> ${escapeHtml(p.new.message)}</div>`;box.scrollTop=box.scrollHeight}}}).subscribe();
 }
 
 /* ===== edit profile ===== */
@@ -717,9 +802,10 @@ async function saveProfile(){
 /* ===== games menu ===== */
 function renderGames(){
   const q=(i,n,d,a)=>`<button class="card quick-card" onclick="${a}"><div class="quick-icon">${i}</div><div><div class="quick-name">${n}</div><div class="quick-desc">${d}</div></div></button>`;
-  $("main").innerHTML=`<section class="page"><h1 class="section-title">Games</h1><div class="section-sub">Choose a game.</div><div class="grid grid2">
-   ${q("🎲","Ludo","Online with friends","openLudoMenu()")}${q("✕","Tic-Tac-Toe","5×5 · four in a row","openTicTacToe()")}
-   ${q("🔴","Four in a Row","Classic 7×6","openFourInRow()")}${q("🃏","UNO","Coming soon","toast('UNO is coming soon.')")}</div></section>`;
+  $("main").innerHTML=`<section class="page"><h1 class="section-title">Games</h1><div class="section-sub">Choose a game. Call pe ho to bhi direct khel sakte ho.</div><div class="grid grid2">
+   ${q("🎲","Ludo","Online with friends","openLudoMenu()")}${q("✕","Tic-Tac-Toe","5×5 · four in a row","openTTTMenu()")}
+   ${q("🔴","Four in a Row","Classic 7×6","openFourMenu()")}${q("🃏","UNO","Coming soon","toast('UNO is coming soon.')")}</div></section>`;
+  if(NEXORA.call.state==="connected")showGameComms();
 }
 function lineWin(b,R,C,L){
   for(let r=0;r<R;r++)for(let c=0;c<C;c++){const v=b[r*C+c];if(!v)continue;
@@ -728,15 +814,41 @@ function lineWin(b,R,C,L){
 }
 let TTT,FOUR;
 const gameShell=(t,s,body,again)=>`<section class="page"><button class="btn" onclick="setPage('games')" style="margin-bottom:14px">‹ Games</button><h1 class="section-title">${t}</h1><div class="section-sub">${s}</div><div class="card" style="padding:15px;max-width:520px;margin:auto">${body}<button class="btn primary-btn" style="width:100%;margin-top:14px" onclick="${again}">Restart</button></div></section>`;
-function openTicTacToe(){TTT={b:Array(25).fill(""),t:"X",over:false,msg:"X ki baari"};renderTTT()}
+
+/* ===== TTT with online support (same as Ludo style) ===== */
+function openTTTMenu(){
+  openModal(`<div class="modal-title">Tic-Tac-Toe</div><div class="modal-sub">Online ya local khelo</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="hostTTT()">🌐 Online room banao</button>
+   <div style="display:flex;gap:8px;margin-bottom:10px"><input id="tttCode" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinTTT($('tttCode').value.trim().toUpperCase())">Join</button></div>
+   <button class="btn" style="width:100%" onclick="openTicTacToe()">👥 Local / Robot</button>`);
+}
+function openTicTacToe(){TTT={b:Array(25).fill(""),t:"X",over:false,msg:"X ki baari",mode:"local"};renderTTT();if(NEXORA.call.state==="connected")showGameComms()}
 function renderTTT(){$("main").innerHTML=gameShell("Tic-Tac-Toe",TTT.msg+" · 5×5, 4 in a row",`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${TTT.b.map((x,i)=>`<button class="cell" onclick="tttMove(${i})" style="color:${x==="X"?"#9aa7ff":"#ff8999"}">${x}</button>`).join("")}</div>`,"openTicTacToe()")}
 function tttMove(i){if(TTT.over||TTT.b[i])return;TTT.b[i]=TTT.t;sfx(520,.07);const w=lineWin(TTT.b,5,5,4);
   if(w){TTT.over=true;TTT.msg=w+" jeet gaya! 🏆";sfx(880,.4)}else if(TTT.b.every(Boolean)){TTT.over=true;TTT.msg="Draw"}else{TTT.t=TTT.t==="X"?"O":"X";TTT.msg=TTT.t+" ki baari"}renderTTT()}
-function openFourInRow(){FOUR={b:Array(42).fill(""),t:"R",over:false,msg:"Red ki baari"};renderFour()}
+async function hostTTT(code){code=code||Math.random().toString(36).slice(2,8).toUpperCase();await openRoom(code,true,"ttt");
+  openModal(`<div class="modal-title">TTT Room 🎲</div><div class="modal-sub">Dost ka wait…</div><div class="card" style="padding:22px;text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn danger" style="width:100%" onclick="closeRoom();closeModal()">Cancel</button>`)}
+async function joinTTT(code){if(!code||code.length<4)return toast("Room code daalo.","error");await openRoom(code,false,"ttt");closeModal();toast("Join ho raha hai…");
+  let n=0;const iv=setInterval(()=>{if(TTT?.mode==="online"||++n>8)return clearInterval(iv);LROOM?.send({type:"broadcast",event:"g",payload:{t:"join",name:myName(),from:NEXORA.user.id,game:"ttt"}})},1500);
+  LROOM.send({type:"broadcast",event:"g",payload:{t:"join",name:myName(),from:NEXORA.user.id,game:"ttt"}})}
+
+/* ===== Four in a Row with online ===== */
+function openFourMenu(){
+  openModal(`<div class="modal-title">Four in a Row</div><div class="modal-sub">Online ya local</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="hostFour()">🌐 Online room banao</button>
+   <div style="display:flex;gap:8px;margin-bottom:10px"><input id="fourCode" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinFour($('fourCode').value.trim().toUpperCase())">Join</button></div>
+   <button class="btn" style="width:100%" onclick="openFourInRow()">👥 Local</button>`);
+}
+function openFourInRow(){FOUR={b:Array(42).fill(""),t:"R",over:false,msg:"Red ki baari",mode:"local"};renderFour();if(NEXORA.call.state==="connected")showGameComms()}
 function renderFour(){$("main").innerHTML=gameShell("Four in a Row",FOUR.msg,`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;background:#202d8b;padding:8px;border-radius:16px">${FOUR.b.map((x,i)=>`<button class="disc" onclick="fourMove(${i%7})" style="background:${x==="R"?"#ff566c":x==="Y"?"#ffd04f":"#0a1020"}"></button>`).join("")}</div>`,"openFourInRow()")}
 function fourMove(c){if(FOUR.over)return;for(let r=5;r>=0;r--){const i=r*7+c;if(!FOUR.b[i]){FOUR.b[i]=FOUR.t;sfx(300,.09);
   if(lineWin(FOUR.b,6,7,4)){FOUR.over=true;FOUR.msg=(FOUR.t==="R"?"Red":"Yellow")+" jeet gaya! 🏆";sfx(880,.4)}else if(FOUR.b.every(Boolean)){FOUR.over=true;FOUR.msg="Draw"}else{FOUR.t=FOUR.t==="R"?"Y":"R";FOUR.msg=(FOUR.t==="R"?"Red":"Yellow")+" ki baari"}
   renderFour();return}}}
+async function hostFour(code){code=code||Math.random().toString(36).slice(2,8).toUpperCase();await openRoom(code,true,"four");
+  openModal(`<div class="modal-title">Four Room 🎲</div><div class="modal-sub">Dost ka wait…</div><div class="card" style="padding:22px;text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn danger" style="width:100%" onclick="closeRoom();closeModal()">Cancel</button>`)}
+async function joinFour(code){if(!code||code.length<4)return toast("Room code daalo.","error");await openRoom(code,false,"four");closeModal();toast("Join ho raha hai…");
+  let n=0;const iv=setInterval(()=>{if(FOUR?.mode==="online"||++n>8)return clearInterval(iv);LROOM?.send({type:"broadcast",event:"g",payload:{t:"join",name:myName(),from:NEXORA.user.id,game:"four"}})},1500);
+  LROOM.send({type:"broadcast",event:"g",payload:{t:"join",name:myName(),from:NEXORA.user.id,game:"four"}})}
 
 /* ===================== LUDO ===================== */
 let LUDO=null,LROOM=null;
@@ -754,7 +866,7 @@ const canMove=(p,d)=>p!==FINISH&&(p===-1?d===6:p+d<=FINISH);
 const getMovable=()=>LUDO.dice?cur().tokens.map((p,i)=>canMove(p,LUDO.dice)?i:-1).filter(i=>i>=0):[];
 
 function openLudoMenu(){
-  openModal(`<div class="modal-title">Ludo</div><div class="modal-sub">Dost ke saath online khelo</div>
+  openModal(`<div class="modal-title">Ludo</div><div class="modal-sub">Dost ke saath online khelo — call pe bhi direct</div>
    <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="hostLudo()">🌐 Online room banao</button>
    <div style="display:flex;gap:8px;margin-bottom:10px"><input id="roomCode" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code" autocapitalize="characters"><button class="btn" onclick="joinLudo($('roomCode').value.trim().toUpperCase())">Join</button></div>
    <button class="btn" style="width:100%;margin-bottom:10px" onclick="startLudo('robot')">🤖 Robot ke saath</button>
@@ -764,6 +876,7 @@ function startLudo(mode="robot",names,me=null){
   const n=names||["You",mode==="robot"?"Robot":"Player 2"];
   LUDO={mode,me,players:[{name:n[0],color:"red",tokens:[-1,-1,-1,-1]},{name:n[1],color:"yellow",tokens:[-1,-1,-1,-1]}],turn:0,dice:null,rolling:false,busy:false,winner:null,sixes:0,message:"Game shuru!",cubeN:0};
   closeModal();NEXORA.page="games";renderLudo();
+  if(NEXORA.call.state==="connected")showGameComms();
 }
 function ludoXY(pl,i){
   const p=pl.tokens[i],c=LUDO_COLORS[pl.color];
@@ -797,6 +910,7 @@ function renderLudo(){
     <div class="pcards">${LUDO.players.map((p,i)=>`<div class="pcard" id="pc-${i}" style="--gc:${LUDO_COLORS[p.color].color}"><em></em><div style="min-width:0"><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}${LUDO.me===i?" (You)":""}</div><div id="pcs-${i}" style="color:var(--muted);font-size:12px"></div></div></div>`).join("")}</div>
    </div></div></section>`;
   updateLudo();
+  if(NEXORA.call.state==="connected")showGameComms();
 }
 function updateLudo(){
   if(!$("ludoBoard")||!LUDO)return;
@@ -871,19 +985,30 @@ function again(pl){LUDO.dice=null;LUDO.message=pl.name+" ko dobara chance";updat
 function endTurn(){LUDO.sixes=0;LUDO.turn=(LUDO.turn+1)%LUDO.players.length;LUDO.dice=null;LUDO.message=cur().name+" ki baari";updateLudo();botTurn()}
 
 /* ----- online room (Supabase realtime broadcast) ----- */
-function lsend(m){if(LROOM&&LUDO?.mode==="online"||(LROOM&&m.t==="join"))LROOM.send({type:"broadcast",event:"g",payload:{...m,from:NEXORA.user.id}})}
-async function openRoom(code,host){
+function lsend(m){if(LROOM&&(LUDO?.mode==="online"||(LROOM&&m.t==="join")))LROOM.send({type:"broadcast",event:"g",payload:{...m,from:NEXORA.user.id}})}
+async function openRoom(code,host,game="ludo"){
   closeRoom();
   const ch=sb.channel("ludo-"+code);
-  ch.on("broadcast",{event:"g"},({payload:m})=>onLudoMsg(m,host));
-  LROOM=ch;ch.code=code;
+  ch.on("broadcast",{event:"g"},({payload:m})=>onLudoMsg(m,host,game));
+  LROOM=ch;ch.code=code;ch.game=game;
   await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
 }
 function closeRoom(){if(LROOM){try{sb.removeChannel(LROOM)}catch(_){}LROOM=null}}
-async function onLudoMsg(m,host){
+async function onLudoMsg(m,host,game="ludo"){
   if(m.from===NEXORA.user.id)return;
-  if(m.t==="join"&&host&&LROOM){LROOM.send({type:"broadcast",event:"g",payload:{t:"start",host:myName(),from:NEXORA.user.id}});startLudo("online",[myName(),m.name],0);return}
-  if(m.t==="start"&&!host){startLudo("online",[m.host,myName()],1);return}
+  if(m.t==="join"&&host&&LROOM){
+    LROOM.send({type:"broadcast",event:"g",payload:{t:"start",host:myName(),from:NEXORA.user.id,game:m.game||game}});
+    if((m.game||game)==="ttt"){TTT={b:Array(25).fill(""),t:"X",over:false,msg:"X ki baari",mode:"online",me:0};renderTTT()}
+    else if((m.game||game)==="four"){FOUR={b:Array(42).fill(""),t:"R",over:false,msg:"Red ki baari",mode:"online",me:0};renderFour()}
+    else startLudo("online",[myName(),m.name],0);
+    return;
+  }
+  if(m.t==="start"&&!host){
+    if(m.game==="ttt"){TTT={b:Array(25).fill(""),t:"X",over:false,msg:"X ki baari",mode:"online",me:1};renderTTT()}
+    else if(m.game==="four"){FOUR={b:Array(42).fill(""),t:"R",over:false,msg:"Red ki baari",mode:"online",me:1};renderFour()}
+    else startLudo("online",[m.host,myName()],1);
+    return;
+  }
   if(!LUDO||LUDO.mode!=="online")return;
   if(m.t==="roll"&&!isMine()&&!LUDO.rolling&&!LUDO.dice)animateRoll(m.d);
   if(m.t==="move"&&!isMine()){while(LUDO.rolling)await sleep(50);if(LUDO.dice&&!LUDO.busy)commit(cur(),m.i)}
@@ -892,7 +1017,7 @@ async function onLudoMsg(m,host){
 async function hostLudo(code){
   code=code||Math.random().toString(36).slice(2,8).toUpperCase();
   await openRoom(code,true);
-  openModal(`<div class="modal-title">Room ready 🎲</div><div class="modal-sub">Dost ka wait ho raha hai…</div>
+  openModal(`<div class="modal-title">Room ready 🎲</div><div class="modal-sub">Dost ka wait ho raha hai… Call pe ho to bhi direct join kar sakte ho.</div>
    <div class="card" style="padding:22px;text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div>
    <div style="color:var(--muted);font-size:13px;text-align:center;margin-bottom:14px">Ye code dost ko bhejo, ya Connect se invite karo.</div>
    <button class="btn danger" style="width:100%" onclick="closeRoom();closeModal()">Cancel</button>`);
@@ -903,21 +1028,25 @@ async function joinLudo(code){
   let n=0;const iv=setInterval(()=>{if(LUDO?.mode==="online"||++n>8)return clearInterval(iv);LROOM?.send({type:"broadcast",event:"g",payload:{t:"join",name:myName(),from:NEXORA.user.id}})},1500);
   LROOM.send({type:"broadcast",event:"g",payload:{t:"join",name:myName(),from:NEXORA.user.id}});
 }
-async function sendGameInvite(tid){
+async function sendGameInvite(tid,game="ludo"){
   if(tid===NEXORA.user.id)return;
   const code=Math.random().toString(36).slice(2,8).toUpperCase();
-  await hostLudo(code);
-  try{await sendSignal({type:"game-invite",to:tid,code,fromName:myName()})}catch(_){}
-  try{await sb.from("notifications").insert({user_id:tid,type:"game_invite",title:"Ludo invitation",body:myName()+" ne Ludo ke liye bulaya. Code: "+code,data:{code}})}catch(_){}
+  if(game==="ttt")await hostTTT(code);
+  else if(game==="four")await hostFour(code);
+  else await hostLudo(code);
+  try{await sendSignal({type:"game-invite",to:tid,code,fromName:myName(),game})}catch(_){}
+  try{await sb.from("notifications").insert({user_id:tid,type:"game_invite",title:(game==="ttt"?"Tic-Tac-Toe":game==="four"?"Four in a Row":"Ludo")+" invitation",body:myName()+" ne invite kiya. Code: "+code,data:{code,game}})}catch(_){}
 }
 const _hs=handleSignal;
 handleSignal=async p=>{
   if(p&&p.type==="game-invite"){sfx(660,.25);
-    openModal(`<div class="modal-title">🎲 Ludo invite</div><div class="modal-sub">${escapeHtml(p.fromName||"Dost")} aapke saath Ludo khelna chahta hai</div>
-     <div class="modal-actions"><button class="btn" onclick="closeModal()">Baad me</button><button class="btn primary-btn" onclick="joinLudo('${escapeAttr(p.code)}')">Accept</button></div>`);return}
+    const g=p.game||"ludo",label=g==="ttt"?"Tic-Tac-Toe":g==="four"?"Four in a Row":"Ludo";
+    openModal(`<div class="modal-title">🎲 ${label} invite</div><div class="modal-sub">${escapeHtml(p.fromName||"Dost")} aapke saath khelna chahta hai</div>
+     <div class="modal-actions"><button class="btn" onclick="closeModal()">Baad me</button>
+     <button class="btn primary-btn" onclick="${g==="ttt"?`joinTTT('${escapeAttr(p.code)}')`:g==="four"?`joinFour('${escapeAttr(p.code)}')`:`joinLudo('${escapeAttr(p.code)}')`}">Accept & Play</button></div>`);return}
   return _hs(p);
 };
-function leaveLudo(){lsend({t:"leave"});closeRoom();LUDO=null;setPage("games")}
+function leaveLudo(){lsend({t:"leave"});closeRoom();LUDO=null;setPage("games");hideGameComms()}
 
 /* ===== boot ===== */
 async function boot(){
