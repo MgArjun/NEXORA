@@ -1,1963 +1,1040 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>NEXORA</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box}
-:root{
- --bg:#07090d;--panel:#10141b;--panel2:#151a23;--line:#242b37;
- --text:#f5f7fb;--muted:#8d96a6;--accent:#6d7cff;--accent2:#8e96ff;
- --green:#37d889;--red:#ff5364;--yellow:#ffd45a;
-}
-html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);
-font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}
-button,input{font:inherit}
-button{border:0;color:inherit;cursor:pointer}
-#app{min-height:100%;display:flex;flex-direction:column}
-.top{
- height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;
- padding:0 20px;gap:20px;position:sticky;top:0;background:rgba(7,9,13,.92);
- backdrop-filter:blur(20px);z-index:20
-}
-.logo{font-size:22px;font-weight:850;letter-spacing:.12em}
-.nav{display:flex;gap:6px;flex:1}
-.nav button,.iconBtn{
- background:transparent;color:var(--muted);padding:10px 14px;border-radius:12px
-}
-.nav button.active,.nav button:hover,.iconBtn:hover{background:var(--panel2);color:#fff}
-.profileBtn{display:flex;align-items:center;gap:9px;background:transparent}
-.avatar{
- width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
- background:linear-gradient(135deg,#707cff,#3d46a9);font-weight:800
-}
-.main{width:min(1180px,100%);margin:auto;padding:28px 20px 90px;flex:1}
-.view{display:none}.view.active{display:block}
-.hero{
- padding:28px;border:1px solid var(--line);border-radius:24px;
- background:linear-gradient(145deg,#121722,#0d1118);margin-bottom:20px
-}
-h1,h2,h3,p{margin-top:0}
-h1{font-size:34px;margin-bottom:8px}
-h2{font-size:24px}
-.muted{color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.card{
- background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px
-}
-.card.click{transition:.18s}.card.click:hover{transform:translateY(-2px);border-color:#384254}
-.bigIcon{font-size:28px;margin-bottom:15px}
-.row{display:flex;align-items:center;gap:10px}
-.between{justify-content:space-between}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.primary,.secondary,.danger{
- padding:11px 15px;border-radius:12px;font-weight:700
-}
-.primary{background:var(--accent);color:white}
-.secondary{background:#202733;color:#e9edf5}
-.danger{background:#391b22;color:#ff9ba5}
-input{
- width:100%;background:#0b0f15;border:1px solid var(--line);color:#fff;
- padding:13px 14px;border-radius:13px;outline:none
-}
-input:focus{border-color:var(--accent)}
-.sectionTitle{margin:26px 0 13px}
-.badge{font-size:12px;padding:5px 8px;border-radius:20px;background:#202633;color:#aab3c2}
-.online{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block}
-.list{display:flex;flex-direction:column;gap:8px}
-.listItem{
- display:flex;align-items:center;gap:12px;padding:13px;border-radius:15px;
- background:#0d1118;border:1px solid #1d232e
-}
-.listItem:hover{background:#131923}
-.grow{flex:1;min-width:0}
-.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tabs{display:flex;gap:7px;margin-bottom:14px;overflow:auto}
-.tab{
- white-space:nowrap;background:#11161f;border:1px solid var(--line);
- padding:9px 13px;border-radius:11px;color:var(--muted)
-}
-.tab.active{background:#252c3b;color:#fff}
-.chatLayout{
- display:grid;grid-template-columns:310px 1fr;gap:14px;height:calc(100vh - 130px);min-height:600px
-}
-.chatList,.chatWindow{
- border:1px solid var(--line);background:var(--panel);border-radius:20px;overflow:hidden
-}
-.chatList{display:flex;flex-direction:column}
-.chatSearch{padding:12px;border-bottom:1px solid var(--line)}
-.chatItems{overflow:auto;padding:8px}
-.chatWindow{display:flex;flex-direction:column}
-.chatHeader{padding:13px 16px;border-bottom:1px solid var(--line)}
-.messages{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:7px}
-.bubble{
- max-width:min(70%,520px);padding:10px 13px;border-radius:16px;
- background:#202632;align-self:flex-start;white-space:pre-wrap;word-break:break-word
-}
-.bubble.mine{background:#5866e8;align-self:flex-end}
-.bubble small{display:block;opacity:.6;font-size:10px;margin-top:4px}
-.composer{
- display:flex;gap:8px;padding:11px;border-top:1px solid var(--line)
-}
-.composer input{flex:1}
-.empty{display:grid;place-items:center;height:100%;text-align:center;padding:30px}
-.callOverlay{
- position:fixed;inset:0;background:rgba(3,5,8,.82);backdrop-filter:blur(22px);
- display:none;align-items:center;justify-content:center;z-index:100
-}
-.callOverlay.show{display:flex}
-.callCard{
- width:min(430px,calc(100% - 28px));background:#121720;border:1px solid #303847;
- border-radius:28px;padding:28px;text-align:center;box-shadow:0 30px 90px #000
-}
-.callAvatar{width:90px;height:90px;border-radius:50%;display:grid;place-items:center;
-background:linear-gradient(135deg,#7884ff,#3e469d);font-size:30px;font-weight:800;margin:12px auto}
-.callTimer{font-variant-numeric:tabular-nums;font-size:18px;margin:10px;color:#cbd1dc}
-.callControls{display:flex;justify-content:center;gap:10px;margin-top:25px}
-.roundBtn{width:52px;height:52px;border-radius:50%;background:#242b36}
-.roundBtn.end{background:#d94052}
-.modal{
- position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);
- display:none;align-items:center;justify-content:center;z-index:70
-}
-.modal.show{display:flex}
-.modalBox{width:min(540px,calc(100% - 28px));background:#121720;border:1px solid var(--line);
-border-radius:24px;padding:22px;max-height:90vh;overflow:auto}
-.gameGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.gameCard{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}
-.gameCard.ludo{background:linear-gradient(145deg,#241b26,#11151d)}
-.gameCard.tic{background:linear-gradient(145deg,#182132,#11151d)}
-.gameCard.match{background:linear-gradient(145deg,#252015,#11151d)}
-.coming{opacity:.58}
-.liveCount{display:flex;align-items:center;gap:8px;color:#c8d0dc}
-.profilePanel{max-width:500px}
-.statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stat{padding:16px;background:#0d1118;border:1px solid var(--line);border-radius:16px}
-.footer{text-align:center;color:#555f70;font-size:12px;margin-top:45px}
-.toast{
- position:fixed;left:50%;bottom:25px;transform:translateX(-50%);
- background:#e9edf4;color:#0a0d12;padding:11px 16px;border-radius:12px;
- font-weight:700;display:none;z-index:150
-}
-.toast.show{display:block}
-.back{margin-bottom:15px}
-@media(max-width:850px){
- .grid,.gameGrid{grid-template-columns:1fr 1fr}
- .chatLayout{grid-template-columns:270px 1fr}
-}
-@media(max-width:650px){
- .top{padding:0 12px;height:60px}
- .logo{font-size:18px}.nav{overflow:auto}.nav button{padding:8px 10px}
- .nav button span{display:none}
- .profileName{display:none}
- .main{padding:18px 12px 70px}
- .grid,.gameGrid{grid-template-columns:1fr}
- .chatLayout{display:block;height:auto;min-height:0}
- .chatList{height:300px;margin-bottom:10px}
- .chatWindow{height:calc(100vh - 390px);min-height:430px}
- .bubble{max-width:82%}
-}
-</style>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <meta
+    name="theme-color"
+    content="#08090d"
+  />
+
+  <meta
+    name="description"
+    content="NEXORA — chat, voice calls and multiplayer games."
+  />
+
+  <title>NEXORA</title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link
+    rel="stylesheet"
+    href="./style.css"
+  />
 </head>
+
 <body>
-<div id="app">
-<header class="top">
- <div class="logo">NEXORA</div>
- <nav class="nav">
-  <button data-view="home" class="active"><span>Home</span>⌂</button>
-  <button data-view="recent"><span>Recent</span>◌</button>
-  <button data-view="connect"><span>Connect</span>＋</button>
-  <button data-view="games"><span>Games</span>◈</button>
- </nav>
- <button class="profileBtn" id="profileBtn">
-  <span class="profileName" id="profileName">Guest</span>
-  <span class="avatar" id="topAvatar">N</span>
- </button>
-</header>
 
-<main class="main">
-
-<section id="view-home" class="view active">
- <div class="hero">
-  <div class="row between">
-   <div>
-    <p class="muted">Welcome back</p>
-    <h1 id="homeName">NEXORA</h1>
-    <p class="muted">Connect, talk and play.</p>
-   </div>
-   <div class="liveCount"><span class="online"></span><b id="liveCount">—</b> live</div>
-  </div>
- </div>
- <div class="grid">
-  <div class="card click" onclick="showView('recent')">
-   <div class="bigIcon">◌</div><h3>Recent</h3>
-   <p class="muted">Messages, calls, requests and game activity.</p>
-  </div>
-  <div class="card click" onclick="showView('connect')">
-   <div class="bigIcon">＋</div><h3>Connect</h3>
-   <p class="muted">Username or random connection.</p>
-  </div>
-  <div class="card click" onclick="showView('games')">
-   <div class="bigIcon">◈</div><h3>Games</h3>
-   <p class="muted">Play with friends, robots or random players.</p>
-  </div>
- </div>
- <div class="sectionTitle"><h2>Activity</h2></div>
- <div id="homeActivity" class="list"></div>
- <div class="footer">Powered by Sunil Kumar</div>
-</section>
-
-<section id="view-recent" class="view">
- <div class="row between">
-  <div><p class="muted">Your activity</p><h2>Recent</h2></div>
-  <div id="recentDot"></div>
- </div>
- <div class="tabs">
-  <button class="tab active" data-recent-tab="chats">Chats</button>
-  <button class="tab" data-recent-tab="calls">Calls</button>
-  <button class="tab" data-recent-tab="requests">Requests</button>
-  <button class="tab" data-recent-tab="activity">Activity</button>
- </div>
- <div id="recentContent"></div>
-</section>
-
-<section id="view-connect" class="view">
- <button class="secondary back" onclick="showView('home')">← Back</button>
- <h2>Connect</h2>
- <div class="grid">
-  <div class="card">
-   <div class="bigIcon">⌕</div><h3>Username</h3>
-   <p class="muted">Find someone directly.</p>
-   <input id="usernameSearch" placeholder="Enter username">
-   <div style="height:9px"></div>
-   <button class="primary" onclick="searchUsername()">Search</button>
-   <div id="usernameResult" style="margin-top:12px"></div>
-  </div>
-  <div class="card">
-   <div class="bigIcon">◎</div><h3>Random</h3>
-   <p class="muted">Meet someone who's live.</p>
-   <div class="actions">
-    <button class="primary" onclick="randomConnect('chat')">Chat</button>
-    <button class="secondary" onclick="randomConnect('call')">Call</button>
-   </div>
-  </div>
-  <div class="card">
-   <div class="bigIcon">♙</div><h3>Friends</h3>
-   <p class="muted">Your connected people.</p>
-   <div id="connectFriends" class="list"></div>
-  </div>
- </div>
-</section>
-
-<section id="view-games" class="view">
- <button class="secondary back" onclick="showView('home')">← Back</button>
- <div class="row between">
-  <div><p class="muted">Play</p><h2>Games</h2></div>
- </div>
- <div class="gameGrid">
-  <div class="card gameCard ludo">
-   <div><div class="bigIcon">🎲</div><h3>Ludo</h3><p class="muted">Classic multiplayer board.</p></div>
-   <button class="primary" onclick="openGameMenu('ludo')">Play</button>
-  </div>
-  <div class="card gameCard tic">
-   <div><div class="bigIcon">×</div><h3>Tic Tac Toe</h3><p class="muted">Quick match.</p></div>
-   <button class="primary" onclick="openGameMenu('tic')">Play</button>
-  </div>
-  <div class="card gameCard match">
-   <div><div class="bigIcon">▦</div><h3>4 Match</h3><p class="muted">Four in a row.</p></div>
-   <button class="primary" onclick="openGameMenu('match')">Play</button>
-  </div>
-  <div class="card gameCard coming">
-   <div><div class="bigIcon">♢</div><h3>UNO</h3><p class="muted">Coming Soon</p></div>
-   <button class="secondary" disabled>Coming Soon</button>
-  </div>
- </div>
-</section>
-
-<section id="view-chat" class="view">
- <button class="secondary back" onclick="showView(lastView || 'recent')">← Back</button>
- <div class="chatLayout">
-  <aside class="chatList">
-   <div class="chatSearch"><input id="chatSearch" placeholder="Search"></div>
-   <div id="chatItems" class="chatItems"></div>
-  </aside>
-  <div class="chatWindow">
-   <div id="chatHeader" class="chatHeader">
-    <div class="muted">Select a conversation</div>
-   </div>
-   <div id="messages" class="messages">
-    <div class="empty"><div><h3>Your messages</h3><p class="muted">Select a person to start chatting.</p></div></div>
-   </div>
-   <div class="composer">
-    <button class="iconBtn" title="Live photo" onclick="chooseLivePhoto()">＋</button>
-    <input id="messageInput" placeholder="Write a message…" disabled>
-    <button class="iconBtn" onclick="startCurrentCall()" id="chatCallBtn" disabled>☎</button>
-    <button class="primary" onclick="sendMessage()" id="sendBtn" disabled>Send</button>
-   </div>
-  </div>
- </div>
-</section>
-
-<section id="view-profile" class="view">
- <button class="secondary back" onclick="showView('home')">← Back</button>
- <div class="card profilePanel">
-  <div class="row">
-   <div class="avatar" id="profileAvatar">N</div>
-   <div><h2 id="profileDisplay">NEXORA User</h2><p class="muted" id="profileUsername">@user</p></div>
-  </div>
-  <hr style="border-color:var(--line);border-width:1px 0 0;margin:22px 0">
-  <label class="muted">Username</label>
-  <input id="editUsername" style="margin:7px 0 12px">
-  <label class="muted">Display name</label>
-  <input id="editDisplay" style="margin:7px 0 14px">
-  <button class="primary" onclick="saveProfile()">Save</button>
-  <button class="danger" style="margin-left:6px" onclick="logout()">Log out</button>
- </div>
-</section>
-
-</main>
-</div>
-
-<div id="modal" class="modal">
- <div class="modalBox">
-  <div id="modalContent"></div>
- </div>
-</div>
-
-<div id="callOverlay" class="callOverlay">
- <div class="callCard">
-  <p class="muted" id="callState">Incoming voice call</p>
-  <div class="callAvatar" id="callAvatar">N</div>
-  <h2 id="callName">NEXORA User</h2>
-  <div class="callTimer" id="callTimer">00:00</div>
-  <div id="incomingControls" class="callControls">
-   <button class="roundBtn end" onclick="declineIncoming()">✕</button>
-   <button class="roundBtn" onclick="acceptIncoming()">☎</button>
-  </div>
-  <div id="activeControls" class="callControls" style="display:none">
-   <button class="roundBtn" id="muteCallBtn" onclick="toggleCallMute()">🎙</button>
-   <button class="roundBtn end" onclick="endCall()">✕</button>
-  </div>
- </div>
-</div>
-
-<div id="toast" class="toast"></div>
-
-<input type="file" id="livePhotoInput" accept="image/*" capture="environment" hidden>
-
-<script>
-const SUPABASE_URL="https://ktwluvpmzisonmootdqc.supabase.co";
-const SUPABASE_KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-let me=null,profile=null,lastView="home",currentConversation=null,currentOther=null;
-let currentChannel=null,callId=null,callOther=null,callPeer=null,callStream=null,callRemote=null;
-let callStart=null,callTimerInterval=null,callMuted=false,recentTab="chats";
-let realtimeChannels=[];
-
-const $=id=>document.getElementById(id);
-function toast(t){$("toast").textContent=t;$("toast").classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>$("toast").classList.remove("show"),2600)}
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function initials(n){return (n||"N").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"N"}
-function fmtTime(v){if(!v)return"";return new Date(v).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}
-function fmtDuration(sec){sec=Math.max(0,Math.floor(sec||0));return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")}
-
-function showView(v){
- lastView=document.querySelector(".view.active")?.id?.replace("view-","")||lastView;
- document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
- const target=$("view-"+v);if(target)target.classList.add("active");
- document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
- window.scrollTo(0,0);
-}
-
-$("profileBtn").onclick=()=>showView("profile");
-
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
-
-document.querySelectorAll("[data-recent-tab]").forEach(b=>{
- b.onclick=()=>{recentTab=b.dataset.recentTab;document.querySelectorAll("[data-recent-tab]").forEach(x=>x.classList.toggle("active",x===b));loadRecent()}
-});
-
-$("chatSearch").oninput=()=>renderChatList(window.__chats||[]);
-
-$("messageInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}});
-
-async function boot(){
- const {data:{session}}=await db.auth.getSession();
- if(!session){
-   const {data,error}=await db.auth.signInAnonymously();
-   if(error){toast("Login failed");return}
-   me=data.user;
- }else me=session.user;
-
- await ensureProfile();
- setupRealtime();
- await refreshPresence(true);
- await loadRecent();
- await loadFriends();
- await loadLiveCount();
-}
-
-async function ensureProfile(){
- let {data,error}=await db.from("profiles").select("*").eq("id",me.id).maybeSingle();
- if(error){toast(error.message);return}
- if(!data){
-   const username="NX_"+me.id.replaceAll("-","").slice(0,8).toUpperCase();
-   const r=await db.from("profiles").insert({
-     id:me.id,username,display_name:"NEXORA User",is_guest:true,online:true
-   }).select().single();
-   data=r.data;
- }
- profile=data;
- updateProfileUI();
-}
-
-function updateProfileUI(){
- if(!profile)return;
- $("profileName").textContent=profile.display_name||profile.username;
- $("topAvatar").textContent=initials(profile.display_name||profile.username);
- $("homeName").textContent=profile.display_name||profile.username;
- $("profileAvatar").textContent=initials(profile.display_name||profile.username);
- $("profileDisplay").textContent=profile.display_name||profile.username;
- $("profileUsername").textContent="@"+profile.username;
- $("editUsername").value=profile.username;
- $("editDisplay").value=profile.display_name||"";
-}
-
-async function saveProfile(){
- const u=$("editUsername").value.trim().toLowerCase();
- const d=$("editDisplay").value.trim();
- if(!u)return toast("Username required");
- const {data,error}=await db.rpc("nexora_set_username",{new_username:u,new_display_name:d});
- if(error){toast(error.message);return}
- profile=data;updateProfileUI();toast("Profile updated");
-}
-
-async function logout(){
- await refreshPresence(false);
- await db.auth.signOut();
- location.reload();
-}
-
-async function refreshPresence(on){
- if(!me)return;
- await db.rpc("nexora_set_presence",{is_now_online:on}).catch(()=>{});
-}
-
-async function loadLiveCount(){
- const {count}=await db.from("profiles").select("id",{count:"exact",head:true}).eq("online",true);
- $("liveCount").textContent=count??0;
-}
-
-async function loadRecent(){
- if(recentTab==="chats")return loadChats();
- if(recentTab==="calls")return loadCalls();
- if(recentTab==="requests")return loadRequests();
- return loadActivity();
-}
-
-async function loadChats(){
- const {data,error}=await db.rpc("nexora_my_recent_chats");
- if(error){$("recentContent").innerHTML=`<div class="card">${esc(error.message)}</div>`;return}
- window.__chats=data||[];
- const unread=(data||[]).some(x=>Number(x.unread_count)>0);
- $("recentDot").innerHTML=unread?'<span class="dot"></span>':"";
- $("recentContent").innerHTML=(data||[]).length?`<div class="list">${
- data.map(c=>`
- <div class="listItem" onclick="openConversation('${c.conversation_id}','${c.other_id}')">
-  <div class="avatar">${esc(initials(c.other_display_name||c.other_username))}</div>
-  <div class="grow">
-   <div class="row between"><b>${esc(c.other_display_name||c.other_username)}</b>${Number(c.unread_count)>0?'<span class="dot"></span>':""}</div>
-   <div class="muted truncate">${esc(c.last_message||"No messages yet")}</div>
-  </div>
-  <small class="muted">${fmtTime(c.last_message_at)}</small>
- </div>`).join("")
- }</div>`:`<div class="card empty"><div><h3>No recent chats</h3><p class="muted">Start from Connect.</p></div></div>`;
-}
-
-function renderChatList(items){
- const q=($("chatSearch").value||"").toLowerCase();
- const filtered=(items||[]).filter(x=>(x.other_display_name||x.other_username||"").toLowerCase().includes(q));
- $("chatItems").innerHTML=filtered.length?filtered.map(c=>`
- <div class="listItem" onclick="openConversation('${c.conversation_id}','${c.other_id}')">
-  <div class="avatar">${esc(initials(c.other_display_name||c.other_username))}</div>
-  <div class="grow"><b class="truncate">${esc(c.other_display_name||c.other_username)}</b>
-  <div class="muted truncate">${esc(c.last_message||"Start chatting")}</div></div>
-  ${Number(c.unread_count)>0?'<span class="dot"></span>':""}
- </div>`).join(""):`<div class="empty"><div><p class="muted">No chats</p></div></div>`;
-}
-
-async function openConversation(cid,otherId){
- currentConversation=cid;
- const {data:p}=await db.from("profiles").select("*").eq("id",otherId).single();
- currentOther=p;
- showView("chat");
- $("chatHeader").innerHTML=`
- <div class="row between">
-  <div class="row">
-   <div class="avatar">${esc(initials(p?.display_name||p?.username))}</div>
-   <div><b>${esc(p?.display_name||p?.username)}</b>
-   <div class="muted">${p?.online?'<span class="online"></span> online':p?.last_seen?"last seen "+fmtTime(p.last_seen):"offline"}</div></div>
-  </div>
-  <div class="actions">
-   <button class="secondary" onclick="startCurrentCall()">☎ Call</button>
-  </div>
- </div>`;
- $("messageInput").disabled=false;$("sendBtn").disabled=false;$("chatCallBtn").disabled=false;
- await loadMessages();
- subscribeConversation();
-}
-
-async function loadMessages(){
- if(!currentConversation)return;
- const {data,error}=await db.from("messages").select("*").eq("conversation_id",currentConversation).order("created_at",{ascending:true});
- if(error){toast(error.message);return}
- renderMessages(data||[]);
- for(const m of data||[])if(m.sender_id!==me.id&&!m.read_at)await db.rpc("nexora_mark_message_read",{target_message:m.id}).catch(()=>{});
-}
-
-function renderMessages(data){
- const box=$("messages");
- if(!data.length){box.innerHTML='<div class="empty"><div><h3>Start the conversation</h3><p class="muted">Say hello.</p></div></div>';return}
- box.innerHTML=data.map(m=>`
- <div class="bubble ${m.sender_id===me.id?"mine":""}" oncontextmenu="deleteMessage('${m.id}');return false">
-  ${esc(m.message)}
-  <small>${fmtTime(m.created_at)} · <span onclick="deleteMessage('${m.id}')">Delete</span></small>
- </div>`).join("");
- box.scrollTop=box.scrollHeight;
-}
-
-async function sendMessage(){
- if(!currentConversation)return;
- const input=$("messageInput"),text=input.value.trim();
- if(!text)return;
- input.value="";
- const {error}=await db.rpc("nexora_send_message",{target_conversation:currentConversation,message_text:text});
- if(error){input.value=text;toast(error.message)}
-}
-
-async function deleteMessage(id){
- if(!confirm("Delete this message for everyone?"))return;
- const {error}=await db.rpc("nexora_delete_message",{target_message:id});
- if(error)toast(error.message);
- else loadMessages();
-}
-
-function chooseLivePhoto(){
- $("livePhotoInput").click();
-}
-$("livePhotoInput").onchange=async e=>{
- const file=e.target.files?.[0];
- if(!file||!currentConversation)return;
- /*
-   Live-only photo:
-   no Supabase Storage upload.
-   It is sent through the current realtime conversation channel.
- */
- if(!currentChannel){toast("Chat connection unavailable");return}
- const reader=new FileReader();
- reader.onload=()=>currentChannel.send({
-  type:"broadcast",event:"live-photo",
-  payload:{sender:me.id,name:file.name,data:reader.result}
- }).then(()=>toast("Photo sent"));
- reader.readAsDataURL(file);
- e.target.value="";
-};
-
-function subscribeConversation(){
- if(currentChannel)db.removeChannel(currentChannel);
- currentChannel=db.channel("dm-"+currentConversation);
- currentChannel.on("broadcast",{event:"live-photo"},({payload})=>{
-   if(payload.sender===me.id)return;
-   const win=window.open();
-   if(win){win.document.write(`<img src="${payload.data}" style="max-width:100%">`)}
-   else toast("Live photo received");
- }).on("postgres_changes",{
-   event:"*",schema:"public",table:"messages",filter:`conversation_id=eq.${currentConversation}`
- },()=>loadMessages()).subscribe();
-}
-
-async function searchUsername(){
- const q=$("usernameSearch").value.trim();
- if(!q)return;
- const {data,error}=await db.from("profiles").select("id,username,display_name,avatar_url,online,last_seen").ilike("username",q).neq("id",me.id).limit(1);
- if(error){toast(error.message);return}
- const p=data?.[0];
- $("usernameResult").innerHTML=p?`
- <div class="listItem">
-  <div class="avatar">${esc(initials(p.display_name||p.username))}</div>
-  <div class="grow"><b>${esc(p.display_name||p.username)}</b><div class="muted">@${esc(p.username)}</div></div>
-  <div class="actions">
-   <button class="secondary" onclick="sendFriend('${p.username}')">Request</button>
-   <button class="secondary" onclick="startDM('${p.username}')">Text</button>
-   <button class="primary" onclick="callUsername('${p.username}')">Call</button>
-  </div>
- </div>`:`<div class="card"><p class="muted">User not found.</p></div>`;
-}
-
-async function sendFriend(username){
- const {error}=await db.rpc("nexora_send_friend_request",{target_username:username});
- toast(error?error.message:"Request sent");
-}
-
-async function startDM(username){
- const {data,error}=await db.rpc("nexora_get_or_create_dm",{target_username:username});
- if(error){toast(error.message);return}
- const {data:p}=await db.from("profiles").select("id").eq("username",username).maybeSingle();
- openConversation(data,p?.id);
-}
-
-async function callUsername(username){
- const {data,error}=await db.rpc("nexora_start_call",{target_username:username,call_kind:"voice"});
- if(error){toast(error.message);return}
- callId=data.call_id;
- const {data:p}=await db.from("profiles").select("*").eq("username",username).single();
- callOther=p;
- await startCallerWebRTC();
-}
-
-async function startCurrentCall(){
- if(!currentOther)return;
- await callUsername(currentOther.username);
-}
-
-async function randomConnect(kind){
- const {data,error}=await db.from("profiles").select("*").eq("online",true).neq("id",me.id).limit(20);
- if(error||!data?.length){toast("Nobody is live right now");return}
- const p=data[Math.floor(Math.random()*data.length)];
- if(kind==="chat")return startDM(p.username);
- return callUsername(p.username);
-}
-
-async function loadFriends(){
- const {data}=await db.from("friendships").select("*").or(`requester_id.eq.${me.id},addressee_id.eq.${me.id}`).eq("status","accepted");
- const ids=(data||[]).map(x=>x.requester_id===me.id?x.addressee_id:x.requester_id);
- let people=[];
- if(ids.length){const r=await db.from("profiles").select("*").in("id",ids);people=r.data||[]}
- const html=people.length?people.map(p=>`
- <div class="listItem">
-  <div class="avatar">${esc(initials(p.display_name||p.username))}</div>
-  <div class="grow"><b>${esc(p.display_name||p.username)}</b><div class="muted">${p.online?"online":"offline"}</div></div>
-  <button class="secondary" onclick="startDM('${p.username}')">Text</button>
-  <button class="secondary" onclick="callUsername('${p.username}')">Call</button>
- </div>`).join(""):`<div class="muted">No friends yet.</div>`;
- $("connectFriends").innerHTML=html;
-}
-
-async function loadCalls(){
- const {data,error}=await db.rpc("nexora_call_history");
- if(error){$("recentContent").innerHTML=`<div class="card">${esc(error.message)}</div>`;return}
- $("recentContent").innerHTML=data?.length?`<div class="list">${data.map(c=>`
- <div class="listItem">
-  <div class="avatar">${esc(initials(c.other_display_name||c.other_username))}</div>
-  <div class="grow"><b>${esc(c.other_display_name||c.other_username)}</b>
-   <div class="muted">${esc(c.status)} · ${fmtDuration(c.duration_seconds)}</div>
-  </div>
-  <small class="muted">${fmtTime(c.created_at)}</small>
-  <button class="danger" onclick="deleteCall('${c.call_id}')">Delete</button>
- </div>`).join("")}</div>`:
- `<div class="card empty"><div><h3>No call history</h3></div></div>`;
-}
-
-async function deleteCall(id){
- const {error}=await db.rpc("nexora_delete_call",{target_call:id});
- if(error)toast(error.message);else loadCalls();
-}
-
-async function loadRequests(){
- const {data}=await db.from("friendships").select("*").eq("addressee_id",me.id).eq("status","pending").order("created_at",{ascending:false});
- const ids=(data||[]).map(x=>x.requester_id);
- let people=[];
- if(ids.length){const r=await db.from("profiles").select("*").in("id",ids);people=r.data||[]}
- $("recentContent").innerHTML=people.length?`<div class="list">${people.map(p=>{
- const f=data.find(x=>x.requester_id===p.id);
- return `<div class="listItem"><div class="avatar">${esc(initials(p.display_name||p.username))}</div>
- <div class="grow"><b>${esc(p.display_name||p.username)}</b><div class="muted">@${esc(p.username)}</div></div>
- <button class="primary" onclick="friendDecision('${f.id}','accepted')">Accept</button>
- <button class="danger" onclick="friendDecision('${f.id}','rejected')">Decline</button></div>`
- }).join("")}</div>`:`<div class="card empty"><div><h3>No requests</h3></div></div>`;
-}
-
-async function friendDecision(id,status){
- const {error}=await db.rpc("nexora_update_friend_request",{target_friendship:id,new_status:status});
- if(error)toast(error.message);else{toast(status==="accepted"?"Friend added":"Request declined");loadRequests();loadFriends()}
-}
-
-async function loadActivity(){
- const {data}=await db.from("notifications").select("*").eq("user_id",me.id).order("created_at",{ascending:false}).limit(40);
- $("recentContent").innerHTML=data?.length?`<div class="list">${data.map(n=>`
- <div class="listItem" onclick="readNotification('${n.id}')">
-  <span class="${n.is_read?"badge":"dot"}"></span>
-  <div class="grow"><b>${esc(n.title)}</b><div class="muted">${esc(n.body||"")}</div></div>
-  <small class="muted">${fmtTime(n.created_at)}</small>
- </div>`).join("")}</div>`:`<div class="card empty"><div><h3>Nothing new</h3></div></div>`;
-}
-
-async function readNotification(id){
- await db.rpc("nexora_mark_notification_read",{target_notification:id}).catch(()=>{});
- loadActivity();
-}
-
-function setupRealtime(){
- const global=db.channel("nexora-global-"+me.id);
- global.on("postgres_changes",{event:"*",schema:"public",table:"calls",filter:`receiver_id=eq.${me.id}`},payload=>{
-   if(payload.eventType==="INSERT"&&payload.new.status==="ringing")incomingCall(payload.new);
-   if(payload.eventType==="UPDATE"&&payload.new.id===callId&&payload.new.status==="accepted")finishCallerConnected();
-   if(payload.new?.id===callId&&["ended","declined","cancelled"].includes(payload.new.status))closeCallUI();
- }).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:`user_id=eq.${me.id}`},()=>loadRecent()).subscribe();
- realtimeChannels.push(global);
-
- const presence=db.channel("nexora-presence",{config:{presence:{key:me.id}}});
- presence.on("presence",{event:"sync"},loadLiveCount).subscribe();
- realtimeChannels.push(presence);
-}
-
-async function incomingCall(c){
- if(callId)return;
- callId=c.id;
- const {data:p}=await db.from("profiles").select("*").eq("id",c.caller_id).single();
- callOther=p;
- $("callState").textContent="Incoming voice call";
- $("callName").textContent=p?.display_name||p?.username||"NEXORA User";
- $("callAvatar").textContent=initials(p?.display_name||p?.username);
- $("callTimer").textContent="Incoming";
- $("incomingControls").style.display="flex";
- $("activeControls").style.display="none";
- $("callOverlay").classList.add("show");
- playRing();
- subscribeCallChannel();
-}
-
-let ringAudio;
-function playRing(){
- try{
-  ringAudio=new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
-  ringAudio.loop=true;ringAudio.play().catch(()=>{});
- }catch{}
-}
-function stopRing(){if(ringAudio){ringAudio.pause();ringAudio=null}}
-
-async function acceptIncoming(){
- stopRing();
- const {error}=await db.rpc("nexora_update_call",{target_call:callId,new_status:"accepted"});
- if(error){toast(error.message);return}
- await startReceiverWebRTC();
-}
-
-async function declineIncoming(){
- stopRing();
- await db.rpc("nexora_update_call",{target_call:callId,new_status:"declined"}).catch(()=>{});
- closeCallUI();
-}
-
-async function startCallerWebRTC(){
- $("callState").textContent="Calling…";
- $("callName").textContent=callOther?.display_name||callOther?.username||"NEXORA User";
- $("callAvatar").textContent=initials(callOther?.display_name||callOther?.username);
- $("incomingControls").style.display="none";
- $("activeControls").style.display="flex";
- $("callTimer").textContent="Connecting…";
- $("callOverlay").classList.add("show");
- subscribeCallChannel();
- try{
-  callStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
-  callPeer=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-  callStream.getTracks().forEach(t=>callPeer.addTrack(t,callStream));
-  callPeer.onicecandidate=e=>{if(e.candidate)callChannel?.send({type:"broadcast",event:"ice",payload:{from:me.id,candidate:e.candidate}})};
-  callPeer.ontrack=e=>{callRemote.srcObject=e.streams[0]};
-  const offer=await callPeer.createOffer();
-  await callPeer.setLocalDescription(offer);
-  callChannel?.send({type:"broadcast",event:"offer",payload:{from:me.id,offer}});
- }catch(e){toast("Microphone permission required")}
-}
-
-let callChannel;
-function subscribeCallChannel(){
- if(callChannel)db.removeChannel(callChannel);
- callChannel=db.channel("call-"+callId);
- callChannel.on("broadcast",{event:"offer"},async({payload})=>{
-  if(payload.from===me.id)return;
-  if(!callPeer)return;
-  await callPeer.setRemoteDescription(payload.offer);
-  const answer=await callPeer.createAnswer();
-  await callPeer.setLocalDescription(answer);
-  callChannel.send({type:"broadcast",event:"answer",payload:{from:me.id,answer}});
- }).on("broadcast",{event:"answer"},async({payload})=>{
-  if(payload.from===me.id||!callPeer)return;
-  await callPeer.setRemoteDescription(payload.answer);
-  finishCallerConnected();
- }).on("broadcast",{event:"ice"},async({payload})=>{
-  if(payload.from===me.id||!callPeer)return;
-  try{await callPeer.addIceCandidate(payload.candidate)}catch{}
- }).subscribe();
-}
-
-async function startReceiverWebRTC(){
- $("callState").textContent="Connecting…";
- $("incomingControls").style.display="none";
- $("activeControls").style.display="flex";
- try{
-  callStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
-  callPeer=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-  callStream.getTracks().forEach(t=>callPeer.addTrack(t,callStream));
-  callPeer.onicecandidate=e=>{if(e.candidate)callChannel?.send({type:"broadcast",event:"ice",payload:{from:me.id,candidate:e.candidate}})};
-  callPeer.ontrack=e=>{if(callRemote)callRemote.srcObject=e.streams[0]};
-  $("callTimer").textContent="00:00";
- }catch{toast("Microphone permission required")}
-}
-
-function finishCallerConnected(){
- startTimer();
- $("callState").textContent="Connected";
-}
-function startTimer(){
- if(callTimerInterval)clearInterval(callTimerInterval);
- callStart=callStart||Date.now();
- callTimerInterval=setInterval(()=>{$("callTimer").textContent=fmtDuration((Date.now()-callStart)/1000)},1000);
-}
-async function toggleCallMute(){
- callMuted=!callMuted;
- callStream?.getAudioTracks().forEach(t=>t.enabled=!callMuted);
- $("muteCallBtn").textContent=callMuted?"🔇":"🎙";
-}
-async function endCall(){
- if(callId)await db.rpc("nexora_update_call",{target_call:callId,new_status:"ended"}).catch(()=>{});
- closeCallUI();
-}
-function closeCallUI(){
- stopRing();
- if(callTimerInterval)clearInterval(callTimerInterval);
- callTimerInterval=null;callStart=null;
- callStream?.getTracks().forEach(t=>t.stop());callStream=null;
- callPeer?.close();callPeer=null;
- if(callChannel)db.removeChannel(callChannel);callChannel=null;
- $("callOverlay").classList.remove("show");
- $("incomingControls").style.display="flex";
- $("activeControls").style.display="none";
- callId=null;callOther=null;
- loadCalls();
-}
-
-window.addEventListener("beforeunload",()=>refreshPresence(false));
-boot();
-</script>
-/* =========================================================
-   NEXORA GAMES
-   LUDO • TIC TAC TOE • 4 MATCH
-   ========================================================= */
-
-const GAME_COLORS={
- red:"#ef5350",
- green:"#42c77a",
- yellow:"#f3c84b",
- blue:"#5578ff"
-};
-
-let activeGame=null;
-let ludo=null;
-let tic=null;
-let match4=null;
-
-function closeModal(){
- $("modal").classList.remove("show");
- $("modalContent").innerHTML="";
-}
-
-function openGameMenu(game){
- activeGame=game;
-
- const title=game==="ludo"?"Ludo":game==="tic"?"Tic Tac Toe":"4 Match";
-
- $("modalContent").innerHTML=`
-  <div class="row between">
-   <div><p class="muted">Game</p><h2>${title}</h2></div>
-   <button class="iconBtn" onclick="closeModal()">✕</button>
+  <div id="app-loader">
+    <div class="loader-mark">N</div>
+    <div class="loader-spinner"></div>
+    <p>Starting NEXORA</p>
   </div>
 
-  <div class="grid" style="grid-template-columns:1fr 1fr">
-   <button class="card click" onclick="startGameMode('friend')">
-    <div class="bigIcon">♙</div><h3>With Friends</h3>
-   </button>
-
-   <button class="card click" onclick="startGameMode('robot')">
-    <div class="bigIcon">◉</div><h3>With Robot</h3>
-   </button>
-
-   <button class="card click" onclick="startGameMode('random')">
-    <div class="bigIcon">◎</div><h3>With Random</h3>
-   </button>
-
-   <button class="card click" onclick="startGameMode('local')">
-    <div class="bigIcon">＋</div><h3>Local</h3>
-   </button>
-  </div>
- `;
-
- $("modal").classList.add("show");
-}
-
-function startGameMode(mode){
- if(activeGame==="ludo"){
-  if(mode==="robot"){
-   closeModal();
-   startLudoRobot();
-   return;
-  }
-
-  if(mode==="local"){
-   closeModal();
-   startLudoLocal();
-   return;
-  }
-
-  showGameConnection(mode);
-  return;
- }
-
- closeModal();
-
- if(activeGame==="tic")startTic(mode);
- if(activeGame==="match")startMatch(mode);
-}
-
-function showGameConnection(mode){
- $("modalContent").innerHTML=`
-  <div class="row between">
-   <h2>${mode==="friend"?"With Friends":"With Random"}</h2>
-   <button class="iconBtn" onclick="closeModal()">✕</button>
-  </div>
-
-  <div class="card">
-   <p class="muted">
-    ${mode==="friend"
-      ?"Choose a friend to start."
-      :"Find a live player automatically."}
-   </p>
-
-   <div id="gamePeople" class="list"></div>
-  </div>
-
-  <button class="secondary" style="margin-top:12px" onclick="closeModal()">Back</button>
- `;
-
- $("modal").classList.add("show");
- loadGamePeople(mode);
-}
-
-async function loadGamePeople(mode){
- const box=$("gamePeople");
-
- if(mode==="random"){
-  const {data}=await db.from("profiles")
-    .select("*")
-    .eq("online",true)
-    .neq("id",me.id)
-    .limit(30);
-
-  box.innerHTML=data?.length
-   ?data.map(p=>gamePersonRow(p)).join("")
-   :`<div class="muted">No live players right now.</div>`;
-
-  return;
- }
-
- const {data:f}=await db.from("friendships")
-  .select("*")
-  .or(`requester_id.eq.${me.id},addressee_id.eq.${me.id}`)
-  .eq("status","accepted");
-
- const ids=(f||[]).map(x=>x.requester_id===me.id?x.addressee_id:x.requester_id);
-
- if(!ids.length){
-  box.innerHTML=`<div class="muted">No friends yet.</div>`;
-  return;
- }
-
- const {data}=await db.from("profiles").select("*").in("id",ids);
-
- box.innerHTML=(data||[]).map(p=>gamePersonRow(p)).join("");
-}
-
-function gamePersonRow(p){
- return `
-  <div class="listItem">
-   <div class="avatar">${esc(initials(p.display_name||p.username))}</div>
-   <div class="grow">
-    <b>${esc(p.display_name||p.username)}</b>
-    <div class="muted">${p.online?"online":"offline"}</div>
-   </div>
-
-   <button class="primary"
-    onclick="createOnlineGame('ludo','${p.id}')">
-    Play
-   </button>
-  </div>
- `;
-}
-
-
-/* =========================================================
-   ONLINE ROOM
-   ========================================================= */
-
-async function createOnlineGame(gameType,targetUser){
- const roomCode="NX"+Math.random().toString(36).slice(2,8).toUpperCase();
-
- const {data:room,error}=await db.from("game_rooms").insert({
-  game_type:gameType==="ludo"?"ludo":"tic_tac_toe",
-  room_code:roomCode,
-  host_id:me.id,
-  status:"waiting",
-  max_players:gameType==="ludo"?4:2
- }).select().single();
-
- if(error){
-  toast(error.message);
-  return;
- }
-
- await db.from("game_players").insert({
-  room_id:room.id,
-  user_id:me.id,
-  player_number:1
- });
-
- if(targetUser){
-  await db.from("notifications").insert({
-   user_id:targetUser,
-   type:"game_invite",
-   title:"Game invite",
-   body:`${profile.display_name||profile.username} invited you to play`,
-   data:{
-    room_id:room.id,
-    room_code:room.room_code,
-    game_type:gameType
-   }
-  });
- }
-
- closeModal();
-
- if(gameType==="ludo"){
-  startLudoOnline(room.id,room.room_code);
- }else{
-  startTicOnline(room.id,room.room_code);
- }
-}
-
-
-/* =========================================================
-   LUDO
-   ========================================================= */
-
-const LUDO_PATH=[
- [6,13],[6,12],[6,11],[6,10],[6,9],[5,8],[4,8],[3,8],[2,8],[1,8],
- [0,8],[0,7],[0,6],
- [1,6],[2,6],[3,6],[4,6],[5,6],
- [6,5],[6,4],[6,3],[6,2],[6,1],[6,0],
- [7,0],[8,0],
- [8,1],[8,2],[8,3],[8,4],[8,5],
- [9,6],[10,6],[11,6],[12,6],[13,6],
- [14,6],[14,7],[14,8],
- [13,8],[12,8],[11,8],[10,8],[9,8],
- [8,9],[8,10],[8,11],[8,12],[8,13],
- [8,14],[7,14],[6,14]
-];
-
-const START_INDEX={
- red:0,
- green:13,
- yellow:26,
- blue:39
-};
-
-const SAFE_INDEX=new Set([
- 0,8,13,21,26,34,39,47
-]);
-
-const HOME_LANES={
- red:[[7,1],[7,2],[7,3],[7,4],[7,5]],
- green:[[1,7],[2,7],[3,7],[4,7],[5,7]],
- yellow:[[7,13],[7,12],[7,11],[7,10],[7,9]],
- blue:[[13,7],[12,7],[11,7],[10,7],[9,7]]
-};
-
-const BASES={
- red:[[2,2],[4,2],[2,4],[4,4]],
- green:[[10,2],[12,2],[10,4],[12,4]],
- yellow:[[10,10],[12,10],[10,12],[12,12]],
- blue:[[2,10],[4,10],[2,12],[4,12]]
-};
-
-const COLORS=["red","green","yellow","blue"];
-
-function startLudoLocal(){
- ludo=createLudoState(["red","green"]);
- renderLudo();
-}
-
-function startLudoRobot(){
- ludo=createLudoState(["red","green"]);
- ludo.robot=true;
- ludo.level=Number(prompt("Robot level 1-10","5"))||5;
- ludo.level=Math.max(1,Math.min(10,ludo.level));
- renderLudo();
-}
-
-function createLudoState(players){
- return {
-  players,
-  turn:0,
-  dice:null,
-  rolled:false,
-  winner:null,
-  sixCount:0,
-  tokens:{},
-  robot:false,
-  level:5
- };
-}
-
-function initLudoTokens(){
- for(const c of COLORS){
-  ludo.tokens[c]=[-1,-1,-1,-1];
- }
-}
-
-function startLudoState(){
- if(!ludo.tokens.red)initLudoTokens();
-}
-
-function ludoAbsolute(color,step){
- if(step<0||step>56)return null;
- return (START_INDEX[color]+step)%52;
-}
-
-function canMoveToken(color,idx,dice){
- const step=ludo.tokens[color][idx];
- if(step===57)return false;
- if(step===-1)return dice===6;
- return step+dice<=57;
-}
-
-function moveToken(color,idx,dice){
- let step=ludo.tokens[color][idx];
-
- if(step===-1){
-  ludo.tokens[color][idx]=0;
- }else{
-  ludo.tokens[color][idx]+=dice;
- }
-
- const newStep=ludo.tokens[color][idx];
-
- if(newStep<52){
-  const abs=ludoAbsolute(color,newStep);
-
-  for(const opponent of ludo.players){
-   if(opponent===color)continue;
-
-   for(let i=0;i<4;i++){
-    const os=ludo.tokens[opponent][i];
-    if(os<0||os>=52)continue;
-
-    const oa=ludoAbsolute(opponent,os);
-
-    if(oa===abs&&!SAFE_INDEX.has(abs)){
-     ludo.tokens[opponent][i]=-1;
-    }
-   }
-  }
- }
-
- const won=ludo.tokens[color].every(x=>x===57);
-
- if(won)ludo.winner=color;
-}
-
-function legalMoves(color,dice){
- const a=[];
- for(let i=0;i<4;i++){
-  if(canMoveToken(color,i,dice))a.push(i);
- }
- return a;
-}
-
-function rollLudo(){
- if(!ludo||ludo.winner)return;
- if(ludo.rolled)return;
-
- const color=ludo.players[ludo.turn];
-
- ludo.dice=Math.floor(Math.random()*6)+1;
- ludo.rolled=true;
-
- const moves=legalMoves(color,ludo.dice);
-
- if(!moves.length){
-  setTimeout(()=>{
-   if(ludo.dice===6){
-    ludo.sixCount++;
-   }else{
-    nextLudoTurn();
-   }
-   ludo.rolled=false;
-   renderLudo();
-  },650);
-
-  renderLudo();
-  return;
- }
-
- renderLudo();
-
- if(ludo.robot&&color==="green"){
-  setTimeout(()=>robotMove(),700);
- }
-}
-
-function chooseLudoToken(i){
- if(!ludo?.rolled||ludo.winner)return;
-
- const color=ludo.players[ludo.turn];
-
- if(ludo.robot&&color==="green")return;
-
- if(!canMoveToken(color,i,ludo.dice))return;
-
- moveToken(color,i,ludo.dice);
-
- const extra=ludo.dice===6;
-
- ludo.rolled=false;
-
- if(!ludo.winner&&!extra){
-  nextLudoTurn();
- }
-
- renderLudo();
-
- if(ludo.robot&&ludo.players[ludo.turn]==="green"){
-  setTimeout(()=>{
-   if(!ludo.rolled)rollLudo();
-  },650);
- }
-}
-
-function nextLudoTurn(){
- ludo.turn=(ludo.turn+1)%ludo.players.length;
- ludo.dice=null;
- ludo.rolled=false;
-
- if(ludo.dice===6)ludo.sixCount++;
-}
-
-function robotMove(){
- if(!ludo||ludo.winner)return;
-
- const color=ludo.players[ludo.turn];
-
- if(color!=="green")return;
-
- const moves=legalMoves(color,ludo.dice);
-
- if(!moves.length){
-  ludo.rolled=false;
-  nextLudoTurn();
-  renderLudo();
-  return;
- }
-
- let chosen=moves[0];
-
- if(ludo.level>=3){
-  const captures=moves.filter(i=>{
-   const s=ludo.tokens[color][i];
-   const target=s===-1?0:s+ludo.dice;
-   if(target>=52)return false;
-
-   const abs=ludoAbsolute(color,target);
-
-   return [...ludo.players]
-    .filter(x=>x!==color)
-    .some(o=>ludo.tokens[o].some(os=>os>=0&&os<52&&ludoAbsolute(o,os)===abs&&!SAFE_INDEX.has(abs)));
-  });
-
-  if(captures.length)chosen=captures[0];
- }
-
- if(ludo.level>=5){
-  const homes=moves.filter(i=>{
-   const s=ludo.tokens[color][i];
-   return s>=0&&s+ludo.dice===57;
-  });
-
-  if(homes.length)chosen=homes[0];
- }
-
- if(ludo.level>=7){
-  const max=moves.reduce((best,i)=>{
-   const s=ludo.tokens[color][i];
-   return (s+(s===-1?1:ludo.dice))>(ludo.tokens[color][best]+1)?i:best;
-  },moves[0]);
-  chosen=max;
- }
-
- moveToken(color,chosen,ludo.dice);
-
- const extra=ludo.dice===6;
-
- ludo.rolled=false;
-
- if(!ludo.winner&&!extra)nextLudoTurn();
-
- renderLudo();
-
- if(!ludo.winner&&ludo.players[ludo.turn]==="green"){
-  setTimeout(rollLudo,700);
- }
-}
-
-function ludoCellContent(r,c){
- for(const color of COLORS){
-  for(let i=0;i<4;i++){
-   const step=ludo.tokens[color]?.[i];
-
-   if(step>=0&&step<52){
-    const abs=ludoAbsolute(color,step);
-    const pos=LUDO_PATH[abs];
-
-    if(pos&&pos[0]===r&&pos[1]===c){
-     return `<span class="pawn" style="background:${GAME_COLORS[color]}"></span>`;
-    }
-   }
-
-   if(step>=52&&step<57){
-    const lane=HOME_LANES[color][step-52];
-    if(lane&&lane[0]===r&&lane[1]===c){
-     return `<span class="pawn" style="background:${GAME_COLORS[color]}"></span>`;
-    }
-   }
-  }
- }
-
- return "";
-}
-
-function renderLudo(){
- startLudoState();
-
- const color=ludo.players[ludo.turn];
-
- $("modalContent").innerHTML=`
- <style>
- .ludoWrap{background:#090c11;border-radius:22px;padding:12px}
- .ludoBoard{
-  width:min(100%,560px);aspect-ratio:1;margin:auto;
-  display:grid;grid-template-columns:repeat(15,1fr);
-  grid-template-rows:repeat(15,1fr);
-  border:5px solid #272d38;border-radius:12px;overflow:hidden;background:#f4f4f0;
- }
- .lc{position:relative;border:1px solid #c9c9c4;background:#fafaf7;display:grid;place-items:center}
- .lr{background:#ef5350}.lg{background:#43c77a}.ly{background:#f1ca4b}.lb{background:#5b79ef}
- .laneR{background:#ffb3b0}.laneG{background:#a9e7c2}.laneY{background:#f6e39b}.laneB{background:#aabaf2}
- .center{background:conic-gradient(#ef5350 0 25%,#43c77a 25% 50%,#f1ca4b 50% 75%,#5b79ef 75%);border:0}
- .base{position:absolute;inset:13%;border-radius:16px;background:#fff;border:3px solid rgba(0,0,0,.12)}
- .pawn{width:72%;height:72%;border-radius:50%;border:3px solid rgba(255,255,255,.75);box-shadow:0 3px 5px #0006;z-index:3}
- .star:after{content:"★";font-size:14px;color:#6b7280}
- .ludoTop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
- .die{width:62px;height:62px;border-radius:15px;background:#fff;color:#111;display:grid;place-items:center;font-size:30px;font-weight:900;box-shadow:0 8px 20px #0006}
- .ludoInfo{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
- .ludoPlayers{display:flex;gap:6px;flex-wrap:wrap}
- .lp{padding:7px 10px;border-radius:10px;background:#161c25;border:1px solid #29303c;font-size:12px}
- .lp.active{outline:2px solid #6876ff}
- </style>
-
- <div class="row between">
-  <div><p class="muted">Game</p><h2>Ludo</h2></div>
-  <button class="iconBtn" onclick="closeModal()">✕</button>
- </div>
-
- <div class="ludoTop">
-  <div>
-   <div class="ludoPlayers">
-    ${ludo.players.map((p,i)=>`
-     <span class="lp ${i===ludo.turn?"active":""}">
-      ${p==="red"?"🔴":p==="green"?"🟢":p==="yellow"?"🟡":"🔵"}
-      ${p==="green"&&ludo.robot?"Robot":"Player"}
-     </span>`).join("")}
-   </div>
-   <p class="muted" style="margin:8px 0 0">
-    ${ludo.winner?`${ludo.winner.toUpperCase()} wins`:color==="green"&&ludo.robot?"Robot's turn":`${color.toUpperCase()}'s turn`}
-   </p>
-  </div>
-
-  <div class="die">${ludo.dice||"⚄"}</div>
- </div>
-
- <div class="ludoWrap">
-  <div class="ludoBoard" id="ludoBoard"></div>
- </div>
-
- <div class="ludoInfo" style="margin-top:12px">
-  <button class="primary" ${ludo.rolled||ludo.winner||color==="green"&&ludo.robot?"disabled":""}
-   onclick="rollLudo()">Roll Dice</button>
-  <button class="secondary" onclick="gameTools('Ludo')">Text · Call · Voice</button>
- </div>
-
- <div class="muted" style="font-size:11px;margin-top:10px">
-  Six brings a token out. Stars are safe. Cut opponents on unsafe cells. Reach home with all four tokens to win.
- </div>
- `;
-
- const board=$("ludoBoard");
-
- for(let r=0;r<15;r++){
-  for(let c=0;c<15;c++){
-
-   let cls="lc";
-
-   if(r<6&&c<6)cls+=" lr";
-   if(r<6&&c>8)cls+=" lg";
-   if(r>8&&c<6)cls+=" lb";
-   if(r>8&&c>8)cls+=" ly";
-
-   if(r===7&&c>=1&&c<=5)cls+=" laneR";
-   if(c===7&&r>=1&&r<=5)cls+=" laneG";
-   if(r===7&&c>=9&&c<=13)cls+=" laneY";
-   if(c===7&&r>=9&&r<=13)cls+=" laneB";
-
-   if(r>=6&&r<=8&&c>=6&&c<=8)cls+=" center";
-
-   const pathIndex=LUDO_PATH.findIndex(x=>x[0]===r&&x[1]===c);
-   if(SAFE_INDEX.has(pathIndex))cls+=" star";
-
-   let inside="";
-
-   if(
-    (r===1&&c===1)||(r===1&&c===4)||
-    (r===4&&c===1)||(r===4&&c===4)
-   ){
-    inside='<span class="base"></span>';
-   }
-
-   if(
-    (r===1&&c===10)||(r===1&&c===13)||
-    (r===4&&c===10)||(r===4&&c===13)
-   ){
-    inside='<span class="base"></span>';
-   }
-
-   if(
-    (r===10&&c===1)||(r===10&&c===4)||
-    (r===13&&c===1)||(r===13&&c===4)
-   ){
-    inside='<span class="base"></span>';
-   }
-
-   if(
-    (r===10&&c===10)||(r===10&&c===13)||
-    (r===13&&c===10)||(r===13&&c===13)
-   ){
-    inside='<span class="base"></span>';
-   }
-
-   const token=ludoCellContent(r,c);
-
-   board.insertAdjacentHTML("beforeend",
-    `<div class="${cls}">${inside}${token}</div>`
-   );
-  }
- }
-
- board.querySelectorAll(".pawn").forEach((p)=>{
-  p.onclick=()=>{
-   const colorNow=ludo.players[ludo.turn];
-   const nodes=[...board.querySelectorAll(".pawn")];
-   const idx=nodes.indexOf(p)%4;
-   chooseLudoToken(idx);
-  };
- });
-}
-
-
-/* =========================================================
-   GAME TOOLS
-   ========================================================= */
-
-function gameTools(gameName){
- $("modalContent").innerHTML=`
-  <div class="row between">
-   <h2>${gameName}</h2>
-   <button class="iconBtn" onclick="closeModal()">✕</button>
-  </div>
-
-  <div class="list">
-   <button class="card click" onclick="gameText()">
-    <b>Text</b>
-    <span class="muted">Open game chat</span>
-   </button>
-
-   <button class="card click" onclick="gameCall()">
-    <b>Call</b>
-    <span class="muted">Voice call</span>
-   </button>
-
-   <div class="card">
-    <b>Voice</b>
-    <p class="muted">Choose who you hear.</p>
-    <div class="actions">
-     <button class="secondary">All</button>
-     <button class="secondary">Player 1</button>
-     <button class="secondary">Player 2</button>
-     <button class="secondary">Player 3</button>
+  <div id="app-error" class="app-error hidden">
+    <div class="error-card">
+      <div class="error-icon">!</div>
+
+      <h1>Something went wrong</h1>
+
+      <p id="error-message">
+        NEXORA could not load this screen.
+      </p>
+
+      <button
+        id="error-reload"
+        class="primary-button"
+        type="button"
+      >
+        Reload
+      </button>
     </div>
-   </div>
+  </div>
 
-   <div class="card">
-    <b>Mute</b>
-    <p class="muted">Choose who hears you.</p>
-    <div class="actions">
-     <button class="secondary">Everyone</button>
-     <button class="secondary">Player 1</button>
-     <button class="secondary">Player 2</button>
-     <button class="secondary">Player 3</button>
+  <div id="auth-screen" class="screen hidden">
+
+    <div class="auth-card">
+
+      <div class="brand-large">
+        <span>N</span>
+        <strong>NEXORA</strong>
+      </div>
+
+      <p class="auth-subtitle">
+        Chat. Call. Play.
+      </p>
+
+      <div
+        id="auth-message"
+        class="message-box hidden"
+      ></div>
+
+      <form id="login-form">
+
+        <label>
+          Email
+          <input
+            id="email-input"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          />
+        </label>
+
+        <label>
+          Password
+          <input
+            id="password-input"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Password"
+            required
+          />
+        </label>
+
+        <button
+          class="primary-button"
+          type="submit"
+        >
+          Sign in
+        </button>
+
+      </form>
+
+      <button
+        id="signup-button"
+        class="secondary-button"
+        type="button"
+      >
+        Create account
+      </button>
+
+      <button
+        id="guest-button"
+        class="text-button"
+        type="button"
+      >
+        Continue as guest
+      </button>
+
     </div>
-   </div>
-  </div>
- `;
- $("modal").classList.add("show");
-}
 
-function gameText(){
- closeModal();
- showView("chat");
-}
-
-function gameCall(){
- if(currentOther)startCurrentCall();
- else toast("Choose a player first");
-}
-
-
-/* =========================================================
-   TIC TAC TOE
-   ========================================================= */
-
-function startTic(mode){
- tic={
-  mode,
-  board:Array(9).fill(""),
-  turn:"X",
-  over:false,
-  robot:mode==="robot"
- };
-
- renderTic();
-}
-
-function ticWinner(){
- const lines=[
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
- ];
-
- for(const l of lines){
-  const [a,b,c]=l;
-  if(tic.board[a]&&tic.board[a]===tic.board[b]&&tic.board[a]===tic.board[c])
-   return tic.board[a];
- }
-
- if(tic.board.every(Boolean))return"draw";
- return null;
-}
-
-function ticMove(i){
- if(tic.over||tic.board[i])return;
-
- tic.board[i]=tic.turn;
-
- const win=ticWinner();
-
- if(win){
-  tic.over=true;
-  renderTic();
-  return;
- }
-
- tic.turn=tic.turn==="X"?"O":"X";
-
- renderTic();
-
- if(tic.robot&&tic.turn==="O"){
-  setTimeout(robotTic,400);
- }
-}
-
-function robotTic(){
- if(tic.over)return;
-
- const empty=tic.board.map((v,i)=>v?null:i).filter(x=>x!==null);
-
- let move=empty[Math.floor(Math.random()*empty.length)];
-
- if(Math.random()>.35){
-  for(const i of empty){
-   tic.board[i]="O";
-   if(ticWinner()==="O"){move=i;tic.board[i]="";break}
-   tic.board[i]="";
-  }
- }
-
- ticMove(move);
-}
-
-function renderTic(){
- const result=ticWinner();
-
- $("modalContent").innerHTML=`
-  <div class="row between">
-   <h2>Tic Tac Toe</h2>
-   <button class="iconBtn" onclick="closeModal()">✕</button>
   </div>
 
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:360px;margin:25px auto">
-   ${tic.board.map((v,i)=>`
+
+  <div id="profile-setup" class="screen hidden">
+
+    <div class="auth-card">
+
+      <div class="brand-large">
+        <span>N</span>
+        <strong>NEXORA</strong>
+      </div>
+
+      <h1>Set up your profile</h1>
+
+      <p class="auth-subtitle">
+        Choose the username people will use to find you.
+      </p>
+
+      <div
+        id="profile-message"
+        class="message-box hidden"
+      ></div>
+
+      <form id="profile-form">
+
+        <label>
+          Username
+          <input
+            id="username-input"
+            type="text"
+            minlength="3"
+            maxlength="24"
+            pattern="[A-Za-z0-9_]+"
+            placeholder="your_username"
+            required
+          />
+        </label>
+
+        <label>
+          Display name
+          <input
+            id="display-name-input"
+            type="text"
+            maxlength="50"
+            placeholder="Your name"
+            required
+          />
+        </label>
+
+        <button
+          class="primary-button"
+          type="submit"
+        >
+          Continue
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <div id="main-app" class="hidden">
+
+    <header class="topbar">
+
+      <button
+        id="mobile-back"
+        class="icon-button hidden"
+        type="button"
+        aria-label="Back"
+      >
+        ←
+      </button>
+
+      <button
+        id="brand-home"
+        class="brand-small"
+        type="button"
+      >
+        <span>N</span>
+        <strong>NEXORA</strong>
+      </button>
+
+      <div class="topbar-spacer"></div>
+
+      <button
+        id="profile-button"
+        class="profile-button"
+        type="button"
+      >
+        <span
+          id="top-avatar"
+          class="avatar avatar-small"
+        >
+          N
+        </span>
+
+        <span
+          id="top-profile-name"
+          class="top-profile-name"
+        >
+          Profile
+        </span>
+      </button>
+
+    </header>
+
+
+    <main id="page-container">
+
+      <section
+        id="page-home"
+        class="page active"
+      >
+
+        <div class="page-content">
+
+          <div class="hero-card">
+
+            <div>
+              <p class="eyebrow">
+                Welcome back
+              </p>
+
+              <h1 id="home-name">
+                Welcome
+              </h1>
+
+              <p>
+                Chat, call and play with people.
+              </p>
+            </div>
+
+            <div class="live-pill">
+              <span class="live-dot"></span>
+              <span id="live-count">
+                1 person live
+              </span>
+            </div>
+
+          </div>
+
+
+          <div class="section-title">
+            <h2>Quick access</h2>
+          </div>
+
+          <div class="quick-grid">
+
+            <button
+              class="quick-card"
+              data-page="recent"
+              type="button"
+            >
+              <span class="quick-icon">◷</span>
+              <strong>Recent</strong>
+              <small>Chats, calls & alerts</small>
+            </button>
+
+            <button
+              class="quick-card"
+              data-page="connect"
+              type="button"
+            >
+              <span class="quick-icon">+</span>
+              <strong>Connect</strong>
+              <small>Find people</small>
+            </button>
+
+            <button
+              class="quick-card"
+              data-page="games"
+              type="button"
+            >
+              <span class="quick-icon">♟</span>
+              <strong>Games</strong>
+              <small>Play together</small>
+            </button>
+
+          </div>
+
+
+          <div class="section-title">
+            <h2>Activity</h2>
+          </div>
+
+          <div
+            id="home-activity"
+            class="activity-card"
+          >
+            <div class="empty-state">
+              <span>✦</span>
+              <p>Your recent activity will appear here.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="page-recent"
+        class="page"
+      >
+
+        <div class="page-content">
+
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Your activity</p>
+              <h1>Recent</h1>
+            </div>
+
+            <button
+              id="refresh-recent"
+              class="icon-button"
+              type="button"
+              aria-label="Refresh"
+            >
+              ↻
+            </button>
+          </div>
+
+          <div class="tabs">
+
+            <button
+              class="tab active"
+              data-recent-tab="chats"
+              type="button"
+            >
+              Chats
+            </button>
+
+            <button
+              class="tab"
+              data-recent-tab="calls"
+              type="button"
+            >
+              Calls
+            </button>
+
+            <button
+              class="tab"
+              data-recent-tab="notifications"
+              type="button"
+            >
+              Notifications
+              <span
+                id="notification-badge"
+                class="small-badge hidden"
+              >
+                0
+              </span>
+            </button>
+
+            <button
+              class="tab"
+              data-recent-tab="friends"
+              type="button"
+            >
+              Friends
+            </button>
+
+          </div>
+
+          <div id="recent-content"></div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="page-connect"
+        class="page"
+      >
+
+        <div class="page-content">
+
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">People</p>
+              <h1>Connect</h1>
+            </div>
+          </div>
+
+
+          <div class="connect-card">
+
+            <div class="connect-icon">
+              @
+            </div>
+
+            <div class="connect-copy">
+              <h2>Connect by username</h2>
+              <p>
+                Find someone directly.
+              </p>
+            </div>
+
+            <form
+              id="username-search-form"
+              class="connect-search"
+            >
+
+              <input
+                id="connect-username"
+                type="text"
+                placeholder="@username"
+                maxlength="24"
+              />
+
+              <button
+                class="primary-button compact"
+                type="submit"
+              >
+                Find
+              </button>
+
+            </form>
+
+            <div
+              id="username-result"
+              class="search-result hidden"
+            ></div>
+
+          </div>
+
+
+          <div class="connect-card">
+
+            <div class="connect-icon">
+              ◉
+            </div>
+
+            <div class="connect-copy">
+              <h2>Connect with random</h2>
+              <p>
+                Meet someone currently available.
+              </p>
+            </div>
+
+            <div class="connect-actions">
+
+              <button
+                id="random-chat-button"
+                class="secondary-button"
+                type="button"
+              >
+                Random chat
+              </button>
+
+              <button
+                id="random-call-button"
+                class="primary-button"
+                type="button"
+              >
+                Random call
+              </button>
+
+            </div>
+
+            <div
+              id="random-status"
+              class="status-line hidden"
+            ></div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="page-games"
+        class="page"
+      >
+
+        <div class="page-content">
+
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Play together</p>
+              <h1>Games</h1>
+            </div>
+          </div>
+
+
+          <div class="game-grid">
+
+            <button
+              class="game-card"
+              data-game="ludo"
+              type="button"
+            >
+              <div class="game-art ludo-art">
+                <span>●</span>
+                <span>●</span>
+                <span>●</span>
+                <span>●</span>
+              </div>
+
+              <div class="game-card-copy">
+                <h2>Ludo</h2>
+                <p>
+                  Classic multiplayer Ludo.
+                </p>
+              </div>
+            </button>
+
+
+            <button
+              class="game-card"
+              data-game="tic_tac_toe"
+              type="button"
+            >
+              <div class="game-art tic-art">
+                <strong>×</strong>
+                <strong>○</strong>
+                <strong>×</strong>
+              </div>
+
+              <div class="game-card-copy">
+                <h2>Tic-Tac-Toe</h2>
+                <p>
+                  Quick strategic matches.
+                </p>
+              </div>
+            </button>
+
+
+            <button
+              class="game-card"
+              data-game="four_in_a_row"
+              type="button"
+            >
+              <div class="game-art connect-four-art">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+              <div class="game-card-copy">
+                <h2>Four in a Row</h2>
+                <p>
+                  Connect four before your opponent.
+                </p>
+              </div>
+            </button>
+
+
+            <button
+              class="game-card disabled-game"
+              type="button"
+            >
+              <div class="game-art uno-art">
+                UNO
+              </div>
+
+              <div class="game-card-copy">
+                <h2>UNO</h2>
+                <p>Coming Soon</p>
+              </div>
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="page-chat"
+        class="page"
+      >
+
+        <div class="chat-page">
+
+          <div class="chat-header">
+
+            <button
+              id="chat-back"
+              class="icon-button"
+              type="button"
+            >
+              ←
+            </button>
+
+            <div
+              id="chat-avatar"
+              class="avatar"
+            >
+              N
+            </div>
+
+            <div class="chat-person">
+
+              <strong id="chat-name">
+                Chat
+              </strong>
+
+              <span id="chat-status">
+                Offline
+              </span>
+
+            </div>
+
+            <div class="chat-header-actions">
+
+              <button
+                id="chat-call-button"
+                class="icon-button"
+                type="button"
+                aria-label="Call"
+              >
+                ☎
+              </button>
+
+              <button
+                id="chat-game-button"
+                class="icon-button"
+                type="button"
+                aria-label="Game"
+              >
+                ♟
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="chat-messages"
+            class="chat-messages"
+          ></div>
+
+
+          <div
+            id="chat-typing"
+            class="typing-indicator hidden"
+          >
+            typing…
+          </div>
+
+
+          <form
+            id="chat-form"
+            class="chat-input-bar"
+          >
+
+            <button
+              id="photo-button"
+              class="chat-tool"
+              type="button"
+              aria-label="Photo"
+            >
+              +
+            </button>
+
+            <input
+              id="chat-input"
+              type="text"
+              autocomplete="off"
+              placeholder="Message"
+              maxlength="5000"
+            />
+
+            <button
+              class="send-button"
+              type="submit"
+              aria-label="Send"
+            >
+              ↑
+            </button>
+
+            <input
+              id="photo-input"
+              type="file"
+              accept="image/*"
+              class="hidden"
+            />
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="page-game"
+        class="page"
+      >
+
+        <div
+          id="game-container"
+          class="game-container"
+        ></div>
+
+      </section>
+
+
+      <section
+        id="page-profile"
+        class="page"
+      >
+
+        <div class="page-content">
+
+          <div class="page-heading">
+
+            <button
+              id="profile-back"
+              class="icon-button"
+              type="button"
+            >
+              ←
+            </button>
+
+            <div>
+              <p class="eyebrow">Account</p>
+              <h1>Profile</h1>
+            </div>
+
+          </div>
+
+
+          <div class="profile-card">
+
+            <div
+              id="profile-avatar"
+              class="avatar avatar-large"
+            >
+              N
+            </div>
+
+            <h2 id="profile-display-name">
+              User
+            </h2>
+
+            <p id="profile-username">
+              @username
+            </p>
+
+            <button
+              id="logout-button"
+              class="secondary-button"
+              type="button"
+            >
+              Sign out
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <nav class="bottom-nav">
+
+      <button
+        class="nav-item active"
+        data-page="home"
+        type="button"
+      >
+        <span>⌂</span>
+        <small>Home</small>
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="recent"
+        type="button"
+      >
+        <span class="nav-icon-with-dot">
+          ◷
+          <i
+            id="recent-nav-dot"
+            class="nav-dot hidden"
+          ></i>
+        </span>
+        <small>Recent</small>
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="connect"
+        type="button"
+      >
+        <span>+</span>
+        <small>Connect</small>
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="games"
+        type="button"
+      >
+        <span>♟</span>
+        <small>Games</small>
+      </button>
+
+    </nav>
+
+  </div>
+
+
+  <!-- ========================================================
+       GLOBAL INCOMING CALL
+       ======================================================== -->
+
+  <div
+    id="incoming-call-overlay"
+    class="overlay hidden"
+  >
+
+    <div class="call-card incoming">
+
+      <div class="call-glow"></div>
+
+      <div
+        id="incoming-call-avatar"
+        class="avatar avatar-call"
+      >
+        N
+      </div>
+
+      <p class="eyebrow">
+        Incoming voice call
+      </p>
+
+      <h2 id="incoming-call-name">
+        Someone
+      </h2>
+
+      <p id="incoming-call-username">
+        @username
+      </p>
+
+      <div class="call-actions">
+
+        <button
+          id="decline-call-button"
+          class="call-danger"
+          type="button"
+        >
+          <span>✕</span>
+          Decline
+        </button>
+
+        <button
+          id="accept-call-button"
+          class="call-success"
+          type="button"
+        >
+          <span>☎</span>
+          Accept
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================
+       ACTIVE CALL
+       ======================================================== -->
+
+  <div
+    id="active-call-overlay"
+    class="overlay hidden"
+  >
+
+    <div class="call-card active-call">
+
+      <div class="call-glow"></div>
+
+      <div
+        id="active-call-avatar"
+        class="avatar avatar-call"
+      >
+        N
+      </div>
+
+      <p class="eyebrow">
+        Voice call
+      </p>
+
+      <h2 id="active-call-name">
+        Someone
+      </h2>
+
+      <div
+        id="call-timer"
+        class="call-timer"
+      >
+        00:00
+      </div>
+
+      <div
+        id="call-connection-state"
+        class="call-connection-state"
+      >
+        Connecting…
+      </div>
+
+      <div class="active-call-controls">
+
+        <button
+          id="mute-call-button"
+          class="call-control"
+          type="button"
+        >
+          <span>🎙</span>
+          <small>Mute</small>
+        </button>
+
+        <button
+          id="speaker-call-button"
+          class="call-control"
+          type="button"
+        >
+          <span>🔊</span>
+          <small>Speaker</small>
+        </button>
+
+        <button
+          id="end-call-button"
+          class="call-control danger"
+          type="button"
+        >
+          <span>✕</span>
+          <small>End</small>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================
+       TOAST
+       ======================================================== -->
+
+  <div
+    id="toast"
+    class="toast hidden"
+  ></div>
+
+
+  <!-- ========================================================
+       CONTEXT MENU
+       ======================================================== -->
+
+  <div
+    id="message-menu"
+    class="context-menu hidden"
+  >
+
     <button
-     onclick="ticMove(${i})"
-     style="aspect-ratio:1;background:#171d27;border:1px solid #303846;border-radius:15px;font-size:42px;font-weight:900">
-     ${v}
-    </button>`).join("")}
-  </div>
+      id="delete-for-me"
+      type="button"
+    >
+      Delete for me
+    </button>
 
-  <div class="card">
-   ${result==="draw"?"Draw":result?`${result} wins`:`${tic.turn}'s turn`}
-  </div>
-
-  <div class="actions" style="margin-top:12px">
-   <button class="secondary" onclick="gameTools('Tic Tac Toe')">Text · Call · Voice</button>
-   <button class="primary" onclick="startTic('${tic.mode}')">Restart</button>
-  </div>
- `;
-}
-
-
-/* =========================================================
-   4 MATCH
-   ========================================================= */
-
-function startMatch(mode){
- match4={
-  mode,
-  rows:6,
-  cols:7,
-  board:Array.from({length:42},()=>null),
-  turn:"R",
-  over:false,
-  robot:mode==="robot"
- };
- renderMatch();
-}
-
-function matchIndex(r,c){
- return r*7+c;
-}
-
-function dropMatch(c){
- if(match4.over)return;
-
- for(let r=5;r>=0;r--){
-  const i=matchIndex(r,c);
-
-  if(!match4.board[i]){
-   match4.board[i]=match4.turn;
-
-   const win=matchWinner(r,c);
-
-   if(win){
-    match4.over=true;
-    renderMatch();
-    return;
-   }
-
-   if(match4.board.every(Boolean)){
-    match4.over=true;
-    renderMatch();
-    return;
-   }
-
-   match4.turn=match4.turn==="R"?"Y":"R";
-
-   renderMatch();
-
-   if(match4.robot&&match4.turn==="Y")
-    setTimeout(robotMatch,450);
-
-   return;
-  }
- }
-}
-
-function matchWinner(r,c){
- const mev=match4.board[matchIndex(r,c)];
- if(!mev)return false;
-
- const dirs=[[1,0],[0,1],[1,1],[1,-1]];
-
- for(const [dr,dc] of dirs){
-  let n=1;
-
-  for(const sign of [-1,1]){
-   let rr=r+dr*sign,cc=c+dc*sign;
-
-   while(
-    rr>=0&&rr<6&&cc>=0&&cc<7&&
-    match4.board[matchIndex(rr,cc)]===mev
-   ){
-    n++;
-    rr+=dr*sign;
-    cc+=dc*sign;
-   }
-  }
-
-  if(n>=4)return true;
- }
-
- return false;
-}
-
-function robotMatch(){
- if(match4.over)return;
-
- const valid=[];
-
- for(let c=0;c<7;c++){
-  if(!match4.board[c])valid.push(c);
- }
-
- if(!valid.length)return;
-
- dropMatch(valid[Math.floor(Math.random()*valid.length)]);
-}
-
-function renderMatch(){
- const win=match4.over;
-
- $("modalContent").innerHTML=`
-  <div class="row between">
-   <h2>4 Match</h2>
-   <button class="iconBtn" onclick="closeModal()">✕</button>
-  </div>
-
-  <div style="
-   display:grid;
-   grid-template-columns:repeat(7,1fr);
-   gap:6px;
-   max-width:430px;
-   margin:20px auto;
-   background:#202a4c;
-   padding:10px;
-   border-radius:18px">
-
-   ${match4.board.map((v,i)=>`
     <button
-     onclick="dropMatch(${i%7})"
-     style="
-      aspect-ratio:1;
-      border-radius:50%;
-      background:${v==="R"?"#ef5350":v==="Y"?"#f3c84b":"#080b10"};
-      border:2px solid #46516c">
-    </button>`).join("")}
+      id="delete-for-everyone"
+      type="button"
+      class=
+    "danger-text"
+    >
+      Delete for everyone
+    </button>
+
   </div>
 
-  <div class="card">
-   ${win
-    ?"Game over"
-    :`${match4.turn==="R"?"Red":"Yellow"}'s turn`}
-  </div>
 
-  <div class="actions" style="margin-top:12px">
-   <button class="secondary" onclick="gameTools('4 Match')">Text · Call · Voice</button>
-   <button class="primary" onclick="startMatch('${match4.mode}')">Restart</button>
-  </div>
- `;
-}
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
 
-
-/* =========================================================
-   ONLINE LUDO — REALTIME BROADCAST
-   ========================================================= */
-
-let ludoChannel=null;
-let ludoRoomId=null;
-let ludoRoomCode=null;
-let ludoOnlineHost=false;
-
-function startLudoOnline(roomId,roomCode){
- ludoRoomId=roomId;
- ludoRoomCode=roomCode;
- ludoOnlineHost=true;
-
- ludo={
-  players:["red"],
-  turn:0,
-  dice:null,
-  rolled:false,
-  winner:null,
-  tokens:{red:[-1,-1,-1,-1],green:[-1,-1,-1,-1],yellow:[-1,-1,-1,-1],blue:[-1,-1,-1,-1]},
-  online:true
- };
-
- ludoChannel=db.channel("ludo-room-"+roomId,{
-  config:{
-   broadcast:{ack:true},
-   presence:{key:me.id}
-  }
- });
-
- ludoChannel
-  .on("broadcast",{event:"ludo-state"},({payload})=>{
-   if(payload.sender===me.id)return;
-   ludo=payload.state;
-   renderLudo();
-  })
-  .on("broadcast",{event:"game-chat"},({payload})=>{
-   if(payload.sender===me.id)return;
-   toast(payload.message);
-  })
-  .on("presence",{event:"sync"},()=>{});
-
- ludoChannel.subscribe(status=>{
-  if(status==="SUBSCRIBED"){
-   ludoChannel.track({
-    user_id:me.id,
-    username:profile.username
-   });
-
-   broadcastLudoState();
-  }
- });
-
- renderLudo();
-}
-
-function broadcastLudoState(){
- if(!ludoChannel||!ludo)return;
-
- ludoChannel.send({
-  type:"broadcast",
-  event:"ludo-state",
-  payload:{
-   sender:me.id,
-   state:ludo
-  }
- });
-}
-
-
-/* =========================================================
-   GLOBAL GAME PATCH
-   ========================================================= */
-
-const oldRollLudo=rollLudo;
-rollLudo=function(){
- oldRollLudo();
- if(ludo?.online)broadcastLudoState();
-};
-
-const oldChooseLudoToken=chooseLudoToken;
-chooseLudoToken=function(i){
- oldChooseLudoToken(i);
- if(ludo?.online)broadcastLudoState();
-};
-
-
-/* =========================================================
-   GLOBAL NOTIFICATION REFRESH
-   ========================================================= */
-
-async function refreshEverything(){
- await Promise.allSettled([
-  loadRecent(),
-  loadFriends(),
-  loadLiveCount()
- ]);
-}
-
-setInterval(refreshEverything,15000);
-
-
-/* =========================================================
-   CLOSE MODAL WHEN CLICKING OUTSIDE
-   ========================================================= */
-
-$("modal").addEventListener("click",e=>{
- if(e.target===$("modal"))closeModal();
-});
-
-
-/* =========================================================
-   PAGE VISIBILITY
-   ========================================================= */
-
-document.addEventListener("visibilitychange",()=>{
- if(document.visibilityState==="visible"){
-  refreshPresence(true);
-  refreshEverything();
- }else{
-  refreshPresence(true);
- }
-});
-
-
-/* =========================================================
-   CALL AUDIO ELEMENT
-   ========================================================= */
-
-callRemote=document.createElement("audio");
-callRemote.autoplay=true;
-callRemote.playsInline=true;
-callRemote.style.display="none";
-document.body.appendChild(callRemote);
-
-
-/* =========================================================
-   CLEANUP
-   ========================================================= */
-
-window.addEventListener("beforeunload",()=>{
- try{
-  if(ludoChannel)db.removeChannel(ludoChannel);
-  if(currentChannel)db.removeChannel(currentChannel);
-  if(callChannel)db.removeChannel(callChannel);
-  if(callStream)callStream.getTracks().forEach(t=>t.stop());
-  if(callPeer)callPeer.close();
- }catch{}
-});
-
-
-/* =========================================================
-   OVERRIDE GAME MENU FOR LUDO
-   ========================================================= */
-
-window.openGameMenu=openGameMenu;
-
-
-/* =========================================================
-   FIX LUDO TOKEN INITIALIZATION
-   ========================================================= */
-
-if(typeof ludo!=="undefined"&&ludo){
- initLudoTokens();
-}
-
-
-/* =========================================================
-   STARTUP
-   ========================================================= */
-
-console.log("NEXORA ready");
+</body>
+</html>
