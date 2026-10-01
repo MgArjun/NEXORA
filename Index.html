@@ -1,0 +1,2274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090d">
+<meta name="description" content="NEXORA — connect, chat and play together.">
+<title>NEXORA</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+/* NEXORA COMPLETE STYLES */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#08090d;color:#f5f7fb;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100vh}
+button,input{font:inherit}
+button{cursor:pointer}
+button:active{transform:scale(.97)}
+
+:root{
+  --bg:#08090d;
+  --panel:#101218;
+  --panel2:#151820;
+  --border:rgba(255,255,255,.08);
+  --text:#f5f7fb;
+  --muted:#8f96a5;
+  --accent:#7c5cff;
+  --accent2:#9a83ff;
+  --danger:#ff5d73;
+  --success:#38d39f;
+}
+
+#app{min-height:100vh;padding-bottom:82px}
+
+.topbar{
+  height:68px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,9,13,.85);
+  backdrop-filter:blur(18px);
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+
+.brand{
+  border:0;
+  background:none;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  font-size:16px;
+}
+
+.brandMark{
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--accent),#4c36c9);
+  box-shadow:0 8px 25px rgba(124,92,255,.3);
+}
+
+.topActions{display:flex;gap:8px}
+.iconBtn{
+  position:relative;
+  width:40px;
+  height:40px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:#fff;
+  border-radius:12px;
+}
+
+#notifDot{
+  position:absolute;
+  width:7px;
+  height:7px;
+  background:var(--danger);
+  border-radius:50%;
+  right:7px;
+  top:7px;
+  display:none;
+}
+
+.screen{
+  width:min(1100px,100%);
+  margin:auto;
+  padding:20px 16px;
+}
+
+.bottomNav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:76px;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  background:rgba(10,11,16,.94);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  z-index:30;
+}
+
+.navBtn{
+  border:0;
+  background:none;
+  color:var(--muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  min-width:62px;
+  font-size:11px;
+}
+
+.navBtn b{font-size:21px;font-weight:500}
+.navBtn.active{color:#fff}
+.navBtn.active b{color:var(--accent2)}
+
+.hero{
+  padding:24px 0 14px;
+}
+
+.hero h1{
+  margin:0;
+  font-size:clamp(28px,7vw,42px);
+  line-height:1.05;
+  letter-spacing:-1.5px;
+}
+
+.hero p{
+  margin:10px 0 0;
+  color:var(--muted);
+}
+
+.card{
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.15);
+}
+
+.cardTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.cardTitle h2,.cardTitle h3{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.action{
+  min-height:120px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:#fff;
+  border-radius:18px;
+  padding:18px;
+  text-align:left;
+  transition:.2s;
+}
+
+.action:hover{
+  border-color:rgba(124,92,255,.5);
+  transform:translateY(-2px);
+}
+
+.action .emoji{font-size:28px;margin-bottom:16px}
+.action strong{display:block;font-size:15px}
+.action span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
+
+.primary{
+  border:0;
+  color:white;
+  background:linear-gradient(135deg,var(--accent),#543dd2);
+  padding:12px 17px;
+  border-radius:12px;
+  font-weight:700;
+  box-shadow:0 8px 25px rgba(124,92,255,.2);
+}
+
+.secondary{
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:white;
+  padding:11px 15px;
+  border-radius:12px;
+}
+
+.danger{
+  background:rgba(255,93,115,.1);
+  color:#ff8a9a;
+  border:1px solid rgba(255,93,115,.2);
+}
+
+input{
+  width:100%;
+  border:1px solid var(--border);
+  outline:none;
+  background:#0c0e13;
+  color:#fff;
+  border-radius:13px;
+  padding:13px 14px;
+}
+
+input:focus{border-color:rgba(124,92,255,.7)}
+
+.searchRow{
+  display:flex;
+  gap:8px;
+}
+
+.searchRow input{flex:1}
+
+.userRow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.userRow:last-child{border-bottom:0}
+
+.avatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#292d3a,#181a22);
+  font-weight:800;
+  flex-shrink:0;
+}
+
+.userInfo{flex:1;min-width:0}
+.userInfo strong{display:block}
+.userInfo span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+
+.online{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#555;
+  display:inline-block;
+  margin-right:5px;
+}
+
+.online.on{background:var(--success)}
+
+.chatLayout{
+  display:grid;
+  grid-template-columns:310px 1fr;
+  min-height:65vh;
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  background:var(--panel);
+}
+
+.chatList{
+  border-right:1px solid var(--border);
+  overflow:auto;
+}
+
+.chatListItem{
+  padding:15px;
+  display:flex;
+  gap:10px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+
+.chatListItem.active{background:rgba(124,92,255,.1)}
+
+.chatWindow{
+  display:flex;
+  flex-direction:column;
+  min-height:65vh;
+}
+
+.chatHeader{
+  padding:15px;
+  border-bottom:1px solid var(--border);
+}
+
+.messages{
+  flex:1;
+  overflow:auto;
+  padding:16px;
+}
+
+.message{
+  max-width:78%;
+  padding:10px 13px;
+  margin-bottom:9px;
+  border-radius:15px;
+  background:#191c24;
+}
+
+.message.mine{
+  margin-left:auto;
+  background:linear-gradient(135deg,#684ee5,#523bc6);
+}
+
+.messageTime{
+  font-size:9px;
+  opacity:.55;
+  margin-top:4px;
+}
+
+.chatInput{
+  padding:12px;
+  display:flex;
+  gap:8px;
+  border-top:1px solid var(--border);
+}
+
+.chatInput input{flex:1}
+
+.gameGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.gameCard{
+  min-height:190px;
+  border-radius:22px;
+  padding:20px;
+  border:1px solid var(--border);
+  background:
+    radial-gradient(circle at top right,rgba(124,92,255,.2),transparent 40%),
+    var(--panel);
+}
+
+.gameIcon{font-size:42px;margin-bottom:22px}
+
+.ttt{
+  display:grid;
+  grid-template-columns:repeat(3,90px);
+  gap:8px;
+  justify-content:center;
+  margin:25px auto;
+}
+
+.ttt button{
+  width:90px;
+  height:90px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:#141720;
+  color:white;
+  font-size:35px;
+}
+
+.profileHead{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.bigAvatar{
+  width:72px;
+  height:72px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  font-size:27px;
+  font-weight:800;
+  background:linear-gradient(135deg,var(--accent),#4330a9);
+}
+
+.profileName{font-size:21px;font-weight:800}
+.profileUsername{color:var(--muted);margin-top:4px}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);
+  display:grid;
+  place-items:center;
+  padding:18px;
+  z-index:100;
+}
+
+.modalBox{
+  width:min(500px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:#11131a;
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:20px;
+}
+
+.modalHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.closeBtn{
+  width:35px;
+  height:35px;
+  border-radius:10px;
+  background:var(--panel);
+  color:white;
+  border:1px solid var(--border);
+}
+
+.callOverlay{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  background:rgba(5,6,10,.94);
+  display:grid;
+  place-items:center;
+  padding:20px;
+}
+
+.callBox{
+  width:min(400px,100%);
+  text-align:center;
+  background:#11131a;
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:35px 22px;
+}
+
+.callAvatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  margin:0 auto 20px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--accent),#4330a9);
+  font-size:35px;
+  font-weight:800;
+}
+
+.callActions{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:25px;
+}
+
+.callActions button{
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  border:0;
+  color:white;
+}
+
+.accept{background:#20b887}
+.reject{background:#e74c64}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:95px;
+  transform:translateX(-50%);
+  background:#181b23;
+  border:1px solid var(--border);
+  padding:12px 16px;
+  border-radius:13px;
+  z-index:300;
+  box-shadow:0 15px 40px rgba(0,0,0,.3);
+}
+
+.empty{
+  text-align:center;
+  padding:45px 15px;
+  color:var(--muted);
+}
+
+.loading{
+  text-align:center;
+  padding:50px;
+  color:var(--muted);
+}
+
+@media(max-width:700px){
+  .chatLayout{
+    grid-template-columns:1fr;
+    min-height:auto;
+  }
+
+  .chatList{
+    max-height:220px;
+    border-right:0;
+    border-bottom:1px solid var(--border);
+  }
+
+  .chatWindow{min-height:55vh}
+
+  .gameGrid{grid-template-columns:1fr}
+
+  .ttt{
+    grid-template-columns:repeat(3,76px);
+  }
+
+  .ttt button{
+    width:76px;
+    height:76px;
+  }
+}
+
+@media(min-width:800px){
+  .screen{padding:30px 24px}
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<header class="topbar">
+  <button class="brand" data-screen="home">
+    <span class="brandMark">N</span>
+    <span>NEXORA</span>
+  </button>
+
+  <div class="topActions">
+    <button class="iconBtn" id="callTop">☎</button>
+    <button class="iconBtn" id="notifTop">
+      ♢<i id="notifDot"></i>
+    </button>
+  </div>
+</header>
+
+<main id="screen" class="screen"></main>
+
+<nav class="bottomNav">
+  <button data-screen="home" class="navBtn active">
+    <b>⌂</b><span>Home</span>
+  </button>
+
+  <button data-screen="games" class="navBtn">
+    <b>♟</b><span>Games</span>
+  </button>
+
+  <button data-screen="chat" class="navBtn">
+    <b>◌</b><span>Chat</span>
+  </button>
+
+  <button data-screen="profile" class="navBtn">
+    <b>●</b><span>Profile</span>
+  </button>
+</nav>
+
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script>
+
+/* =========================================================
+   SUPABASE CONFIG
+   ========================================================= */
+
+const SUPABASE_URL =
+"https://ktwluvpmzisonmootdqc.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
+
+window.nexoraSupabase =
+window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const db = window.nexoraSupabase;
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+const state = {
+  user:null,
+  profile:null,
+  screen:"home",
+  conversations:[],
+  activeConversation:null,
+  messages:[],
+  selectedUser:null,
+  incomingCall:null,
+  currentCall:null,
+  pc:null,
+  localStream:null,
+  remoteStream:null,
+  ttt:{
+    board:["","","","","","","","",""],
+    turn:"X",
+    over:false
+  }
+};
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+const $ = s => document.querySelector(s);
+
+function escapeHTML(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function initials(name){
+  const x=(name||"N").trim();
+  return x.slice(0,2).toUpperCase();
+}
+
+function toast(message){
+  const el=$("#toast");
+  el.textContent=message;
+  el.style.display="block";
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer=setTimeout(()=>{
+    el.style.display="none";
+  },2500);
+}
+
+function formatTime(date){
+  try{
+    return new Date(date).toLocaleTimeString([],{
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }catch{
+    return "";
+  }
+}
+
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+
+async function ensureAuth(){
+
+  let {data:{session}} =
+    await db.auth.getSession();
+
+  if(!session){
+
+    const result =
+      await db.auth.signInAnonymously({
+        options:{
+          data:{
+            display_name:"NEXORA Guest",
+            is_guest:true
+          }
+        }
+      });
+
+    if(result.error){
+      console.error(result.error);
+      toast("Guest login failed");
+      return;
+    }
+
+    session=result.data.session;
+  }
+
+  state.user=session.user;
+
+  await loadProfile();
+}
+
+async function loadProfile(){
+
+  if(!state.user) return;
+
+  let {data,error} =
+    await db
+      .from("profiles")
+      .select("*")
+      .eq("id",state.user.id)
+      .single();
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  state.profile=data;
+
+  await db
+    .from("profiles")
+    .update({
+      online:true,
+      last_seen:new Date().toISOString()
+    })
+    .eq("id",state.user.id);
+}
+
+
+/* =========================================================
+   SCREEN NAVIGATION
+   ========================================================= */
+
+document.addEventListener("click",async e=>{
+
+  const screenButton =
+    e.target.closest("[data-screen]");
+
+  if(screenButton){
+
+    const target =
+      screenButton.dataset.screen;
+
+    state.screen=target;
+
+    updateNav();
+
+    await render();
+  }
+});
+
+function updateNav(){
+
+  document.querySelectorAll(".navBtn")
+    .forEach(btn=>{
+      btn.classList.toggle(
+        "active",
+        btn.dataset.screen===state.screen
+      );
+    });
+}
+
+
+/* =========================================================
+   HOME
+   ========================================================= */
+
+function homeHTML(){
+
+  const p=state.profile;
+
+  return `
+
+  <section class="hero">
+    <p class="small">WELCOME BACK</p>
+    <h1>
+      Hey, ${escapeHTML(
+        p?.display_name || "Guest"
+      )}
+    </h1>
+    <p>
+      Connect. Chat. Play.
+      Welcome to NEXORA.
+    </p>
+  </section>
+
+  <div class="card">
+    <div class="cardTitle">
+      <div>
+        <h3>Your NEXORA ID</h3>
+        <div class="muted small">
+          Share this username with friends
+        </div>
+      </div>
+    </div>
+
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:#0b0d12;
+      padding:14px;
+      border-radius:14px;
+    ">
+      <strong>
+        @${escapeHTML(p?.username || "")}
+      </strong>
+
+      <button class="secondary"
+        onclick="copyText('${escapeHTML(p?.username || "")}')">
+        Copy
+      </button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <button class="action"
+      onclick="go('chat')">
+      <div class="emoji">💬</div>
+      <strong>Messages</strong>
+      <span>Chat directly with people</span>
+    </button>
+
+    <button class="action"
+      onclick="go('games')">
+      <div class="emoji">🎮</div>
+      <strong>Games</strong>
+      <span>Play multiplayer games</span>
+    </button>
+
+    <button class="action"
+      onclick="openSearch()">
+      <div class="emoji">🔎</div>
+      <strong>Find User</strong>
+      <span>Search by NEXORA username</span>
+    </button>
+
+    <button class="action"
+      onclick="showProfile()">
+      <div class="emoji">👤</div>
+      <strong>My Profile</strong>
+      <span>View your NEXORA identity</span>
+    </button>
+
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="cardTitle">
+      <h3>Quick Connect</h3>
+    </div>
+
+    <div class="searchRow">
+      <input
+        id="quickSearch"
+        placeholder="Search username..."
+      >
+      <button class="primary"
+        onclick="quickSearch()">
+        Search
+      </button>
+    </div>
+
+    <div id="quickResults"></div>
+  </div>
+
+  `;
+}
+
+
+/* =========================================================
+   GAMES
+   ========================================================= */
+
+function gamesHTML(){
+
+  return `
+
+  <section class="hero">
+    <p class="small">NEXORA PLAY</p>
+    <h1>Games</h1>
+    <p>Challenge people and play together.</p>
+  </section>
+
+  <div class="gameGrid">
+
+    <div class="gameCard">
+      <div class="gameIcon">⭕</div>
+      <h2>Tic-Tac-Toe</h2>
+      <p class="muted">
+        Classic two-player game.
+      </p>
+
+      <button class="primary"
+        onclick="openTTT()">
+        Play Now
+      </button>
+    </div>
+
+    <div class="gameCard">
+      <div class="gameIcon">🎲</div>
+      <h2>Ludo</h2>
+      <p class="muted">
+        Multiplayer Ludo module.
+      </p>
+
+      <button class="secondary"
+        onclick="toast('Ludo multiplayer module is next')">
+        Coming Next
+      </button>
+    </div>
+
+  </div>
+
+  `;
+}
+
+
+/* =========================================================
+   CHAT
+   ========================================================= */
+
+async function loadConversations(){
+
+  const {data,error} =
+    await db.rpc("nexora_my_conversations");
+
+  if(error){
+    console.error(error);
+    state.conversations=[];
+    return;
+  }
+
+  state.conversations=data || [];
+}
+
+function chatHTML(){
+
+  return `
+
+  <section class="hero">
+    <p class="small">DIRECT MESSAGES</p>
+    <h1>Chat</h1>
+  </section>
+
+  <div class="chatLayout">
+
+    <aside class="chatList">
+
+      <div style="padding:12px">
+        <button
+          class="primary"
+          style="width:100%"
+          onclick="openSearch()">
+          + New Chat
+        </button>
+      </div>
+
+      ${
+        state.conversations.length
+        ?
+        state.conversations.map(c=>`
+
+          <div
+            class="chatListItem
+              ${
+                state.activeConversation?.conversation_id===c.conversation_id
+                ?"active":""
+              }"
+            onclick="openConversation('${c.conversation_id}')">
+
+            <div class="avatar">
+              ${initials(c.other_display_name)}
+            </div>
+
+            <div class="userInfo">
+              <strong>
+                ${escapeHTML(c.other_display_name)}
+              </strong>
+
+              <span>
+                @${escapeHTML(c.other_username)}
+              </span>
+
+              <span>
+                ${escapeHTML(c.last_message || "No messages")}
+              </span>
+            </div>
+
+          </div>
+
+        `).join("")
+        :
+        `
+        <div class="empty">
+          No conversations yet.
+        </div>
+        `
+      }
+
+    </aside>
+
+    <section class="chatWindow">
+
+      ${
+        state.activeConversation
+        ?
+        `
+
+        <div class="chatHeader">
+
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+          ">
+
+            <div>
+              <strong>
+                ${escapeHTML(
+                  state.activeConversation.other_display_name
+                )}
+              </strong>
+
+              <div class="muted small">
+                @${escapeHTML(
+                  state.activeConversation.other_username
+                )}
+              </div>
+            </div>
+
+            <button class="secondary"
+              onclick="callUser(
+                '${escapeHTML(
+                  state.activeConversation.other_username
+                )}'
+              )">
+              ☎ Call
+            </button>
+
+          </div>
+
+        </div>
+
+        <div id="messages"
+             class="messages">
+          <div class="loading">
+            Loading messages...
+          </div>
+        </div>
+
+        <div class="chatInput">
+
+          <input
+            id="messageInput"
+            placeholder="Write a message..."
+            onkeydown="if(event.key==='Enter')sendMessage()">
+
+          <button
+            class="primary"
+            onclick="sendMessage()">
+            Send
+          </button>
+
+        </div>
+
+        `
+        :
+        `
+        <div class="empty">
+          <div style="font-size:45px">💬</div>
+          <h3>Select a conversation</h3>
+          <p>
+            Choose an existing chat or start a new one.
+          </p>
+
+          <button class="primary"
+            onclick="openSearch()">
+            Find Someone
+          </button>
+        </div>
+        `
+      }
+
+    </section>
+
+  </div>
+
+  `;
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+function profileHTML(){
+
+  const p=state.profile;
+
+  return `
+
+  <section class="hero">
+    <p class="small">ACCOUNT</p>
+    <h1>Profile</h1>
+  </section>
+
+  <div class="card">
+
+    <div class="profileHead">
+
+      <div class="bigAvatar">
+        ${initials(p?.display_name)}
+      </div>
+
+      <div>
+        <div class="profileName">
+          ${escapeHTML(
+            p?.display_name || "NEXORA User"
+          )}
+        </div>
+
+        <div class="profileUsername">
+          @${escapeHTML(
+            p?.username || ""
+          )}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="cardTitle">
+      <h3>NEXORA ID</h3>
+    </div>
+
+    <p class="muted">
+      Your username is used by other users
+      to find and contact you.
+    </p>
+
+    <div style="
+      background:#0b0d12;
+      padding:14px;
+      border-radius:13px;
+      margin-top:10px;
+    ">
+      @${escapeHTML(p?.username || "")}
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="cardTitle">
+      <h3>Account</h3>
+    </div>
+
+    <button
+      class="secondary"
+      style="width:100%"
+      onclick="setOffline()">
+      Set Offline
+    </button>
+
+  </div>
+
+  `;
+}
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+async function render(){
+
+  const screen=$("#screen");
+
+  if(state.screen==="home"){
+    screen.innerHTML=homeHTML();
+  }
+
+  else if(state.screen==="games"){
+    screen.innerHTML=gamesHTML();
+  }
+
+  else if(state.screen==="chat"){
+    await loadConversations();
+    screen.innerHTML=chatHTML();
+
+    if(state.activeConversation){
+      loadMessages(
+        state.activeConversation.conversation_id
+      );
+    }
+  }
+
+  else if(state.screen==="profile"){
+    screen.innerHTML=profileHTML();
+  }
+
+  updateNav();
+}
+
+function go(screen){
+  state.screen=screen;
+  render();
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+function openSearch(){
+
+  $("#modalRoot").innerHTML=`
+
+  <div class="modal"
+       onclick="if(event.target===this)closeModal()">
+
+    <div class="modalBox">
+
+      <div class="modalHead">
+        <h2>Find User</h2>
+
+        <button class="closeBtn"
+          onclick="closeModal()">
+          ×
+        </button>
+      </div>
+
+      <div class="searchRow">
+
+        <input
+          id="userSearchInput"
+          placeholder="Enter username">
+
+        <button
+          class="primary"
+          onclick="searchUsers()">
+          Search
+        </button>
+
+      </div>
+
+      <div id="searchResults"></div>
+
+    </div>
+
+  </div>
+
+  `;
+
+  setTimeout(()=>
+    $("#userSearchInput")?.focus(),
+    50
+  );
+}
+
+async function searchUsers(){
+
+  const input=$("#userSearchInput");
+
+  const q=input?.value.trim();
+
+  if(!q) return;
+
+  const {data,error} =
+    await db
+      .from("profiles")
+      .select("id,username,display_name,online")
+      .ilike("username",`%${q}%`)
+      .limit(20);
+
+  const root=$("#searchResults");
+
+  if(error){
+    root.innerHTML=
+      `<div class="empty">
+        Search failed.
+      </div>`;
+    return;
+  }
+
+  const users=(data||[])
+    .filter(x=>x.id!==state.user.id);
+
+  if(!users.length){
+    root.innerHTML=
+      `<div class="empty">
+        No user found.
+      </div>`;
+    return;
+  }
+
+  root.innerHTML=users.map(u=>`
+
+    <div class="userRow">
+
+      <div class="avatar">
+        ${initials(u.display_name)}
+      </div>
+
+      <div class="userInfo">
+
+        <strong>
+          ${escapeHTML(u.display_name)}
+        </strong>
+
+        <span>
+          <i class="online ${u.online?"on":""}"></i>
+          @${escapeHTML(u.username)}
+        </span>
+
+      </div>
+
+      <button class="secondary"
+        onclick="startChat(
+          '${escapeHTML(u.username)}'
+        )">
+        Message
+      </button>
+
+      <button class="secondary"
+        onclick="callUser(
+          '${escapeHTML(u.username)}'
+        )">
+        ☎
+      </button>
+
+    </div>
+
+  `).join("");
+}
+
+async function quickSearch(){
+
+  const q=$("#quickSearch")?.value.trim();
+
+  if(!q) return;
+
+  const {data,error} =
+    await db
+      .from("profiles")
+      .select("id,username,display_name,online")
+      .ilike("username",`%${q}%`)
+      .limit(10);
+
+  const root=$("#quickResults");
+
+  if(error){
+    root.innerHTML=
+      `<p class="muted">Search failed.</p>`;
+    return;
+  }
+
+  const users=(data||[])
+    .filter(x=>x.id!==state.user.id);
+
+  root.innerHTML=users.length
+    ? users.map(u=>`
+
+      <div class="userRow">
+
+        <div class="avatar">
+          ${initials(u.display_name)}
+        </div>
+
+        <div class="userInfo">
+          <strong>${escapeHTML(u.display_name)}</strong>
+          <span>@${escapeHTML(u.username)}</span>
+        </div>
+
+        <button
+          class="primary"
+          onclick="startChat(
+            '${escapeHTML(u.username)}'
+          )">
+          Chat
+        </button>
+
+      </div>
+
+    `).join("")
+    :
+    `<div class="empty">No user found.</div>`;
+}
+
+
+/* =========================================================
+   CONVERSATIONS
+   ========================================================= */
+
+async function startChat(username){
+
+  const {data,error} =
+    await db.rpc(
+      "nexora_get_or_create_dm",
+      {
+        target_username:username
+      }
+    );
+
+  if(error){
+    console.error(error);
+    toast(error.message || "Unable to create chat");
+    return;
+  }
+
+  closeModal();
+
+  state.screen="chat";
+
+  await loadConversations();
+
+  state.activeConversation =
+    state.conversations.find(
+      c=>c.conversation_id===data
+    );
+
+  await render();
+
+  if(state.activeConversation){
+    await loadMessages(data);
+  }
+}
+
+async function openConversation(id){
+
+  state.activeConversation =
+    state.conversations.find(
+      c=>c.conversation_id===id
+    );
+
+  await loadMessages(id);
+
+  render();
+}
+
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+async function loadMessages(conversationId){
+
+  const root=$("#messages");
+
+  if(!root) return;
+
+  const {data,error} =
+    await db
+      .from("messages")
+      .select("*")
+      .eq(
+        "conversation_id",
+        conversationId
+      )
+      .order("created_at",{
+        ascending:true
+      });
+
+  if(error){
+    root.innerHTML=
+      `<div class="empty">
+        Unable to load messages.
+      </div>`;
+    return;
+  }
+
+  state.messages=data||[];
+
+  renderMessages();
+}
+
+function renderMessages(){
+
+  const root=$("#messages");
+
+  if(!root) return;
+
+  if(!state.messages.length){
+    root.innerHTML=
+      `<div class="empty">
+        No messages yet.<br>
+        Say hello 👋
+      </div>`;
+    return;
+  }
+
+  root.innerHTML =
+    state.messages.map(m=>`
+
+      <div class="message ${
+        m.sender_id===state.user.id
+        ?"mine":""
+      }">
+
+        <div>
+          ${escapeHTML(m.message)}
+        </div>
+
+        <div class="messageTime">
+          ${formatTime(m.created_at)}
+        </div>
+
+      </div>
+
+    `).join("");
+
+  root.scrollTop=root.scrollHeight;
+}
+
+async function sendMessage(){
+
+  const input=$("#messageInput");
+
+  const text=input?.value.trim();
+
+  if(!text || !state.activeConversation)
+    return;
+
+  const {error} =
+    await db
+      .from("messages")
+      .insert({
+        conversation_id:
+          state.activeConversation.conversation_id,
+        sender_id:state.user.id,
+        message:text,
+        message_type:"text"
+      });
+
+  if(error){
+    console.error(error);
+    toast(error.message || "Message failed");
+    return;
+  }
+
+  input.value="";
+}
+
+
+/* =========================================================
+   REALTIME
+   ========================================================= */
+
+function setupRealtime(){
+
+  db.channel("nexora-global")
+
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"messages"
+      },
+      async payload=>{
+
+        const msg=payload.new;
+
+        if(
+          state.activeConversation &&
+          msg.conversation_id===
+          state.activeConversation.conversation_id
+        ){
+          await loadMessages(
+            msg.conversation_id
+          );
+        }
+
+      }
+    )
+
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"calls"
+      },
+      payload=>{
+
+        const call=payload.new;
+
+        if(
+          call.receiver_id===
+          state.user?.id &&
+          call.status==="ringing"
+        ){
+          receiveCall(call);
+        }
+
+      }
+    )
+
+    .subscribe();
+}
+
+
+/* =========================================================
+   CALLING
+   ========================================================= */
+
+async function callUser(username){
+
+  const {data,error} =
+    await db.rpc(
+      "nexora_start_call",
+      {
+        target_username:username,
+        call_kind:"voice"
+      }
+    );
+
+  if(error){
+    toast(error.message || "Unable to call");
+    return;
+  }
+
+  const callId=data.call_id;
+
+  state.currentCall={
+    id:callId,
+    role:"caller",
+    username
+  };
+
+  await createCallerPeer(callId);
+
+  showCallScreen(
+    username,
+    "Calling..."
+  );
+}
+
+async function createCallerPeer(callId){
+
+  state.localStream =
+    await navigator.mediaDevices.getUserMedia({
+      audio:true
+    });
+
+  state.pc =
+    new RTCPeerConnection({
+      iceServers:[
+        {
+          urls:"stun:stun.l.google.com:19302"
+        }
+      ]
+    });
+
+  state.localStream
+    .getTracks()
+    .forEach(track=>{
+      state.pc.addTrack(
+        track,
+        state.localStream
+      );
+    });
+
+  state.pc.ontrack=e=>{
+
+    const stream=e.streams[0];
+
+    state.remoteStream=stream;
+
+    let audio=document.getElementById(
+      "remoteAudio"
+    );
+
+    if(!audio){
+      audio=document.createElement("audio");
+      audio.id="remoteAudio";
+      audio.autoplay=true;
+      document.body.appendChild(audio);
+    }
+
+    audio.srcObject=stream;
+  };
+
+  state.pc.onicecandidate=e=>{
+
+    if(e.candidate){
+
+      db.channel(
+        "call-"+callId
+      ).send({
+        type:"broadcast",
+        event:"ice",
+        payload:{
+          candidate:e.candidate
+        }
+      });
+
+    }
+  };
+
+  const channel =
+    db.channel("call-"+callId);
+
+  channel.on(
+    "broadcast",
+    {event:"answer"},
+    async ({payload})=>{
+
+      await state.pc.setRemoteDescription(
+        new RTCSessionDescription(
+          payload.answer
+        )
+      );
+    }
+  );
+
+  channel.on(
+    "broadcast",
+    {event:"ice"},
+    async ({payload})=>{
+
+      try{
+        await state.pc.addIceCandidate(
+          payload.candidate
+        );
+      }catch(e){}
+    }
+  );
+
+  await channel.subscribe();
+
+  const offer =
+    await state.pc.createOffer();
+
+  await state.pc.setLocalDescription(
+    offer
+  );
+
+  channel.send({
+    type:"broadcast",
+    event:"offer",
+    payload:{
+      offer
+    }
+  });
+}
+
+async function receiveCall(call){
+
+  state.incomingCall=call;
+
+  const {data:caller} =
+    await db
+      .from("profiles")
+      .select("username,display_name")
+      .eq("id",call.caller_id)
+      .single();
+
+  showIncomingCall(
+    caller?.display_name ||
+    caller?.username ||
+    "NEXORA User",
+    caller?.username ||
+    ""
+  );
+}
+
+function showIncomingCall(name,username){
+
+  $("#modalRoot").innerHTML=`
+
+    <div class="callOverlay">
+
+      <div class="callBox">
+
+        <div class="callAvatar">
+          ${initials(name)}
+        </div>
+
+        <h2>Incoming Call</h2>
+
+        <p class="muted">
+          ${escapeHTML(name)}
+        </p>
+
+        <div class="callActions">
+
+          <button
+            class="reject"
+            onclick="declineCall()">
+            ✕
+          </button>
+
+          <button
+            class="accept"
+            onclick="acceptCall()">
+            ✓
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+function showCallScreen(name,status){
+
+  $("#modalRoot").innerHTML=`
+
+    <div class="callOverlay">
+
+      <div class="callBox">
+
+        <div class="callAvatar">
+          ${initials(name)}
+        </div>
+
+        <h2>
+          ${escapeHTML(name)}
+        </h2>
+
+        <p class="muted">
+          ${escapeHTML(status)}
+        </p>
+
+        <div class="callActions">
+
+          <button
+            class="reject"
+            onclick="endCall()">
+            ✕
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+async function acceptCall(){
+
+  const call=state.incomingCall;
+
+  if(!call) return;
+
+  closeModal();
+
+  state.currentCall={
+    id:call.id,
+    role:"receiver"
+  };
+
+  await db
+    .from("calls")
+    .update({
+      status:"accepted",
+      started_at:new Date().toISOString()
+    })
+    .eq("id",call.id);
+
+  await createReceiverPeer(call.id);
+
+  showCallScreen(
+    "NEXORA User",
+    "Connected"
+  );
+}
+
+async function createReceiverPeer(callId){
+
+  state.localStream =
+    await navigator.mediaDevices.getUserMedia({
+      audio:true
+    });
+
+  state.pc =
+    new RTCPeerConnection({
+      iceServers:[
+        {
+          urls:"stun:stun.l.google.com:19302"
+        }
+      ]
+    });
+
+  state.localStream
+    .getTracks()
+    .forEach(track=>{
+      state.pc.addTrack(
+        track,
+        state.localStream
+      );
+    });
+
+  state.pc.ontrack=e=>{
+
+    let audio=
+      document.getElementById("remoteAudio");
+
+    if(!audio){
+      audio=document.createElement("audio");
+      audio.id="remoteAudio";
+      audio.autoplay=true;
+      document.body.appendChild(audio);
+    }
+
+    audio.srcObject=e.streams[0];
+  };
+
+  const channel=
+    db.channel("call-"+callId);
+
+  channel.on(
+    "broadcast",
+    {event:"offer"},
+    async ({payload})=>{
+
+      await state.pc.setRemoteDescription(
+        new RTCSessionDescription(
+          payload.offer
+        )
+      );
+
+      const answer =
+        await state.pc.createAnswer();
+
+      await state.pc.setLocalDescription(
+        answer
+      );
+
+      channel.send({
+        type:"broadcast",
+        event:"answer",
+        payload:{answer}
+      });
+    }
+  );
+
+  channel.on(
+    "broadcast",
+    {event:"ice"},
+    async ({payload})=>{
+      try{
+        await state.pc.addIceCandidate(
+          payload.candidate
+        );
+      }catch(e){}
+    }
+  );
+
+  state.pc.onicecandidate=e=>{
+
+    if(e.candidate){
+
+      channel.send({
+        type:"broadcast",
+        event:"ice",
+        payload:{
+          candidate:e.candidate
+        }
+      });
+
+    }
+  };
+
+  await channel.subscribe();
+}
+
+async function declineCall(){
+
+  if(state.incomingCall){
+
+    await db
+      .from("calls")
+      .update({
+        status:"declined"
+      })
+      .eq(
+        "id",
+        state.incomingCall.id
+      );
+  }
+
+  state.incomingCall=null;
+
+  closeModal();
+}
+
+async function endCall(){
+
+  if(state.currentCall){
+
+    await db
+      .from("calls")
+      .update({
+        status:"ended",
+        ended_at:new Date().toISOString()
+      })
+      .eq(
+        "id",
+        state.currentCall.id
+      );
+  }
+
+  if(state.localStream){
+    state.localStream
+      .getTracks()
+      .forEach(t=>t.stop());
+  }
+
+  if(state.pc){
+    state.pc.close();
+  }
+
+  state.localStream=null;
+  state.remoteStream=null;
+  state.pc=null;
+  state.currentCall=null;
+
+  const audio=
+    document.getElementById("remoteAudio");
+
+  if(audio) audio.remove();
+
+  closeModal();
+}
+
+
+/* =========================================================
+   TIC TAC TOE
+   ========================================================= */
+
+function openTTT(){
+
+  state.ttt={
+    board:["","","","","","","","",""],
+    turn:"X",
+    over:false
+  };
+
+  $("#modalRoot").innerHTML=`
+
+    <div class="modal">
+
+      <div class="modalBox">
+
+        <div class="modalHead">
+
+          <h2>Tic-Tac-Toe</h2>
+
+          <button
+            class="closeBtn"
+            onclick="closeModal()">
+            ×
+          </button>
+
+        </div>
+
+        <div
+          id="tttStatus"
+          style="text-align:center">
+          Your turn — X
+        </div>
+
+        <div
+          id="tttBoard"
+          class="ttt">
+        </div>
+
+        <button
+          class="secondary"
+          style="width:100%"
+          onclick="resetTTT()">
+          Restart
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+  renderTTT();
+}
+
+function renderTTT(){
+
+  const root=$("#tttBoard");
+
+  if(!root) return;
+
+  root.innerHTML=
+    state.ttt.board
+      .map((cell,i)=>`
+
+        <button
+          onclick="tttMove(${i})">
+          ${cell}
+        </button>
+
+      `).join("");
+
+  const winner=
+    checkWinner(state.ttt.board);
+
+  if(winner){
+
+    $("#tttStatus").textContent=
+      winner==="draw"
+      ?"Draw!"
+      :winner+" wins!";
+
+    state.ttt.over=true;
+
+  }else{
+
+    $("#tttStatus").textContent=
+      `Turn: ${state.ttt.turn}`;
+
+  }
+}
+
+function tttMove(i){
+
+  if(
+    state.ttt.over ||
+    state.ttt.board[i]
+  ) return;
+
+  state.ttt.board[i]=state.ttt.turn;
+
+  const result=
+    checkWinner(state.ttt.board);
+
+  if(result){
+    state.ttt.over=true;
+  }else{
+    state.ttt.turn=
+      state.ttt.turn==="X"
+      ?"O":"X";
+  }
+
+  renderTTT();
+}
+
+function checkWinner(board){
+
+  const wins=[
+    [0,1,2],
+    [3,4,5],
+    [6,7,8],
+    [0,3,6],
+    [1,4,7],
+    [2,5,8],
+    [0,4,8],
+    [2,4,6]
+  ];
+
+  for(const [a,b,c] of wins){
+
+    if(
+      board[a] &&
+      board[a]===board[b] &&
+      board[a]===board[c]
+    ){
+      return board[a];
+    }
+
+  }
+
+  if(board.every(Boolean))
+    return "draw";
+
+  return null;
+}
+
+function resetTTT(){
+
+  state.ttt={
+    board:["","","","","","","","",""],
+    turn:"X",
+    over:false
+  };
+
+  renderTTT();
+}
+
+
+/* =========================================================
+   MODAL / PROFILE / UTILITIES
+   ========================================================= */
+
+function closeModal(){
+  $("#modalRoot").innerHTML="";
+}
+
+function showProfile(){
+  state.screen="profile";
+  render();
+}
+
+async function setOffline(){
+
+  if(!state.user) return;
+
+  await db
+    .from("profiles")
+    .update({
+      online:false,
+      last_seen:new Date().toISOString()
+    })
+    .eq("id",state.user.id);
+
+  toast("You are offline");
+}
+
+async function copyText(text){
+
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("Copied");
+  }catch{
+    toast(text);
+  }
+}
+
+$("#callTop").onclick=()=>{
+  toast("Your active calls will appear here");
+};
+
+$("#notifTop").onclick=()=>{
+  toast("No new notifications");
+};
+
+
+/* =========================================================
+   INIT
+   ========================================================= */
+
+(async function(){
+
+  $("#toast").style.display="none";
+
+  await ensureAuth();
+
+  setupRealtime();
+
+  await render();
+
+})();
+
+</script>
+
+</body>
+</html>
