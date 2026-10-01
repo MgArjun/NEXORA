@@ -3,639 +3,737 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#08090d">
-<meta name="description" content="NEXORA — connect, chat and play together.">
+<meta name="theme-color" content="#07080d">
 <title>NEXORA</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* NEXORA COMPLETE STYLES */
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#08090d;color:#f5f7fb;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{min-height:100vh}
-button,input{font:inherit}
-button{cursor:pointer}
-button:active{transform:scale(.97)}
-
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
 :root{
-  --bg:#08090d;
-  --panel:#101218;
-  --panel2:#151820;
-  --border:rgba(255,255,255,.08);
-  --text:#f5f7fb;
-  --muted:#8f96a5;
-  --accent:#7c5cff;
-  --accent2:#9a83ff;
-  --danger:#ff5d73;
-  --success:#38d39f;
+  --bg:#07080d;
+  --panel:#10121a;
+  --panel2:#151824;
+  --panel3:#1b1f2c;
+  --line:rgba(255,255,255,.08);
+  --text:#f6f7fb;
+  --muted:#9299aa;
+  --purple:#7657ff;
+  --purple2:#9d87ff;
+  --green:#35d58a;
+  --red:#ff5571;
+  --yellow:#ffc857;
+  --shadow:0 24px 70px rgba(0,0,0,.42);
 }
 
-#app{min-height:100vh;padding-bottom:82px}
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+  overflow-x:hidden;
+}
+
+button,input{
+  font:inherit;
+}
+
+button{
+  border:0;
+  cursor:pointer;
+}
+
+.app{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(118,87,255,.15),transparent 30%),
+    radial-gradient(circle at 100% 20%,rgba(53,213,138,.06),transparent 25%),
+    var(--bg);
+}
+
+.shell{
+  width:min(1180px,100%);
+  min-height:100vh;
+  margin:auto;
+  padding-bottom:90px;
+}
 
 .topbar{
-  height:68px;
+  height:72px;
   padding:0 18px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  border-bottom:1px solid var(--border);
-  background:rgba(8,9,13,.85);
-  backdrop-filter:blur(18px);
   position:sticky;
   top:0;
   z-index:20;
+  backdrop-filter:blur(20px);
+  background:rgba(7,8,13,.78);
+  border-bottom:1px solid var(--line);
 }
 
 .brand{
-  border:0;
-  background:none;
-  color:var(--text);
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight:800;
-  letter-spacing:1.5px;
-  font-size:16px;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:-1px;
 }
 
-.brandMark{
-  width:34px;
-  height:34px;
-  border-radius:11px;
+.brand span{
+  color:var(--purple2);
+}
+
+.top-user{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
   display:grid;
   place-items:center;
-  background:linear-gradient(135deg,var(--accent),#4c36c9);
-  box-shadow:0 8px 25px rgba(124,92,255,.3);
+  background:linear-gradient(135deg,#7657ff,#34256e);
+  font-weight:800;
 }
 
-.topActions{display:flex;gap:8px}
-.iconBtn{
-  position:relative;
-  width:40px;
-  height:40px;
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:#fff;
-  border-radius:12px;
+.content{
+  padding:22px 18px;
 }
-
-#notifDot{
-  position:absolute;
-  width:7px;
-  height:7px;
-  background:var(--danger);
-  border-radius:50%;
-  right:7px;
-  top:7px;
-  display:none;
-}
-
-.screen{
-  width:min(1100px,100%);
-  margin:auto;
-  padding:20px 16px;
-}
-
-.bottomNav{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  height:76px;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  background:rgba(10,11,16,.94);
-  backdrop-filter:blur(20px);
-  border-top:1px solid var(--border);
-  z-index:30;
-}
-
-.navBtn{
-  border:0;
-  background:none;
-  color:var(--muted);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:4px;
-  min-width:62px;
-  font-size:11px;
-}
-
-.navBtn b{font-size:21px;font-weight:500}
-.navBtn.active{color:#fff}
-.navBtn.active b{color:var(--accent2)}
 
 .hero{
-  padding:24px 0 14px;
+  padding:28px 4px 22px;
 }
 
 .hero h1{
   margin:0;
-  font-size:clamp(28px,7vw,42px);
-  line-height:1.05;
-  letter-spacing:-1.5px;
+  font-size:clamp(30px,7vw,48px);
+  letter-spacing:-2px;
+  line-height:1;
 }
 
 .hero p{
-  margin:10px 0 0;
+  margin:12px 0 0;
   color:var(--muted);
 }
 
-.card{
-  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:18px;
-  margin-bottom:14px;
-  box-shadow:0 12px 40px rgba(0,0,0,.15);
-}
-
-.cardTitle{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:14px;
-}
-
-.cardTitle h2,.cardTitle h3{margin:0}
-.muted{color:var(--muted)}
-.small{font-size:12px}
-
 .grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-}
-
-.action{
-  min-height:120px;
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:#fff;
-  border-radius:18px;
-  padding:18px;
-  text-align:left;
-  transition:.2s;
-}
-
-.action:hover{
-  border-color:rgba(124,92,255,.5);
-  transform:translateY(-2px);
-}
-
-.action .emoji{font-size:28px;margin-bottom:16px}
-.action strong{display:block;font-size:15px}
-.action span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
-
-.primary{
-  border:0;
-  color:white;
-  background:linear-gradient(135deg,var(--accent),#543dd2);
-  padding:12px 17px;
-  border-radius:12px;
-  font-weight:700;
-  box-shadow:0 8px 25px rgba(124,92,255,.2);
-}
-
-.secondary{
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:white;
-  padding:11px 15px;
-  border-radius:12px;
-}
-
-.danger{
-  background:rgba(255,93,115,.1);
-  color:#ff8a9a;
-  border:1px solid rgba(255,93,115,.2);
-}
-
-input{
-  width:100%;
-  border:1px solid var(--border);
-  outline:none;
-  background:#0c0e13;
-  color:#fff;
-  border-radius:13px;
-  padding:13px 14px;
-}
-
-input:focus{border-color:rgba(124,92,255,.7)}
-
-.searchRow{
-  display:flex;
-  gap:8px;
-}
-
-.searchRow input{flex:1}
-
-.userRow{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 0;
-  border-bottom:1px solid var(--border);
-}
-
-.userRow:last-child{border-bottom:0}
-
-.avatar{
-  width:44px;
-  height:44px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(135deg,#292d3a,#181a22);
-  font-weight:800;
-  flex-shrink:0;
-}
-
-.userInfo{flex:1;min-width:0}
-.userInfo strong{display:block}
-.userInfo span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-
-.online{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:#555;
-  display:inline-block;
-  margin-right:5px;
-}
-
-.online.on{background:var(--success)}
-
-.chatLayout{
-  display:grid;
-  grid-template-columns:310px 1fr;
-  min-height:65vh;
-  border:1px solid var(--border);
-  border-radius:20px;
-  overflow:hidden;
-  background:var(--panel);
-}
-
-.chatList{
-  border-right:1px solid var(--border);
-  overflow:auto;
-}
-
-.chatListItem{
-  padding:15px;
-  display:flex;
-  gap:10px;
-  border-bottom:1px solid var(--border);
-  cursor:pointer;
-}
-
-.chatListItem.active{background:rgba(124,92,255,.1)}
-
-.chatWindow{
-  display:flex;
-  flex-direction:column;
-  min-height:65vh;
-}
-
-.chatHeader{
-  padding:15px;
-  border-bottom:1px solid var(--border);
-}
-
-.messages{
-  flex:1;
-  overflow:auto;
-  padding:16px;
-}
-
-.message{
-  max-width:78%;
-  padding:10px 13px;
-  margin-bottom:9px;
-  border-radius:15px;
-  background:#191c24;
-}
-
-.message.mine{
-  margin-left:auto;
-  background:linear-gradient(135deg,#684ee5,#523bc6);
-}
-
-.messageTime{
-  font-size:9px;
-  opacity:.55;
-  margin-top:4px;
-}
-
-.chatInput{
-  padding:12px;
-  display:flex;
-  gap:8px;
-  border-top:1px solid var(--border);
-}
-
-.chatInput input{flex:1}
-
-.gameGrid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:14px;
 }
 
-.gameCard{
-  min-height:190px;
+.card{
+  background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));
+  border:1px solid var(--line);
   border-radius:22px;
-  padding:20px;
-  border:1px solid var(--border);
-  background:
-    radial-gradient(circle at top right,rgba(124,92,255,.2),transparent 40%),
-    var(--panel);
+  padding:18px;
+  box-shadow:var(--shadow);
 }
 
-.gameIcon{font-size:42px;margin-bottom:22px}
-
-.ttt{
-  display:grid;
-  grid-template-columns:repeat(3,90px);
-  gap:8px;
-  justify-content:center;
-  margin:25px auto;
+.card h2,.card h3{
+  margin:0 0 7px;
 }
 
-.ttt button{
-  width:90px;
-  height:90px;
-  border:1px solid var(--border);
-  border-radius:16px;
-  background:#141720;
+.card p{
+  color:var(--muted);
+  margin:0;
+  line-height:1.55;
+}
+
+.primary{
+  background:linear-gradient(135deg,#7657ff,#6040ef);
   color:white;
-  font-size:35px;
+  border-radius:14px;
+  padding:13px 16px;
+  font-weight:800;
 }
 
-.profileHead{
+.secondary{
+  background:var(--panel3);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px 15px;
+  font-weight:700;
+}
+
+.danger{
+  background:rgba(255,85,113,.12);
+  color:#ff8ca0;
+  border:1px solid rgba(255,85,113,.2);
+  border-radius:14px;
+  padding:12px 15px;
+}
+
+.full{
+  width:100%;
+}
+
+.actions{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:15px;
+}
+
+.bottomnav{
+  position:fixed;
+  z-index:30;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  width:min(560px,calc(100% - 24px));
+  height:66px;
+  padding:7px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:5px;
+  background:rgba(16,18,26,.9);
+  border:1px solid var(--line);
+  border-radius:22px;
+  backdrop-filter:blur(22px);
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+
+.navbtn{
+  background:transparent;
+  color:var(--muted);
+  border-radius:16px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.navbtn.active{
+  color:white;
+  background:rgba(118,87,255,.16);
+}
+
+.navicon{
+  display:block;
+  font-size:20px;
+  margin-bottom:2px;
+}
+
+.searchbox{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.searchbox input,
+.form input{
+  width:100%;
+  background:var(--panel2);
+  color:white;
+  border:1px solid var(--line);
+  outline:none;
+  border-radius:14px;
+  padding:14px;
+}
+
+.searchbox input:focus,
+.form input:focus{
+  border-color:rgba(118,87,255,.7);
+}
+
+.userrow{
   display:flex;
   align-items:center;
-  gap:15px;
+  gap:12px;
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
 }
 
-.bigAvatar{
-  width:72px;
-  height:72px;
-  border-radius:24px;
-  display:grid;
-  place-items:center;
-  font-size:27px;
+.userrow:last-child{
+  border-bottom:0;
+}
+
+.userinfo{
+  flex:1;
+  min-width:0;
+}
+
+.username{
   font-weight:800;
-  background:linear-gradient(135deg,var(--accent),#4330a9);
 }
 
-.profileName{font-size:21px;font-weight:800}
-.profileUsername{color:var(--muted);margin-top:4px}
+.online{
+  color:var(--green);
+  font-size:12px;
+  margin-top:3px;
+}
+
+.offline{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:3px;
+}
+
+.chat-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.chat-head .userinfo{
+  flex:1;
+}
+
+.messages{
+  min-height:55vh;
+  max-height:62vh;
+  overflow:auto;
+  padding:8px 2px;
+}
+
+.bubble{
+  max-width:78%;
+  padding:11px 14px;
+  border-radius:17px;
+  margin:7px 0;
+  line-height:1.4;
+  word-break:break-word;
+}
+
+.mine{
+  margin-left:auto;
+  background:linear-gradient(135deg,#7657ff,#6244eb);
+  border-bottom-right-radius:5px;
+}
+
+.theirs{
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-bottom-left-radius:5px;
+}
+
+.composer{
+  display:flex;
+  gap:8px;
+  padding-top:10px;
+}
+
+.composer input{
+  flex:1;
+  background:var(--panel2);
+  color:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:13px;
+  outline:none;
+}
+
+.gamegrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.gamecard{
+  min-height:200px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.gameemoji{
+  font-size:42px;
+  margin-bottom:12px;
+}
+
+.coming{
+  opacity:.65;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  background:rgba(118,87,255,.14);
+  color:#b6a7ff;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(12px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
 
 .modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.65);
-  backdrop-filter:blur(8px);
-  display:grid;
-  place-items:center;
-  padding:18px;
-  z-index:100;
+  width:min(520px,100%);
+  max-height:92vh;
+  overflow:auto;
+  background:#10121a;
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:22px;
+  box-shadow:0 30px 100px rgba(0,0,0,.65);
 }
 
-.modalBox{
-  width:min(500px,100%);
-  max-height:90vh;
-  overflow:auto;
-  background:#11131a;
-  border:1px solid var(--border);
-  border-radius:24px;
+.modal h2{
+  margin-top:0;
+}
+
+.close{
+  float:right;
+  background:var(--panel3);
+  color:white;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+}
+
+.auth{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
   padding:20px;
 }
 
-.modalHead{
+.authbox{
+  width:min(460px,100%);
+  background:rgba(16,18,26,.9);
+  border:1px solid var(--line);
+  border-radius:30px;
+  padding:30px;
+  box-shadow:var(--shadow);
+}
+
+.authbrand{
+  font-size:42px;
+  font-weight:950;
+  letter-spacing:-3px;
+  margin-bottom:10px;
+}
+
+.authbrand span{
+  color:var(--purple2);
+}
+
+.authsub{
+  color:var(--muted);
+  line-height:1.5;
+  margin-bottom:26px;
+}
+
+.form{
+  display:grid;
+  gap:10px;
+}
+
+.divider{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--muted);
+  font-size:12px;
+  margin:18px 0;
+}
+
+.divider:before,.divider:after{
+  content:"";
+  height:1px;
+  background:var(--line);
+  flex:1;
+}
+
+.profilebig{
+  width:82px;
+  height:82px;
+  font-size:30px;
+  margin-bottom:15px;
+}
+
+.profilemeta{
+  display:grid;
+  gap:9px;
+  margin-top:18px;
+}
+
+.meta{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  margin-bottom:18px;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
 }
 
-.closeBtn{
-  width:35px;
-  height:35px;
-  border-radius:10px;
-  background:var(--panel);
-  color:white;
-  border:1px solid var(--border);
-}
-
-.callOverlay{
-  position:fixed;
-  inset:0;
-  z-index:200;
-  background:rgba(5,6,10,.94);
-  display:grid;
-  place-items:center;
-  padding:20px;
-}
-
-.callBox{
-  width:min(400px,100%);
+.callbox{
   text-align:center;
-  background:#11131a;
-  border:1px solid var(--border);
-  border-radius:28px;
-  padding:35px 22px;
+  padding:25px 10px;
 }
 
-.callAvatar{
-  width:90px;
-  height:90px;
+.callavatar{
+  width:100px;
+  height:100px;
+  margin:10px auto 18px;
   border-radius:50%;
-  margin:0 auto 20px;
   display:grid;
   place-items:center;
-  background:linear-gradient(135deg,var(--accent),#4330a9);
+  background:linear-gradient(135deg,#7657ff,#34256e);
   font-size:35px;
-  font-weight:800;
+  font-weight:900;
+  box-shadow:0 0 0 12px rgba(118,87,255,.08);
 }
 
-.callActions{
+.callstatus{
+  color:var(--muted);
+  margin:7px 0 25px;
+}
+
+.callbuttons{
   display:flex;
   justify-content:center;
   gap:12px;
-  margin-top:25px;
 }
 
-.callActions button{
+.callcircle{
   width:58px;
   height:58px;
   border-radius:50%;
-  border:0;
   color:white;
+  background:var(--panel3);
 }
 
-.accept{background:#20b887}
-.reject{background:#e74c64}
-
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:95px;
-  transform:translateX(-50%);
-  background:#181b23;
-  border:1px solid var(--border);
-  padding:12px 16px;
-  border-radius:13px;
-  z-index:300;
-  box-shadow:0 15px 40px rgba(0,0,0,.3);
+.callcircle.end{
+  background:#c9334d;
 }
 
-.empty{
+.gameboard-wrap{
+  overflow:auto;
+}
+
+.ttt{
+  width:min(440px,100%);
+  margin:18px auto;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:7px;
+}
+
+.ttt button{
+  aspect-ratio:1;
+  border-radius:12px;
+  background:var(--panel2);
+  color:white;
+  border:1px solid var(--line);
+  font-size:clamp(22px,7vw,38px);
+  font-weight:900;
+}
+
+.ttt button.x{
+  color:#a18cff;
+}
+
+.ttt button.o{
+  color:#35d58a;
+}
+
+.game-status{
   text-align:center;
-  padding:45px 15px;
-  color:var(--muted);
+  font-weight:800;
+  margin:10px 0;
 }
 
-.loading{
+.ludo{
+  width:min(430px,100%);
+  aspect-ratio:1;
+  margin:15px auto;
+  padding:10px;
+  border-radius:22px;
+  background:
+    linear-gradient(90deg,#d95c65 0 25%,#f3f3f3 25% 75%,#6bb77d 75%),
+    #eee;
+  display:grid;
+  place-items:center;
+  position:relative;
+}
+
+.ludo-inner{
+  width:100%;
+  height:100%;
+  background:
+    linear-gradient(#fff 0 0) center/32% 32% no-repeat,
+    repeating-linear-gradient(0deg,#ddd 0 1px,transparent 1px 8.33%),
+    repeating-linear-gradient(90deg,#ddd 0 1px,transparent 1px 8.33%),
+    #fafafa;
+  border-radius:15px;
+  position:relative;
+  overflow:hidden;
+}
+
+.ludo-center{
+  position:absolute;
+  inset:34% 34%;
+  display:grid;
+  place-items:center;
+  background:conic-gradient(#7657ff 0 25%,#35d58a 25% 50%,#ffcb57 50% 75%,#ff637a 75%);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+}
+
+.token{
+  position:absolute;
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.85);
+  box-shadow:0 4px 10px rgba(0,0,0,.3);
+  transition:.25s;
+}
+
+.token.red{background:#ef5366;}
+.token.blue{background:#7657ff;}
+.token.green{background:#35d58a;}
+.token.yellow{background:#ffc857;}
+
+.dice{
+  width:65px;
+  height:65px;
+  display:grid;
+  place-items:center;
+  background:white;
+  color:#111;
+  border-radius:15px;
+  font-size:30px;
+  font-weight:900;
+  margin:auto;
+}
+
+.footer{
   text-align:center;
-  padding:50px;
-  color:var(--muted);
+  color:#656b7b;
+  font-size:11px;
+  margin:30px 0;
 }
 
-@media(max-width:700px){
-  .chatLayout{
+.hidden{
+  display:none!important;
+}
+
+@media(max-width:650px){
+  .grid,.gamegrid{
     grid-template-columns:1fr;
-    min-height:auto;
   }
-
-  .chatList{
-    max-height:220px;
-    border-right:0;
-    border-bottom:1px solid var(--border);
+  .content{
+    padding:18px 14px;
   }
-
-  .chatWindow{min-height:55vh}
-
-  .gameGrid{grid-template-columns:1fr}
-
-  .ttt{
-    grid-template-columns:repeat(3,76px);
+  .card{
+    border-radius:19px;
   }
-
-  .ttt button{
-    width:76px;
-    height:76px;
+  .topbar{
+    padding:0 14px;
   }
-}
-
-@media(min-width:800px){
-  .screen{padding:30px 24px}
 }
 </style>
 </head>
 
 <body>
-
-<div id="app">
-
-<header class="topbar">
-  <button class="brand" data-screen="home">
-    <span class="brandMark">N</span>
-    <span>NEXORA</span>
-  </button>
-
-  <div class="topActions">
-    <button class="iconBtn" id="callTop">☎</button>
-    <button class="iconBtn" id="notifTop">
-      ♢<i id="notifDot"></i>
-    </button>
-  </div>
-</header>
-
-<main id="screen" class="screen"></main>
-
-<nav class="bottomNav">
-  <button data-screen="home" class="navBtn active">
-    <b>⌂</b><span>Home</span>
-  </button>
-
-  <button data-screen="games" class="navBtn">
-    <b>♟</b><span>Games</span>
-  </button>
-
-  <button data-screen="chat" class="navBtn">
-    <b>◌</b><span>Chat</span>
-  </button>
-
-  <button data-screen="profile" class="navBtn">
-    <b>●</b><span>Profile</span>
-  </button>
-</nav>
-
-</div>
-
-<div id="modalRoot"></div>
-<div id="toast"></div>
+<div id="app"></div>
 
 <script>
-
 /* =========================================================
-   SUPABASE CONFIG
-   ========================================================= */
+   NEXORA CONFIG
+========================================================= */
 
 const SUPABASE_URL =
-"https://ktwluvpmzisonmootdqc.supabase.co";
+  "https://ktwluvpmzisonmootdqc.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-"sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
+  "sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
 
-window.nexoraSupabase =
-window.supabase.createClient(
+const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
 
-const db = window.nexoraSupabase;
+/*
+  STUN = basic WebRTC connectivity.
+  TURN can be added later here for difficult mobile networks.
+*/
+const RTC_CONFIG = {
+  iceServers:[
+    {urls:"stun:stun.l.google.com:19302"},
+    {urls:"stun:stun1.l.google.com:19302"}
 
+    /*
+    TURN example:
+
+    {
+      urls:"turn:YOUR-TURN-SERVER:3478",
+      username:"YOUR-USERNAME",
+      credential:"YOUR-CREDENTIAL"
+    }
+    */
+  ]
+};
 
 /* =========================================================
    STATE
-   ========================================================= */
+========================================================= */
 
-const state = {
+let state = {
   user:null,
   profile:null,
-  screen:"home",
+  page:"home",
+
+  searchResults:[],
   conversations:[],
-  activeConversation:null,
-  messages:[],
   selectedUser:null,
-  incomingCall:null,
-  currentCall:null,
+  conversation:null,
+  messages:[],
+
+  callId:null,
+  callType:"voice",
+  callRole:null,
+  callChannel:null,
   pc:null,
   localStream:null,
   remoteStream:null,
+  pendingCandidates:[],
+  callReady:false,
+  callMuted:false,
+
   ttt:{
-    board:["","","","","","","","",""],
+    board:Array(25).fill(""),
     turn:"X",
-    over:false
+    mode:"robot",
+    active:false,
+    result:""
+  },
+
+  ludo:{
+    active:false,
+    turn:"you",
+    you:0,
+    robot:0,
+    lastDice:0,
+    winner:""
   }
 };
 
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
 const $ = s => document.querySelector(s);
 
-function escapeHTML(value){
-  return String(value ?? "")
+function esc(v){
+  return String(v ?? "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
@@ -644,926 +742,1967 @@ function escapeHTML(value){
 }
 
 function initials(name){
-  const x=(name||"N").trim();
-  return x.slice(0,2).toUpperCase();
+  return (name || "N")
+    .trim()
+    .split(/\s+/)
+    .slice(0,2)
+    .map(x=>x[0])
+    .join("")
+    .toUpperCase();
 }
 
 function toast(message){
-  const el=$("#toast");
-  el.textContent=message;
-  el.style.display="block";
+  const old = document.querySelector(".toast");
+  if(old) old.remove();
 
-  clearTimeout(window.toastTimer);
+  const t = document.createElement("div");
+  t.className="toast";
+  t.textContent=message;
 
-  window.toastTimer=setTimeout(()=>{
-    el.style.display="none";
-  },2500);
+  Object.assign(t.style,{
+    position:"fixed",
+    left:"50%",
+    bottom:"95px",
+    transform:"translateX(-50%)",
+    zIndex:999,
+    background:"#1b1f2c",
+    color:"#fff",
+    padding:"12px 17px",
+    borderRadius:"14px",
+    border:"1px solid rgba(255,255,255,.1)",
+    boxShadow:"0 20px 50px rgba(0,0,0,.5)",
+    fontWeight:"700",
+    maxWidth:"90%",
+    textAlign:"center"
+  });
+
+  document.body.appendChild(t);
+
+  setTimeout(()=>t.remove(),2600);
 }
-
-function formatTime(date){
-  try{
-    return new Date(date).toLocaleTimeString([],{
-      hour:"2-digit",
-      minute:"2-digit"
-    });
-  }catch{
-    return "";
-  }
-}
-
 
 /* =========================================================
    AUTH
-   ========================================================= */
+========================================================= */
 
-async function ensureAuth(){
+function renderAuth(){
+  $("#app").innerHTML=`
+    <div class="auth">
+      <div class="authbox">
+        <div class="authbrand">NEX<span>ORA</span></div>
 
-  let {data:{session}} =
-    await db.auth.getSession();
+        <div class="authsub">
+          Connect with people, chat in realtime,
+          make voice calls and play together.
+        </div>
 
-  if(!session){
+        <button class="primary full" onclick="guestLogin()">
+          Continue as Guest
+        </button>
 
-    const result =
-      await db.auth.signInAnonymously({
+        <div class="divider">OR</div>
+
+        <button class="secondary full" onclick="showEmailAuth('login')">
+          Login
+        </button>
+
+        <button
+          class="secondary full"
+          style="margin-top:9px"
+          onclick="showEmailAuth('signup')">
+          Create account
+        </button>
+
+        <div class="footer">
+          Powered by Suraj Kumar
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function showEmailAuth(mode){
+  $("#app").innerHTML=`
+    <div class="auth">
+      <div class="authbox">
+
+        <button
+          class="close"
+          onclick="renderAuth()">
+          ×
+        </button>
+
+        <div class="authbrand" style="font-size:31px">
+          ${mode==="login"?"Welcome back":"Create account"}
+        </div>
+
+        <div class="authsub">
+          ${mode==="login"
+            ?"Login to continue to NEXORA."
+            :"Create your permanent NEXORA account."}
+        </div>
+
+        <div class="form">
+          <input id="email" type="email" placeholder="Email address">
+          <input id="password" type="password" placeholder="Password">
+
+          <button class="primary" onclick="emailAuth('${mode}')">
+            ${mode==="login"?"Login":"Create account"}
+          </button>
+        </div>
+
+        <button
+          class="secondary full"
+          style="margin-top:10px"
+          onclick="renderAuth()">
+          Back
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function guestLogin(){
+  try{
+    const {data,error}=await db.auth.signInAnonymously();
+
+    if(error) throw error;
+
+    state.user=data.user;
+
+    await finishLogin();
+
+  }catch(e){
+    toast("Guest login failed: "+e.message);
+  }
+}
+
+async function emailAuth(mode){
+  const email=$("#email").value.trim();
+  const password=$("#password").value;
+
+  if(!email || !password){
+    toast("Enter email and password.");
+    return;
+  }
+
+  try{
+    let result;
+
+    if(mode==="login"){
+      result=await db.auth.signInWithPassword({
+        email,
+        password
+      });
+    }else{
+      result=await db.auth.signUp({
+        email,
+        password,
         options:{
           data:{
-            display_name:"NEXORA Guest",
-            is_guest:true
+            display_name:email.split("@")[0],
+            is_guest:false
           }
         }
       });
+    }
 
-    if(result.error){
-      console.error(result.error);
-      toast("Guest login failed");
+    if(result.error) throw result.error;
+
+    if(!result.data.session){
+      toast("Check your email to confirm your account.");
       return;
     }
 
-    session=result.data.session;
+    state.user=result.data.user;
+    await finishLogin();
+
+  }catch(e){
+    toast(e.message);
   }
-
-  state.user=session.user;
-
-  await loadProfile();
 }
 
-async function loadProfile(){
+/* =========================================================
+   PROFILE
+========================================================= */
 
-  if(!state.user) return;
+async function finishLogin(){
+  await ensureProfile();
 
-  let {data,error} =
-    await db
-      .from("profiles")
-      .select("*")
-      .eq("id",state.user.id)
-      .single();
+  if(!state.profile) return;
+
+  if(
+    !state.profile.username ||
+    state.profile.username.startsWith("NX_")
+  ){
+    showUsernameSetup();
+    return;
+  }
+
+  await bootApp();
+}
+
+async function ensureProfile(){
+  const {data,error}=await db
+    .from("profiles")
+    .select("*")
+    .eq("id",state.user.id)
+    .maybeSingle();
 
   if(error){
-    console.error(error);
+    toast(error.message);
     return;
   }
 
   state.profile=data;
 
-  await db
-    .from("profiles")
-    .update({
-      online:true,
-      last_seen:new Date().toISOString()
-    })
-    .eq("id",state.user.id);
+  if(!data){
+    toast("Profile is still being created. Try again.");
+  }
 }
 
+function showUsernameSetup(){
+  $("#app").innerHTML=`
+    <div class="auth">
+      <div class="authbox">
+        <div class="authbrand" style="font-size:32px">
+          Your NEXORA ID
+        </div>
+
+        <div class="authsub">
+          Choose the username people can use to find,
+          message and call you.
+        </div>
+
+        <div class="form">
+          <input
+            id="newusername"
+            maxlength="24"
+            placeholder="e.g. suraj123">
+
+          <input
+            id="newdisplay"
+            maxlength="40"
+            placeholder="Display name">
+
+          <button class="primary" onclick="saveUsername()">
+            Continue
+          </button>
+        </div>
+
+        <p style="font-size:12px;color:#777f90;margin-top:14px">
+          3–24 characters · letters, numbers and underscore
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+async function saveUsername(){
+  const username=$("#newusername").value.trim().toLowerCase();
+  const display=$("#newdisplay").value.trim();
+
+  if(!/^[a-z0-9_]{3,24}$/.test(username)){
+    toast("Invalid username.");
+    return;
+  }
+
+  try{
+    const {data,error}=await db.rpc(
+      "nexora_set_username",
+      {
+        new_username:username,
+        new_display_name:display || null
+      }
+    );
+
+    if(error) throw error;
+
+    state.profile=data;
+    await bootApp();
+
+  }catch(e){
+    toast(e.message);
+  }
+}
 
 /* =========================================================
-   SCREEN NAVIGATION
-   ========================================================= */
+   APP SHELL
+========================================================= */
 
-document.addEventListener("click",async e=>{
-
-  const screenButton =
-    e.target.closest("[data-screen]");
-
-  if(screenButton){
-
-    const target =
-      screenButton.dataset.screen;
-
-    state.screen=target;
-
-    updateNav();
-
-    await render();
-  }
-});
-
-function updateNav(){
-
-  document.querySelectorAll(".navBtn")
-    .forEach(btn=>{
-      btn.classList.toggle(
-        "active",
-        btn.dataset.screen===state.screen
-      );
-    });
+async function bootApp(){
+  state.page="home";
+  await setOnline(true);
+  await loadConversations();
+  render();
+  subscribeRealtime();
 }
 
+function render(){
+  const p=state.page;
+
+  let body="";
+
+  if(p==="home") body=renderHome();
+  if(p==="search") body=renderSearch();
+  if(p==="chats") body=renderChats();
+  if(p==="games") body=renderGames();
+  if(p==="profile") body=renderProfile();
+  if(p==="chat") body=renderChat();
+
+  $("#app").innerHTML=`
+    <div class="app">
+      <div class="shell">
+
+        <header class="topbar">
+          <div class="brand">NEX<span>ORA</span></div>
+
+          <div class="top-user">
+            <div>
+              <div style="font-size:12px;font-weight:800">
+                ${esc(state.profile?.display_name)}
+              </div>
+              <div style="font-size:10px;color:#35d58a">
+                ● online
+              </div>
+            </div>
+
+            <div class="avatar">
+              ${initials(state.profile?.display_name)}
+            </div>
+          </div>
+        </header>
+
+        <main class="content">
+          ${body}
+        </main>
+
+        ${state.page!=="chat"?`
+        <nav class="bottomnav">
+          <button class="navbtn ${p==="home"?"active":""}"
+            onclick="go('home')">
+            <span class="navicon">⌂</span>Home
+          </button>
+
+          <button class="navbtn ${p==="search"?"active":""}"
+            onclick="go('search')">
+            <span class="navicon">⌕</span>People
+          </button>
+
+          <button class="navbtn ${p==="games"?"active":""}"
+            onclick="go('games')">
+            <span class="navicon">◈</span>Games
+          </button>
+
+          <button class="navbtn ${p==="profile"?"active":""}"
+            onclick="go('profile')">
+            <span class="navicon">●</span>Profile
+          </button>
+        </nav>
+        `:""}
+
+        <div class="footer">
+          Powered by Suraj Kumar
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+function go(page){
+  state.page=page;
+  render();
+}
 
 /* =========================================================
    HOME
-   ========================================================= */
+========================================================= */
 
-function homeHTML(){
-
-  const p=state.profile;
-
+function renderHome(){
   return `
+    <section class="hero">
+      <div class="badge">● NEXORA ONLINE</div>
 
-  <section class="hero">
-    <p class="small">WELCOME BACK</p>
-    <h1>
-      Hey, ${escapeHTML(
-        p?.display_name || "Guest"
-      )}
-    </h1>
-    <p>
-      Connect. Chat. Play.
-      Welcome to NEXORA.
-    </p>
-  </section>
+      <h1 style="margin-top:13px">
+        Connect.<br>
+        Chat. Play.
+      </h1>
 
-  <div class="card">
-    <div class="cardTitle">
-      <div>
-        <h3>Your NEXORA ID</h3>
-        <div class="muted small">
-          Share this username with friends
+      <p>
+        Everything you need to connect with people
+        in one simple space.
+      </p>
+    </section>
+
+    <div class="grid">
+
+      <div class="card">
+        <h2>💬 Messages</h2>
+        <p>
+          Real-time private chat with your NEXORA contacts.
+        </p>
+        <div class="actions">
+          <button class="primary" onclick="go('chats')">
+            Open chats
+          </button>
         </div>
       </div>
+
+      <div class="card">
+        <h2>🔎 Find people</h2>
+        <p>
+          Search anyone using their NEXORA username.
+        </p>
+        <div class="actions">
+          <button class="secondary" onclick="go('search')">
+            Search users
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🎮 Games</h2>
+        <p>
+          Play Ludo or challenge the 5×5 four-in-a-row game.
+        </p>
+        <div class="actions">
+          <button class="primary" onclick="go('games')">
+            Play now
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📞 Voice calls</h2>
+        <p>
+          Direct browser voice calls powered by WebRTC.
+        </p>
+        <div class="actions">
+          <button class="secondary" onclick="go('search')">
+            Find someone
+          </button>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function renderSearch(){
+  return `
+    <div class="hero">
+      <h1 style="font-size:34px">
+        Find people
+      </h1>
+      <p>
+        Search by exact NEXORA username.
+      </p>
     </div>
 
-    <div style="
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      background:#0b0d12;
-      padding:14px;
-      border-radius:14px;
-    ">
-      <strong>
-        @${escapeHTML(p?.username || "")}
-      </strong>
-
-      <button class="secondary"
-        onclick="copyText('${escapeHTML(p?.username || "")}')">
-        Copy
-      </button>
-    </div>
-  </div>
-
-  <div class="grid">
-
-    <button class="action"
-      onclick="go('chat')">
-      <div class="emoji">💬</div>
-      <strong>Messages</strong>
-      <span>Chat directly with people</span>
-    </button>
-
-    <button class="action"
-      onclick="go('games')">
-      <div class="emoji">🎮</div>
-      <strong>Games</strong>
-      <span>Play multiplayer games</span>
-    </button>
-
-    <button class="action"
-      onclick="openSearch()">
-      <div class="emoji">🔎</div>
-      <strong>Find User</strong>
-      <span>Search by NEXORA username</span>
-    </button>
-
-    <button class="action"
-      onclick="showProfile()">
-      <div class="emoji">👤</div>
-      <strong>My Profile</strong>
-      <span>View your NEXORA identity</span>
-    </button>
-
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <div class="cardTitle">
-      <h3>Quick Connect</h3>
-    </div>
-
-    <div class="searchRow">
+    <div class="searchbox">
       <input
-        id="quickSearch"
-        placeholder="Search username..."
-      >
-      <button class="primary"
-        onclick="quickSearch()">
+        id="usersearch"
+        placeholder="@username"
+        onkeydown="if(event.key==='Enter')searchUsers()">
+
+      <button class="primary" onclick="searchUsers()">
         Search
       </button>
     </div>
 
-    <div id="quickResults"></div>
-  </div>
-
+    <div id="searchresults">
+      ${renderSearchResults()}
+    </div>
   `;
 }
 
-
-/* =========================================================
-   GAMES
-   ========================================================= */
-
-function gamesHTML(){
+function renderSearchResults(){
+  if(!state.searchResults.length){
+    return `
+      <div class="card">
+        <p>
+          Search for a username to find someone.
+        </p>
+      </div>
+    `;
+  }
 
   return `
+    <div class="card">
+      ${state.searchResults.map(u=>`
+        <div class="userrow">
+          <div class="avatar">
+            ${initials(u.display_name)}
+          </div>
 
-  <section class="hero">
-    <p class="small">NEXORA PLAY</p>
-    <h1>Games</h1>
-    <p>Challenge people and play together.</p>
-  </section>
+          <div class="userinfo">
+            <div class="username">
+              ${esc(u.display_name)}
+            </div>
 
-  <div class="gameGrid">
+            <div style="font-size:12px;color:#9299aa">
+              @${esc(u.username)}
+            </div>
 
-    <div class="gameCard">
-      <div class="gameIcon">⭕</div>
-      <h2>Tic-Tac-Toe</h2>
-      <p class="muted">
-        Classic two-player game.
-      </p>
+            <div class="${u.online?"online":"offline"}">
+              ${u.online?"● Online":"○ Offline"}
+            </div>
+          </div>
 
-      <button class="primary"
-        onclick="openTTT()">
-        Play Now
-      </button>
+          <div style="display:flex;gap:6px">
+            <button
+              class="secondary"
+              onclick='openUser(${JSON.stringify(u)})'>
+              Open
+            </button>
+          </div>
+        </div>
+      `).join("")}
     </div>
-
-    <div class="gameCard">
-      <div class="gameIcon">🎲</div>
-      <h2>Ludo</h2>
-      <p class="muted">
-        Multiplayer Ludo module.
-      </p>
-
-      <button class="secondary"
-        onclick="toast('Ludo multiplayer module is next')">
-        Coming Next
-      </button>
-    </div>
-
-  </div>
-
   `;
 }
 
+async function searchUsers(){
+  const q=$("#usersearch")?.value.trim().toLowerCase();
 
-/* =========================================================
-   CHAT
-   ========================================================= */
-
-async function loadConversations(){
-
-  const {data,error} =
-    await db.rpc("nexora_my_conversations");
-
-  if(error){
-    console.error(error);
-    state.conversations=[];
+  if(!q){
+    state.searchResults=[];
+    render();
     return;
   }
 
-  state.conversations=data || [];
+  const {data,error}=await db
+    .from("profiles")
+    .select("id,username,display_name,online,last_seen")
+    .ilike("username",`%${q}%`)
+    .neq("id",state.user.id)
+    .limit(20);
+
+  if(error){
+    toast(error.message);
+    return;
+  }
+
+  state.searchResults=data||[];
+
+  const box=$("#searchresults");
+
+  if(box) box.innerHTML=renderSearchResults();
 }
 
-function chatHTML(){
+function openUser(u){
+  state.selectedUser=u;
 
-  return `
+  $("#app").insertAdjacentHTML("beforeend",`
+    <div class="overlay" id="userOverlay">
+      <div class="modal">
 
-  <section class="hero">
-    <p class="small">DIRECT MESSAGES</p>
-    <h1>Chat</h1>
-  </section>
-
-  <div class="chatLayout">
-
-    <aside class="chatList">
-
-      <div style="padding:12px">
-        <button
-          class="primary"
-          style="width:100%"
-          onclick="openSearch()">
-          + New Chat
+        <button class="close"
+          onclick="$('#userOverlay').remove()">
+          ×
         </button>
-      </div>
 
+        <div class="avatar profilebig">
+          ${initials(u.display_name)}
+        </div>
+
+        <h2>${esc(u.display_name)}</h2>
+
+        <p style="color:#9299aa">
+          @${esc(u.username)}
+        </p>
+
+        <div style="margin-top:20px">
+          <button
+            class="primary full"
+            onclick="startChatFromUser()">
+            💬 Message
+          </button>
+
+          <button
+            class="secondary full"
+            style="margin-top:9px"
+            onclick="callUser('${esc(u.username)}')">
+            📞 Voice call
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `);
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+async function loadConversations(){
+  const {data,error}=await db.rpc("nexora_my_conversations");
+
+  if(error){
+    console.log(error);
+    return;
+  }
+
+  state.conversations=data||[];
+}
+
+function renderChats(){
+  return `
+    <div class="hero">
+      <h1 style="font-size:34px">Messages</h1>
+      <p>Your private conversations.</p>
+    </div>
+
+    <div class="card">
       ${
         state.conversations.length
-        ?
-        state.conversations.map(c=>`
-
-          <div
-            class="chatListItem
-              ${
-                state.activeConversation?.conversation_id===c.conversation_id
-                ?"active":""
-              }"
-            onclick="openConversation('${c.conversation_id}')">
+        ?state.conversations.map(c=>`
+          <div class="userrow"
+            onclick='openConversationById("${c.conversation_id}",${JSON.stringify(c)})'>
 
             <div class="avatar">
               ${initials(c.other_display_name)}
             </div>
 
-            <div class="userInfo">
-              <strong>
-                ${escapeHTML(c.other_display_name)}
-              </strong>
+            <div class="userinfo">
+              <div class="username">
+                ${esc(c.other_display_name)}
+              </div>
 
-              <span>
-                @${escapeHTML(c.other_username)}
-              </span>
+              <div style="font-size:12px;color:#9299aa">
+                @${esc(c.other_username)}
+              </div>
 
-              <span>
-                ${escapeHTML(c.last_message || "No messages")}
-              </span>
-            </div>
-
-          </div>
-
-        `).join("")
-        :
-        `
-        <div class="empty">
-          No conversations yet.
-        </div>
-        `
-      }
-
-    </aside>
-
-    <section class="chatWindow">
-
-      ${
-        state.activeConversation
-        ?
-        `
-
-        <div class="chatHeader">
-
-          <div style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:10px;
-          ">
-
-            <div>
-              <strong>
-                ${escapeHTML(
-                  state.activeConversation.other_display_name
-                )}
-              </strong>
-
-              <div class="muted small">
-                @${escapeHTML(
-                  state.activeConversation.other_username
-                )}
+              <div style="font-size:12px;color:#707789;margin-top:4px">
+                ${esc(c.last_message||"No messages yet")}
               </div>
             </div>
 
-            <button class="secondary"
-              onclick="callUser(
-                '${escapeHTML(
-                  state.activeConversation.other_username
-                )}'
-              )">
-              ☎ Call
-            </button>
-
+            <div style="color:${c.other_online?"#35d58a":"#777"}">
+              ●
+            </div>
           </div>
-
-        </div>
-
-        <div id="messages"
-             class="messages">
-          <div class="loading">
-            Loading messages...
+        `).join("")
+        :`
+          <div style="text-align:center;padding:30px 10px;color:#9299aa">
+            No conversations yet.<br><br>
+            Search someone and send a message.
           </div>
-        </div>
-
-        <div class="chatInput">
-
-          <input
-            id="messageInput"
-            placeholder="Write a message..."
-            onkeydown="if(event.key==='Enter')sendMessage()">
-
-          <button
-            class="primary"
-            onclick="sendMessage()">
-            Send
-          </button>
-
-        </div>
-
-        `
-        :
-        `
-        <div class="empty">
-          <div style="font-size:45px">💬</div>
-          <h3>Select a conversation</h3>
-          <p>
-            Choose an existing chat or start a new one.
-          </p>
-
-          <button class="primary"
-            onclick="openSearch()">
-            Find Someone
-          </button>
-        </div>
         `
       }
-
-    </section>
-
-  </div>
-
+    </div>
   `;
 }
 
+async function startChatFromUser(){
+  if(!state.selectedUser) return;
 
-/* =========================================================
-   PROFILE
-   ========================================================= */
+  $("#userOverlay")?.remove();
 
-function profileHTML(){
-
-  const p=state.profile;
-
-  return `
-
-  <section class="hero">
-    <p class="small">ACCOUNT</p>
-    <h1>Profile</h1>
-  </section>
-
-  <div class="card">
-
-    <div class="profileHead">
-
-      <div class="bigAvatar">
-        ${initials(p?.display_name)}
-      </div>
-
-      <div>
-        <div class="profileName">
-          ${escapeHTML(
-            p?.display_name || "NEXORA User"
-          )}
-        </div>
-
-        <div class="profileUsername">
-          @${escapeHTML(
-            p?.username || ""
-          )}
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="card">
-
-    <div class="cardTitle">
-      <h3>NEXORA ID</h3>
-    </div>
-
-    <p class="muted">
-      Your username is used by other users
-      to find and contact you.
-    </p>
-
-    <div style="
-      background:#0b0d12;
-      padding:14px;
-      border-radius:13px;
-      margin-top:10px;
-    ">
-      @${escapeHTML(p?.username || "")}
-    </div>
-
-  </div>
-
-  <div class="card">
-
-    <div class="cardTitle">
-      <h3>Account</h3>
-    </div>
-
-    <button
-      class="secondary"
-      style="width:100%"
-      onclick="setOffline()">
-      Set Offline
-    </button>
-
-  </div>
-
-  `;
-}
-
-
-/* =========================================================
-   RENDER
-   ========================================================= */
-
-async function render(){
-
-  const screen=$("#screen");
-
-  if(state.screen==="home"){
-    screen.innerHTML=homeHTML();
-  }
-
-  else if(state.screen==="games"){
-    screen.innerHTML=gamesHTML();
-  }
-
-  else if(state.screen==="chat"){
-    await loadConversations();
-    screen.innerHTML=chatHTML();
-
-    if(state.activeConversation){
-      loadMessages(
-        state.activeConversation.conversation_id
-      );
-    }
-  }
-
-  else if(state.screen==="profile"){
-    screen.innerHTML=profileHTML();
-  }
-
-  updateNav();
-}
-
-function go(screen){
-  state.screen=screen;
-  render();
-}
-
-
-/* =========================================================
-   SEARCH
-   ========================================================= */
-
-function openSearch(){
-
-  $("#modalRoot").innerHTML=`
-
-  <div class="modal"
-       onclick="if(event.target===this)closeModal()">
-
-    <div class="modalBox">
-
-      <div class="modalHead">
-        <h2>Find User</h2>
-
-        <button class="closeBtn"
-          onclick="closeModal()">
-          ×
-        </button>
-      </div>
-
-      <div class="searchRow">
-
-        <input
-          id="userSearchInput"
-          placeholder="Enter username">
-
-        <button
-          class="primary"
-          onclick="searchUsers()">
-          Search
-        </button>
-
-      </div>
-
-      <div id="searchResults"></div>
-
-    </div>
-
-  </div>
-
-  `;
-
-  setTimeout(()=>
-    $("#userSearchInput")?.focus(),
-    50
-  );
-}
-
-async function searchUsers(){
-
-  const input=$("#userSearchInput");
-
-  const q=input?.value.trim();
-
-  if(!q) return;
-
-  const {data,error} =
-    await db
-      .from("profiles")
-      .select("id,username,display_name,online")
-      .ilike("username",`%${q}%`)
-      .limit(20);
-
-  const root=$("#searchResults");
-
-  if(error){
-    root.innerHTML=
-      `<div class="empty">
-        Search failed.
-      </div>`;
-    return;
-  }
-
-  const users=(data||[])
-    .filter(x=>x.id!==state.user.id);
-
-  if(!users.length){
-    root.innerHTML=
-      `<div class="empty">
-        No user found.
-      </div>`;
-    return;
-  }
-
-  root.innerHTML=users.map(u=>`
-
-    <div class="userRow">
-
-      <div class="avatar">
-        ${initials(u.display_name)}
-      </div>
-
-      <div class="userInfo">
-
-        <strong>
-          ${escapeHTML(u.display_name)}
-        </strong>
-
-        <span>
-          <i class="online ${u.online?"on":""}"></i>
-          @${escapeHTML(u.username)}
-        </span>
-
-      </div>
-
-      <button class="secondary"
-        onclick="startChat(
-          '${escapeHTML(u.username)}'
-        )">
-        Message
-      </button>
-
-      <button class="secondary"
-        onclick="callUser(
-          '${escapeHTML(u.username)}'
-        )">
-        ☎
-      </button>
-
-    </div>
-
-  `).join("");
-}
-
-async function quickSearch(){
-
-  const q=$("#quickSearch")?.value.trim();
-
-  if(!q) return;
-
-  const {data,error} =
-    await db
-      .from("profiles")
-      .select("id,username,display_name,online")
-      .ilike("username",`%${q}%`)
-      .limit(10);
-
-  const root=$("#quickResults");
-
-  if(error){
-    root.innerHTML=
-      `<p class="muted">Search failed.</p>`;
-    return;
-  }
-
-  const users=(data||[])
-    .filter(x=>x.id!==state.user.id);
-
-  root.innerHTML=users.length
-    ? users.map(u=>`
-
-      <div class="userRow">
-
-        <div class="avatar">
-          ${initials(u.display_name)}
-        </div>
-
-        <div class="userInfo">
-          <strong>${escapeHTML(u.display_name)}</strong>
-          <span>@${escapeHTML(u.username)}</span>
-        </div>
-
-        <button
-          class="primary"
-          onclick="startChat(
-            '${escapeHTML(u.username)}'
-          )">
-          Chat
-        </button>
-
-      </div>
-
-    `).join("")
-    :
-    `<div class="empty">No user found.</div>`;
-}
-
-
-/* =========================================================
-   CONVERSATIONS
-   ========================================================= */
-
-async function startChat(username){
-
-  const {data,error} =
-    await db.rpc(
+  try{
+    const {data,error}=await db.rpc(
       "nexora_get_or_create_dm",
       {
-        target_username:username
+        target_username:state.selectedUser.username
       }
     );
 
-  if(error){
-    console.error(error);
-    toast(error.message || "Unable to create chat");
-    return;
+    if(error) throw error;
+
+    state.conversation=data;
+    state.page="chat";
+
+    await loadMessages();
+    render();
+
+  }catch(e){
+    toast(e.message);
   }
+}
 
-  closeModal();
+async function openConversationById(id,c){
+  state.conversation=id;
 
-  state.screen="chat";
+  state.selectedUser={
+    id:c.other_id,
+    username:c.other_username,
+    display_name:c.other_display_name,
+    online:c.other_online
+  };
 
-  await loadConversations();
+  state.page="chat";
 
-  state.activeConversation =
-    state.conversations.find(
-      c=>c.conversation_id===data
-    );
-
-  await render();
-
-  if(state.activeConversation){
-    await loadMessages(data);
-  }
+  await loadMessages();
+  render();
 }
 
 async function openConversation(id){
-
-  state.activeConversation =
-    state.conversations.find(
-      c=>c.conversation_id===id
-    );
-
-  await loadMessages(id);
-
+  state.conversation=id;
+  await loadMessages();
   render();
 }
 
+async function loadMessages(){
+  if(!state.conversation) return;
 
-/* =========================================================
-   MESSAGES
-   ========================================================= */
-
-async function loadMessages(conversationId){
-
-  const root=$("#messages");
-
-  if(!root) return;
-
-  const {data,error} =
-    await db
-      .from("messages")
-      .select("*")
-      .eq(
-        "conversation_id",
-        conversationId
-      )
-      .order("created_at",{
-        ascending:true
-      });
+  const {data,error}=await db
+    .from("messages")
+    .select("*")
+    .eq("conversation_id",state.conversation)
+    .order("created_at",{ascending:true})
+    .limit(200);
 
   if(error){
-    root.innerHTML=
-      `<div class="empty">
-        Unable to load messages.
-      </div>`;
+    toast(error.message);
     return;
   }
 
   state.messages=data||[];
-
-  renderMessages();
 }
 
-function renderMessages(){
+function renderChat(){
+  return `
+    <div class="chat-head">
+      <button
+        class="secondary"
+        onclick="go('chats')">
+        ←
+      </button>
 
-  const root=$("#messages");
-
-  if(!root) return;
-
-  if(!state.messages.length){
-    root.innerHTML=
-      `<div class="empty">
-        No messages yet.<br>
-        Say hello 👋
-      </div>`;
-    return;
-  }
-
-  root.innerHTML =
-    state.messages.map(m=>`
-
-      <div class="message ${
-        m.sender_id===state.user.id
-        ?"mine":""
-      }">
-
-        <div>
-          ${escapeHTML(m.message)}
-        </div>
-
-        <div class="messageTime">
-          ${formatTime(m.created_at)}
-        </div>
-
+      <div class="avatar">
+        ${initials(state.selectedUser?.display_name)}
       </div>
 
-    `).join("");
+      <div class="userinfo">
+        <div class="username">
+          ${esc(state.selectedUser?.display_name)}
+        </div>
+        <div style="font-size:12px;color:#9299aa">
+          @${esc(state.selectedUser?.username)}
+          · ${state.selectedUser?.online?"Online":"Offline"}
+        </div>
+      </div>
 
-  root.scrollTop=root.scrollHeight;
+      <button
+        class="primary"
+        onclick="callUser('${esc(state.selectedUser?.username)}')">
+        📞
+      </button>
+    </div>
+
+    <div class="messages" id="messages">
+      ${
+        state.messages.length
+        ?state.messages.map(m=>`
+          <div class="bubble ${m.sender_id===state.user.id?"mine":"theirs"}">
+            ${esc(m.message)}
+          </div>
+        `).join("")
+        :`
+          <div style="text-align:center;color:#777f90;padding:50px 10px">
+            Start the conversation.
+          </div>
+        `
+      }
+    </div>
+
+    <div class="composer">
+      <input
+        id="messageInput"
+        placeholder="Write a message..."
+        onkeydown="if(event.key==='Enter')sendMessage()">
+
+      <button class="primary" onclick="sendMessage()">
+        Send
+      </button>
+    </div>
+  `;
 }
 
 async function sendMessage(){
-
   const input=$("#messageInput");
-
   const text=input?.value.trim();
 
-  if(!text || !state.activeConversation)
-    return;
+  if(!text || !state.conversation) return;
 
-  const {error} =
-    await db
-      .from("messages")
-      .insert({
-        conversation_id:
-          state.activeConversation.conversation_id,
-        sender_id:state.user.id,
-        message:text,
-        message_type:"text"
-      });
+  const {error}=await db
+    .from("messages")
+    .insert({
+      conversation_id:state.conversation,
+      sender_id:state.user.id,
+      message:text,
+      message_type:"text"
+    });
 
   if(error){
-    console.error(error);
-    toast(error.message || "Message failed");
+    toast(error.message);
     return;
   }
 
   input.value="";
+  await loadMessages();
+  render();
+
+  setTimeout(()=>{
+    const box=$("#messages");
+    if(box) box.scrollTop=box.scrollHeight;
+  },50);
 }
 
+/* =========================================================
+   GAMES
+========================================================= */
+
+function renderGames(){
+  return `
+    <div class="hero">
+      <h1 style="font-size:34px">Games</h1>
+      <p>
+        Play locally or challenge the robot.
+      </p>
+    </div>
+
+    <div class="gamegrid">
+
+      <div class="card gamecard">
+        <div>
+          <div class="gameemoji">🎲</div>
+          <h2>Ludo</h2>
+          <p>
+            Play locally against the NEXORA robot.
+          </p>
+        </div>
+
+        <button
+          class="primary"
+          onclick="openLudo()">
+          Play Ludo
+        </button>
+      </div>
+
+      <div class="card gamecard">
+        <div>
+          <div class="gameemoji">⭕</div>
+          <h2>5×5 Four-in-a-Row</h2>
+          <p>
+            Get 4 symbols in a row to win.
+          </p>
+        </div>
+
+        <button
+          class="primary"
+          onclick="openTTT()">
+          Play
+        </button>
+      </div>
+
+      <div class="card gamecard coming">
+        <div>
+          <div class="gameemoji">🃏</div>
+          <span class="badge">COMING SOON</span>
+          <h2 style="margin-top:10px">NEXORA Cards</h2>
+          <p>
+            A new multiplayer game is coming.
+          </p>
+        </div>
+      </div>
+
+      <div class="card gamecard coming">
+        <div>
+          <div class="gameemoji">⚡</div>
+          <span class="badge">COMING SOON</span>
+          <h2 style="margin-top:10px">Quick Arena</h2>
+          <p>
+            Fast competitive gameplay is coming.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+/* =========================================================
+   5x5 TIC TAC TOE
+========================================================= */
+
+function openTTT(){
+  state.ttt={
+    board:Array(25).fill(""),
+    turn:"X",
+    mode:"robot",
+    active:true,
+    result:""
+  };
+
+  showOverlay(`
+    <div class="modal">
+
+      <button class="close" onclick="closeOverlay()">×</button>
+
+      <h2>5×5 Four-in-a-Row</h2>
+
+      <p style="color:#9299aa">
+        Get 4 X or O symbols in a row.
+      </p>
+
+      <div class="game-status" id="tttstatus">
+        Your turn · X
+      </div>
+
+      <div class="ttt" id="tttboard">
+        ${tttBoardHTML()}
+      </div>
+
+      <div class="actions">
+        <button class="secondary" onclick="resetTTT()">
+          Restart
+        </button>
+
+        <button class="secondary" onclick="closeOverlay()">
+          Exit
+        </button>
+      </div>
+
+    </div>
+  `);
+}
+
+function tttBoardHTML(){
+  return state.ttt.board.map((v,i)=>`
+    <button
+      class="${v.toLowerCase()}"
+      onclick="tttMove(${i})"
+      ${v||state.ttt.result?"disabled":""}>
+      ${v}
+    </button>
+  `).join("");
+}
+
+function tttMove(index){
+  if(
+    state.ttt.board[index] ||
+    state.ttt.result ||
+    state.ttt.turn!=="X"
+  ) return;
+
+  state.ttt.board[index]="X";
+
+  if(checkTTT("X")){
+    state.ttt.result="You win 🎉";
+    updateTTT();
+    return;
+  }
+
+  if(state.ttt.board.every(Boolean)){
+    state.ttt.result="Draw";
+    updateTTT();
+    return;
+  }
+
+  state.ttt.turn="O";
+  updateTTT();
+
+  setTimeout(robotTTT,420);
+}
+
+function robotTTT(){
+  if(state.ttt.result) return;
+
+  const empty=state.ttt.board
+    .map((v,i)=>v?null:i)
+    .filter(i=>i!==null);
+
+  if(!empty.length) return;
+
+  /*
+    Robot first tries winning,
+    then blocks the player,
+    then takes center,
+    then chooses strategically.
+  */
+
+  let move=findWinningMove("O");
+
+  if(move===-1)
+    move=findWinningMove("X");
+
+  if(move===-1 && !state.ttt.board[12])
+    move=12;
+
+  if(move===-1)
+    move=empty[Math.floor(Math.random()*empty.length)];
+
+  state.ttt.board[move]="O";
+
+  if(checkTTT("O")){
+    state.ttt.result="Robot wins";
+  }else if(state.ttt.board.every(Boolean)){
+    state.ttt.result="Draw";
+  }else{
+    state.ttt.turn="X";
+  }
+
+  updateTTT();
+}
+
+function findWinningMove(player){
+  for(let i=0;i<25;i++){
+    if(state.ttt.board[i]) continue;
+
+    state.ttt.board[i]=player;
+
+    const won=checkTTT(player);
+
+    state.ttt.board[i]="";
+
+    if(won) return i;
+  }
+
+  return -1;
+}
+
+function checkTTT(player){
+  const b=state.ttt.board;
+
+  const dirs=[
+    [0,1],
+    [1,0],
+    [1,1],
+    [1,-1]
+  ];
+
+  for(let r=0;r<5;r++){
+    for(let c=0;c<5;c++){
+
+      if(b[r*5+c]!==player) continue;
+
+      for(const [dr,dc] of dirs){
+        let count=1;
+
+        for(let k=1;k<4;k++){
+          const nr=r+dr*k;
+          const nc=c+dc*k;
+
+          if(
+            nr>=0&&nr<5&&
+            nc>=0&&nc<5&&
+            b[nr*5+nc]===player
+          ){
+            count++;
+          }else{
+            break;
+          }
+        }
+
+        if(count>=4) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function updateTTT(){
+  const board=$("#tttboard");
+  const status=$("#tttstatus");
+
+  if(board) board.innerHTML=tttBoardHTML();
+
+  if(status){
+    status.textContent=
+      state.ttt.result ||
+      (state.ttt.turn==="X"
+        ?"Your turn · X"
+        :"Robot thinking · O");
+  }
+}
+
+function resetTTT(){
+  state.ttt={
+    board:Array(25).fill(""),
+    turn:"X",
+    mode:"robot",
+    active:true,
+    result:""
+  };
+
+  updateTTT();
+}
+
+/* =========================================================
+   LOCAL LUDO
+   Simplified but playable robot mode
+========================================================= */
+
+function openLudo(){
+  state.ludo={
+    active:true,
+    turn:"you",
+    you:0,
+    robot:0,
+    lastDice:0,
+    winner:""
+  };
+
+  showOverlay(`
+    <div class="modal">
+
+      <button class="close" onclick="closeOverlay()">×</button>
+
+      <h2>🎲 Ludo</h2>
+
+      <p style="color:#9299aa">
+        Local match · You vs NEXORA Robot
+      </p>
+
+      <div class="game-status" id="ludostatus">
+        Your turn
+      </div>
+
+      <div class="ludo">
+        <div class="ludo-inner">
+          <div class="ludo-center"></div>
+
+          <div class="token red"
+            id="youToken"
+            style="left:8%;top:8%"></div>
+
+          <div class="token green"
+            id="robotToken"
+            style="right:8%;bottom:8%"></div>
+        </div>
+      </div>
+
+      <div class="dice" id="dice">
+        ?
+      </div>
+
+      <div style="text-align:center;margin-top:12px">
+        <div style="color:#9299aa;font-size:13px">
+          You: <b id="youScore">0</b>
+          &nbsp; · &nbsp;
+          Robot: <b id="robotScore">0</b>
+        </div>
+      </div>
+
+      <div class="actions" style="justify-content:center">
+        <button
+          class="primary"
+          id="rollBtn"
+          onclick="rollLudo()">
+          Roll dice
+        </button>
+
+        <button
+          class="secondary"
+          onclick="resetLudo()">
+          Restart
+        </button>
+      </div>
+
+      <p style="font-size:11px;color:#626978;text-align:center;margin-top:15px">
+        Local Ludo mode. Full online multiplayer can use the same NEXORA game-room system.
+      </p>
+
+    </div>
+  `);
+}
+
+function rollLudo(){
+  if(
+    !state.ludo.active ||
+    state.ludo.turn!=="you" ||
+    state.ludo.winner
+  ) return;
+
+  const dice=Math.floor(Math.random()*6)+1;
+
+  state.ludo.lastDice=dice;
+  state.ludo.you+=dice;
+
+  if(state.ludo.you>=30){
+    state.ludo.you=30;
+    state.ludo.winner="You win 🎉";
+  }
+
+  updateLudo();
+
+  if(state.ludo.winner) return;
+
+  state.ludo.turn="robot";
+  updateLudo();
+
+  setTimeout(robotLudo,800);
+}
+
+function robotLudo(){
+  if(state.ludo.winner) return;
+
+  const dice=Math.floor(Math.random()*6)+1;
+
+  state.ludo.lastDice=dice;
+  state.ludo.robot+=dice;
+
+  if(state.ludo.robot>=30){
+    state.ludo.robot=30;
+    state.ludo.winner="Robot wins";
+  }
+
+  if(!state.ludo.winner){
+    state.ludo.turn="you";
+  }
+
+  updateLudo();
+}
+
+function updateLudo(){
+  const dice=$("#dice");
+  const status=$("#ludostatus");
+  const ys=$("#youScore");
+  const rs=$("#robotScore");
+  const btn=$("#rollBtn");
+
+  if(dice) dice.textContent=state.ludo.lastDice||"?";
+  if(ys) ys.textContent=state.ludo.you;
+  if(rs) rs.textContent=state.ludo.robot;
+
+  if(status){
+    status.textContent=
+      state.ludo.winner ||
+      (state.ludo.turn==="you"
+        ?"Your turn"
+        :"Robot is playing…");
+  }
+
+  if(btn){
+    btn.disabled=
+      state.ludo.turn!=="you" ||
+      !!state.ludo.winner;
+  }
+
+  const yt=$("#youToken");
+  const rt=$("#robotToken");
+
+  if(yt){
+    const progress=Math.min(state.ludo.you,30)/30;
+    yt.style.left=(8+progress*72)+"%";
+    yt.style.top=(8+progress*72)+"%";
+  }
+
+  if(rt){
+    const progress=Math.min(state.ludo.robot,30)/30;
+    rt.style.right=(8+progress*72)+"%";
+    rt.style.bottom=(8+progress*72)+"%";
+  }
+}
+
+function resetLudo(){
+  state.ludo={
+    active:true,
+    turn:"you",
+    you:0,
+    robot:0,
+    lastDice:0,
+    winner:""
+  };
+
+  updateLudo();
+}
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function renderProfile(){
+  return `
+    <div class="hero">
+      <h1 style="font-size:34px">Profile</h1>
+      <p>Your NEXORA identity.</p>
+    </div>
+
+    <div class="card">
+
+      <div class="avatar profilebig">
+        ${initials(state.profile?.display_name)}
+      </div>
+
+      <h2>${esc(state.profile?.display_name)}</h2>
+
+      <p>@${esc(state.profile?.username)}</p>
+
+      <div class="profilemeta">
+
+        <div class="meta">
+          <span>Account</span>
+          <b>${state.profile?.is_guest?"Guest":"Permanent"}</b>
+        </div>
+
+        <div class="meta">
+          <span>Status</span>
+          <b style="color:#35d58a">Online</b>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button class="secondary" onclick="editProfile()">
+          Edit username
+        </button>
+
+        <button class="danger" onclick="signOut()">
+          Logout
+        </button>
+      </div>
+
+    </div>
+  `;
+}
+
+function editProfile(){
+  showOverlay(`
+    <div class="modal">
+
+      <button class="close" onclick="closeOverlay()">×</button>
+
+      <h2>Edit profile</h2>
+
+      <div class="form">
+
+        <input
+          id="editusername"
+          value="${esc(state.profile.username)}"
+          maxlength="24">
+
+        <input
+          id="editdisplay"
+          value="${esc(state.profile.display_name)}"
+          maxlength="40">
+
+        <button
+          class="primary"
+          onclick="updateProfile()">
+          Save changes
+        </button>
+
+      </div>
+
+    </div>
+  `);
+}
+
+async function updateProfile(){
+  const username=$("#editusername").value.trim().toLowerCase();
+  const display=$("#editdisplay").value.trim();
+
+  try{
+    const {data,error}=await db.rpc(
+      "nexora_set_username",
+      {
+        new_username:username,
+        new_display_name:display
+      }
+    );
+
+    if(error) throw error;
+
+    state.profile=data;
+    closeOverlay();
+    render();
+
+    toast("Profile updated.");
+
+  }catch(e){
+    toast(e.message);
+  }
+}
+
+async function signOut(){
+  await setOnline(false);
+  await cleanupCall();
+
+  await db.auth.signOut();
+
+  state={
+    user:null,
+    profile:null,
+    page:"home",
+    searchResults:[],
+    conversations:[],
+    selectedUser:null,
+    conversation:null,
+    messages:[],
+    callId:null,
+    callType:"voice",
+    callRole:null,
+    callChannel:null,
+    pc:null,
+    localStream:null,
+    remoteStream:null,
+    pendingCandidates:[],
+    callReady:false,
+    callMuted:false,
+    ttt:{
+      board:Array(25).fill(""),
+      turn:"X",
+      mode:"robot",
+      active:false,
+      result:""
+    },
+    ludo:{
+      active:false,
+      turn:"you",
+      you:0,
+      robot:0,
+      lastDice:0,
+      winner:""
+    }
+  };
+
+  renderAuth();
+}
+
+async function setOnline(value){
+  if(!state.user) return;
+
+  await db
+    .from("profiles")
+    .update({
+      online:value,
+      last_seen:new Date().toISOString()
+    })
+    .eq("id",state.user.id);
+}
+
+/* =========================================================
+   WEBRTC VOICE CALLING
+========================================================= */
+
+async function callUser(username){
+  try{
+    const {data,error}=await db.rpc(
+      "nexora_start_call",
+      {
+        target_username:username,
+        call_kind:"voice"
+      }
+    );
+
+    if(error) throw error;
+
+    state.callId=data.call_id;
+    state.callRole="caller";
+    state.callType="voice";
+
+    showCallOverlay({
+      name:username,
+      outgoing:true
+    });
+
+    await prepareCallChannel();
+    await ensurePeer();
+
+    /*
+      Wait a moment so both sides can subscribe.
+    */
+    setTimeout(async()=>{
+      await createOffer();
+    },500);
+
+  }catch(e){
+    toast("Could not start call: "+e.message);
+  }
+}
+
+async function prepareCallChannel(){
+  if(!state.callId) return;
+
+  if(state.callChannel){
+    try{
+      await db.removeChannel(state.callChannel);
+    }catch{}
+  }
+
+  const channelName="nexora-call-"+state.callId;
+
+  state.callChannel=db.channel(channelName,{
+    config:{
+      broadcast:{
+        self:false
+      }
+    }
+  });
+
+  state.callChannel
+    .on(
+      "broadcast",
+      {event:"signal"},
+      async({payload})=>{
+        await handleSignal(payload);
+      }
+    );
+
+  state.callChannel
+    .on(
+      "broadcast",
+      {event:"ready"},
+      async()=>{
+        state.callReady=true;
+
+        if(state.callRole==="caller"){
+          await createOffer();
+        }
+      }
+    );
+
+  await state.callChannel.subscribe();
+
+  await state.callChannel.send({
+    type:"broadcast",
+    event:"ready",
+    payload:{
+      userId:state.user.id
+    }
+  });
+
+  state.callReady=true;
+}
+
+async function ensurePeer(){
+  if(state.pc) return state.pc;
+
+  state.pc=new RTCPeerConnection(RTC_CONFIG);
+
+  state.remoteStream=new MediaStream();
+
+  state.pc.onicecandidate=async event=>{
+    if(!event.candidate) return;
+
+    await sendSignal({
+      type:"ice",
+      candidate:event.candidate
+    });
+  };
+
+  state.pc.ontrack=event=>{
+    event.streams[0]?.getTracks().forEach(track=>{
+      state.remoteStream.addTrack(track);
+    });
+
+    let audio=document.getElementById("remoteAudio");
+
+    if(!audio){
+      audio=document.createElement("audio");
+      audio.id="remoteAudio";
+      audio.autoplay=true;
+      audio.playsInline=true;
+      audio.style.display="none";
+      document.body.appendChild(audio);
+    }
+
+    audio.srcObject=state.remoteStream;
+
+    audio.play().catch(()=>{});
+  };
+
+  state.pc.onconnectionstatechange=()=>{
+    const s=state.pc?.connectionState;
+
+    const status=$("#callStatus");
+
+    if(status){
+      if(s==="connected")
+        status.textContent="Connected";
+      else if(s==="connecting")
+        status.textContent="Connecting…";
+      else if(s==="disconnected")
+        status.textContent="Reconnecting…";
+      else if(s==="failed")
+        status.textContent="Connection failed";
+    }
+  };
+
+  return state.pc;
+}
+
+async function getMicrophone(){
+  if(state.localStream) return state.localStream;
+
+  state.localStream=
+    await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true
+      },
+      video:false
+    });
+
+  state.localStream.getTracks().forEach(track=>{
+    state.pc.addTrack(track,state.localStream);
+  });
+
+  return state.localStream;
+}
+
+async function createOffer(){
+  if(!state.pc || !state.callChannel) return;
+
+  await getMicrophone();
+
+  const offer=await state.pc.createOffer({
+    offerToReceiveAudio:true
+  });
+
+  await state.pc.setLocalDescription(offer);
+
+  await sendSignal({
+    type:"offer",
+    description:offer
+  });
+}
+
+async function createAnswer(){
+  await getMicrophone();
+
+  const answer=await state.pc.createAnswer();
+
+  await state.pc.setLocalDescription(answer);
+
+  await sendSignal({
+    type:"answer",
+    description:answer
+  });
+}
+
+async function sendSignal(payload){
+  if(!state.callChannel) return;
+
+  await state.callChannel.send({
+    type:"broadcast",
+    event:"signal",
+    payload:{
+      ...payload,
+      sender:state.user.id
+    }
+  });
+}
+
+async function handleSignal(payload){
+  if(!payload || payload.sender===state.user.id)
+    return;
+
+  await ensurePeer();
+
+  if(payload.type==="offer"){
+
+    await state.pc.setRemoteDescription(
+      new RTCSessionDescription(payload.description)
+    );
+
+    for(const candidate of state.pendingCandidates){
+      await state.pc.addIceCandidate(candidate);
+    }
+
+    state.pendingCandidates=[];
+
+    await createAnswer();
+  }
+
+  if(payload.type==="answer"){
+
+    await state.pc.setRemoteDescription(
+      new RTCSessionDescription(payload.description)
+    );
+
+    for(const candidate of state.pendingCandidates){
+      await state.pc.addIceCandidate(candidate);
+    }
+
+    state.pendingCandidates=[];
+  }
+
+  if(payload.type==="ice"){
+
+    const candidate=new RTCIceCandidate(
+      payload.candidate
+    );
+
+    if(state.pc.remoteDescription){
+      try{
+        await state.pc.addIceCandidate(candidate);
+      }catch(e){
+        console.log("ICE error",e);
+      }
+    }else{
+      state.pendingCandidates.push(candidate);
+    }
+  }
+
+  if(payload.type==="hangup"){
+    await cleanupCall();
+    closeOverlay();
+    toast("Call ended.");
+  }
+
+  if(payload.type==="mute"){
+    /*
+      Remote mute indication can be handled
+      visually if desired.
+    */
+  }
+}
+
+function showCallOverlay({
+  name,
+  outgoing=false,
+  incoming=false
+}){
+  closeOverlay();
+
+  const buttons=outgoing
+    ?`
+      <button
+        class="callcircle end"
+        onclick="endCall()">
+        ☎
+      </button>
+    `
+    :incoming
+    ?`
+      <button
+        class="callcircle"
+        onclick="acceptCall()">
+        ✓
+      </button>
+
+      <button
+        class="callcircle end"
+        onclick="declineCall()">
+        ✕
+      </button>
+    `
+    :`
+      <button
+        class="callcircle"
+        onclick="toggleMute()"
+        id="muteButton">
+        🎙
+      </button>
+
+      <button
+        class="callcircle end"
+        onclick="endCall()">
+        ☎
+      </button>
+    `;
+
+  const overlay=document.createElement("div");
+
+  overlay.className="overlay";
+  overlay.id="callOverlay";
+
+  overlay.innerHTML=`
+    <div class="modal">
+      <div class="callbox">
+
+        <div class="callavatar">
+          ${initials(name)}
+        </div>
+
+        <h2>${esc(name)}</h2>
+
+        <div
+          class="callstatus"
+          id="callStatus">
+          ${incoming
+            ?"Incoming voice call"
+            :outgoing
+            ?"Calling…"
+            :"Connecting…"}
+        </div>
+
+        <div class="callbuttons">
+          ${buttons}
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+}
+
+async function incomingCall(call){
+  state.callId=call.id;
+  state.callType=call.call_type;
+  state.callRole="receiver";
+
+  let name="NEXORA User";
+
+  const {data}=await db
+    .from("profiles")
+    .select("username,display_name")
+    .eq("id",call.caller_id)
+    .maybeSingle();
+
+  if(data){
+    name=data.display_name;
+    state.selectedUser=data;
+  }
+
+  showCallOverlay({
+    name,
+    incoming:true
+  });
+}
+
+async function acceptCall(){
+  try{
+    const {error}=await db
+      .from("calls")
+      .update({
+        status:"accepted",
+        started_at:new Date().toISOString()
+      })
+      .eq("id",state.callId);
+
+    if(error) throw error;
+
+    await prepareCallChannel();
+    await ensurePeer();
+    await getMicrophone();
+
+    const status=$("#callStatus");
+
+    if(status)
+      status.textContent="Connecting…";
+
+  }catch(e){
+    toast(e.message);
+  }
+}
+
+async function declineCall(){
+  try{
+    await db
+      .from("calls")
+      .update({
+        status:"declined",
+        ended_at:new Date().toISOString()
+      })
+      .eq("id",state.callId);
+  }catch{}
+
+  await cleanupCall();
+  closeOverlay();
+}
+
+async function endCall(){
+  try{
+    if(state.callChannel){
+      await state.callChannel.send({
+        type:"broadcast",
+        event:"signal",
+        payload:{
+          type:"hangup",
+          sender:state.user.id
+        }
+      });
+    }
+
+    if(state.callId){
+      await db
+        .from("calls")
+        .update({
+          status:"ended",
+          ended_at:new Date().toISOString()
+        })
+        .eq("id",state.callId);
+    }
+  }catch{}
+
+  await cleanupCall();
+  closeOverlay();
+}
+
+async function cleanupCall(){
+  if(state.localStream){
+    state.localStream.getTracks().forEach(t=>t.stop());
+  }
+
+  if(state.pc){
+    try{
+      state.pc.close();
+    }catch{}
+  }
+
+  if(state.callChannel){
+    try{
+      await db.removeChannel(state.callChannel);
+    }catch{}
+  }
+
+  const audio=$("#remoteAudio");
+
+  if(audio){
+    audio.srcObject=null;
+    audio.remove();
+  }
+
+  state.callId=null;
+  state.callRole=null;
+  state.callChannel=null;
+  state.pc=null;
+  state.localStream=null;
+  state.remoteStream=null;
+  state.pendingCandidates=[];
+  state.callReady=false;
+  state.callMuted=false;
+}
+
+function toggleMute(){
+  if(!state.localStream) return;
+
+  state.callMuted=!state.callMuted;
+
+  state.localStream
+    .getAudioTracks()
+    .forEach(track=>{
+      track.enabled=!state.callMuted;
+    });
+
+  const btn=$("#muteButton");
+
+  if(btn){
+    btn.textContent=
+      state.callMuted
+      ?"🔇"
+      :"🎙";
+  }
+}
 
 /* =========================================================
    REALTIME
-   ========================================================= */
+========================================================= */
 
-function setupRealtime(){
+let realtimeStarted=false;
 
-  db.channel("nexora-global")
+function subscribeRealtime(){
+  if(realtimeStarted) return;
 
+  realtimeStarted=true;
+
+  /*
+    Messages
+  */
+  db.channel("nexora-global-messages")
     .on(
       "postgres_changes",
       {
@@ -1572,22 +2711,27 @@ function setupRealtime(){
         table:"messages"
       },
       async payload=>{
-
-        const msg=payload.new;
-
         if(
-          state.activeConversation &&
-          msg.conversation_id===
-          state.activeConversation.conversation_id
+          state.page==="chat" &&
+          payload.new.conversation_id===state.conversation
         ){
-          await loadMessages(
-            msg.conversation_id
-          );
+          await loadMessages();
+          render();
         }
 
+        if(
+          payload.new.sender_id!==state.user.id
+        ){
+          await loadConversations();
+        }
       }
     )
+    .subscribe();
 
+  /*
+    Incoming calls
+  */
+  db.channel("nexora-global-calls")
     .on(
       "postgres_changes",
       {
@@ -1595,680 +2739,182 @@ function setupRealtime(){
         schema:"public",
         table:"calls"
       },
-      payload=>{
-
-        const call=payload.new;
+      async payload=>{
+        const c=payload.new;
 
         if(
-          call.receiver_id===
-          state.user?.id &&
-          call.status==="ringing"
+          c.receiver_id===state.user.id &&
+          c.status==="ringing"
         ){
-          receiveCall(call);
+          incomingCall(c);
         }
-
       }
     )
+    .on(
+      "postgres_changes",
+      {
+        event:"UPDATE",
+        schema:"public",
+        table:"calls"
+      },
+      async payload=>{
+        const c=payload.new;
 
+        if(
+          state.callId===c.id &&
+          c.status==="declined"
+        ){
+          await cleanupCall();
+          closeOverlay();
+          toast("Call declined.");
+        }
+
+        if(
+          state.callId===c.id &&
+          c.status==="ended"
+        ){
+          await cleanupCall();
+          closeOverlay();
+          toast("Call ended.");
+        }
+      }
+    )
+    .subscribe();
+
+  /*
+    Presence/profile updates
+  */
+  db.channel("nexora-presence")
+    .on(
+      "postgres_changes",
+      {
+        event:"UPDATE",
+        schema:"public",
+        table:"profiles"
+      },
+      async()=>{
+        if(state.page==="search"){
+          searchUsers();
+        }
+      }
+    )
     .subscribe();
 }
 
-
 /* =========================================================
-   CALLING
-   ========================================================= */
+   OVERLAYS
+========================================================= */
 
-async function callUser(username){
+function showOverlay(html){
+  closeOverlay();
 
-  const {data,error} =
-    await db.rpc(
-      "nexora_start_call",
-      {
-        target_username:username,
-        call_kind:"voice"
-      }
-    );
+  const o=document.createElement("div");
+  o.className="overlay";
+  o.id="genericOverlay";
+  o.innerHTML=html;
 
-  if(error){
-    toast(error.message || "Unable to call");
-    return;
-  }
-
-  const callId=data.call_id;
-
-  state.currentCall={
-    id:callId,
-    role:"caller",
-    username
-  };
-
-  await createCallerPeer(callId);
-
-  showCallScreen(
-    username,
-    "Calling..."
-  );
+  document.body.appendChild(o);
 }
 
-async function createCallerPeer(callId){
+function closeOverlay(){
+  document.querySelectorAll(
+    "#genericOverlay,#callOverlay,#userOverlay"
+  ).forEach(x=>x.remove());
+}
 
-  state.localStream =
-    await navigator.mediaDevices.getUserMedia({
-      audio:true
-    });
+/* =========================================================
+   AUTH SESSION
+========================================================= */
 
-  state.pc =
-    new RTCPeerConnection({
-      iceServers:[
-        {
-          urls:"stun:stun.l.google.com:19302"
+async function boot(){
+  const {
+    data:{session}
+  }=await db.auth.getSession();
+
+  if(session?.user){
+    state.user=session.user;
+
+    await ensureProfile();
+
+    if(state.profile){
+      if(
+        state.profile.username &&
+        !state.profile.username.startsWith("NX_")
+      ){
+        await bootApp();
+      }else{
+        showUsernameSetup();
+      }
+    }else{
+      renderAuth();
+    }
+  }else{
+    renderAuth();
+  }
+
+  db.auth.onAuthStateChange(async(event,session)=>{
+    if(
+      session?.user &&
+      !state.user
+    ){
+      state.user=session.user;
+
+      setTimeout(async()=>{
+        await ensureProfile();
+
+        if(state.profile){
+          if(
+            state.profile.username &&
+            !state.profile.username.startsWith("NX_")
+          ){
+            await bootApp();
+          }else{
+            showUsernameSetup();
+          }
         }
-      ]
-    });
-
-  state.localStream
-    .getTracks()
-    .forEach(track=>{
-      state.pc.addTrack(
-        track,
-        state.localStream
-      );
-    });
-
-  state.pc.ontrack=e=>{
-
-    const stream=e.streams[0];
-
-    state.remoteStream=stream;
-
-    let audio=document.getElementById(
-      "remoteAudio"
-    );
-
-    if(!audio){
-      audio=document.createElement("audio");
-      audio.id="remoteAudio";
-      audio.autoplay=true;
-      document.body.appendChild(audio);
-    }
-
-    audio.srcObject=stream;
-  };
-
-  state.pc.onicecandidate=e=>{
-
-    if(e.candidate){
-
-      db.channel(
-        "call-"+callId
-      ).send({
-        type:"broadcast",
-        event:"ice",
-        payload:{
-          candidate:e.candidate
-        }
-      });
-
-    }
-  };
-
-  const channel =
-    db.channel("call-"+callId);
-
-  channel.on(
-    "broadcast",
-    {event:"answer"},
-    async ({payload})=>{
-
-      await state.pc.setRemoteDescription(
-        new RTCSessionDescription(
-          payload.answer
-        )
-      );
-    }
-  );
-
-  channel.on(
-    "broadcast",
-    {event:"ice"},
-    async ({payload})=>{
-
-      try{
-        await state.pc.addIceCandidate(
-          payload.candidate
-        );
-      }catch(e){}
-    }
-  );
-
-  await channel.subscribe();
-
-  const offer =
-    await state.pc.createOffer();
-
-  await state.pc.setLocalDescription(
-    offer
-  );
-
-  channel.send({
-    type:"broadcast",
-    event:"offer",
-    payload:{
-      offer
+      },300);
     }
   });
 }
 
-async function receiveCall(call){
+/* =========================================================
+   GLOBAL CLEANUP
+========================================================= */
 
-  state.incomingCall=call;
-
-  const {data:caller} =
-    await db
+window.addEventListener("beforeunload",()=>{
+  if(state.user){
+    /*
+      Don't await here; browser may terminate immediately.
+    */
+    db
       .from("profiles")
-      .select("username,display_name")
-      .eq("id",call.caller_id)
-      .single();
-
-  showIncomingCall(
-    caller?.display_name ||
-    caller?.username ||
-    "NEXORA User",
-    caller?.username ||
-    ""
-  );
-}
-
-function showIncomingCall(name,username){
-
-  $("#modalRoot").innerHTML=`
-
-    <div class="callOverlay">
-
-      <div class="callBox">
-
-        <div class="callAvatar">
-          ${initials(name)}
-        </div>
-
-        <h2>Incoming Call</h2>
-
-        <p class="muted">
-          ${escapeHTML(name)}
-        </p>
-
-        <div class="callActions">
-
-          <button
-            class="reject"
-            onclick="declineCall()">
-            ✕
-          </button>
-
-          <button
-            class="accept"
-            onclick="acceptCall()">
-            ✓
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  `;
-}
-
-function showCallScreen(name,status){
-
-  $("#modalRoot").innerHTML=`
-
-    <div class="callOverlay">
-
-      <div class="callBox">
-
-        <div class="callAvatar">
-          ${initials(name)}
-        </div>
-
-        <h2>
-          ${escapeHTML(name)}
-        </h2>
-
-        <p class="muted">
-          ${escapeHTML(status)}
-        </p>
-
-        <div class="callActions">
-
-          <button
-            class="reject"
-            onclick="endCall()">
-            ✕
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  `;
-}
-
-async function acceptCall(){
-
-  const call=state.incomingCall;
-
-  if(!call) return;
-
-  closeModal();
-
-  state.currentCall={
-    id:call.id,
-    role:"receiver"
-  };
-
-  await db
-    .from("calls")
-    .update({
-      status:"accepted",
-      started_at:new Date().toISOString()
-    })
-    .eq("id",call.id);
-
-  await createReceiverPeer(call.id);
-
-  showCallScreen(
-    "NEXORA User",
-    "Connected"
-  );
-}
-
-async function createReceiverPeer(callId){
-
-  state.localStream =
-    await navigator.mediaDevices.getUserMedia({
-      audio:true
-    });
-
-  state.pc =
-    new RTCPeerConnection({
-      iceServers:[
-        {
-          urls:"stun:stun.l.google.com:19302"
-        }
-      ]
-    });
-
-  state.localStream
-    .getTracks()
-    .forEach(track=>{
-      state.pc.addTrack(
-        track,
-        state.localStream
-      );
-    });
-
-  state.pc.ontrack=e=>{
-
-    let audio=
-      document.getElementById("remoteAudio");
-
-    if(!audio){
-      audio=document.createElement("audio");
-      audio.id="remoteAudio";
-      audio.autoplay=true;
-      document.body.appendChild(audio);
-    }
-
-    audio.srcObject=e.streams[0];
-  };
-
-  const channel=
-    db.channel("call-"+callId);
-
-  channel.on(
-    "broadcast",
-    {event:"offer"},
-    async ({payload})=>{
-
-      await state.pc.setRemoteDescription(
-        new RTCSessionDescription(
-          payload.offer
-        )
-      );
-
-      const answer =
-        await state.pc.createAnswer();
-
-      await state.pc.setLocalDescription(
-        answer
-      );
-
-      channel.send({
-        type:"broadcast",
-        event:"answer",
-        payload:{answer}
-      });
-    }
-  );
-
-  channel.on(
-    "broadcast",
-    {event:"ice"},
-    async ({payload})=>{
-      try{
-        await state.pc.addIceCandidate(
-          payload.candidate
-        );
-      }catch(e){}
-    }
-  );
-
-  state.pc.onicecandidate=e=>{
-
-    if(e.candidate){
-
-      channel.send({
-        type:"broadcast",
-        event:"ice",
-        payload:{
-          candidate:e.candidate
-        }
-      });
-
-    }
-  };
-
-  await channel.subscribe();
-}
-
-async function declineCall(){
-
-  if(state.incomingCall){
-
-    await db
-      .from("calls")
       .update({
-        status:"declined"
+        online:false,
+        last_seen:new Date().toISOString()
       })
-      .eq(
-        "id",
-        state.incomingCall.id
-      );
+      .eq("id",state.user.id);
   }
+});
 
-  state.incomingCall=null;
+document.addEventListener(
+  "visibilitychange",
+  ()=>{
+    if(!state.user) return;
 
-  closeModal();
-}
-
-async function endCall(){
-
-  if(state.currentCall){
-
-    await db
-      .from("calls")
-      .update({
-        status:"ended",
-        ended_at:new Date().toISOString()
-      })
-      .eq(
-        "id",
-        state.currentCall.id
-      );
-  }
-
-  if(state.localStream){
-    state.localStream
-      .getTracks()
-      .forEach(t=>t.stop());
-  }
-
-  if(state.pc){
-    state.pc.close();
-  }
-
-  state.localStream=null;
-  state.remoteStream=null;
-  state.pc=null;
-  state.currentCall=null;
-
-  const audio=
-    document.getElementById("remoteAudio");
-
-  if(audio) audio.remove();
-
-  closeModal();
-}
-
-
-/* =========================================================
-   TIC TAC TOE
-   ========================================================= */
-
-function openTTT(){
-
-  state.ttt={
-    board:["","","","","","","","",""],
-    turn:"X",
-    over:false
-  };
-
-  $("#modalRoot").innerHTML=`
-
-    <div class="modal">
-
-      <div class="modalBox">
-
-        <div class="modalHead">
-
-          <h2>Tic-Tac-Toe</h2>
-
-          <button
-            class="closeBtn"
-            onclick="closeModal()">
-            ×
-          </button>
-
-        </div>
-
-        <div
-          id="tttStatus"
-          style="text-align:center">
-          Your turn — X
-        </div>
-
-        <div
-          id="tttBoard"
-          class="ttt">
-        </div>
-
-        <button
-          class="secondary"
-          style="width:100%"
-          onclick="resetTTT()">
-          Restart
-        </button>
-
-      </div>
-
-    </div>
-
-  `;
-
-  renderTTT();
-}
-
-function renderTTT(){
-
-  const root=$("#tttBoard");
-
-  if(!root) return;
-
-  root.innerHTML=
-    state.ttt.board
-      .map((cell,i)=>`
-
-        <button
-          onclick="tttMove(${i})">
-          ${cell}
-        </button>
-
-      `).join("");
-
-  const winner=
-    checkWinner(state.ttt.board);
-
-  if(winner){
-
-    $("#tttStatus").textContent=
-      winner==="draw"
-      ?"Draw!"
-      :winner+" wins!";
-
-    state.ttt.over=true;
-
-  }else{
-
-    $("#tttStatus").textContent=
-      `Turn: ${state.ttt.turn}`;
-
-  }
-}
-
-function tttMove(i){
-
-  if(
-    state.ttt.over ||
-    state.ttt.board[i]
-  ) return;
-
-  state.ttt.board[i]=state.ttt.turn;
-
-  const result=
-    checkWinner(state.ttt.board);
-
-  if(result){
-    state.ttt.over=true;
-  }else{
-    state.ttt.turn=
-      state.ttt.turn==="X"
-      ?"O":"X";
-  }
-
-  renderTTT();
-}
-
-function checkWinner(board){
-
-  const wins=[
-    [0,1,2],
-    [3,4,5],
-    [6,7,8],
-    [0,3,6],
-    [1,4,7],
-    [2,5,8],
-    [0,4,8],
-    [2,4,6]
-  ];
-
-  for(const [a,b,c] of wins){
-
-    if(
-      board[a] &&
-      board[a]===board[b] &&
-      board[a]===board[c]
-    ){
-      return board[a];
+    if(document.visibilityState==="visible"){
+      setOnline(true);
+    }else{
+      setOnline(false);
     }
-
   }
-
-  if(board.every(Boolean))
-    return "draw";
-
-  return null;
-}
-
-function resetTTT(){
-
-  state.ttt={
-    board:["","","","","","","","",""],
-    turn:"X",
-    over:false
-  };
-
-  renderTTT();
-}
-
+);
 
 /* =========================================================
-   MODAL / PROFILE / UTILITIES
-   ========================================================= */
+   START
+========================================================= */
 
-function closeModal(){
-  $("#modalRoot").innerHTML="";
-}
-
-function showProfile(){
-  state.screen="profile";
-  render();
-}
-
-async function setOffline(){
-
-  if(!state.user) return;
-
-  await db
-    .from("profiles")
-    .update({
-      online:false,
-      last_seen:new Date().toISOString()
-    })
-    .eq("id",state.user.id);
-
-  toast("You are offline");
-}
-
-async function copyText(text){
-
-  try{
-    await navigator.clipboard.writeText(text);
-    toast("Copied");
-  }catch{
-    toast(text);
-  }
-}
-
-$("#callTop").onclick=()=>{
-  toast("Your active calls will appear here");
-};
-
-$("#notifTop").onclick=()=>{
-  toast("No new notifications");
-};
-
-
-/* =========================================================
-   INIT
-   ========================================================= */
-
-(async function(){
-
-  $("#toast").style.display="none";
-
-  await ensureAuth();
-
-  setupRealtime();
-
-  await render();
-
-})();
+boot();
 
 </script>
-
 </body>
 </html>
