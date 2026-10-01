@@ -1,3581 +1,1963 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>NEXORA</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 *{box-sizing:border-box}
 :root{
-  --bg:#07090d;
-  --panel:#0e1219;
-  --panel2:#131923;
-  --line:rgba(255,255,255,.08);
-  --text:#f5f7fb;
-  --muted:#8993a4;
-  --blue:#6878ff;
-  --green:#27d17f;
-  --red:#ff5d70;
-  --yellow:#f3c94b;
-  --shadow:0 20px 70px rgba(0,0,0,.45)
+ --bg:#07090d;--panel:#10141b;--panel2:#151a23;--line:#242b37;
+ --text:#f5f7fb;--muted:#8d96a6;--accent:#6d7cff;--accent2:#8e96ff;
+ --green:#37d889;--red:#ff5364;--yellow:#ffd45a;
 }
-body{
-  margin:0;
-  background:
-    radial-gradient(circle at 20% -10%,rgba(104,120,255,.12),transparent 35%),
-    radial-gradient(circle at 100% 20%,rgba(80,160,255,.07),transparent 30%),
-    var(--bg);
-  color:var(--text);
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  min-height:100vh
-}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);
+font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}
 button,input{font:inherit}
-button{cursor:pointer}
-#app{min-height:100vh}
-.nx-shell{min-height:100vh;display:flex;flex-direction:column}
-.nx-header{
-  height:70px;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  align-items:center;
-  padding:0 24px;
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:rgba(7,9,13,.82);
-  backdrop-filter:blur(20px)
+button{border:0;color:inherit;cursor:pointer}
+#app{min-height:100%;display:flex;flex-direction:column}
+.top{
+ height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+ padding:0 20px;gap:20px;position:sticky;top:0;background:rgba(7,9,13,.92);
+ backdrop-filter:blur(20px);z-index:20
 }
-.nx-logo{
-  font-size:21px;
-  font-weight:900;
-  letter-spacing:1.4px
+.logo{font-size:22px;font-weight:850;letter-spacing:.12em}
+.nav{display:flex;gap:6px;flex:1}
+.nav button,.iconBtn{
+ background:transparent;color:var(--muted);padding:10px 14px;border-radius:12px
 }
-.nx-header-space{flex:1}
-.nx-profile{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  border:1px solid var(--line);
-  background:#111620;
-  color:white;
-  border-radius:15px;
-  padding:6px 10px 6px 6px
+.nav button.active,.nav button:hover,.iconBtn:hover{background:var(--panel2);color:#fff}
+.profileBtn{display:flex;align-items:center;gap:9px;background:transparent}
+.avatar{
+ width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+ background:linear-gradient(135deg,#707cff,#3d46a9);font-weight:800
 }
-.nx-avatar{
-  width:36px;
-  height:36px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(135deg,#6577ff,#9759ff);
-  font-weight:800
+.main{width:min(1180px,100%);margin:auto;padding:28px 20px 90px;flex:1}
+.view{display:none}.view.active{display:block}
+.hero{
+ padding:28px;border:1px solid var(--line);border-radius:24px;
+ background:linear-gradient(145deg,#121722,#0d1118);margin-bottom:20px
 }
-.nx-main{
-  flex:1;
-  width:min(1180px,100%);
-  margin:auto;
-  padding:30px 20px 100px
+h1,h2,h3,p{margin-top:0}
+h1{font-size:34px;margin-bottom:8px}
+h2{font-size:24px}
+.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{
+ background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px
 }
-.nx-bottom{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  height:68px;
-  background:rgba(8,10,14,.94);
-  backdrop-filter:blur(20px);
-  border-top:1px solid var(--line);
-  display:flex;
-  justify-content:center;
-  gap:7px;
-  z-index:40
+.card.click{transition:.18s}.card.click:hover{transform:translateY(-2px);border-color:#384254}
+.bigIcon{font-size:28px;margin-bottom:15px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.primary,.secondary,.danger{
+ padding:11px 15px;border-radius:12px;font-weight:700
 }
-.nx-nav{
-  min-width:85px;
-  height:100%;
-  border:0;
-  background:transparent;
-  color:#7e8898;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:4px;
-  font-size:11px
+.primary{background:var(--accent);color:white}
+.secondary{background:#202733;color:#e9edf5}
+.danger{background:#391b22;color:#ff9ba5}
+input{
+ width:100%;background:#0b0f15;border:1px solid var(--line);color:#fff;
+ padding:13px 14px;border-radius:13px;outline:none
 }
-.nx-nav b{font-size:20px}
-.nx-nav.active{color:#fff}
-.nx-title{
-  font-size:32px;
-  font-weight:900;
-  letter-spacing:-1px
+input:focus{border-color:var(--accent)}
+.sectionTitle{margin:26px 0 13px}
+.badge{font-size:12px;padding:5px 8px;border-radius:20px;background:#202633;color:#aab3c2}
+.online{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block}
+.list{display:flex;flex-direction:column;gap:8px}
+.listItem{
+ display:flex;align-items:center;gap:12px;padding:13px;border-radius:15px;
+ background:#0d1118;border:1px solid #1d232e
 }
-.nx-sub{
-  margin-top:6px;
-  color:var(--muted);
-  font-size:14px
+.listItem:hover{background:#131923}
+.grow{flex:1;min-width:0}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs{display:flex;gap:7px;margin-bottom:14px;overflow:auto}
+.tab{
+ white-space:nowrap;background:#11161f;border:1px solid var(--line);
+ padding:9px 13px;border-radius:11px;color:var(--muted)
 }
-.nx-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:15px;
-  margin-top:24px
+.tab.active{background:#252c3b;color:#fff}
+.chatLayout{
+ display:grid;grid-template-columns:310px 1fr;gap:14px;height:calc(100vh - 130px);min-height:600px
 }
-.nx-card{
-  border:1px solid var(--line);
-  border-radius:24px;
-  background:linear-gradient(145deg,#111720,#0c1016);
-  padding:22px;
-  box-shadow:var(--shadow)
+.chatList,.chatWindow{
+ border:1px solid var(--line);background:var(--panel);border-radius:20px;overflow:hidden
 }
-.nx-card.click{cursor:pointer;transition:.2s}
-.nx-card.click:hover{transform:translateY(-2px);border-color:rgba(104,120,255,.35)}
-.nx-icon{
-  width:48px;
-  height:48px;
-  border-radius:16px;
-  display:grid;
-  place-items:center;
-  background:rgba(104,120,255,.12);
-  font-size:22px;
-  margin-bottom:18px
+.chatList{display:flex;flex-direction:column}
+.chatSearch{padding:12px;border-bottom:1px solid var(--line)}
+.chatItems{overflow:auto;padding:8px}
+.chatWindow{display:flex;flex-direction:column}
+.chatHeader{padding:13px 16px;border-bottom:1px solid var(--line)}
+.messages{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:7px}
+.bubble{
+ max-width:min(70%,520px);padding:10px 13px;border-radius:16px;
+ background:#202632;align-self:flex-start;white-space:pre-wrap;word-break:break-word
 }
-.nx-card h2,.nx-card h3{margin:0 0 7px}
-.nx-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
-.nx-btn{
-  border:0;
-  border-radius:13px;
-  padding:11px 15px;
-  color:#fff;
-  background:#1a2230;
-  font-weight:750;
-  margin-top:15px
+.bubble.mine{background:#5866e8;align-self:flex-end}
+.bubble small{display:block;opacity:.6;font-size:10px;margin-top:4px}
+.composer{
+ display:flex;gap:8px;padding:11px;border-top:1px solid var(--line)
 }
-.nx-btn.primary{background:var(--blue)}
-.nx-btn.green{background:#168b59}
-.nx-btn.red{background:#a82b3d}
-.nx-btn.outline{background:transparent;border:1px solid var(--line)}
-.nx-btn:disabled{opacity:.45;cursor:not-allowed}
-.nx-input{
-  width:100%;
-  margin-top:10px;
-  border:1px solid var(--line);
-  outline:none;
-  background:#090d13;
-  color:#fff;
-  border-radius:13px;
-  padding:13px
+.composer input{flex:1}
+.empty{display:grid;place-items:center;height:100%;text-align:center;padding:30px}
+.callOverlay{
+ position:fixed;inset:0;background:rgba(3,5,8,.82);backdrop-filter:blur(22px);
+ display:none;align-items:center;justify-content:center;z-index:100
 }
-.nx-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#0b1017
+.callOverlay.show{display:flex}
+.callCard{
+ width:min(430px,calc(100% - 28px));background:#121720;border:1px solid #303847;
+ border-radius:28px;padding:28px;text-align:center;box-shadow:0 30px 90px #000
 }
-.nx-list{display:flex;flex-direction:column;gap:9px;margin-top:15px}
-.nx-grow{flex:1;min-width:0}
-.nx-grow strong{display:block;font-size:14px}
-.nx-grow small{display:block;color:var(--muted);margin-top:3px}
-.nx-actions{display:flex;gap:6px;flex-wrap:wrap}
-.nx-mini{
-  border:0;
-  border-radius:10px;
-  padding:8px 10px;
-  background:#1a2230;
-  color:#fff;
-  font-size:12px
+.callAvatar{width:90px;height:90px;border-radius:50%;display:grid;place-items:center;
+background:linear-gradient(135deg,#7884ff,#3e469d);font-size:30px;font-weight:800;margin:12px auto}
+.callTimer{font-variant-numeric:tabular-nums;font-size:18px;margin:10px;color:#cbd1dc}
+.callControls{display:flex;justify-content:center;gap:10px;margin-top:25px}
+.roundBtn{width:52px;height:52px;border-radius:50%;background:#242b36}
+.roundBtn.end{background:#d94052}
+.modal{
+ position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);
+ display:none;align-items:center;justify-content:center;z-index:70
 }
-.nx-online{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:var(--green);
-  margin-right:5px
+.modal.show{display:flex}
+.modalBox{width:min(540px,calc(100% - 28px));background:#121720;border:1px solid var(--line);
+border-radius:24px;padding:22px;max-height:90vh;overflow:auto}
+.gameGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.gameCard{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}
+.gameCard.ludo{background:linear-gradient(145deg,#241b26,#11151d)}
+.gameCard.tic{background:linear-gradient(145deg,#182132,#11151d)}
+.gameCard.match{background:linear-gradient(145deg,#252015,#11151d)}
+.coming{opacity:.58}
+.liveCount{display:flex;align-items:center;gap:8px;color:#c8d0dc}
+.profilePanel{max-width:500px}
+.statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:16px;background:#0d1118;border:1px solid var(--line);border-radius:16px}
+.footer{text-align:center;color:#555f70;font-size:12px;margin-top:45px}
+.toast{
+ position:fixed;left:50%;bottom:25px;transform:translateX(-50%);
+ background:#e9edf4;color:#0a0d12;padding:11px 16px;border-radius:12px;
+ font-weight:700;display:none;z-index:150
 }
-.nx-offline{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:#596170;
-  margin-right:5px
+.toast.show{display:block}
+.back{margin-bottom:15px}
+@media(max-width:850px){
+ .grid,.gameGrid{grid-template-columns:1fr 1fr}
+ .chatLayout{grid-template-columns:270px 1fr}
 }
-.nx-chat{
-  display:grid;
-  grid-template-columns:320px 1fr;
-  min-height:650px;
-  border:1px solid var(--line);
-  border-radius:24px;
-  overflow:hidden;
-  background:#0b0f15;
-  box-shadow:var(--shadow);
-  margin-top:22px
+@media(max-width:650px){
+ .top{padding:0 12px;height:60px}
+ .logo{font-size:18px}.nav{overflow:auto}.nav button{padding:8px 10px}
+ .nav button span{display:none}
+ .profileName{display:none}
+ .main{padding:18px 12px 70px}
+ .grid,.gameGrid{grid-template-columns:1fr}
+ .chatLayout{display:block;height:auto;min-height:0}
+ .chatList{height:300px;margin-bottom:10px}
+ .chatWindow{height:calc(100vh - 390px);min-height:430px}
+ .bubble{max-width:82%}
 }
-.nx-chat-list{
-  border-right:1px solid var(--line);
-  overflow:auto
-}
-.nx-chat-head{
-  padding:18px;
-  font-weight:850;
-  border-bottom:1px solid var(--line)
-}
-.nx-chat-item{
-  display:flex;
-  gap:11px;
-  padding:13px;
-  cursor:pointer;
-  border-bottom:1px solid rgba(255,255,255,.035)
-}
-.nx-chat-item:hover,.nx-chat-item.active{background:#141a23}
-.nx-chat-body{display:flex;flex-direction:column;min-width:0}
-.nx-chat-top{
-  padding:17px;
-  border-bottom:1px solid var(--line);
-  font-weight:850
-}
-.nx-messages{
-  flex:1;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:9px;
-  overflow:auto
-}
-.nx-message{
-  max-width:75%;
-  padding:10px 13px;
-  background:#181f2a;
-  border-radius:16px;
-  align-self:flex-start;
-  font-size:14px;
-  word-break:break-word
-}
-.nx-message.mine{
-  align-self:flex-end;
-  background:#5e6ef0
-}
-.nx-send{
-  display:flex;
-  gap:8px;
-  padding:13px;
-  border-top:1px solid var(--line)
-}
-.nx-send .nx-input{margin:0;flex:1}
-.nx-modal{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(13px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:18px
-}
-.nx-modal-card{
-  width:min(520px,100%);
-  max-height:90vh;
-  overflow:auto;
-  background:#10151d;
-  border:1px solid var(--line);
-  border-radius:25px;
-  padding:22px;
-  box-shadow:0 30px 100px #000
-}
-.nx-close{
-  float:right;
-  border:0;
-  background:transparent;
-  color:#fff;
-  font-size:24px
-}
-.nx-notice{
-  padding:13px;
-  border-radius:14px;
-  background:#111823;
-  border:1px solid var(--line);
-  color:var(--muted);
-  font-size:13px;
-  margin-top:14px
-}
-.nx-call{
-  position:fixed;
-  top:16px;
-  left:50%;
-  transform:translateX(-50%);
-  width:min(420px,calc(100% - 24px));
-  z-index:100000;
-  background:#10151d;
-  border:1px solid var(--line);
-  border-radius:22px;
-  padding:17px;
-  box-shadow:0 25px 100px #000
-}
-.nx-footer{
-  text-align:center;
-  color:#4f5868;
-  font-size:11px;
-  padding:22px 0
-}
-@media(max-width:800px){
-  .nx-grid{grid-template-columns:1fr}
-  .nx-chat{grid-template-columns:1fr}
-  .nx-chat-list{max-height:230px;border-right:0;border-bottom:1px solid var(--line)}
-  .nx-main{padding:22px 12px 90px}
-  .nx-header{padding:0 13px}
-}
-@media(max-width:500px){
-  .nx-title{font-size:27px}
-  .nx-nav{min-width:68px}
-}
-
-/* GAME COMMON */
-.game-tabs{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:22px
-}
-.game-tab{
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:17px;
-  background:#0e131b;
-  color:white;
-  text-align:left
-}
-.game-tab.active{border-color:#6576ff;background:#151b29}
-.game-tab small{display:block;color:var(--muted);margin-top:4px}
-@media(max-width:600px){.game-tabs{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
-<div id="app"></div>
+<div id="app">
+<header class="top">
+ <div class="logo">NEXORA</div>
+ <nav class="nav">
+  <button data-view="home" class="active"><span>Home</span>⌂</button>
+  <button data-view="recent"><span>Recent</span>◌</button>
+  <button data-view="connect"><span>Connect</span>＋</button>
+  <button data-view="games"><span>Games</span>◈</button>
+ </nav>
+ <button class="profileBtn" id="profileBtn">
+  <span class="profileName" id="profileName">Guest</span>
+  <span class="avatar" id="topAvatar">N</span>
+ </button>
+</header>
+
+<main class="main">
+
+<section id="view-home" class="view active">
+ <div class="hero">
+  <div class="row between">
+   <div>
+    <p class="muted">Welcome back</p>
+    <h1 id="homeName">NEXORA</h1>
+    <p class="muted">Connect, talk and play.</p>
+   </div>
+   <div class="liveCount"><span class="online"></span><b id="liveCount">—</b> live</div>
+  </div>
+ </div>
+ <div class="grid">
+  <div class="card click" onclick="showView('recent')">
+   <div class="bigIcon">◌</div><h3>Recent</h3>
+   <p class="muted">Messages, calls, requests and game activity.</p>
+  </div>
+  <div class="card click" onclick="showView('connect')">
+   <div class="bigIcon">＋</div><h3>Connect</h3>
+   <p class="muted">Username or random connection.</p>
+  </div>
+  <div class="card click" onclick="showView('games')">
+   <div class="bigIcon">◈</div><h3>Games</h3>
+   <p class="muted">Play with friends, robots or random players.</p>
+  </div>
+ </div>
+ <div class="sectionTitle"><h2>Activity</h2></div>
+ <div id="homeActivity" class="list"></div>
+ <div class="footer">Powered by Sunil Kumar</div>
+</section>
+
+<section id="view-recent" class="view">
+ <div class="row between">
+  <div><p class="muted">Your activity</p><h2>Recent</h2></div>
+  <div id="recentDot"></div>
+ </div>
+ <div class="tabs">
+  <button class="tab active" data-recent-tab="chats">Chats</button>
+  <button class="tab" data-recent-tab="calls">Calls</button>
+  <button class="tab" data-recent-tab="requests">Requests</button>
+  <button class="tab" data-recent-tab="activity">Activity</button>
+ </div>
+ <div id="recentContent"></div>
+</section>
+
+<section id="view-connect" class="view">
+ <button class="secondary back" onclick="showView('home')">← Back</button>
+ <h2>Connect</h2>
+ <div class="grid">
+  <div class="card">
+   <div class="bigIcon">⌕</div><h3>Username</h3>
+   <p class="muted">Find someone directly.</p>
+   <input id="usernameSearch" placeholder="Enter username">
+   <div style="height:9px"></div>
+   <button class="primary" onclick="searchUsername()">Search</button>
+   <div id="usernameResult" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+   <div class="bigIcon">◎</div><h3>Random</h3>
+   <p class="muted">Meet someone who's live.</p>
+   <div class="actions">
+    <button class="primary" onclick="randomConnect('chat')">Chat</button>
+    <button class="secondary" onclick="randomConnect('call')">Call</button>
+   </div>
+  </div>
+  <div class="card">
+   <div class="bigIcon">♙</div><h3>Friends</h3>
+   <p class="muted">Your connected people.</p>
+   <div id="connectFriends" class="list"></div>
+  </div>
+ </div>
+</section>
+
+<section id="view-games" class="view">
+ <button class="secondary back" onclick="showView('home')">← Back</button>
+ <div class="row between">
+  <div><p class="muted">Play</p><h2>Games</h2></div>
+ </div>
+ <div class="gameGrid">
+  <div class="card gameCard ludo">
+   <div><div class="bigIcon">🎲</div><h3>Ludo</h3><p class="muted">Classic multiplayer board.</p></div>
+   <button class="primary" onclick="openGameMenu('ludo')">Play</button>
+  </div>
+  <div class="card gameCard tic">
+   <div><div class="bigIcon">×</div><h3>Tic Tac Toe</h3><p class="muted">Quick match.</p></div>
+   <button class="primary" onclick="openGameMenu('tic')">Play</button>
+  </div>
+  <div class="card gameCard match">
+   <div><div class="bigIcon">▦</div><h3>4 Match</h3><p class="muted">Four in a row.</p></div>
+   <button class="primary" onclick="openGameMenu('match')">Play</button>
+  </div>
+  <div class="card gameCard coming">
+   <div><div class="bigIcon">♢</div><h3>UNO</h3><p class="muted">Coming Soon</p></div>
+   <button class="secondary" disabled>Coming Soon</button>
+  </div>
+ </div>
+</section>
+
+<section id="view-chat" class="view">
+ <button class="secondary back" onclick="showView(lastView || 'recent')">← Back</button>
+ <div class="chatLayout">
+  <aside class="chatList">
+   <div class="chatSearch"><input id="chatSearch" placeholder="Search"></div>
+   <div id="chatItems" class="chatItems"></div>
+  </aside>
+  <div class="chatWindow">
+   <div id="chatHeader" class="chatHeader">
+    <div class="muted">Select a conversation</div>
+   </div>
+   <div id="messages" class="messages">
+    <div class="empty"><div><h3>Your messages</h3><p class="muted">Select a person to start chatting.</p></div></div>
+   </div>
+   <div class="composer">
+    <button class="iconBtn" title="Live photo" onclick="chooseLivePhoto()">＋</button>
+    <input id="messageInput" placeholder="Write a message…" disabled>
+    <button class="iconBtn" onclick="startCurrentCall()" id="chatCallBtn" disabled>☎</button>
+    <button class="primary" onclick="sendMessage()" id="sendBtn" disabled>Send</button>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section id="view-profile" class="view">
+ <button class="secondary back" onclick="showView('home')">← Back</button>
+ <div class="card profilePanel">
+  <div class="row">
+   <div class="avatar" id="profileAvatar">N</div>
+   <div><h2 id="profileDisplay">NEXORA User</h2><p class="muted" id="profileUsername">@user</p></div>
+  </div>
+  <hr style="border-color:var(--line);border-width:1px 0 0;margin:22px 0">
+  <label class="muted">Username</label>
+  <input id="editUsername" style="margin:7px 0 12px">
+  <label class="muted">Display name</label>
+  <input id="editDisplay" style="margin:7px 0 14px">
+  <button class="primary" onclick="saveProfile()">Save</button>
+  <button class="danger" style="margin-left:6px" onclick="logout()">Log out</button>
+ </div>
+</section>
+
+</main>
+</div>
+
+<div id="modal" class="modal">
+ <div class="modalBox">
+  <div id="modalContent"></div>
+ </div>
+</div>
+
+<div id="callOverlay" class="callOverlay">
+ <div class="callCard">
+  <p class="muted" id="callState">Incoming voice call</p>
+  <div class="callAvatar" id="callAvatar">N</div>
+  <h2 id="callName">NEXORA User</h2>
+  <div class="callTimer" id="callTimer">00:00</div>
+  <div id="incomingControls" class="callControls">
+   <button class="roundBtn end" onclick="declineIncoming()">✕</button>
+   <button class="roundBtn" onclick="acceptIncoming()">☎</button>
+  </div>
+  <div id="activeControls" class="callControls" style="display:none">
+   <button class="roundBtn" id="muteCallBtn" onclick="toggleCallMute()">🎙</button>
+   <button class="roundBtn end" onclick="endCall()">✕</button>
+  </div>
+ </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<input type="file" id="livePhotoInput" accept="image/*" capture="environment" hidden>
 
 <script>
-window.NEXORA_CONFIG={
-  url:"https://ktwluvpmzisonmootdqc.supabase.co",
-  key:"sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm"
-};
+const SUPABASE_URL="https://ktwluvpmzisonmootdqc.supabase.co";
+const SUPABASE_KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const {createClient}=supabase;
-const SB=createClient(
-  NEXORA_CONFIG.url,
-  NEXORA_CONFIG.key,
-  {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-);
+let me=null,profile=null,lastView="home",currentConversation=null,currentOther=null;
+let currentChannel=null,callId=null,callOther=null,callPeer=null,callStream=null,callRemote=null;
+let callStart=null,callTimerInterval=null,callMuted=false,recentTab="chats";
+let realtimeChannels=[];
 
-const NX={
-  user:null,
-  profile:null,
-  page:"home",
-  conversations:[],
-  currentChat:null,
-  chatChannel:null,
-  callChannel:null,
-  notificationsChannel:null,
-  game:null,
-  onlineRoom:null
-};
+const $=id=>document.getElementById(id);
+function toast(t){$("toast").textContent=t;$("toast").classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>$("toast").classList.remove("show"),2600)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function initials(n){return (n||"N").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"N"}
+function fmtTime(v){if(!v)return"";return new Date(v).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}
+function fmtDuration(sec){sec=Math.max(0,Math.floor(sec||0));return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")}
 
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
-}[m]));
-
-function uid(){
-  return NX.user?.id||null;
+function showView(v){
+ lastView=document.querySelector(".view.active")?.id?.replace("view-","")||lastView;
+ document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+ const target=$("view-"+v);if(target)target.classList.add("active");
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ window.scrollTo(0,0);
 }
 
-function avatar(name){
-  return esc((name||"?").trim().charAt(0).toUpperCase());
+$("profileBtn").onclick=()=>showView("profile");
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+document.querySelectorAll("[data-recent-tab]").forEach(b=>{
+ b.onclick=()=>{recentTab=b.dataset.recentTab;document.querySelectorAll("[data-recent-tab]").forEach(x=>x.classList.toggle("active",x===b));loadRecent()}
+});
+
+$("chatSearch").oninput=()=>renderChatList(window.__chats||[]);
+
+$("messageInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}});
+
+async function boot(){
+ const {data:{session}}=await db.auth.getSession();
+ if(!session){
+   const {data,error}=await db.auth.signInAnonymously();
+   if(error){toast("Login failed");return}
+   me=data.user;
+ }else me=session.user;
+
+ await ensureProfile();
+ setupRealtime();
+ await refreshPresence(true);
+ await loadRecent();
+ await loadFriends();
+ await loadLiveCount();
 }
 
-function timeAgo(t){
-  if(!t)return "";
-  const d=Date.now()-new Date(t).getTime();
-  if(d<60000)return "now";
-  if(d<3600000)return Math.floor(d/60000)+"m";
-  if(d<86400000)return Math.floor(d/3600000)+"h";
-  return Math.floor(d/86400000)+"d";
+async function ensureProfile(){
+ let {data,error}=await db.from("profiles").select("*").eq("id",me.id).maybeSingle();
+ if(error){toast(error.message);return}
+ if(!data){
+   const username="NX_"+me.id.replaceAll("-","").slice(0,8).toUpperCase();
+   const r=await db.from("profiles").insert({
+     id:me.id,username,display_name:"NEXORA User",is_guest:true,online:true
+   }).select().single();
+   data=r.data;
+ }
+ profile=data;
+ updateProfileUI();
 }
 
-function app(){
-  return document.getElementById("app");
-}
-
-function toast(msg){
-  const old=document.getElementById("nx-toast");
-  if(old)old.remove();
-
-  const x=document.createElement("div");
-  x.id="nx-toast";
-  x.style.cssText=`
-    position:fixed;bottom:85px;left:50%;transform:translateX(-50%);
-    z-index:100000;background:#151b25;border:1px solid rgba(255,255,255,.1);
-    color:#fff;padding:12px 16px;border-radius:13px;box-shadow:0 15px 50px #000;
-    font-size:13px
-  `;
-  x.textContent=msg;
-  document.body.appendChild(x);
-  setTimeout(()=>x.remove(),2500);
-}
-
-function modal(html){
-  document.querySelector(".nx-modal")?.remove();
-
-  const m=document.createElement("div");
-  m.className="nx-modal";
-  m.innerHTML=`<div class="nx-modal-card">${html}</div>`;
-
-  m.addEventListener("click",e=>{
-    if(e.target===m)m.remove();
-  });
-
-  document.body.appendChild(m);
-  return m;
-}
-
-function shell(content){
-  app().innerHTML=`
-    <div class="nx-shell">
-      <header class="nx-header">
-        <div class="nx-logo">NEXORA</div>
-        <div class="nx-header-space"></div>
-        <button class="nx-profile" onclick="openProfile()">
-          <span class="nx-avatar">${avatar(NX.profile?.display_name||NX.profile?.username)}</span>
-          <span style="font-weight:750;font-size:13px">
-            ${esc(NX.profile?.display_name||"User")}
-          </span>
-        </button>
-      </header>
-
-      <main class="nx-main">${content}</main>
-
-      <div class="nx-footer">Powered by Sunil Kumar</div>
-
-      <nav class="nx-bottom">
-        <button class="nx-nav ${NX.page==="home"?"active":""}" onclick="go('home')">
-          <b>⌂</b>Home
-        </button>
-        <button class="nx-nav ${NX.page==="chat"?"active":""}" onclick="go('chat')">
-          <b>◉</b>Chat
-        </button>
-        <button class="nx-nav ${NX.page==="connect"?"active":""}" onclick="go('connect')">
-          <b>＋</b>Connect
-        </button>
-        <button class="nx-nav ${NX.page==="games"?"active":""}" onclick="go('games')">
-          <b>♟</b>Games
-        </button>
-      </nav>
-    </div>
-  `;
-}
-
-async function init(){
-  try{
-    const {data}=await SB.auth.getSession();
-
-    if(data.session){
-      NX.user=data.session.user;
-      await loadProfile();
-      startRealtime();
-      renderHome();
-      return;
-    }
-
-    const {data:guest,error}=await SB.auth.signInAnonymously();
-
-    if(error){
-      renderLogin(error.message);
-      return;
-    }
-
-    NX.user=guest.user;
-    await loadProfile();
-    startRealtime();
-    renderHome();
-
-  }catch(e){
-    console.error(e);
-    renderLogin("Unable to start NEXORA.");
-  }
-}
-
-async function loadProfile(){
-  if(!uid())return;
-
-  let {data,error}=await SB
-    .from("profiles")
-    .select("*")
-    .eq("id",uid())
-    .maybeSingle();
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  if(!data){
-    toast("Profile is still being created...");
-    setTimeout(loadProfile,1000);
-    return;
-  }
-
-  NX.profile=data;
-
-  await SB.from("profiles")
-    .update({
-      online:true,
-      last_seen:new Date().toISOString()
-    })
-    .eq("id",uid());
-}
-
-function renderLogin(message){
-  app().innerHTML=`
-    <div style="
-      min-height:100vh;display:grid;place-items:center;padding:20px
-    ">
-      <div class="nx-card" style="width:min(430px,100%);text-align:center">
-        <div style="font-size:42px;font-weight:900">NEXORA</div>
-        <p style="color:#8993a4;margin-top:10px">
-          ${esc(message)}
-        </p>
-        <button class="nx-btn primary" onclick="location.reload()">
-          Try Again
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-function go(page){
-  NX.page=page;
-
-  if(page==="home")renderHome();
-  if(page==="chat")renderChat();
-  if(page==="connect")renderConnect();
-  if(page==="games")renderGames();
-}
-
-function renderHome(){
-  NX.page="home";
-
-  shell(`
-    <div class="nx-title">Welcome to NEXORA</div>
-    <div class="nx-sub">
-      Connect, chat and play without unnecessary clutter.
-    </div>
-
-    <div class="nx-grid">
-      <div class="nx-card click" onclick="go('chat')">
-        <div class="nx-icon">💬</div>
-        <h3>Chat</h3>
-        <p>
-          Conversations, friends, requests and recent activity together.
-        </p>
-      </div>
-
-      <div class="nx-card click" onclick="go('connect')">
-        <div class="nx-icon">👥</div>
-        <h3>Connect</h3>
-        <p>
-          Find someone randomly or connect directly with a username.
-        </p>
-      </div>
-
-      <div class="nx-card click" onclick="go('games')">
-        <div class="nx-icon">🎮</div>
-        <h3>Games</h3>
-        <p>
-          Ludo, Four in a Row and more multiplayer experiences.
-        </p>
-      </div>
-    </div>
-
-    <div class="nx-card" style="margin-top:16px">
-      <h3>Everything in one place</h3>
-      <p>
-        Your conversations and game activity stay easy to reach from the bottom navigation.
-      </p>
-    </div>
-  `);
-}
-
-async function getConversations(){
-  try{
-    const {data,error}=await SB.rpc("nexora_my_conversations");
-    if(!error)return data||[];
-  }catch(e){}
-
-  return [];
-}
-
-async function renderChat(){
-  NX.page="chat";
-
-  shell(`
-    <div class="nx-title">Chat</div>
-    <div class="nx-sub">Your chats, friends and requests.</div>
-
-    <div class="nx-chat">
-      <aside class="nx-chat-list">
-        <div class="nx-chat-head">
-          Chats
-          <button class="nx-mini" style="float:right" onclick="newChat()">＋</button>
-        </div>
-        <div id="chat-list"></div>
-      </aside>
-
-      <section class="nx-chat-body">
-        <div class="nx-chat-top" id="chat-title">
-          Select a conversation
-        </div>
-
-        <div class="nx-messages" id="messages">
-          <div style="margin:auto;color:#8993a4">
-            Choose a chat to start messaging.
-          </div>
-        </div>
-
-        <div class="nx-send">
-          <input
-            id="message-input"
-            class="nx-input"
-            placeholder="Write a message..."
-            autocomplete="off"
-          >
-          <button class="nx-btn primary" style="margin:0" onclick="sendMessage()">
-            Send
-          </button>
-        </div>
-      </section>
-    </div>
-
-    <div class="nx-grid" style="margin-top:16px">
-      <div class="nx-card click" onclick="openFriends()">
-        <div class="nx-icon">👥</div>
-        <h3>Friends</h3>
-        <p>Friends, requests and accepted connections.</p>
-      </div>
-
-      <div class="nx-card click" onclick="openActivity()">
-        <div class="nx-icon">🔔</div>
-        <h3>Activity</h3>
-        <p>Requests, game invitations and call activity.</p>
-      </div>
-
-      <div class="nx-card click" onclick="go('connect')">
-        <div class="nx-icon">🔎</div>
-        <h3>Find someone</h3>
-        <p>Search directly by NEXORA username.</p>
-      </div>
-    </div>
-  `);
-
-  await refreshChatList();
-
-  const input=document.getElementById("message-input");
-  input?.addEventListener("keydown",e=>{
-    if(e.key==="Enter")sendMessage();
-  });
-}
-
-async function refreshChatList(){
-  const list=document.getElementById("chat-list");
-  if(!list)return;
-
-  const data=await getConversations();
-  NX.conversations=data;
-
-  if(!data.length){
-    list.innerHTML=`
-      <div style="padding:20px;color:#8993a4;font-size:13px">
-        No chats yet.<br><br>
-        Search someone from Connect.
-      </div>
-    `;
-    return;
-  }
-
-  list.innerHTML=data.map((x,i)=>`
-    <div class="nx-chat-item" onclick="openChat(${i})">
-      <div class="nx-avatar">${avatar(x.other_display_name||x.other_username)}</div>
-
-      <div class="nx-grow">
-        <strong>${esc(x.other_display_name||x.other_username)}</strong>
-        <small>
-          ${x.other_online
-            ? '<span class="nx-online"></span>Online'
-            : '<span class="nx-offline"></span>Offline'}
-          ${x.last_message
-            ? " · "+esc(x.last_message.slice(0,35))
-            : ""}
-        </small>
-      </div>
-    </div>
-  `).join("");
-}
-
-async function newChat(){
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-    <h2>New Chat</h2>
-    <p style="color:#8993a4">
-      Enter a NEXORA username.
-    </p>
-    <input id="new-chat-user" class="nx-input" placeholder="@username">
-    <button class="nx-btn primary" onclick="startChatUsername()">
-      Start Chat
-    </button>
-  `);
-}
-
-async function startChatUsername(){
-  const username=document
-    .getElementById("new-chat-user")
-    ?.value.trim()
-    .replace(/^@/,"");
-
-  if(!username)return;
-
-  try{
-    const {data,error}=await SB.rpc("nexora_get_or_create_dm",{
-      target_username:username
-    });
-
-    if(error)throw error;
-
-    document.querySelector(".nx-modal")?.remove();
-
-    await renderChat();
-
-    const found=NX.conversations.find(
-      x=>x.other_username?.toLowerCase()===username.toLowerCase()
-    );
-
-    if(found)openChat(NX.conversations.indexOf(found));
-  }catch(e){
-    toast(e.message||"Unable to start chat.");
-  }
-}
-
-async function openChat(index){
-  const x=NX.conversations[index];
-  if(!x)return;
-
-  NX.currentChat=x;
-
-  const title=document.getElementById("chat-title");
-  if(title){
-    title.innerHTML=`
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="nx-avatar">${avatar(x.other_display_name||x.other_username)}</div>
-        <div>
-          <div>${esc(x.other_display_name||x.other_username)}</div>
-          <small style="color:${x.other_online?"#27d17f":"#8993a4"}">
-            ${x.other_online?"Online":"Offline"}
-          </small>
-        </div>
-        <div style="margin-left:auto">
-          <button class="nx-mini" onclick="callUsername('${esc(x.other_username)}')">☎</button>
-        </div>
-      </div>
-    `;
-  }
-
-  await loadMessages(x.conversation_id);
-
-  if(NX.chatChannel){
-    try{await NX.chatChannel.unsubscribe()}catch(e){}
-  }
-
-  NX.chatChannel=SB.channel("nexora-chat-"+x.conversation_id)
-    .on("postgres_changes",{
-      event:"INSERT",
-      schema:"public",
-      table:"messages",
-      filter:`conversation_id=eq.${x.conversation_id}`
-    },payload=>{
-      if(NX.currentChat?.conversation_id===x.conversation_id){
-        addMessageBubble(payload.new);
-      }
-    })
-    .subscribe();
-}
-
-async function loadMessages(conversationId){
-  const box=document.getElementById("messages");
-  if(!box)return;
-
-  const {data,error}=await SB
-    .from("messages")
-    .select("*")
-    .eq("conversation_id",conversationId)
-    .order("created_at",{ascending:true});
-
-  if(error){
-    box.innerHTML=`<div style="color:#8993a4">Unable to load messages.</div>`;
-    return;
-  }
-
-  box.innerHTML="";
-
-  (data||[]).forEach(addMessageBubble);
-
-  box.scrollTop=box.scrollHeight;
-}
-
-function addMessageBubble(m){
-  const box=document.getElementById("messages");
-  if(!box)return;
-
-  const div=document.createElement("div");
-
-  div.className=
-    "nx-message"+
-    (m.sender_id===uid()?" mine":"");
-
-  div.textContent=m.message;
-
-  box.appendChild(div);
-  box.scrollTop=box.scrollHeight;
-}
-
-async function sendMessage(){
-  const input=document.getElementById("message-input");
-  const message=input?.value.trim();
-
-  if(!message||!NX.currentChat)return;
-
-  const {error}=await SB.from("messages").insert({
-    conversation_id:NX.currentChat.conversation_id,
-    sender_id:uid(),
-    message,
-    message_type:"text"
-  });
-
-  if(error){
-    toast(error.message);
-    return;
-  }
-
-  input.value="";
-}
-
-function renderConnect(){
-  NX.page="connect";
-
-  shell(`
-    <div class="nx-title">Connect</div>
-    <div class="nx-sub">
-      Start a conversation or call without needing a friend request first.
-    </div>
-
-    <div class="nx-grid">
-
-      <div class="nx-card">
-        <div class="nx-icon">🎲</div>
-        <h3>Connect with Random</h3>
-        <p>
-          Find an available person and choose chat or voice call.
-        </p>
-
-        <button class="nx-btn primary"
-          onclick="randomConnect('chat')">
-          Chat
-        </button>
-
-        <button class="nx-btn outline"
-          onclick="randomConnect('call')">
-          Voice Call
-        </button>
-      </div>
-
-      <div class="nx-card">
-        <div class="nx-icon">🔎</div>
-        <h3>Connect by Username</h3>
-        <p>
-          Search directly using a NEXORA username.
-        </p>
-
-        <input id="username-search"
-          class="nx-input"
-          placeholder="@username">
-
-        <button class="nx-btn primary"
-          onclick="searchUsername()">
-          Search
-        </button>
-
-        <div id="username-results"></div>
-      </div>
-
-      <div class="nx-card click" onclick="openFriends()">
-        <div class="nx-icon">👥</div>
-        <h3>Friends</h3>
-        <p>
-          View accepted friends and manage incoming requests.
-        </p>
-
-        <button class="nx-btn">
-          Open Friends
-        </button>
-      </div>
-
-    </div>
-  `);
-}
-
-async function searchUsername(){
-  const q=document
-    .getElementById("username-search")
-    ?.value.trim()
-    .replace(/^@/,"");
-
-  const box=document.getElementById("username-results");
-  if(!q||!box)return;
-
-  box.innerHTML=`
-    <div style="color:#8993a4;margin-top:12px">
-      Searching...
-    </div>
-  `;
-
-  const {data,error}=await SB
-    .from("profiles")
-    .select("id,username,display_name,online,last_seen")
-    .ilike("username",q)
-    .limit(8);
-
-  if(error){
-    box.innerHTML=`<div style="color:#ff697a;margin-top:12px">
-      ${esc(error.message)}
-    </div>`;
-    return;
-  }
-
-  if(!data?.length){
-    box.innerHTML=`
-      <div style="color:#8993a4;margin-top:12px">
-        No user found.
-      </div>
-    `;
-    return;
-  }
-
-  box.innerHTML=`
-    <div class="nx-list">
-      ${data.map(u=>`
-        <div class="nx-row">
-          <div class="nx-avatar">${avatar(u.display_name||u.username)}</div>
-
-          <div class="nx-grow">
-            <strong>${esc(u.display_name||u.username)}</strong>
-            <small>
-              @${esc(u.username)}
-              ·
-              ${u.online
-                ? '<span class="nx-online"></span>Online'
-                : "Offline"}
-            </small>
-          </div>
-
-          <div class="nx-actions">
-            <button class="nx-mini"
-              onclick="userAction('${esc(u.username)}','chat')">
-              Chat
-            </button>
-
-            <button class="nx-mini"
-              onclick="userAction('${esc(u.username)}','call')">
-              Call
-            </button>
-
-            <button class="nx-mini"
-              onclick="userAction('${esc(u.username)}','friend')">
-              +
-            </button>
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-async function userAction(username,type){
-  try{
-    if(type==="chat"){
-      await SB.rpc("nexora_get_or_create_dm",{
-        target_username:username
-      });
-
-      await renderChat();
-
-      const i=NX.conversations.findIndex(
-        x=>x.other_username?.toLowerCase()===username.toLowerCase()
-      );
-
-      if(i>=0)openChat(i);
-      return;
-    }
-
-    if(type==="call"){
-      await callUsername(username);
-      return;
-    }
-
-    if(type==="friend"){
-      const {data:target,error}=await SB
-        .from("profiles")
-        .select("id")
-        .eq("username",username)
-        .single();
-
-      if(error)throw error;
-
-      const result=await SB.from("friendships").insert({
-        requester_id:uid(),
-        addressee_id:target.id,
-        status:"pending"
-      });
-
-      if(result.error)throw result.error;
-
-      toast("Friend request sent.");
-    }
-  }catch(e){
-    toast(e.message||"Action failed.");
-  }
-}
-
-async function randomConnect(type){
-  const {data,error}=await SB
-    .from("profiles")
-    .select("username,display_name,online")
-    .eq("online",true)
-    .neq("id",uid())
-    .limit(30);
-
-  if(error||!data?.length){
-    toast("No one is available right now.");
-    return;
-  }
-
-  const target=data[Math.floor(Math.random()*data.length)];
-
-  if(type==="chat")
-    await userAction(target.username,"chat");
-  else
-    await userAction(target.username,"call");
-}
-
-async function openFriends(){
-  const {data,error}=await SB
-    .from("friendships")
-    .select("*")
-    .or(`requester_id.eq.${uid()},addressee_id.eq.${uid()}`)
-    .order("created_at",{ascending:false});
-
-  if(error){
-    toast(error.message);
-    return;
-  }
-
-  const ids=[
-    ...new Set(
-      (data||[])
-        .flatMap(x=>[x.requester_id,x.addressee_id])
-        .filter(x=>x!==uid())
-    )
-  ];
-
-  let profiles=[];
-
-  if(ids.length){
-    const r=await SB
-      .from("profiles")
-      .select("id,username,display_name,online,last_seen")
-      .in("id",ids);
-
-    profiles=r.data||[];
-  }
-
-  const map=Object.fromEntries(profiles.map(x=>[x.id,x]));
-
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-    <h2>Friends</h2>
-
-    <div class="nx-list">
-      ${
-        !data?.length
-        ? `<div class="nx-notice">No friends or requests yet.</div>`
-        : data.map(f=>{
-          const other=map[
-            f.requester_id===uid()
-              ? f.addressee_id
-              : f.requester_id
-          ];
-
-          if(!other)return "";
-
-          const incoming=
-            f.addressee_id===uid() &&
-            f.status==="pending";
-
-          return `
-            <div class="nx-row">
-              <div class="nx-avatar">${avatar(other.display_name||other.username)}</div>
-
-              <div class="nx-grow">
-                <strong>${esc(other.display_name||other.username)}</strong>
-                <small>
-                  @${esc(other.username)}
-                  ·
-                  ${f.status}
-                </small>
-              </div>
-
-              <div class="nx-actions">
-                ${
-                  incoming
-                  ? `
-                    <button class="nx-mini"
-                      onclick="friendResponse('${f.id}','accepted')">
-                      Accept
-                    </button>
-
-                    <button class="nx-mini"
-                      onclick="friendResponse('${f.id}','rejected')">
-                      Decline
-                    </button>
-                  `
-                  : `
-                    <button class="nx-mini"
-                      onclick="userAction('${esc(other.username)}','chat')">
-                      Chat
-                    </button>
-
-                    <button class="nx-mini"
-                      onclick="userAction('${esc(other.username)}','call')">
-                      Call
-                    </button>
-                  `
-                }
-              </div>
-            </div>
-          `;
-        }).join("")
-      }
-    </div>
-  `);
-}
-
-async function friendResponse(id,status){
-  const {error}=await SB
-    .from("friendships")
-    .update({status})
-    .eq("id",id);
-
-  if(error)toast(error.message);
-  else{
-    document.querySelector(".nx-modal")?.remove();
-    openFriends();
-  }
-}
-
-async function openActivity(){
-  const {data,error}=await SB
-    .from("notifications")
-    .select("*")
-    .eq("user_id",uid())
-    .order("created_at",{ascending:false})
-    .limit(50);
-
-  if(error){
-    toast(error.message);
-    return;
-  }
-
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-    <h2>Activity</h2>
-
-    <div class="nx-list">
-      ${
-        !data?.length
-        ? `<div class="nx-notice">No recent activity.</div>`
-        : data.map(n=>`
-          <div class="nx-row">
-            <div class="nx-icon" style="width:40px;height:40px;margin:0">
-              ${n.type==="game_invite"?"🎮":n.type==="friend_request"?"👥":"🔔"}
-            </div>
-            <div class="nx-grow">
-              <strong>${esc(n.title)}</strong>
-              <small>${esc(n.body||"")} · ${timeAgo(n.created_at)}</small>
-            </div>
-          </div>
-        `).join("")
-      }
-    </div>
-  `);
-}
-
-async function callUsername(username){
-  try{
-    const {data,error}=await SB.rpc("nexora_start_call",{
-      target_username:username,
-      call_kind:"voice"
-    });
-
-    if(error)throw error;
-
-    toast("Calling "+username+"...");
-  }catch(e){
-    toast(e.message||"Unable to start call.");
-  }
-}
-
-function startRealtime(){
-  if(!uid())return;
-
-  if(NX.callChannel){
-    try{NX.callChannel.unsubscribe()}catch(e){}
-  }
-
-  NX.callChannel=SB
-    .channel("nexora-calls-"+uid())
-    .on("postgres_changes",{
-      event:"INSERT",
-      schema:"public",
-      table:"calls",
-      filter:`receiver_id=eq.${uid()}`
-    },payload=>{
-      if(payload.new.status==="ringing")
-        incomingCall(payload.new);
-    })
-    .subscribe();
-
-  NX.notificationsChannel=SB
-    .channel("nexora-notifications-"+uid())
-    .on("postgres_changes",{
-      event:"INSERT",
-      schema:"public",
-      table:"notifications",
-      filter:`user_id=eq.${uid()}`
-    },payload=>{
-      toast(payload.new.title||"New activity");
-    })
-    .subscribe();
-
-  setInterval(async()=>{
-    if(uid()){
-      await SB.from("profiles")
-        .update({
-          online:true,
-          last_seen:new Date().toISOString()
-        })
-        .eq("id",uid());
-    }
-  },30000);
-}
-
-function incomingCall(call){
-  document.getElementById("incoming-call")?.remove();
-
-  const x=document.createElement("div");
-  x.id="incoming-call";
-  x.className="nx-call";
-
-  x.innerHTML=`
-    <div style="font-size:18px;font-weight:900">
-      Incoming voice call
-    </div>
-
-    <div style="color:#8993a4;margin-top:5px">
-      Someone is calling you.
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:15px">
-      <button class="nx-btn green" style="flex:1;margin:0"
-        onclick="answerCall('${call.id}')">
-        Answer
-      </button>
-
-      <button class="nx-btn red" style="flex:1;margin:0"
-        onclick="declineCall('${call.id}')">
-        Decline
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(x);
-}
-
-async function answerCall(id){
-  const {error}=await SB
-    .from("calls")
-    .update({
-      status:"accepted",
-      started_at:new Date().toISOString()
-    })
-    .eq("id",id);
-
-  document.getElementById("incoming-call")?.remove();
-
-  if(error)toast(error.message);
-  else toast("Call accepted.");
-}
-
-async function declineCall(id){
-  await SB.from("calls")
-    .update({status:"declined"})
-    .eq("id",id);
-
-  document.getElementById("incoming-call")?.remove();
-}
-
-function openProfile(){
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="nx-avatar" style="width:55px;height:55px;font-size:20px">
-        ${avatar(NX.profile?.display_name||NX.profile?.username)}
-      </div>
-
-      <div>
-        <h2 style="margin:0">
-          ${esc(NX.profile?.display_name||"NEXORA User")}
-        </h2>
-        <small style="color:#8993a4">
-          @${esc(NX.profile?.username||"")}
-        </small>
-      </div>
-    </div>
-
-    <input id="profile-name"
-      class="nx-input"
-      value="${esc(NX.profile?.display_name||"")}"
-      placeholder="Display name">
-
-    <input id="profile-username"
-      class="nx-input"
-      value="${esc(NX.profile?.username||"")}"
-      placeholder="Username">
-
-    <button class="nx-btn primary" onclick="saveProfile()">
-      Save Profile
-    </button>
-
-    <button class="nx-btn red" onclick="logout()">
-      Logout
-    </button>
-  `);
+function updateProfileUI(){
+ if(!profile)return;
+ $("profileName").textContent=profile.display_name||profile.username;
+ $("topAvatar").textContent=initials(profile.display_name||profile.username);
+ $("homeName").textContent=profile.display_name||profile.username;
+ $("profileAvatar").textContent=initials(profile.display_name||profile.username);
+ $("profileDisplay").textContent=profile.display_name||profile.username;
+ $("profileUsername").textContent="@"+profile.username;
+ $("editUsername").value=profile.username;
+ $("editDisplay").value=profile.display_name||"";
 }
 
 async function saveProfile(){
-  const username=document
-    .getElementById("profile-username")
-    ?.value.trim()
-    .replace(/^@/,"");
-
-  const display=document
-    .getElementById("profile-name")
-    ?.value.trim();
-
-  if(!username)return;
-
-  try{
-    const {data,error}=await SB.rpc("nexora_set_username",{
-      new_username:username,
-      new_display_name:display||null
-    });
-
-    if(error)throw error;
-
-    NX.profile=data;
-
-    document.querySelector(".nx-modal")?.remove();
-
-    renderHome();
-
-    toast("Profile updated.");
-  }catch(e){
-    toast(e.message||"Unable to update profile.");
-  }
+ const u=$("editUsername").value.trim().toLowerCase();
+ const d=$("editDisplay").value.trim();
+ if(!u)return toast("Username required");
+ const {data,error}=await db.rpc("nexora_set_username",{new_username:u,new_display_name:d});
+ if(error){toast(error.message);return}
+ profile=data;updateProfileUI();toast("Profile updated");
 }
 
 async function logout(){
-  try{
-    await SB.from("profiles")
-      .update({
-        online:false,
-        last_seen:new Date().toISOString()
-      })
-      .eq("id",uid());
-  }catch(e){}
-
-  await SB.auth.signOut();
-  location.reload();
+ await refreshPresence(false);
+ await db.auth.signOut();
+ location.reload();
 }
 
-/* PART 2 continues below */
-</script>
-<script>
-/* ================================
-   NEXORA GAMES
-================================ */
-
-function renderGames(){
-  NX.page="games";
-
-  shell(`
-    <div class="nx-title">Games</div>
-    <div class="nx-sub">
-      Multiplayer games with chat, voice and computer play.
-    </div>
-
-    <div class="game-tabs">
-      <button class="game-tab active" id="tab-ludo"
-        onclick="gameSection('ludo')">
-        <b>🎲 Ludo</b>
-        <small>Classic 2–4 player</small>
-      </button>
-
-      <button class="game-tab" id="tab-four"
-        onclick="gameSection('four')">
-        <b>🔵 Four in a Row</b>
-        <small>Strategy game</small>
-      </button>
-
-      <button class="game-tab" id="tab-uno"
-        onclick="gameSection('uno')">
-        <b>🃏 UNO</b>
-        <small>Coming Soon</small>
-      </button>
-    </div>
-
-    <div id="game-content"></div>
-  `);
-
-  gameSection("ludo");
+async function refreshPresence(on){
+ if(!me)return;
+ await db.rpc("nexora_set_presence",{is_now_online:on}).catch(()=>{});
 }
 
-function gameSection(type){
-  document.querySelectorAll(".game-tab")
-    .forEach(x=>x.classList.remove("active"));
-
-  document.getElementById("tab-"+type)
-    ?.classList.add("active");
-
-  const box=document.getElementById("game-content");
-  if(!box)return;
-
-  if(type==="ludo"){
-    box.innerHTML=`
-      <div class="nx-grid">
-
-        <div class="nx-card click" onclick="startLudoMenu('random')">
-          <div class="nx-icon">🎲</div>
-          <h3>Connect with Random</h3>
-          <p>Find available players and start a Ludo match.</p>
-        </div>
-
-        <div class="nx-card click" onclick="startLudoMenu('friend')">
-          <div class="nx-icon">👥</div>
-          <h3>Connect with Friend</h3>
-          <p>Invite someone from your friends.</p>
-        </div>
-
-        <div class="nx-card click" onclick="startLudoMenu('username')">
-          <div class="nx-icon">🔎</div>
-          <h3>Connect by Username</h3>
-          <p>Invite a specific NEXORA user.</p>
-        </div>
-
-        <div class="nx-card click" onclick="startLudoMenu('computer')">
-          <div class="nx-icon">🤖</div>
-          <h3>Play Computer</h3>
-          <p>Adaptive computer intelligence.</p>
-        </div>
-
-        <div class="nx-card click" onclick="startLudoMenu('local')">
-          <div class="nx-icon">📱</div>
-          <h3>Play Local</h3>
-          <p>Play on one device with 2–4 players.</p>
-        </div>
-
-      </div>
-    `;
-
-    return;
-  }
-
-  if(type==="uno"){
-    box.innerHTML=`
-      <div class="nx-card" style="margin-top:18px;text-align:center">
-        <div style="font-size:55px">🃏</div>
-        <h2>UNO</h2>
-        <p>UNO multiplayer is coming soon.</p>
-        <button class="nx-btn outline" disabled>
-          Coming Soon
-        </button>
-      </div>
-    `;
-    return;
-  }
-
-  box.innerHTML=`
-    <div class="nx-card" style="margin-top:18px">
-      <div class="nx-icon">🔵</div>
-      <h2>Four in a Row</h2>
-      <p>
-        Connect four pieces horizontally, vertically or diagonally.
-      </p>
-
-      <button class="nx-btn primary"
-        onclick="startFourRobot()">
-        Computer
-      </button>
-
-      <button class="nx-btn outline"
-        onclick="startFourLocal()">
-        Local 2 Player
-      </button>
-    </div>
-  `;
+async function loadLiveCount(){
+ const {count}=await db.from("profiles").select("id",{count:"exact",head:true}).eq("online",true);
+ $("liveCount").textContent=count??0;
 }
 
+async function loadRecent(){
+ if(recentTab==="chats")return loadChats();
+ if(recentTab==="calls")return loadCalls();
+ if(recentTab==="requests")return loadRequests();
+ return loadActivity();
+}
 
-/* ================================
-   LUDO ENGINE
-================================ */
+async function loadChats(){
+ const {data,error}=await db.rpc("nexora_my_recent_chats");
+ if(error){$("recentContent").innerHTML=`<div class="card">${esc(error.message)}</div>`;return}
+ window.__chats=data||[];
+ const unread=(data||[]).some(x=>Number(x.unread_count)>0);
+ $("recentDot").innerHTML=unread?'<span class="dot"></span>':"";
+ $("recentContent").innerHTML=(data||[]).length?`<div class="list">${
+ data.map(c=>`
+ <div class="listItem" onclick="openConversation('${c.conversation_id}','${c.other_id}')">
+  <div class="avatar">${esc(initials(c.other_display_name||c.other_username))}</div>
+  <div class="grow">
+   <div class="row between"><b>${esc(c.other_display_name||c.other_username)}</b>${Number(c.unread_count)>0?'<span class="dot"></span>':""}</div>
+   <div class="muted truncate">${esc(c.last_message||"No messages yet")}</div>
+  </div>
+  <small class="muted">${fmtTime(c.last_message_at)}</small>
+ </div>`).join("")
+ }</div>`:`<div class="card empty"><div><h3>No recent chats</h3><p class="muted">Start from Connect.</p></div></div>`;
+}
 
-const LUDO={
-  colors:["red","green","yellow","blue"],
+function renderChatList(items){
+ const q=($("chatSearch").value||"").toLowerCase();
+ const filtered=(items||[]).filter(x=>(x.other_display_name||x.other_username||"").toLowerCase().includes(q));
+ $("chatItems").innerHTML=filtered.length?filtered.map(c=>`
+ <div class="listItem" onclick="openConversation('${c.conversation_id}','${c.other_id}')">
+  <div class="avatar">${esc(initials(c.other_display_name||c.other_username))}</div>
+  <div class="grow"><b class="truncate">${esc(c.other_display_name||c.other_username)}</b>
+  <div class="muted truncate">${esc(c.last_message||"Start chatting")}</div></div>
+  ${Number(c.unread_count)>0?'<span class="dot"></span>':""}
+ </div>`).join(""):`<div class="empty"><div><p class="muted">No chats</p></div></div>`;
+}
 
-  starts:{
-    red:0,
-    green:13,
-    yellow:26,
-    blue:39
-  },
+async function openConversation(cid,otherId){
+ currentConversation=cid;
+ const {data:p}=await db.from("profiles").select("*").eq("id",otherId).single();
+ currentOther=p;
+ showView("chat");
+ $("chatHeader").innerHTML=`
+ <div class="row between">
+  <div class="row">
+   <div class="avatar">${esc(initials(p?.display_name||p?.username))}</div>
+   <div><b>${esc(p?.display_name||p?.username)}</b>
+   <div class="muted">${p?.online?'<span class="online"></span> online':p?.last_seen?"last seen "+fmtTime(p.last_seen):"offline"}</div></div>
+  </div>
+  <div class="actions">
+   <button class="secondary" onclick="startCurrentCall()">☎ Call</button>
+  </div>
+ </div>`;
+ $("messageInput").disabled=false;$("sendBtn").disabled=false;$("chatCallBtn").disabled=false;
+ await loadMessages();
+ subscribeConversation();
+}
 
-  safe:new Set([0,8,13,21,26,34,39,47]),
+async function loadMessages(){
+ if(!currentConversation)return;
+ const {data,error}=await db.from("messages").select("*").eq("conversation_id",currentConversation).order("created_at",{ascending:true});
+ if(error){toast(error.message);return}
+ renderMessages(data||[]);
+ for(const m of data||[])if(m.sender_id!==me.id&&!m.read_at)await db.rpc("nexora_mark_message_read",{target_message:m.id}).catch(()=>{});
+}
 
-  /*
-    52 outer-track cells.
-    Each coordinate is row,column on a 15x15 board.
-  */
-  path:[
-    [6,0],[6,1],[6,2],[6,3],[6,4],[6,5],
-    [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-    [0,7],[0,8],[1,8],[2,8],[3,8],[4,8],
-    [5,8],[6,9],[6,10],[6,11],[6,12],[6,13],
-    [6,14],[7,14],[8,14],[8,13],[8,12],[8,11],
-    [8,10],[8,9],[9,8],[10,8],[11,8],[12,8],
-    [13,8],[14,8],[14,7],[14,6],[13,6],[12,6],
-    [11,6],[10,6],[9,6],[8,5],[8,4],[8,3],
-    [8,2],[8,1],[8,0],[7,0],[6,0]
-  ],
+function renderMessages(data){
+ const box=$("messages");
+ if(!data.length){box.innerHTML='<div class="empty"><div><h3>Start the conversation</h3><p class="muted">Say hello.</p></div></div>';return}
+ box.innerHTML=data.map(m=>`
+ <div class="bubble ${m.sender_id===me.id?"mine":""}" oncontextmenu="deleteMessage('${m.id}');return false">
+  ${esc(m.message)}
+  <small>${fmtTime(m.created_at)} · <span onclick="deleteMessage('${m.id}')">Delete</span></small>
+ </div>`).join("");
+ box.scrollTop=box.scrollHeight;
+}
 
-  homePath:{
-    red:[[7,1],[7,2],[7,3],[7,4],[7,5]],
-    green:[[1,7],[2,7],[3,7],[4,7],[5,7]],
-    yellow:[[7,13],[7,12],[7,11],[7,10],[7,9]],
-    blue:[[13,7],[12,7],[11,7],[10,7],[9,7]]
-  },
+async function sendMessage(){
+ if(!currentConversation)return;
+ const input=$("messageInput"),text=input.value.trim();
+ if(!text)return;
+ input.value="";
+ const {error}=await db.rpc("nexora_send_message",{target_conversation:currentConversation,message_text:text});
+ if(error){input.value=text;toast(error.message)}
+}
 
-  players:[],
-  pieces:{},
-  current:0,
-  dice:0,
-  rolling:false,
-  winner:null,
-  mode:"local",
-  robotLevel:5,
-  room:null,
-  roomChannel:null,
-  stateVersion:0
+async function deleteMessage(id){
+ if(!confirm("Delete this message for everyone?"))return;
+ const {error}=await db.rpc("nexora_delete_message",{target_message:id});
+ if(error)toast(error.message);
+ else loadMessages();
+}
+
+function chooseLivePhoto(){
+ $("livePhotoInput").click();
+}
+$("livePhotoInput").onchange=async e=>{
+ const file=e.target.files?.[0];
+ if(!file||!currentConversation)return;
+ /*
+   Live-only photo:
+   no Supabase Storage upload.
+   It is sent through the current realtime conversation channel.
+ */
+ if(!currentChannel){toast("Chat connection unavailable");return}
+ const reader=new FileReader();
+ reader.onload=()=>currentChannel.send({
+  type:"broadcast",event:"live-photo",
+  payload:{sender:me.id,name:file.name,data:reader.result}
+ }).then(()=>toast("Photo sent"));
+ reader.readAsDataURL(file);
+ e.target.value="";
 };
 
-function ludoPlayers(mode,count=2){
-  if(mode==="computer"){
-    return [
-      {color:"red",name:"You",human:true},
-      {color:"green",name:"Computer",human:false}
-    ];
-  }
-
-  return LUDO.colors
-    .slice(0,count)
-    .map((color,i)=>({
-      color,
-      name:i===0?"Player 1":"Player "+(i+1),
-      human:true
-    }));
+function subscribeConversation(){
+ if(currentChannel)db.removeChannel(currentChannel);
+ currentChannel=db.channel("dm-"+currentConversation);
+ currentChannel.on("broadcast",{event:"live-photo"},({payload})=>{
+   if(payload.sender===me.id)return;
+   const win=window.open();
+   if(win){win.document.write(`<img src="${payload.data}" style="max-width:100%">`)}
+   else toast("Live photo received");
+ }).on("postgres_changes",{
+   event:"*",schema:"public",table:"messages",filter:`conversation_id=eq.${currentConversation}`
+ },()=>loadMessages()).subscribe();
 }
 
-function resetLudo(mode="local",count=2,level=5){
-  LUDO.players=ludoPlayers(mode,count);
-
-  LUDO.pieces={
-    red:[-1,-1,-1,-1],
-    green:[-1,-1,-1,-1],
-    yellow:[-1,-1,-1,-1],
-    blue:[-1,-1,-1,-1]
-  };
-
-  LUDO.current=0;
-  LUDO.dice=0;
-  LUDO.rolling=false;
-  LUDO.winner=null;
-  LUDO.mode=mode;
-  LUDO.robotLevel=level;
-
-  renderLudo();
+async function searchUsername(){
+ const q=$("usernameSearch").value.trim();
+ if(!q)return;
+ const {data,error}=await db.from("profiles").select("id,username,display_name,avatar_url,online,last_seen").ilike("username",q).neq("id",me.id).limit(1);
+ if(error){toast(error.message);return}
+ const p=data?.[0];
+ $("usernameResult").innerHTML=p?`
+ <div class="listItem">
+  <div class="avatar">${esc(initials(p.display_name||p.username))}</div>
+  <div class="grow"><b>${esc(p.display_name||p.username)}</b><div class="muted">@${esc(p.username)}</div></div>
+  <div class="actions">
+   <button class="secondary" onclick="sendFriend('${p.username}')">Request</button>
+   <button class="secondary" onclick="startDM('${p.username}')">Text</button>
+   <button class="primary" onclick="callUsername('${p.username}')">Call</button>
+  </div>
+ </div>`:`<div class="card"><p class="muted">User not found.</p></div>`;
 }
 
-function startLudoMenu(mode){
-  if(mode==="computer"){
-    chooseRobotLevel();
-    return;
+async function sendFriend(username){
+ const {error}=await db.rpc("nexora_send_friend_request",{target_username:username});
+ toast(error?error.message:"Request sent");
+}
+
+async function startDM(username){
+ const {data,error}=await db.rpc("nexora_get_or_create_dm",{target_username:username});
+ if(error){toast(error.message);return}
+ const {data:p}=await db.from("profiles").select("id").eq("username",username).maybeSingle();
+ openConversation(data,p?.id);
+}
+
+async function callUsername(username){
+ const {data,error}=await db.rpc("nexora_start_call",{target_username:username,call_kind:"voice"});
+ if(error){toast(error.message);return}
+ callId=data.call_id;
+ const {data:p}=await db.from("profiles").select("*").eq("username",username).single();
+ callOther=p;
+ await startCallerWebRTC();
+}
+
+async function startCurrentCall(){
+ if(!currentOther)return;
+ await callUsername(currentOther.username);
+}
+
+async function randomConnect(kind){
+ const {data,error}=await db.from("profiles").select("*").eq("online",true).neq("id",me.id).limit(20);
+ if(error||!data?.length){toast("Nobody is live right now");return}
+ const p=data[Math.floor(Math.random()*data.length)];
+ if(kind==="chat")return startDM(p.username);
+ return callUsername(p.username);
+}
+
+async function loadFriends(){
+ const {data}=await db.from("friendships").select("*").or(`requester_id.eq.${me.id},addressee_id.eq.${me.id}`).eq("status","accepted");
+ const ids=(data||[]).map(x=>x.requester_id===me.id?x.addressee_id:x.requester_id);
+ let people=[];
+ if(ids.length){const r=await db.from("profiles").select("*").in("id",ids);people=r.data||[]}
+ const html=people.length?people.map(p=>`
+ <div class="listItem">
+  <div class="avatar">${esc(initials(p.display_name||p.username))}</div>
+  <div class="grow"><b>${esc(p.display_name||p.username)}</b><div class="muted">${p.online?"online":"offline"}</div></div>
+  <button class="secondary" onclick="startDM('${p.username}')">Text</button>
+  <button class="secondary" onclick="callUsername('${p.username}')">Call</button>
+ </div>`).join(""):`<div class="muted">No friends yet.</div>`;
+ $("connectFriends").innerHTML=html;
+}
+
+async function loadCalls(){
+ const {data,error}=await db.rpc("nexora_call_history");
+ if(error){$("recentContent").innerHTML=`<div class="card">${esc(error.message)}</div>`;return}
+ $("recentContent").innerHTML=data?.length?`<div class="list">${data.map(c=>`
+ <div class="listItem">
+  <div class="avatar">${esc(initials(c.other_display_name||c.other_username))}</div>
+  <div class="grow"><b>${esc(c.other_display_name||c.other_username)}</b>
+   <div class="muted">${esc(c.status)} · ${fmtDuration(c.duration_seconds)}</div>
+  </div>
+  <small class="muted">${fmtTime(c.created_at)}</small>
+  <button class="danger" onclick="deleteCall('${c.call_id}')">Delete</button>
+ </div>`).join("")}</div>`:
+ `<div class="card empty"><div><h3>No call history</h3></div></div>`;
+}
+
+async function deleteCall(id){
+ const {error}=await db.rpc("nexora_delete_call",{target_call:id});
+ if(error)toast(error.message);else loadCalls();
+}
+
+async function loadRequests(){
+ const {data}=await db.from("friendships").select("*").eq("addressee_id",me.id).eq("status","pending").order("created_at",{ascending:false});
+ const ids=(data||[]).map(x=>x.requester_id);
+ let people=[];
+ if(ids.length){const r=await db.from("profiles").select("*").in("id",ids);people=r.data||[]}
+ $("recentContent").innerHTML=people.length?`<div class="list">${people.map(p=>{
+ const f=data.find(x=>x.requester_id===p.id);
+ return `<div class="listItem"><div class="avatar">${esc(initials(p.display_name||p.username))}</div>
+ <div class="grow"><b>${esc(p.display_name||p.username)}</b><div class="muted">@${esc(p.username)}</div></div>
+ <button class="primary" onclick="friendDecision('${f.id}','accepted')">Accept</button>
+ <button class="danger" onclick="friendDecision('${f.id}','rejected')">Decline</button></div>`
+ }).join("")}</div>`:`<div class="card empty"><div><h3>No requests</h3></div></div>`;
+}
+
+async function friendDecision(id,status){
+ const {error}=await db.rpc("nexora_update_friend_request",{target_friendship:id,new_status:status});
+ if(error)toast(error.message);else{toast(status==="accepted"?"Friend added":"Request declined");loadRequests();loadFriends()}
+}
+
+async function loadActivity(){
+ const {data}=await db.from("notifications").select("*").eq("user_id",me.id).order("created_at",{ascending:false}).limit(40);
+ $("recentContent").innerHTML=data?.length?`<div class="list">${data.map(n=>`
+ <div class="listItem" onclick="readNotification('${n.id}')">
+  <span class="${n.is_read?"badge":"dot"}"></span>
+  <div class="grow"><b>${esc(n.title)}</b><div class="muted">${esc(n.body||"")}</div></div>
+  <small class="muted">${fmtTime(n.created_at)}</small>
+ </div>`).join("")}</div>`:`<div class="card empty"><div><h3>Nothing new</h3></div></div>`;
+}
+
+async function readNotification(id){
+ await db.rpc("nexora_mark_notification_read",{target_notification:id}).catch(()=>{});
+ loadActivity();
+}
+
+function setupRealtime(){
+ const global=db.channel("nexora-global-"+me.id);
+ global.on("postgres_changes",{event:"*",schema:"public",table:"calls",filter:`receiver_id=eq.${me.id}`},payload=>{
+   if(payload.eventType==="INSERT"&&payload.new.status==="ringing")incomingCall(payload.new);
+   if(payload.eventType==="UPDATE"&&payload.new.id===callId&&payload.new.status==="accepted")finishCallerConnected();
+   if(payload.new?.id===callId&&["ended","declined","cancelled"].includes(payload.new.status))closeCallUI();
+ }).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:`user_id=eq.${me.id}`},()=>loadRecent()).subscribe();
+ realtimeChannels.push(global);
+
+ const presence=db.channel("nexora-presence",{config:{presence:{key:me.id}}});
+ presence.on("presence",{event:"sync"},loadLiveCount).subscribe();
+ realtimeChannels.push(presence);
+}
+
+async function incomingCall(c){
+ if(callId)return;
+ callId=c.id;
+ const {data:p}=await db.from("profiles").select("*").eq("id",c.caller_id).single();
+ callOther=p;
+ $("callState").textContent="Incoming voice call";
+ $("callName").textContent=p?.display_name||p?.username||"NEXORA User";
+ $("callAvatar").textContent=initials(p?.display_name||p?.username);
+ $("callTimer").textContent="Incoming";
+ $("incomingControls").style.display="flex";
+ $("activeControls").style.display="none";
+ $("callOverlay").classList.add("show");
+ playRing();
+ subscribeCallChannel();
+}
+
+let ringAudio;
+function playRing(){
+ try{
+  ringAudio=new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
+  ringAudio.loop=true;ringAudio.play().catch(()=>{});
+ }catch{}
+}
+function stopRing(){if(ringAudio){ringAudio.pause();ringAudio=null}}
+
+async function acceptIncoming(){
+ stopRing();
+ const {error}=await db.rpc("nexora_update_call",{target_call:callId,new_status:"accepted"});
+ if(error){toast(error.message);return}
+ await startReceiverWebRTC();
+}
+
+async function declineIncoming(){
+ stopRing();
+ await db.rpc("nexora_update_call",{target_call:callId,new_status:"declined"}).catch(()=>{});
+ closeCallUI();
+}
+
+async function startCallerWebRTC(){
+ $("callState").textContent="Calling…";
+ $("callName").textContent=callOther?.display_name||callOther?.username||"NEXORA User";
+ $("callAvatar").textContent=initials(callOther?.display_name||callOther?.username);
+ $("incomingControls").style.display="none";
+ $("activeControls").style.display="flex";
+ $("callTimer").textContent="Connecting…";
+ $("callOverlay").classList.add("show");
+ subscribeCallChannel();
+ try{
+  callStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  callPeer=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  callStream.getTracks().forEach(t=>callPeer.addTrack(t,callStream));
+  callPeer.onicecandidate=e=>{if(e.candidate)callChannel?.send({type:"broadcast",event:"ice",payload:{from:me.id,candidate:e.candidate}})};
+  callPeer.ontrack=e=>{callRemote.srcObject=e.streams[0]};
+  const offer=await callPeer.createOffer();
+  await callPeer.setLocalDescription(offer);
+  callChannel?.send({type:"broadcast",event:"offer",payload:{from:me.id,offer}});
+ }catch(e){toast("Microphone permission required")}
+}
+
+let callChannel;
+function subscribeCallChannel(){
+ if(callChannel)db.removeChannel(callChannel);
+ callChannel=db.channel("call-"+callId);
+ callChannel.on("broadcast",{event:"offer"},async({payload})=>{
+  if(payload.from===me.id)return;
+  if(!callPeer)return;
+  await callPeer.setRemoteDescription(payload.offer);
+  const answer=await callPeer.createAnswer();
+  await callPeer.setLocalDescription(answer);
+  callChannel.send({type:"broadcast",event:"answer",payload:{from:me.id,answer}});
+ }).on("broadcast",{event:"answer"},async({payload})=>{
+  if(payload.from===me.id||!callPeer)return;
+  await callPeer.setRemoteDescription(payload.answer);
+  finishCallerConnected();
+ }).on("broadcast",{event:"ice"},async({payload})=>{
+  if(payload.from===me.id||!callPeer)return;
+  try{await callPeer.addIceCandidate(payload.candidate)}catch{}
+ }).subscribe();
+}
+
+async function startReceiverWebRTC(){
+ $("callState").textContent="Connecting…";
+ $("incomingControls").style.display="none";
+ $("activeControls").style.display="flex";
+ try{
+  callStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  callPeer=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  callStream.getTracks().forEach(t=>callPeer.addTrack(t,callStream));
+  callPeer.onicecandidate=e=>{if(e.candidate)callChannel?.send({type:"broadcast",event:"ice",payload:{from:me.id,candidate:e.candidate}})};
+  callPeer.ontrack=e=>{if(callRemote)callRemote.srcObject=e.streams[0]};
+  $("callTimer").textContent="00:00";
+ }catch{toast("Microphone permission required")}
+}
+
+function finishCallerConnected(){
+ startTimer();
+ $("callState").textContent="Connected";
+}
+function startTimer(){
+ if(callTimerInterval)clearInterval(callTimerInterval);
+ callStart=callStart||Date.now();
+ callTimerInterval=setInterval(()=>{$("callTimer").textContent=fmtDuration((Date.now()-callStart)/1000)},1000);
+}
+async function toggleCallMute(){
+ callMuted=!callMuted;
+ callStream?.getAudioTracks().forEach(t=>t.enabled=!callMuted);
+ $("muteCallBtn").textContent=callMuted?"🔇":"🎙";
+}
+async function endCall(){
+ if(callId)await db.rpc("nexora_update_call",{target_call:callId,new_status:"ended"}).catch(()=>{});
+ closeCallUI();
+}
+function closeCallUI(){
+ stopRing();
+ if(callTimerInterval)clearInterval(callTimerInterval);
+ callTimerInterval=null;callStart=null;
+ callStream?.getTracks().forEach(t=>t.stop());callStream=null;
+ callPeer?.close();callPeer=null;
+ if(callChannel)db.removeChannel(callChannel);callChannel=null;
+ $("callOverlay").classList.remove("show");
+ $("incomingControls").style.display="flex";
+ $("activeControls").style.display="none";
+ callId=null;callOther=null;
+ loadCalls();
+}
+
+window.addEventListener("beforeunload",()=>refreshPresence(false));
+boot();
+</script>
+/* =========================================================
+   NEXORA GAMES
+   LUDO • TIC TAC TOE • 4 MATCH
+   ========================================================= */
+
+const GAME_COLORS={
+ red:"#ef5350",
+ green:"#42c77a",
+ yellow:"#f3c84b",
+ blue:"#5578ff"
+};
+
+let activeGame=null;
+let ludo=null;
+let tic=null;
+let match4=null;
+
+function closeModal(){
+ $("modal").classList.remove("show");
+ $("modalContent").innerHTML="";
+}
+
+function openGameMenu(game){
+ activeGame=game;
+
+ const title=game==="ludo"?"Ludo":game==="tic"?"Tic Tac Toe":"4 Match";
+
+ $("modalContent").innerHTML=`
+  <div class="row between">
+   <div><p class="muted">Game</p><h2>${title}</h2></div>
+   <button class="iconBtn" onclick="closeModal()">✕</button>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+   <button class="card click" onclick="startGameMode('friend')">
+    <div class="bigIcon">♙</div><h3>With Friends</h3>
+   </button>
+
+   <button class="card click" onclick="startGameMode('robot')">
+    <div class="bigIcon">◉</div><h3>With Robot</h3>
+   </button>
+
+   <button class="card click" onclick="startGameMode('random')">
+    <div class="bigIcon">◎</div><h3>With Random</h3>
+   </button>
+
+   <button class="card click" onclick="startGameMode('local')">
+    <div class="bigIcon">＋</div><h3>Local</h3>
+   </button>
+  </div>
+ `;
+
+ $("modal").classList.add("show");
+}
+
+function startGameMode(mode){
+ if(activeGame==="ludo"){
+  if(mode==="robot"){
+   closeModal();
+   startLudoRobot();
+   return;
   }
 
   if(mode==="local"){
-    chooseLocalPlayers();
-    return;
+   closeModal();
+   startLudoLocal();
+   return;
   }
 
-  if(mode==="random"){
-    startOnlineRandom();
-    return;
-  }
+  showGameConnection(mode);
+  return;
+ }
 
-  if(mode==="friend"){
-    chooseFriendForGame();
-    return;
-  }
+ closeModal();
 
-  if(mode==="username"){
-    chooseUsernameForGame();
-    return;
-  }
+ if(activeGame==="tic")startTic(mode);
+ if(activeGame==="match")startMatch(mode);
 }
 
-function chooseRobotLevel(){
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
+function showGameConnection(mode){
+ $("modalContent").innerHTML=`
+  <div class="row between">
+   <h2>${mode==="friend"?"With Friends":"With Random"}</h2>
+   <button class="iconBtn" onclick="closeModal()">✕</button>
+  </div>
 
-    <h2>Computer Level</h2>
-    <p style="color:#8993a4">
-      The computer becomes more strategic as the level increases.
-    </p>
+  <div class="card">
+   <p class="muted">
+    ${mode==="friend"
+      ?"Choose a friend to start."
+      :"Find a live player automatically."}
+   </p>
 
-    <div class="nx-list">
-      ${[
-        ["Beginner",1],
-        ["Easy",2],
-        ["Medium",3],
-        ["Hard",4],
-        ["Expert",5],
-        ["Master",6],
-        ["Adaptive",7],
-        ["Advanced",8]
-      ].map(x=>`
-        <button class="nx-btn ${x[1]===5?"primary":""}"
-          onclick="startComputer(${x[1]})">
-          ${x[0]}
-        </button>
-      `).join("")}
-    </div>
-  `);
+   <div id="gamePeople" class="list"></div>
+  </div>
+
+  <button class="secondary" style="margin-top:12px" onclick="closeModal()">Back</button>
+ `;
+
+ $("modal").classList.add("show");
+ loadGamePeople(mode);
 }
 
-function startComputer(level){
-  document.querySelector(".nx-modal")?.remove();
-  resetLudo("computer",2,level);
-}
+async function loadGamePeople(mode){
+ const box=$("gamePeople");
 
-function chooseLocalPlayers(){
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-
-    <h2>Local Ludo</h2>
-    <p style="color:#8993a4">
-      Choose the number of players.
-    </p>
-
-    <div class="nx-list">
-      ${[2,3,4].map(n=>`
-        <button class="nx-btn primary"
-          onclick="startLocalLudo(${n})">
-          ${n} Players
-        </button>
-      `).join("")}
-    </div>
-  `);
-}
-
-function startLocalLudo(n){
-  document.querySelector(".nx-modal")?.remove();
-  resetLudo("local",n,0);
-}
-
-async function chooseFriendForGame(){
-  const {data,error}=await SB
-    .from("friendships")
+ if(mode==="random"){
+  const {data}=await db.from("profiles")
     .select("*")
-    .eq("status","accepted")
-    .or(`requester_id.eq.${uid()},addressee_id.eq.${uid()}`);
+    .eq("online",true)
+    .neq("id",me.id)
+    .limit(30);
 
-  if(error){
-    toast(error.message);
-    return;
-  }
+  box.innerHTML=data?.length
+   ?data.map(p=>gamePersonRow(p)).join("")
+   :`<div class="muted">No live players right now.</div>`;
 
-  const ids=[
-    ...new Set(
-      (data||[])
-        .flatMap(x=>[x.requester_id,x.addressee_id])
-        .filter(x=>x!==uid())
-    )
-  ];
+  return;
+ }
 
-  if(!ids.length){
-    toast("You don't have any accepted friends yet.");
-    return;
-  }
+ const {data:f}=await db.from("friendships")
+  .select("*")
+  .or(`requester_id.eq.${me.id},addressee_id.eq.${me.id}`)
+  .eq("status","accepted");
 
-  const {data:people}=await SB
-    .from("profiles")
-    .select("id,username,display_name,online")
-    .in("id",ids);
+ const ids=(f||[]).map(x=>x.requester_id===me.id?x.addressee_id:x.requester_id);
 
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-    <h2>Choose Friend</h2>
+ if(!ids.length){
+  box.innerHTML=`<div class="muted">No friends yet.</div>`;
+  return;
+ }
 
-    <div class="nx-list">
-      ${(people||[]).map(p=>`
-        <div class="nx-row">
-          <div class="nx-avatar">${avatar(p.display_name||p.username)}</div>
+ const {data}=await db.from("profiles").select("*").in("id",ids);
 
-          <div class="nx-grow">
-            <strong>${esc(p.display_name||p.username)}</strong>
-            <small>@${esc(p.username)} · ${p.online?"Online":"Offline"}</small>
-          </div>
-
-          <button class="nx-mini"
-            onclick="inviteLudoUser('${esc(p.username)}')">
-            Invite
-          </button>
-        </div>
-      `).join("")}
-    </div>
-  `);
+ box.innerHTML=(data||[]).map(p=>gamePersonRow(p)).join("");
 }
 
-function chooseUsernameForGame(){
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
+function gamePersonRow(p){
+ return `
+  <div class="listItem">
+   <div class="avatar">${esc(initials(p.display_name||p.username))}</div>
+   <div class="grow">
+    <b>${esc(p.display_name||p.username)}</b>
+    <div class="muted">${p.online?"online":"offline"}</div>
+   </div>
 
-    <h2>Invite by Username</h2>
-
-    <input id="ludo-username"
-      class="nx-input"
-      placeholder="@username">
-
-    <button class="nx-btn primary"
-      onclick="inviteLudoUser(document.getElementById('ludo-username').value)">
-      Send Invite
-    </button>
-  `);
+   <button class="primary"
+    onclick="createOnlineGame('ludo','${p.id}')">
+    Play
+   </button>
+  </div>
+ `;
 }
 
-async function inviteLudoUser(username){
-  username=String(username||"").trim().replace(/^@/,"");
 
-  if(!username)return;
+/* =========================================================
+   ONLINE ROOM
+   ========================================================= */
 
-  try{
-    const {data:user,error}=await SB
-      .from("profiles")
-      .select("id")
-      .eq("username",username)
-      .single();
+async function createOnlineGame(gameType,targetUser){
+ const roomCode="NX"+Math.random().toString(36).slice(2,8).toUpperCase();
 
-    if(error)throw error;
+ const {data:room,error}=await db.from("game_rooms").insert({
+  game_type:gameType==="ludo"?"ludo":"tic_tac_toe",
+  room_code:roomCode,
+  host_id:me.id,
+  status:"waiting",
+  max_players:gameType==="ludo"?4:2
+ }).select().single();
 
-    await SB.from("notifications").insert({
-      user_id:user.id,
-      type:"game_invite",
-      title:"Ludo invitation",
-      body:"You have been invited to play Ludo.",
-      data:{
-        game_type:"ludo",
-        from:uid()
-      }
-    });
+ if(error){
+  toast(error.message);
+  return;
+ }
 
-    document.querySelector(".nx-modal")?.remove();
+ await db.from("game_players").insert({
+  room_id:room.id,
+  user_id:me.id,
+  player_number:1
+ });
 
-    toast("Ludo invitation sent.");
-  }catch(e){
-    toast(e.message||"Unable to send invitation.");
-  }
+ if(targetUser){
+  await db.from("notifications").insert({
+   user_id:targetUser,
+   type:"game_invite",
+   title:"Game invite",
+   body:`${profile.display_name||profile.username} invited you to play`,
+   data:{
+    room_id:room.id,
+    room_code:room.room_code,
+    game_type:gameType
+   }
+  });
+ }
+
+ closeModal();
+
+ if(gameType==="ludo"){
+  startLudoOnline(room.id,room.room_code);
+ }else{
+  startTicOnline(room.id,room.room_code);
+ }
 }
 
-async function startOnlineRandom(){
-  try{
-    const {data:rooms}=await SB
-      .from("game_rooms")
-      .select("*")
-      .eq("game_type","ludo")
-      .eq("status","waiting")
-      .neq("host_id",uid())
-      .order("created_at",{ascending:true})
-      .limit(10);
 
-    if(rooms?.length){
-      for(const room of rooms){
-        const {count}=await SB
-          .from("game_players")
-          .select("*",{count:"exact",head:true})
-          .eq("room_id",room.id);
+/* =========================================================
+   LUDO
+   ========================================================= */
 
-        if((count||0)<room.max_players){
-          await joinOnlineRoom(room.room_code);
-          return;
-        }
-      }
+const LUDO_PATH=[
+ [6,13],[6,12],[6,11],[6,10],[6,9],[5,8],[4,8],[3,8],[2,8],[1,8],
+ [0,8],[0,7],[0,6],
+ [1,6],[2,6],[3,6],[4,6],[5,6],
+ [6,5],[6,4],[6,3],[6,2],[6,1],[6,0],
+ [7,0],[8,0],
+ [8,1],[8,2],[8,3],[8,4],[8,5],
+ [9,6],[10,6],[11,6],[12,6],[13,6],
+ [14,6],[14,7],[14,8],
+ [13,8],[12,8],[11,8],[10,8],[9,8],
+ [8,9],[8,10],[8,11],[8,12],[8,13],
+ [8,14],[7,14],[6,14]
+];
+
+const START_INDEX={
+ red:0,
+ green:13,
+ yellow:26,
+ blue:39
+};
+
+const SAFE_INDEX=new Set([
+ 0,8,13,21,26,34,39,47
+]);
+
+const HOME_LANES={
+ red:[[7,1],[7,2],[7,3],[7,4],[7,5]],
+ green:[[1,7],[2,7],[3,7],[4,7],[5,7]],
+ yellow:[[7,13],[7,12],[7,11],[7,10],[7,9]],
+ blue:[[13,7],[12,7],[11,7],[10,7],[9,7]]
+};
+
+const BASES={
+ red:[[2,2],[4,2],[2,4],[4,4]],
+ green:[[10,2],[12,2],[10,4],[12,4]],
+ yellow:[[10,10],[12,10],[10,12],[12,12]],
+ blue:[[2,10],[4,10],[2,12],[4,12]]
+};
+
+const COLORS=["red","green","yellow","blue"];
+
+function startLudoLocal(){
+ ludo=createLudoState(["red","green"]);
+ renderLudo();
+}
+
+function startLudoRobot(){
+ ludo=createLudoState(["red","green"]);
+ ludo.robot=true;
+ ludo.level=Number(prompt("Robot level 1-10","5"))||5;
+ ludo.level=Math.max(1,Math.min(10,ludo.level));
+ renderLudo();
+}
+
+function createLudoState(players){
+ return {
+  players,
+  turn:0,
+  dice:null,
+  rolled:false,
+  winner:null,
+  sixCount:0,
+  tokens:{},
+  robot:false,
+  level:5
+ };
+}
+
+function initLudoTokens(){
+ for(const c of COLORS){
+  ludo.tokens[c]=[-1,-1,-1,-1];
+ }
+}
+
+function startLudoState(){
+ if(!ludo.tokens.red)initLudoTokens();
+}
+
+function ludoAbsolute(color,step){
+ if(step<0||step>56)return null;
+ return (START_INDEX[color]+step)%52;
+}
+
+function canMoveToken(color,idx,dice){
+ const step=ludo.tokens[color][idx];
+ if(step===57)return false;
+ if(step===-1)return dice===6;
+ return step+dice<=57;
+}
+
+function moveToken(color,idx,dice){
+ let step=ludo.tokens[color][idx];
+
+ if(step===-1){
+  ludo.tokens[color][idx]=0;
+ }else{
+  ludo.tokens[color][idx]+=dice;
+ }
+
+ const newStep=ludo.tokens[color][idx];
+
+ if(newStep<52){
+  const abs=ludoAbsolute(color,newStep);
+
+  for(const opponent of ludo.players){
+   if(opponent===color)continue;
+
+   for(let i=0;i<4;i++){
+    const os=ludo.tokens[opponent][i];
+    if(os<0||os>=52)continue;
+
+    const oa=ludoAbsolute(opponent,os);
+
+    if(oa===abs&&!SAFE_INDEX.has(abs)){
+     ludo.tokens[opponent][i]=-1;
     }
-
-    await createOnlineRoom();
-  }catch(e){
-    toast(e.message||"Unable to find a match.");
+   }
   }
+ }
+
+ const won=ludo.tokens[color].every(x=>x===57);
+
+ if(won)ludo.winner=color;
 }
 
-async function createOnlineRoom(maxPlayers=2){
-  try{
-    const code="NX-"+Math.random()
-      .toString(36)
-      .slice(2,7)
-      .toUpperCase();
-
-    const {data:room,error}=await SB
-      .from("game_rooms")
-      .insert({
-        game_type:"ludo",
-        room_code:code,
-        host_id:uid(),
-        status:"waiting",
-        max_players:maxPlayers
-      })
-      .select()
-      .single();
-
-    if(error)throw error;
-
-    await SB.from("game_players").insert({
-      room_id:room.id,
-      user_id:uid(),
-      player_number:1
-    });
-
-    openOnlineRoom(room.id);
-  }catch(e){
-    toast(e.message||"Unable to create room.");
-  }
+function legalMoves(color,dice){
+ const a=[];
+ for(let i=0;i<4;i++){
+  if(canMoveToken(color,i,dice))a.push(i);
+ }
+ return a;
 }
 
-async function joinOnlineRoom(code){
-  try{
-    const {data:room,error}=await SB
-      .from("game_rooms")
-      .select("*")
-      .eq("room_code",code.toUpperCase())
-      .eq("status","waiting")
-      .single();
+function rollLudo(){
+ if(!ludo||ludo.winner)return;
+ if(ludo.rolled)return;
 
-    if(error)throw error;
+ const color=ludo.players[ludo.turn];
 
-    const {count}=await SB
-      .from("game_players")
-      .select("*",{count:"exact",head:true})
-      .eq("room_id",room.id);
+ ludo.dice=Math.floor(Math.random()*6)+1;
+ ludo.rolled=true;
 
-    if((count||0)>=room.max_players)
-      throw new Error("Room is full.");
+ const moves=legalMoves(color,ludo.dice);
 
-    await SB.from("game_players").insert({
-      room_id:room.id,
-      user_id:uid(),
-      player_number:(count||0)+1
-    });
-
-    openOnlineRoom(room.id);
-  }catch(e){
-    toast(e.message||"Unable to join room.");
-  }
-}
-
-async function openOnlineRoom(roomId){
-  const {data:room,error}=await SB
-    .from("game_rooms")
-    .select("*")
-    .eq("id",roomId)
-    .single();
-
-  if(error){
-    toast(error.message);
-    return;
-  }
-
-  LUDO.room=room;
-
-  await refreshOnlinePlayers();
-
-  renderOnlineLobby();
-
-  if(LUDO.roomChannel){
-    try{await LUDO.roomChannel.unsubscribe()}catch(e){}
-  }
-
-  LUDO.roomChannel=SB
-    .channel("ludo-room-"+roomId)
-    .on("postgres_changes",{
-      event:"*",
-      schema:"public",
-      table:"game_players",
-      filter:`room_id=eq.${roomId}`
-    },async()=>{
-      await refreshOnlinePlayers();
-
-      if(LUDO.room?.status==="waiting")
-        renderOnlineLobby();
-    })
-    .on("postgres_changes",{
-      event:"UPDATE",
-      schema:"public",
-      table:"game_rooms",
-      filter:`id=eq.${roomId}`
-    },payload=>{
-      LUDO.room=payload.new;
-
-      if(payload.new.status==="playing"){
-        if(payload.new.game_state){
-          applyRemoteState(payload.new.game_state);
-        }else{
-          startRemoteGame();
-        }
-      }
-
-      if(payload.new.status==="waiting")
-        renderOnlineLobby();
-    })
-    .on("broadcast",{event:"ludo_state"},payload=>{
-      if(payload.payload?.room_id!==roomId)return;
-
-      const state=payload.payload.state;
-
-      if(state){
-        applyRemoteState(state);
-      }
-    })
-    .subscribe();
-}
-
-async function refreshOnlinePlayers(){
-  if(!LUDO.room)return;
-
-  const {data}=await SB
-    .from("game_players")
-    .select("*")
-    .eq("room_id",LUDO.room.id)
-    .order("player_number");
-
-  LUDO.onlinePlayers=data||[];
-}
-
-function renderOnlineLobby(){
-  const players=LUDO.onlinePlayers||[];
-
-  shell(`
-    <div class="nx-title">Ludo</div>
-    <div class="nx-sub">Private multiplayer room</div>
-
-    <div class="nx-card" style="margin-top:22px">
-      <div style="color:#8993a4;font-size:12px">Room Code</div>
-
-      <div style="
-        font-size:30px;font-weight:900;letter-spacing:3px;margin-top:4px
-      ">
-        ${esc(LUDO.room.room_code)}
-      </div>
-
-      <button class="nx-btn outline"
-        onclick="navigator.clipboard?.writeText('${esc(LUDO.room.room_code)}');toast('Room code copied')">
-        Copy Code
-      </button>
-
-      <div class="nx-list">
-        ${players.map((p,i)=>`
-          <div class="nx-row">
-            <div class="nx-avatar">${i+1}</div>
-
-            <div class="nx-grow">
-              <strong>${p.user_id===uid()?"You":"Player "+(i+1)}</strong>
-              <small>Player ${i+1}</small>
-            </div>
-
-            <span style="color:#27d17f">Ready</span>
-          </div>
-        `).join("")}
-      </div>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:15px">
-
-        <button class="nx-btn primary"
-          onclick="inviteFromRoom()">
-          Invite
-        </button>
-
-        ${
-          LUDO.room.host_id===uid()
-          ? `
-            <button class="nx-btn green"
-              onclick="startOnlineMatch()"
-              ${players.length<2?"disabled":""}>
-              Start Match
-            </button>
-          `
-          : `
-            <div class="nx-notice" style="flex:1">
-              Waiting for the host to start the match.
-            </div>
-          `
-        }
-
-        <button class="nx-btn outline"
-          onclick="go('games')">
-          Leave
-        </button>
-      </div>
-    </div>
-  `);
-}
-
-function inviteFromRoom(){
-  modal(`
-    <button class="nx-close" onclick="this.closest('.nx-modal').remove()">×</button>
-
-    <h2>Invite Player</h2>
-
-    <input id="room-invite-user"
-      class="nx-input"
-      placeholder="@username">
-
-    <button class="nx-btn primary"
-      onclick="inviteLudoUser(document.getElementById('room-invite-user').value)">
-      Send Invite
-    </button>
-
-    <div class="nx-notice">
-      Room code: <b>${esc(LUDO.room?.room_code||"")}</b>
-    </div>
-  `);
-}
-
-async function startOnlineMatch(){
-  if(!LUDO.room||LUDO.room.host_id!==uid())return;
-
-  const players=LUDO.onlinePlayers||[];
-
-  if(players.length<2){
-    toast("At least 2 players are required.");
-    return;
-  }
-
-  const colors=["red","green","yellow","blue"];
-
-  for(let i=0;i<players.length;i++){
-    await SB.from("game_players")
-      .update({
-        player_color:colors[i],
-        is_ready:true,
-        is_connected:true
-      })
-      .eq("room_id",LUDO.room.id)
-      .eq("user_id",players[i].user_id);
-  }
-
-  const state={
-    pieces:{
-      red:[-1,-1,-1,-1],
-      green:[-1,-1,-1,-1],
-      yellow:[-1,-1,-1,-1],
-      blue:[-1,-1,-1,-1]
-    },
-    currentIndex:0,
-    dice:0,
-    winner:null,
-    version:1
-  };
-
-  const firstPlayer=players[0].user_id;
-
-  const update={
-    status:"playing",
-    started_at:new Date().toISOString(),
-    game_state:state,
-    current_turn:firstPlayer
-  };
-
-  const {error}=await SB
-    .from("game_rooms")
-    .update(update)
-    .eq("id",LUDO.room.id);
-
-  if(error){
-    toast(error.message);
-    return;
-  }
-
-  broadcastLudoState(state);
-}
-
-function startRemoteGame(){
-  const state=LUDO.room?.game_state;
-
-  if(!state){
-    toast("Waiting for game state...");
-    return;
-  }
-
-  applyRemoteState(state);
-}
-
-function applyRemoteState(state){
-  if(!state)return;
-
-  LUDO.pieces=JSON.parse(
-    JSON.stringify(state.pieces||{
-      red:[-1,-1,-1,-1],
-      green:[-1,-1,-1,-1],
-      yellow:[-1,-1,-1,-1],
-      blue:[-1,-1,-1,-1]
-    })
-  );
-
-  LUDO.dice=state.dice||0;
-  LUDO.winner=state.winner||null;
-
-  if(LUDO.room?.current_turn){
-    const i=(LUDO.onlinePlayers||[])
-      .findIndex(p=>p.user_id===LUDO.room.current_turn);
-
-    LUDO.current=Math.max(0,i);
-  }
+ if(!moves.length){
+  setTimeout(()=>{
+   if(ludo.dice===6){
+    ludo.sixCount++;
+   }else{
+    nextLudoTurn();
+   }
+   ludo.rolled=false;
+   renderLudo();
+  },650);
 
   renderLudo();
+  return;
+ }
+
+ renderLudo();
+
+ if(ludo.robot&&color==="green"){
+  setTimeout(()=>robotMove(),700);
+ }
 }
 
-async function broadcastLudoState(state){
-  if(!LUDO.room)return;
+function chooseLudoToken(i){
+ if(!ludo?.rolled||ludo.winner)return;
 
-  await SB
-    .channel("ludo-game-"+LUDO.room.id)
-    .send({
-      type:"broadcast",
-      event:"ludo_state",
-      payload:{
-        room_id:LUDO.room.id,
-        state
-      }
-    })
-    .catch(()=>{});
-}
+ const color=ludo.players[ludo.turn];
 
-function renderLudo(){
-  shell(`
-    <div class="nx-title">Ludo</div>
-    <div class="nx-sub">
-      ${LUDO.mode==="computer"
-        ? "Computer Level "+LUDO.robotLevel
-        : LUDO.mode==="local"
-          ? "Classic local match"
-          : "Online match"}
-    </div>
+ if(ludo.robot&&color==="green")return;
 
-    <div style="
-      display:grid;
-      grid-template-columns:minmax(300px,720px) 300px;
-      gap:16px;
-      margin-top:20px
-    " id="ludo-layout">
+ if(!canMoveToken(color,i,ludo.dice))return;
 
-      <div class="nx-card" style="padding:10px">
-        <div id="ludo-board" class="ludo-board"></div>
-      </div>
+ moveToken(color,i,ludo.dice);
 
-      <div class="nx-card">
+ const extra=ludo.dice===6;
 
-        <div style="text-align:center;font-weight:850">
-          ${
-            LUDO.winner
-            ? "🏆 "+esc(LUDO.winner)+" Wins"
-            : LUDO.players[LUDO.current]?.name+"'s Turn"
-          }
-        </div>
+ ludo.rolled=false;
 
-        <div id="ludo-dice" class="ludo-dice">
-          ${LUDO.dice||"•"}
-        </div>
+ if(!ludo.winner&&!extra){
+  nextLudoTurn();
+ }
 
-        <button class="nx-btn primary"
-          style="width:100%;margin-top:4px"
-          onclick="rollLudo()"
-          ${LUDO.rolling||LUDO.winner?"disabled":""}>
-          Roll Dice
-        </button>
+ renderLudo();
 
-        <div style="margin-top:18px;font-weight:850">
-          Players
-        </div>
-
-        <div class="nx-list">
-          ${LUDO.players.map((p,i)=>`
-            <div class="nx-row"
-              style="${i===LUDO.current?'border-color:#6576ff':''}">
-              <div class="nx-avatar"
-                style="background:${pieceColor(p.color)}">
-                ${i+1}
-              </div>
-
-              <div class="nx-grow">
-                <strong>${esc(p.name)}</strong>
-                <small>${p.color}</small>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-
-        <div style="margin-top:18px">
-          <b>Voice</b>
-
-          ${LUDO.players.map((p,i)=>`
-            <div style="
-              display:flex;align-items:center;
-              justify-content:space-between;
-              padding:8px 0
-            ">
-              <span style="font-size:12px">${esc(p.name)}</span>
-
-              <button class="nx-mini"
-                onclick="toggleVoice(this)">
-                🔊
-              </button>
-            </div>
-          `).join("")}
-        </div>
-
-        <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:13px">
-          <b>Game Chat</b>
-
-          <div id="game-chat-box"
-            style="
-              height:130px;overflow:auto;
-              margin-top:8px;display:flex;
-              flex-direction:column;gap:5px
-            ">
-          </div>
-
-          <div style="display:flex;gap:5px;margin-top:7px">
-            <input id="game-chat-input"
-              class="nx-input"
-              style="margin:0"
-              placeholder="Message">
-
-            <button class="nx-mini"
-              onclick="sendGameChat()">
-              ➤
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <style>
-      @media(max-width:900px){
-        #ludo-layout{grid-template-columns:1fr!important}
-      }
-    </style>
-  `);
-
-  drawLudoBoard();
-
-  if(LUDO.mode==="computer" &&
-     LUDO.players[LUDO.current]?.human===false &&
-     !LUDO.dice &&
-     !LUDO.winner){
-    setTimeout(robotRoll,650);
-  }
-}
-
-function pieceColor(color){
-  return {
-    red:"#e54b58",
-    green:"#40b968",
-    yellow:"#efc642",
-    blue:"#4d82da"
-  }[color];
-}
-
-function drawLudoBoard(){
-  const board=document.getElementById("ludo-board");
-  if(!board)return;
-
-  board.innerHTML=`
-    <div class="ludo-quadrant red">
-      <div class="ludo-yard">
-        <i></i><i></i><i></i><i></i>
-      </div>
-    </div>
-
-    <div class="ludo-quadrant green">
-      <div class="ludo-yard">
-        <i></i><i></i><i></i><i></i>
-      </div>
-    </div>
-
-    <div class="ludo-track" id="ludo-track"></div>
-
-    <div class="ludo-quadrant blue">
-      <div class="ludo-yard">
-        <i></i><i></i><i></i><i></i>
-      </div>
-    </div>
-
-    <div class="ludo-quadrant yellow">
-      <div class="ludo-yard">
-        <i></i><i></i><i></i><i></i>
-      </div>
-    </div>
-
-    <div class="ludo-center">
-      <div class="tri red"></div>
-      <div class="tri green"></div>
-      <div class="tri yellow"></div>
-      <div class="tri blue"></div>
-    </div>
-
-    <div id="ludo-pieces"></div>
-  `;
-
-  const track=document.getElementById("ludo-track");
-
-  LUDO.path.slice(0,52).forEach((p,index)=>{
-    const cell=document.createElement("div");
-    cell.className="ludo-cell";
-
-    if(LUDO.safe.has(index)){
-      cell.classList.add("safe");
-      cell.innerHTML="<span>★</span>";
-    }
-
-    const color=
-      index===0?"red":
-      index===13?"green":
-      index===26?"yellow":
-      index===39?"blue":
-      null;
-
-    if(color)cell.classList.add("start-"+color);
-
-    const homeColor=
-      index>=47&&index<=51?"red":
-      null;
-
-    track.appendChild(cell);
-  });
-
-  drawPieces();
-}
-
-function drawPieces(){
-  const box=document.getElementById("ludo-pieces");
-  if(!box)return;
-
-  box.innerHTML="";
-
-  for(const color of LUDO.colors){
-    const arr=LUDO.pieces[color]||[-1,-1,-1,-1];
-
-    arr.forEach((step,index)=>{
-      const piece=document.createElement("button");
-
-      piece.className="ludo-piece "+color;
-
-      const pos=getPiecePosition(color,index,step);
-
-      piece.style.left=pos.x+"%";
-      piece.style.top=pos.y+"%";
-
-      piece.textContent=index+1;
-
-      piece.onclick=()=>{
-        selectPiece(color,index);
-      };
-
-      box.appendChild(piece);
-    });
-  }
-}
-
-function getPiecePosition(color,index,step){
-  const yard={
-    red:[[16,16],[31,16],[16,31],[31,31]],
-    green:[[69,16],[84,16],[69,31],[84,31]],
-    yellow:[[69,69],[84,69],[69,84],[84,84]],
-    blue:[[16,69],[31,69],[16,84],[31,84]]
-  };
-
-  if(step<0){
-    return {
-      x:yard[color][index][0],
-      y:yard[color][index][1]
-    };
-  }
-
-  if(step>=57){
-    const finish={
-      red:[[43,43],[47,43],[43,47],[47,47]],
-      green:[[53,43],[57,43],[53,47],[57,47]],
-      yellow:[[53,53],[57,53],[53,57],[57,57]],
-      blue:[[43,53],[47,53],[43,57],[47,57]]
-    };
-
-    return {
-      x:finish[color][index][0],
-      y:finish[color][index][1]
-    };
-  }
-
-  if(step>=52){
-    const hp=LUDO.homePath[color][step-52];
-
-    return {
-      x:(hp[1]+.5)/15*100,
-      y:(hp[0]+.5)/15*100
-    };
-  }
-
-  const pi=(LUDO.starts[color]+step)%52;
-  const p=LUDO.path[pi];
-
-  return {
-    x:(p[1]+.5)/15*100,
-    y:(p[0]+.5)/15*100
-  };
-}
-
-async function rollLudo(){
-  if(LUDO.rolling||LUDO.winner)return;
-
-  if(LUDO.mode==="online"){
-    if(!LUDO.room||LUDO.room.current_turn!==uid())return;
-  }
-
-  LUDO.rolling=true;
-
-  let n=0;
-
-  const timer=setInterval(()=>{
-    const value=1+Math.floor(Math.random()*6);
-
-    const d=document.getElementById("ludo-dice");
-    if(d)d.textContent=value;
-
-    n++;
-
-    if(n>=10){
-      clearInterval(timer);
-
-      LUDO.dice=value;
-      LUDO.rolling=false;
-
-      drawLudoBoard();
-
-      afterDice();
-    }
-  },65);
-}
-
-function afterDice(){
-  const color=LUDO.players[LUDO.current].color;
-  const dice=LUDO.dice;
-
-  const movable=[];
-
-  LUDO.pieces[color].forEach((step,i)=>{
-    if(step<0){
-      if(dice===6)movable.push(i);
-    }else if(step+dice<=57){
-      movable.push(i);
-    }
-  });
-
-  if(!movable.length){
-    setTimeout(()=>{
-      const keepTurn=dice===6;
-
-      LUDO.dice=0;
-
-      if(!keepTurn)nextLudoTurn();
-
-      drawLudoBoard();
-
-      if(LUDO.mode==="computer" &&
-         LUDO.players[LUDO.current]?.human===false){
-        setTimeout(robotRoll,600);
-      }
-    },700);
-
-    return;
-  }
-
-  if(movable.length===1){
-    setTimeout(()=>{
-      movePiece(color,movable[0]);
-    },300);
-  }
-}
-
-function selectPiece(color,index){
-  if(LUDO.winner||LUDO.rolling)return;
-
-  const current=LUDO.players[LUDO.current];
-
-  if(!current||current.color!==color)return;
-
-  if(!LUDO.dice)return;
-
-  const step=LUDO.pieces[color][index];
-
-  if(step<0&&LUDO.dice!==6)return;
-
-  if(step>=0&&step+LUDO.dice>57)return;
-
-  movePiece(color,index);
-}
-
-function movePiece(color,index){
-  if(!LUDO.dice)return;
-
-  const dice=LUDO.dice;
-  const old=LUDO.pieces[color][index];
-
-  let next;
-
-  if(old<0){
-    if(dice!==6)return;
-    next=0;
-  }else{
-    next=old+dice;
-  }
-
-  LUDO.pieces[color][index]=next;
-
-  const captured=capturePieces(color,index);
-
-  const allHome=
-    LUDO.pieces[color].every(x=>x>=57);
-
-  LUDO.dice=0;
-
-  if(allHome){
-    LUDO.winner=LUDO.players[LUDO.current].name;
-    drawLudoBoard();
-    showWinner();
-    return;
-  }
-
-  /*
-    Classic bonus:
-    - rolling 6 gives another turn
-    - cutting also gives another turn
-  */
-  const bonus=dice===6||captured;
-
-  if(!bonus)
-    nextLudoTurn();
-
-  drawLudoBoard();
-
-  if(LUDO.mode==="computer" &&
-     LUDO.players[LUDO.current]?.human===false){
-    setTimeout(robotRoll,600);
-  }
-
-  if(LUDO.mode==="online")
-    syncOnlineLudo();
-}
-
-function capturePieces(color,index){
-  const step=LUDO.pieces[color][index];
-
-  if(step<0||step>=52)return false;
-
-  const landing=
-    (LUDO.starts[color]+step)%52;
-
-  if(LUDO.safe.has(landing))return false;
-
-  let captured=false;
-
-  for(const other of LUDO.colors){
-    if(other===color)continue;
-
-    for(let i=0;i<4;i++){
-      const s=LUDO.pieces[other][i];
-
-      if(s<0||s>=52)continue;
-
-      const otherLanding=
-        (LUDO.starts[other]+s)%52;
-
-      if(otherLanding===landing){
-        LUDO.pieces[other][i]=-1;
-        captured=true;
-      }
-    }
-  }
-
-  return captured;
+ if(ludo.robot&&ludo.players[ludo.turn]==="green"){
+  setTimeout(()=>{
+   if(!ludo.rolled)rollLudo();
+  },650);
+ }
 }
 
 function nextLudoTurn(){
-  LUDO.current=
-    (LUDO.current+1)%LUDO.players.length;
+ ludo.turn=(ludo.turn+1)%ludo.players.length;
+ ludo.dice=null;
+ ludo.rolled=false;
 
-  LUDO.dice=0;
+ if(ludo.dice===6)ludo.sixCount++;
 }
 
-function showWinner(){
-  modal(`
-    <div style="text-align:center">
-      <div style="font-size:60px">🏆</div>
+function robotMove(){
+ if(!ludo||ludo.winner)return;
 
-      <h2>${esc(LUDO.winner)} wins!</h2>
+ const color=ludo.players[ludo.turn];
 
-      <p style="color:#8993a4">
-        All four tokens reached the home area.
-      </p>
+ if(color!=="green")return;
 
-      <button class="nx-btn primary"
-        onclick="this.closest('.nx-modal').remove();go('games')">
-        Back to Games
-      </button>
-    </div>
-  `);
-}
+ const moves=legalMoves(color,ludo.dice);
 
+ if(!moves.length){
+  ludo.rolled=false;
+  nextLudoTurn();
+  renderLudo();
+  return;
+ }
 
-/* ================================
-   ADAPTIVE COMPUTER
-================================ */
+ let chosen=moves[0];
 
-function robotRoll(){
-  if(LUDO.winner||LUDO.rolling)return;
+ if(ludo.level>=3){
+  const captures=moves.filter(i=>{
+   const s=ludo.tokens[color][i];
+   const target=s===-1?0:s+ludo.dice;
+   if(target>=52)return false;
 
-  if(LUDO.players[LUDO.current]?.human!==false)return;
+   const abs=ludoAbsolute(color,target);
 
-  rollLudo();
-
-  const wait=setInterval(()=>{
-    if(!LUDO.rolling&&LUDO.dice){
-      clearInterval(wait);
-      setTimeout(robotChooseMove,350);
-    }
-  },50);
-}
-
-function robotChooseMove(){
-  const color=LUDO.players[LUDO.current].color;
-  const dice=LUDO.dice;
-
-  const moves=[];
-
-  for(let i=0;i<4;i++){
-    const old=LUDO.pieces[color][i];
-
-    if(old<0&&dice!==6)continue;
-    if(old>=0&&old+dice>57)continue;
-
-    moves.push({
-      index:i,
-      score:robotScore(color,i,dice,LUDO.robotLevel)
-    });
-  }
-
-  if(!moves.length){
-    afterDice();
-    return;
-  }
-
-  moves.sort((a,b)=>b.score-a.score);
-
-  let choice=moves[0];
-
-  /*
-    Low levels intentionally make more imperfect choices.
-    High levels mostly choose the strategically strongest move.
-  */
-  if(LUDO.robotLevel<=2&&moves.length>1){
-    choice=moves[Math.floor(Math.random()*moves.length)];
-  }
-
-  if(LUDO.robotLevel===3&&moves.length>1&&Math.random()<.25){
-    choice=moves[1];
-  }
-
-  if(LUDO.robotLevel>=7){
-    choice=moves[0];
-  }
-
-  setTimeout(()=>{
-    movePiece(color,choice.index);
-  },350);
-}
-
-function robotScore(color,index,dice,level){
-  const old=LUDO.pieces[color][index];
-  const next=old<0?0:old+dice;
-
-  let score=0;
-
-  /*
-    Level 1:
-    Mostly progress.
-  */
-  score+=next*1;
-
-  if(old<0&&dice===6)
-    score+=level>=2?35:12;
-
-  if(next>=57)
-    score+=220;
-
-  /*
-    Level 3+:
-    Safe positions.
-  */
-  if(next<52){
-    const landing=
-      (LUDO.starts[color]+next)%52;
-
-    if(LUDO.safe.has(landing))
-      score+=level>=3?25:7;
-
-    /*
-      Capture detection.
-    */
-    for(const other of LUDO.colors){
-      if(other===color)continue;
-
-      for(const s of LUDO.pieces[other]){
-        if(s<0||s>=52)continue;
-
-        const op=
-          (LUDO.starts[other]+s)%52;
-
-        if(op===landing&&!LUDO.safe.has(landing)){
-          score+=level>=2?90:15;
-        }
-      }
-    }
-
-    /*
-      Level 4+:
-      Avoid obvious danger.
-    */
-    if(level>=4){
-      for(const other of LUDO.colors){
-        if(other===color)continue;
-
-        for(const s of LUDO.pieces[other]){
-          if(s<0||s>=52)continue;
-
-          const enemy=
-            (LUDO.starts[other]+s)%52;
-
-          const distance=
-            (landing-enemy+52)%52;
-
-          if(distance>=1&&distance<=6)
-            score-=35/(distance);
-        }
-      }
-    }
-
-    /*
-      Level 5+:
-      Prefer developing multiple tokens.
-    */
-    if(level>=5){
-      const active=
-        LUDO.pieces[color].filter(x=>x>=0&&x<52).length;
-
-      if(old<0&&active<3)
-        score+=30;
-    }
-
-    /*
-      Level 6+:
-      Prefer strategic stacking / proximity.
-    */
-    if(level>=6){
-      for(const s of LUDO.pieces[color]){
-        if(s>=0&&s<52){
-          const own=(LUDO.starts[color]+s)%52;
-          const d=Math.abs(own-landing);
-
-          if(d<=1)
-            score+=15;
-        }
-      }
-    }
-
-    /*
-      Level 7+:
-      Stronger tactical search.
-    */
-    if(level>=7){
-      score+=futureCapturePotential(color,landing)*2;
-      score+=futureSafetyPotential(color,landing)*1.5;
-    }
-
-    /*
-      Level 8:
-      Small controlled randomness keeps it from feeling identical.
-    */
-    if(level>=8)
-      score+=Math.random()*5;
-  }
-
-  return score;
-}
-
-function futureCapturePotential(color,landing){
-  let n=0;
-
-  for(const other of LUDO.colors){
-    if(other===color)continue;
-
-    for(const s of LUDO.pieces[other]){
-      if(s<0||s>=52)continue;
-
-      const p=(LUDO.starts[other]+s)%52;
-
-      if(p===landing&&!LUDO.safe.has(landing))
-        n++;
-    }
-  }
-
-  return n;
-}
-
-function futureSafetyPotential(color,landing){
-  let score=0;
-
-  if(LUDO.safe.has(landing))
-    score+=10;
-
-  return score;
-}
-
-
-/* ================================
-   GAME CHAT
-================================ */
-
-function sendGameChat(){
-  const input=document.getElementById("game-chat-input");
-  const box=document.getElementById("game-chat-box");
-
-  if(!input||!box)return;
-
-  const text=input.value.trim();
-  if(!text)return;
-
-  const div=document.createElement("div");
-
-  div.style.cssText=`
-    background:#181f29;
-    padding:7px 9px;
-    border-radius:9px;
-    font-size:12px
-  `;
-
-  div.textContent="You: "+text;
-
-  box.appendChild(div);
-  box.scrollTop=box.scrollHeight;
-
-  input.value="";
-}
-
-function toggleVoice(button){
-  const muted=button.dataset.muted==="1";
-
-  button.dataset.muted=muted?"0":"1";
-  button.textContent=muted?"🔊":"🔇";
-}
-
-
-/* ================================
-   ONLINE STATE SUPPORT
-================================ */
-
-async function syncOnlineLudo(){
-  if(!LUDO.room)return;
-
-  const state={
-    pieces:LUDO.pieces,
-    currentIndex:LUDO.current,
-    dice:LUDO.dice,
-    winner:LUDO.winner,
-    version:Date.now()
-  };
-
-  await SB
-    .from("game_rooms")
-    .update({
-      game_state:state,
-      updated_at:new Date().toISOString()
-    })
-    .eq("id",LUDO.room.id);
-
-  const channel=SB.channel("ludo-game-"+LUDO.room.id);
-
-  await channel.send({
-    type:"broadcast",
-    event:"ludo_state",
-    payload:{
-      room_id:LUDO.room.id,
-      state
-    }
+   return [...ludo.players]
+    .filter(x=>x!==color)
+    .some(o=>ludo.tokens[o].some(os=>os>=0&&os<52&&ludoAbsolute(o,os)===abs&&!SAFE_INDEX.has(abs)));
   });
+
+  if(captures.length)chosen=captures[0];
+ }
+
+ if(ludo.level>=5){
+  const homes=moves.filter(i=>{
+   const s=ludo.tokens[color][i];
+   return s>=0&&s+ludo.dice===57;
+  });
+
+  if(homes.length)chosen=homes[0];
+ }
+
+ if(ludo.level>=7){
+  const max=moves.reduce((best,i)=>{
+   const s=ludo.tokens[color][i];
+   return (s+(s===-1?1:ludo.dice))>(ludo.tokens[color][best]+1)?i:best;
+  },moves[0]);
+  chosen=max;
+ }
+
+ moveToken(color,chosen,ludo.dice);
+
+ const extra=ludo.dice===6;
+
+ ludo.rolled=false;
+
+ if(!ludo.winner&&!extra)nextLudoTurn();
+
+ renderLudo();
+
+ if(!ludo.winner&&ludo.players[ludo.turn]==="green"){
+  setTimeout(rollLudo,700);
+ }
+}
+
+function ludoCellContent(r,c){
+ for(const color of COLORS){
+  for(let i=0;i<4;i++){
+   const step=ludo.tokens[color]?.[i];
+
+   if(step>=0&&step<52){
+    const abs=ludoAbsolute(color,step);
+    const pos=LUDO_PATH[abs];
+
+    if(pos&&pos[0]===r&&pos[1]===c){
+     return `<span class="pawn" style="background:${GAME_COLORS[color]}"></span>`;
+    }
+   }
+
+   if(step>=52&&step<57){
+    const lane=HOME_LANES[color][step-52];
+    if(lane&&lane[0]===r&&lane[1]===c){
+     return `<span class="pawn" style="background:${GAME_COLORS[color]}"></span>`;
+    }
+   }
+  }
+ }
+
+ return "";
+}
+
+function renderLudo(){
+ startLudoState();
+
+ const color=ludo.players[ludo.turn];
+
+ $("modalContent").innerHTML=`
+ <style>
+ .ludoWrap{background:#090c11;border-radius:22px;padding:12px}
+ .ludoBoard{
+  width:min(100%,560px);aspect-ratio:1;margin:auto;
+  display:grid;grid-template-columns:repeat(15,1fr);
+  grid-template-rows:repeat(15,1fr);
+  border:5px solid #272d38;border-radius:12px;overflow:hidden;background:#f4f4f0;
+ }
+ .lc{position:relative;border:1px solid #c9c9c4;background:#fafaf7;display:grid;place-items:center}
+ .lr{background:#ef5350}.lg{background:#43c77a}.ly{background:#f1ca4b}.lb{background:#5b79ef}
+ .laneR{background:#ffb3b0}.laneG{background:#a9e7c2}.laneY{background:#f6e39b}.laneB{background:#aabaf2}
+ .center{background:conic-gradient(#ef5350 0 25%,#43c77a 25% 50%,#f1ca4b 50% 75%,#5b79ef 75%);border:0}
+ .base{position:absolute;inset:13%;border-radius:16px;background:#fff;border:3px solid rgba(0,0,0,.12)}
+ .pawn{width:72%;height:72%;border-radius:50%;border:3px solid rgba(255,255,255,.75);box-shadow:0 3px 5px #0006;z-index:3}
+ .star:after{content:"★";font-size:14px;color:#6b7280}
+ .ludoTop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+ .die{width:62px;height:62px;border-radius:15px;background:#fff;color:#111;display:grid;place-items:center;font-size:30px;font-weight:900;box-shadow:0 8px 20px #0006}
+ .ludoInfo{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+ .ludoPlayers{display:flex;gap:6px;flex-wrap:wrap}
+ .lp{padding:7px 10px;border-radius:10px;background:#161c25;border:1px solid #29303c;font-size:12px}
+ .lp.active{outline:2px solid #6876ff}
+ </style>
+
+ <div class="row between">
+  <div><p class="muted">Game</p><h2>Ludo</h2></div>
+  <button class="iconBtn" onclick="closeModal()">✕</button>
+ </div>
+
+ <div class="ludoTop">
+  <div>
+   <div class="ludoPlayers">
+    ${ludo.players.map((p,i)=>`
+     <span class="lp ${i===ludo.turn?"active":""}">
+      ${p==="red"?"🔴":p==="green"?"🟢":p==="yellow"?"🟡":"🔵"}
+      ${p==="green"&&ludo.robot?"Robot":"Player"}
+     </span>`).join("")}
+   </div>
+   <p class="muted" style="margin:8px 0 0">
+    ${ludo.winner?`${ludo.winner.toUpperCase()} wins`:color==="green"&&ludo.robot?"Robot's turn":`${color.toUpperCase()}'s turn`}
+   </p>
+  </div>
+
+  <div class="die">${ludo.dice||"⚄"}</div>
+ </div>
+
+ <div class="ludoWrap">
+  <div class="ludoBoard" id="ludoBoard"></div>
+ </div>
+
+ <div class="ludoInfo" style="margin-top:12px">
+  <button class="primary" ${ludo.rolled||ludo.winner||color==="green"&&ludo.robot?"disabled":""}
+   onclick="rollLudo()">Roll Dice</button>
+  <button class="secondary" onclick="gameTools('Ludo')">Text · Call · Voice</button>
+ </div>
+
+ <div class="muted" style="font-size:11px;margin-top:10px">
+  Six brings a token out. Stars are safe. Cut opponents on unsafe cells. Reach home with all four tokens to win.
+ </div>
+ `;
+
+ const board=$("ludoBoard");
+
+ for(let r=0;r<15;r++){
+  for(let c=0;c<15;c++){
+
+   let cls="lc";
+
+   if(r<6&&c<6)cls+=" lr";
+   if(r<6&&c>8)cls+=" lg";
+   if(r>8&&c<6)cls+=" lb";
+   if(r>8&&c>8)cls+=" ly";
+
+   if(r===7&&c>=1&&c<=5)cls+=" laneR";
+   if(c===7&&r>=1&&r<=5)cls+=" laneG";
+   if(r===7&&c>=9&&c<=13)cls+=" laneY";
+   if(c===7&&r>=9&&r<=13)cls+=" laneB";
+
+   if(r>=6&&r<=8&&c>=6&&c<=8)cls+=" center";
+
+   const pathIndex=LUDO_PATH.findIndex(x=>x[0]===r&&x[1]===c);
+   if(SAFE_INDEX.has(pathIndex))cls+=" star";
+
+   let inside="";
+
+   if(
+    (r===1&&c===1)||(r===1&&c===4)||
+    (r===4&&c===1)||(r===4&&c===4)
+   ){
+    inside='<span class="base"></span>';
+   }
+
+   if(
+    (r===1&&c===10)||(r===1&&c===13)||
+    (r===4&&c===10)||(r===4&&c===13)
+   ){
+    inside='<span class="base"></span>';
+   }
+
+   if(
+    (r===10&&c===1)||(r===10&&c===4)||
+    (r===13&&c===1)||(r===13&&c===4)
+   ){
+    inside='<span class="base"></span>';
+   }
+
+   if(
+    (r===10&&c===10)||(r===10&&c===13)||
+    (r===13&&c===10)||(r===13&&c===13)
+   ){
+    inside='<span class="base"></span>';
+   }
+
+   const token=ludoCellContent(r,c);
+
+   board.insertAdjacentHTML("beforeend",
+    `<div class="${cls}">${inside}${token}</div>`
+   );
+  }
+ }
+
+ board.querySelectorAll(".pawn").forEach((p)=>{
+  p.onclick=()=>{
+   const colorNow=ludo.players[ludo.turn];
+   const nodes=[...board.querySelectorAll(".pawn")];
+   const idx=nodes.indexOf(p)%4;
+   chooseLudoToken(idx);
+  };
+ });
 }
 
 
-/* ================================
-   FOUR IN A ROW
-================================ */
+/* =========================================================
+   GAME TOOLS
+   ========================================================= */
 
-const FOUR={
-  board:Array(42).fill(null),
-  turn:0,
-  robot:false,
-  winner:null
-};
+function gameTools(gameName){
+ $("modalContent").innerHTML=`
+  <div class="row between">
+   <h2>${gameName}</h2>
+   <button class="iconBtn" onclick="closeModal()">✕</button>
+  </div>
 
-function startFourLocal(){
-  FOUR.board=Array(42).fill(null);
-  FOUR.turn=0;
-  FOUR.robot=false;
-  FOUR.winner=null;
-  renderFour();
-}
+  <div class="list">
+   <button class="card click" onclick="gameText()">
+    <b>Text</b>
+    <span class="muted">Open game chat</span>
+   </button>
 
-function startFourRobot(){
-  FOUR.board=Array(42).fill(null);
-  FOUR.turn=0;
-  FOUR.robot=true;
-  FOUR.winner=null;
-  renderFour();
-}
+   <button class="card click" onclick="gameCall()">
+    <b>Call</b>
+    <span class="muted">Voice call</span>
+   </button>
 
-function renderFour(){
-  shell(`
-    <div class="nx-title">Four in a Row</div>
-    <div class="nx-sub">
-      ${FOUR.winner
-        ? "Match finished"
-        : FOUR.turn===0
-          ? "Red player's turn"
-          : "Yellow player's turn"}
+   <div class="card">
+    <b>Voice</b>
+    <p class="muted">Choose who you hear.</p>
+    <div class="actions">
+     <button class="secondary">All</button>
+     <button class="secondary">Player 1</button>
+     <button class="secondary">Player 2</button>
+     <button class="secondary">Player 3</button>
     </div>
+   </div>
 
-    <div class="nx-card" style="margin-top:20px">
-      <div id="four-board"
-        style="
-          display:grid;
-          grid-template-columns:repeat(7,1fr);
-          gap:7px;
-          max-width:600px;
-          margin:auto;
-          background:#18244b;
-          padding:10px;
-          border-radius:20px
-        ">
-      </div>
-
-      <div style="text-align:center;margin-top:15px">
-        <button class="nx-btn outline"
-          onclick="go('games')">
-          Back
-        </button>
-      </div>
+   <div class="card">
+    <b>Mute</b>
+    <p class="muted">Choose who hears you.</p>
+    <div class="actions">
+     <button class="secondary">Everyone</button>
+     <button class="secondary">Player 1</button>
+     <button class="secondary">Player 2</button>
+     <button class="secondary">Player 3</button>
     </div>
-  `);
+   </div>
+  </div>
+ `;
+ $("modal").classList.add("show");
+}
 
-  const board=document.getElementById("four-board");
+function gameText(){
+ closeModal();
+ showView("chat");
+}
 
-  for(let i=0;i<42;i++){
-    const c=document.createElement("button");
+function gameCall(){
+ if(currentOther)startCurrentCall();
+ else toast("Choose a player first");
+}
 
-    c.style.cssText=`
+
+/* =========================================================
+   TIC TAC TOE
+   ========================================================= */
+
+function startTic(mode){
+ tic={
+  mode,
+  board:Array(9).fill(""),
+  turn:"X",
+  over:false,
+  robot:mode==="robot"
+ };
+
+ renderTic();
+}
+
+function ticWinner(){
+ const lines=[
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+ ];
+
+ for(const l of lines){
+  const [a,b,c]=l;
+  if(tic.board[a]&&tic.board[a]===tic.board[b]&&tic.board[a]===tic.board[c])
+   return tic.board[a];
+ }
+
+ if(tic.board.every(Boolean))return"draw";
+ return null;
+}
+
+function ticMove(i){
+ if(tic.over||tic.board[i])return;
+
+ tic.board[i]=tic.turn;
+
+ const win=ticWinner();
+
+ if(win){
+  tic.over=true;
+  renderTic();
+  return;
+ }
+
+ tic.turn=tic.turn==="X"?"O":"X";
+
+ renderTic();
+
+ if(tic.robot&&tic.turn==="O"){
+  setTimeout(robotTic,400);
+ }
+}
+
+function robotTic(){
+ if(tic.over)return;
+
+ const empty=tic.board.map((v,i)=>v?null:i).filter(x=>x!==null);
+
+ let move=empty[Math.floor(Math.random()*empty.length)];
+
+ if(Math.random()>.35){
+  for(const i of empty){
+   tic.board[i]="O";
+   if(ticWinner()==="O"){move=i;tic.board[i]="";break}
+   tic.board[i]="";
+  }
+ }
+
+ ticMove(move);
+}
+
+function renderTic(){
+ const result=ticWinner();
+
+ $("modalContent").innerHTML=`
+  <div class="row between">
+   <h2>Tic Tac Toe</h2>
+   <button class="iconBtn" onclick="closeModal()">✕</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:360px;margin:25px auto">
+   ${tic.board.map((v,i)=>`
+    <button
+     onclick="ticMove(${i})"
+     style="aspect-ratio:1;background:#171d27;border:1px solid #303846;border-radius:15px;font-size:42px;font-weight:900">
+     ${v}
+    </button>`).join("")}
+  </div>
+
+  <div class="card">
+   ${result==="draw"?"Draw":result?`${result} wins`:`${tic.turn}'s turn`}
+  </div>
+
+  <div class="actions" style="margin-top:12px">
+   <button class="secondary" onclick="gameTools('Tic Tac Toe')">Text · Call · Voice</button>
+   <button class="primary" onclick="startTic('${tic.mode}')">Restart</button>
+  </div>
+ `;
+}
+
+
+/* =========================================================
+   4 MATCH
+   ========================================================= */
+
+function startMatch(mode){
+ match4={
+  mode,
+  rows:6,
+  cols:7,
+  board:Array.from({length:42},()=>null),
+  turn:"R",
+  over:false,
+  robot:mode==="robot"
+ };
+ renderMatch();
+}
+
+function matchIndex(r,c){
+ return r*7+c;
+}
+
+function dropMatch(c){
+ if(match4.over)return;
+
+ for(let r=5;r>=0;r--){
+  const i=matchIndex(r,c);
+
+  if(!match4.board[i]){
+   match4.board[i]=match4.turn;
+
+   const win=matchWinner(r,c);
+
+   if(win){
+    match4.over=true;
+    renderMatch();
+    return;
+   }
+
+   if(match4.board.every(Boolean)){
+    match4.over=true;
+    renderMatch();
+    return;
+   }
+
+   match4.turn=match4.turn==="R"?"Y":"R";
+
+   renderMatch();
+
+   if(match4.robot&&match4.turn==="Y")
+    setTimeout(robotMatch,450);
+
+   return;
+  }
+ }
+}
+
+function matchWinner(r,c){
+ const mev=match4.board[matchIndex(r,c)];
+ if(!mev)return false;
+
+ const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+
+ for(const [dr,dc] of dirs){
+  let n=1;
+
+  for(const sign of [-1,1]){
+   let rr=r+dr*sign,cc=c+dc*sign;
+
+   while(
+    rr>=0&&rr<6&&cc>=0&&cc<7&&
+    match4.board[matchIndex(rr,cc)]===mev
+   ){
+    n++;
+    rr+=dr*sign;
+    cc+=dc*sign;
+   }
+  }
+
+  if(n>=4)return true;
+ }
+
+ return false;
+}
+
+function robotMatch(){
+ if(match4.over)return;
+
+ const valid=[];
+
+ for(let c=0;c<7;c++){
+  if(!match4.board[c])valid.push(c);
+ }
+
+ if(!valid.length)return;
+
+ dropMatch(valid[Math.floor(Math.random()*valid.length)]);
+}
+
+function renderMatch(){
+ const win=match4.over;
+
+ $("modalContent").innerHTML=`
+  <div class="row between">
+   <h2>4 Match</h2>
+   <button class="iconBtn" onclick="closeModal()">✕</button>
+  </div>
+
+  <div style="
+   display:grid;
+   grid-template-columns:repeat(7,1fr);
+   gap:6px;
+   max-width:430px;
+   margin:20px auto;
+   background:#202a4c;
+   padding:10px;
+   border-radius:18px">
+
+   ${match4.board.map((v,i)=>`
+    <button
+     onclick="dropMatch(${i%7})"
+     style="
       aspect-ratio:1;
       border-radius:50%;
-      border:0;
-      background:${FOUR.board[i]
-        ? FOUR.board[i]===1
-          ? "#f3c94b"
-          : "#e95763"
-        : "#080d18"};
-    `;
+      background:${v==="R"?"#ef5350":v==="Y"?"#f3c84b":"#080b10"};
+      border:2px solid #46516c">
+    </button>`).join("")}
+  </div>
 
-    c.onclick=()=>fourDrop(i%7);
+  <div class="card">
+   ${win
+    ?"Game over"
+    :`${match4.turn==="R"?"Red":"Yellow"}'s turn`}
+  </div>
 
-    board.appendChild(c);
+  <div class="actions" style="margin-top:12px">
+   <button class="secondary" onclick="gameTools('4 Match')">Text · Call · Voice</button>
+   <button class="primary" onclick="startMatch('${match4.mode}')">Restart</button>
+  </div>
+ `;
+}
+
+
+/* =========================================================
+   ONLINE LUDO — REALTIME BROADCAST
+   ========================================================= */
+
+let ludoChannel=null;
+let ludoRoomId=null;
+let ludoRoomCode=null;
+let ludoOnlineHost=false;
+
+function startLudoOnline(roomId,roomCode){
+ ludoRoomId=roomId;
+ ludoRoomCode=roomCode;
+ ludoOnlineHost=true;
+
+ ludo={
+  players:["red"],
+  turn:0,
+  dice:null,
+  rolled:false,
+  winner:null,
+  tokens:{red:[-1,-1,-1,-1],green:[-1,-1,-1,-1],yellow:[-1,-1,-1,-1],blue:[-1,-1,-1,-1]},
+  online:true
+ };
+
+ ludoChannel=db.channel("ludo-room-"+roomId,{
+  config:{
+   broadcast:{ack:true},
+   presence:{key:me.id}
   }
-}
+ });
 
-function fourDrop(column){
-  if(FOUR.winner)return;
-  if(FOUR.robot&&FOUR.turn===1)return;
+ ludoChannel
+  .on("broadcast",{event:"ludo-state"},({payload})=>{
+   if(payload.sender===me.id)return;
+   ludo=payload.state;
+   renderLudo();
+  })
+  .on("broadcast",{event:"game-chat"},({payload})=>{
+   if(payload.sender===me.id)return;
+   toast(payload.message);
+  })
+  .on("presence",{event:"sync"},()=>{});
 
-  let row=-1;
+ ludoChannel.subscribe(status=>{
+  if(status==="SUBSCRIBED"){
+   ludoChannel.track({
+    user_id:me.id,
+    username:profile.username
+   });
 
-  for(let r=5;r>=0;r--){
-    const index=r*7+column;
-
-    if(!FOUR.board[index]){
-      row=r;
-      break;
-    }
+   broadcastLudoState();
   }
+ });
 
-  if(row<0)return;
+ renderLudo();
+}
 
-  FOUR.board[row*7+column]=FOUR.turn===0?1:2;
+function broadcastLudoState(){
+ if(!ludoChannel||!ludo)return;
 
-  if(checkFourWin()){
-    FOUR.winner=FOUR.turn===0?"Red":"Yellow";
-    renderFour();
-    return;
+ ludoChannel.send({
+  type:"broadcast",
+  event:"ludo-state",
+  payload:{
+   sender:me.id,
+   state:ludo
   }
-
-  if(FOUR.board.every(Boolean)){
-    FOUR.winner="Draw";
-    renderFour();
-    return;
-  }
-
-  FOUR.turn=FOUR.turn===0?1:0;
-  renderFour();
-
-  if(FOUR.robot&&FOUR.turn===1){
-    setTimeout(fourRobot,450);
-  }
-}
-
-function fourRobot(){
-  const possible=[];
-
-  for(let c=0;c<7;c++){
-    for(let r=5;r>=0;r--){
-      if(!FOUR.board[r*7+c]){
-        possible.push(c);
-        break;
-      }
-    }
-  }
-
-  if(!possible.length)return;
-
-  /*
-    Simple strategic priority:
-    win > block > center > random.
-  */
-
-  for(const c of possible){
-    if(fourWouldWin(c,2)){
-      fourDrop(c);
-      return;
-    }
-  }
-
-  for(const c of possible){
-    if(fourWouldWin(c,1)){
-      fourDrop(c);
-      return;
-    }
-  }
-
-  possible.sort((a,b)=>
-    Math.abs(a-3)-Math.abs(b-3)
-  );
-
-  fourDrop(possible[0]);
-}
-
-function fourWouldWin(column,player){
-  const backup=FOUR.board.slice();
-
-  let row=-1;
-
-  for(let r=5;r>=0;r--){
-    if(!FOUR.board[r*7+column]){
-      row=r;
-      break;
-    }
-  }
-
-  if(row<0)return false;
-
-  FOUR.board[row*7+column]=player;
-
-  const result=checkFourWin();
-
-  FOUR.board=backup;
-
-  return result;
-}
-
-function checkFourWin(){
-  for(let r=0;r<6;r++){
-    for(let c=0;c<7;c++){
-      const v=FOUR.board[r*7+c];
-      if(!v)continue;
-
-      if(c<=3&&
-        v===FOUR.board[r*7+c+1]&&
-        v===FOUR.board[r*7+c+2]&&
-        v===FOUR.board[r*7+c+3])
-        return true;
-
-      if(r<=2&&
-        v===FOUR.board[(r+1)*7+c]&&
-        v===FOUR.board[(r+2)*7+c]&&
-        v===FOUR.board[(r+3)*7+c])
-        return true;
-
-      if(r<=2&&c<=3&&
-        v===FOUR.board[(r+1)*7+c+1]&&
-        v===FOUR.board[(r+2)*7+c+2]&&
-        v===FOUR.board[(r+3)*7+c+3])
-        return true;
-
-      if(r<=2&&c>=3&&
-        v===FOUR.board[(r+1)*7+c-1]&&
-        v===FOUR.board[(r+2)*7+c-2]&&
-        v===FOUR.board[(r+3)*7+c-3])
-        return true;
-    }
-  }
-
-  return false;
+ });
 }
 
 
-/* ================================
-   LUDO CSS
-================================ */
+/* =========================================================
+   GLOBAL GAME PATCH
+   ========================================================= */
 
-const style=document.createElement("style");
+const oldRollLudo=rollLudo;
+rollLudo=function(){
+ oldRollLudo();
+ if(ludo?.online)broadcastLudoState();
+};
 
-style.textContent=`
-.ludo-board{
-  position:relative;
-  width:100%;
-  max-width:680px;
-  aspect-ratio:1;
-  margin:auto;
-  border:9px solid #201d19;
-  border-radius:18px;
-  overflow:hidden;
-  background:#eee9dd;
-  display:grid;
-  grid-template-columns:repeat(15,1fr);
-  grid-template-rows:repeat(15,1fr);
-  box-shadow:0 25px 70px rgba(0,0,0,.4)
-}
-
-.ludo-quadrant{
-  position:relative;
-  z-index:1
-}
-
-.ludo-quadrant.red{
-  grid-column:1/7;
-  grid-row:1/7;
-  background:#e34c58
-}
-
-.ludo-quadrant.green{
-  grid-column:10/16;
-  grid-row:1/7;
-  background:#40b96a
-}
-
-.ludo-quadrant.yellow{
-  grid-column:10/16;
-  grid-row:10/16;
-  background:#efc847
-}
-
-.ludo-quadrant.blue{
-  grid-column:1/7;
-  grid-row:10/16;
-  background:#4d83d8
-}
-
-.ludo-yard{
-  position:absolute;
-  inset:17%;
-  background:#fff;
-  border-radius:11px;
-  padding:14%;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  grid-template-rows:1fr 1fr;
-  gap:14%
-}
-
-.ludo-yard i{
-  border-radius:50%;
-  box-shadow:
-    inset 0 3px 5px rgba(0,0,0,.22),
-    0 2px 4px rgba(0,0,0,.15)
-}
-
-.ludo-quadrant.red .ludo-yard i{background:#e34c58}
-.ludo-quadrant.green .ludo-yard i{background:#40b96a}
-.ludo-quadrant.yellow .ludo-yard i{background:#efc847}
-.ludo-quadrant.blue .ludo-yard i{background:#4d83d8}
-
-.ludo-track{
-  position:absolute;
-  inset:0;
-  display:grid;
-  grid-template-columns:repeat(15,1fr);
-  grid-template-rows:repeat(15,1fr);
-  z-index:2
-}
-
-.ludo-cell{
-  background:#f7f4ec;
-  border:1px solid rgba(0,0,0,.10)
-}
-
-.ludo-cell.safe{
-  display:grid;
-  place-items:center;
-  font-size:clamp(8px,2vw,18px);
-  color:#444
-}
-
-.ludo-cell.start-red{background:#eaa3a8}
-.ludo-cell.start-green{background:#a5ddb5}
-.ludo-cell.start-yellow{background:#f3dfa0}
-.ludo-cell.start-blue{background:#aec5ec}
-
-.ludo-center{
-  position:absolute;
-  z-index:3;
-  left:40%;
-  top:40%;
-  width:20%;
-  height:20%;
-  overflow:hidden;
-  background:#fff
-}
-
-.ludo-center .tri{
-  position:absolute;
-  width:100%;
-  height:100%
-}
-
-.ludo-center .red{
-  background:#e34c58;
-  clip-path:polygon(0 0,100% 0,50% 50%)
-}
-
-.ludo-center .green{
-  background:#40b96a;
-  clip-path:polygon(100% 0,100% 100%,50% 50%)
-}
-
-.ludo-center .yellow{
-  background:#efc847;
-  clip-path:polygon(0 100%,100% 100%,50% 50%)
-}
-
-.ludo-center .blue{
-  background:#4d83d8;
-  clip-path:polygon(0 0,0 100%,50% 50%)
-}
-
-#ludo-pieces{
-  position:absolute;
-  inset:0;
-  z-index:10;
-  pointer-events:none
-}
-
-.ludo-piece{
-  position:absolute;
-  width:5.2%;
-  aspect-ratio:1;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  border:2px solid white;
-  color:white;
-  font-size:clamp(7px,1.6vw,13px);
-  font-weight:900;
-  display:grid;
-  place-items:center;
-  pointer-events:auto;
-  cursor:pointer;
-  transition:
-    left .35s ease,
-    top .35s ease,
-    transform .15s ease;
-  box-shadow:
-    0 4px 9px rgba(0,0,0,.4),
-    inset 0 2px 3px rgba(255,255,255,.4)
-}
-
-.ludo-piece:hover{
-  transform:translate(-50%,-50%) scale(1.14)
-}
-
-.ludo-piece.red{background:#e34c58}
-.ludo-piece.green{background:#40b96a}
-.ludo-piece.yellow{background:#efc847;color:#222}
-.ludo-piece.blue{background:#4d83d8}
-
-.ludo-dice{
-  width:76px;
-  height:76px;
-  border-radius:18px;
-  background:white;
-  color:#171717;
-  display:grid;
-  place-items:center;
-  font-size:40px;
-  font-weight:900;
-  margin:14px auto;
-  box-shadow:0 8px 25px rgba(0,0,0,.3)
-}
-`;
-
-document.head.appendChild(style);
-
-
-/* ================================
-   ONLINE ROOM BROADCAST FIX
-================================ */
-
-async function ensureGameChannel(){
-  if(!LUDO.room)return null;
-
-  if(LUDO.gameChannel)
-    return LUDO.gameChannel;
-
-  LUDO.gameChannel=SB
-    .channel("ludo-live-"+LUDO.room.id)
-    .on("broadcast",{event:"state"},payload=>{
-      if(payload.payload?.user_id===uid())return;
-
-      const state=payload.payload?.state;
-
-      if(state){
-        applyRemoteState(state);
-      }
-    })
-    .subscribe();
-
-  return LUDO.gameChannel;
-}
-
-async function broadcastState(){
-  if(!LUDO.room)return;
-
-  const state={
-    pieces:LUDO.pieces,
-    currentIndex:LUDO.current,
-    dice:LUDO.dice,
-    winner:LUDO.winner,
-    version:Date.now()
-  };
-
-  const channel=await ensureGameChannel();
-
-  if(channel){
-    await channel.send({
-      type:"broadcast",
-      event:"state",
-      payload:{
-        user_id:uid(),
-        state
-      }
-    });
-  }
-
-  /*
-    Database state is used when the columns exist.
-    If they don't, realtime broadcast still keeps the
-    current connected players synchronized.
-  */
-  try{
-    await SB.from("game_rooms")
-      .update({
-        game_state:state,
-        updated_at:new Date().toISOString()
-      })
-      .eq("id",LUDO.room.id);
-  }catch(e){}
-}
-
-
-/* ================================
-   REALTIME ONLINE TURN SAFETY
-================================ */
-
-const oldMovePiece=movePiece;
-
-movePiece=async function(color,index){
-  if(LUDO.mode==="online"){
-    if(!LUDO.room)return;
-
-    const myPlayer=(LUDO.onlinePlayers||[])
-      .find(p=>p.user_id===uid());
-
-    if(!myPlayer)return;
-
-    if(myPlayer.player_color!==color)return;
-
-    if(LUDO.room.current_turn &&
-       LUDO.room.current_turn!==uid())
-      return;
-  }
-
-  oldMovePiece(color,index);
-
-  if(LUDO.mode==="online"){
-    await broadcastState();
-
-    const players=LUDO.onlinePlayers||[];
-
-    if(LUDO.dice===0&&!LUDO.winner){
-      const currentIndex=
-        players.findIndex(p=>p.user_id===uid());
-
-      const next=
-        players[(currentIndex+1)%players.length];
-
-      if(next){
-        try{
-          await SB.from("game_rooms")
-            .update({
-              current_turn:next.user_id,
-              game_state:{
-                pieces:LUDO.pieces,
-                currentIndex:LUDO.current,
-                dice:0,
-                winner:LUDO.winner,
-                version:Date.now()
-              },
-              updated_at:new Date().toISOString()
-            })
-            .eq("id",LUDO.room.id);
-        }catch(e){}
-      }
-    }
-  }
+const oldChooseLudoToken=chooseLudoToken;
+chooseLudoToken=function(i){
+ oldChooseLudoToken(i);
+ if(ludo?.online)broadcastLudoState();
 };
 
 
-/* ================================
-   ONLINE GAME ENTRY
-================================ */
+/* =========================================================
+   GLOBAL NOTIFICATION REFRESH
+   ========================================================= */
 
-async function launchOnlineAfterRoom(){
-  if(!LUDO.room)return;
-
-  LUDO.mode="online";
-
-  await ensureGameChannel();
-
-  if(LUDO.room.status==="playing"){
-    if(LUDO.room.game_state)
-      applyRemoteState(LUDO.room.game_state);
-    else
-      resetLudo("online",LUDO.onlinePlayers?.length||2,0);
-  }
+async function refreshEverything(){
+ await Promise.allSettled([
+  loadRecent(),
+  loadFriends(),
+  loadLiveCount()
+ ]);
 }
 
+setInterval(refreshEverything,15000);
 
-/* ================================
-   GAME INVITATION HANDLING
-================================ */
 
-SB.auth.onAuthStateChange(async(event,session)=>{
-  if(event==="SIGNED_IN"&&session){
-    NX.user=session.user;
+/* =========================================================
+   CLOSE MODAL WHEN CLICKING OUTSIDE
+   ========================================================= */
 
-    setTimeout(async()=>{
-      await loadProfile();
-      startRealtime();
-
-      if(!NX.profile)
-        return;
-
-      if(!document.querySelector(".nx-shell"))
-        renderHome();
-    },300);
-  }
+$("modal").addEventListener("click",e=>{
+ if(e.target===$("modal"))closeModal();
 });
 
 
-/* ================================
-   START
-================================ */
+/* =========================================================
+   PAGE VISIBILITY
+   ========================================================= */
 
-init();
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible"){
+  refreshPresence(true);
+  refreshEverything();
+ }else{
+  refreshPresence(true);
+ }
+});
 
-</script>
-</body>
-</html>
+
+/* =========================================================
+   CALL AUDIO ELEMENT
+   ========================================================= */
+
+callRemote=document.createElement("audio");
+callRemote.autoplay=true;
+callRemote.playsInline=true;
+callRemote.style.display="none";
+document.body.appendChild(callRemote);
+
+
+/* =========================================================
+   CLEANUP
+   ========================================================= */
+
+window.addEventListener("beforeunload",()=>{
+ try{
+  if(ludoChannel)db.removeChannel(ludoChannel);
+  if(currentChannel)db.removeChannel(currentChannel);
+  if(callChannel)db.removeChannel(callChannel);
+  if(callStream)callStream.getTracks().forEach(t=>t.stop());
+  if(callPeer)callPeer.close();
+ }catch{}
+});
+
+
+/* =========================================================
+   OVERRIDE GAME MENU FOR LUDO
+   ========================================================= */
+
+window.openGameMenu=openGameMenu;
+
+
+/* =========================================================
+   FIX LUDO TOKEN INITIALIZATION
+   ========================================================= */
+
+if(typeof ludo!=="undefined"&&ludo){
+ initLudoTokens();
+}
+
+
+/* =========================================================
+   STARTUP
+   ========================================================= */
+
+console.log("NEXORA ready");
