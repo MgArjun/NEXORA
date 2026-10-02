@@ -3812,5 +3812,229 @@ if (_prevAddMsg) {
 
 /* ====================== 4. SAFETY + LOG ====================== */
 console.log("%cNEXORA STRONG OVERRIDES LOADED", "color:#42d392; font-weight:bold; font-size:14px");
+     /* =========================================================
+   NEXORA FIX — Recent Consolidation + Remove Quick Match Duplicate
+   Paste at the very end
+   ========================================================= */
+
+/* ---------- 1. FORCE REMOVE QUICK MATCH DUPLICATE ---------- */
+renderGames = function () {
+  const q = (icon, name, desc, action) =>
+    `<button class="card quick-card" onclick="${action}">
+      <div class="quick-icon">${icon}</div>
+      <div><div class="quick-name">${name}</div><div class="quick-desc">${desc}</div></div>
+    </button>`;
+
+  $("main").innerHTML = `
+    <section class="page">
+      <h1 class="section-title">Games</h1>
+      <div class="section-sub">Dost ke saath ya random players ke saath khelo</div>
+
+      <div class="grid grid2">
+        ${q("🎲", "Ludo", "Quick Match • Room • Robot", "openLudoMenu()")}
+        ${q("❌", "Tic-Tac-Toe", "Quick Match • Room • Robot", "openTicTacToe()")}
+        ${q("🃏", "UNO", "Quick Match • Room • Robot", "openUnoMenu()")}
+        ${q("🎯", "More Games", "Coming soon", "toast('Jaldi aa raha hai')")}
+      </div>
+    </section>`;
+};
+
+/* ---------- 2. STRONG RECENT — ONE USER = ONE ENTRY (WhatsApp style) ---------- */
+renderRecent = async function () {
+  $("main").innerHTML = `
+    <section class="page">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h1 class="section-title" style="margin:0">Recent</h1>
+        <button class="btn" style="min-height:34px;padding:0 12px;font-size:13px" onclick="clearMyRecent()">Clear</button>
+      </div>
+      <div class="section-sub">Your latest activity</div>
+      <div id="recentContent">
+        <div class="card" style="padding:20px;color:var(--muted)">Loading…</div>
+      </div>
+    </section>`;
+
+  const [calls, convs] = await Promise.all([loadCalls(), loadConversations()]);
+  if (NEXORA.page !== "recent") return;
+
+  // Map by stable userId
+  const map = new Map();
+
+  // --- Chats ---
+  for (const c of (convs || [])) {
+    const uid = c.other_id;
+    if (!uid || uid === NEXORA.user.id) continue;
+
+    const name = c.other_display_name || c.other_username || "User";
+    const entry = map.get(uid) || {
+      uid,
+      name,
+      username: c.other_username || "",
+      avatar: initials(name),
+      lastAt: c.last_message_at || c.created_at || 0,
+      lastText: c.last_message || "Start a conversation",
+      lastType: "text",
+      unread: c.unread_count || 0,
+      conversationId: c.conversation_id
+    };
+
+    if (new Date(c.last_message_at || c.created_at) >= new Date(entry.lastAt)) {
+      entry.lastAt = c.last_message_at || c.created_at;
+      entry.lastText = c.last_message || entry.lastText;
+      entry.lastType = "text";
+    }
+    entry.unread = Math.max(entry.unread || 0, c.unread_count || 0);
+    entry.conversationId = c.conversation_id || entry.conversationId;
+    entry.name = name;
+    entry.avatar = initials(name);
+    map.set(uid, entry);
+  }
+
+  // --- Calls ---
+  for (const c of (calls || [])) {
+    const inc = c.receiver_id === NEXORA.user.id;
+    const uid = inc ? c.caller_id : c.receiver_id;
+    if (!uid || uid === NEXORA.user.id) continue;
+
+    let entry = map.get(uid);
+    if (!entry) {
+      entry = {
+        uid,
+        name: "User",
+        username: "",
+        avatar: "?",
+        lastAt: c.created_at,
+        lastText: "",
+        lastType: "call",
+        unread: 0,
+        conversationId: null
+      };
+      map.set(uid, entry);
+    }
+
+    if (new Date(c.created_at) >= new Date(entry.lastAt)) {
+      entry.lastAt = c.created_at;
+      entry.lastType = "call";
+
+      if (c.status === "missed") entry.lastText = "Missed call";
+      else if (c.status === "declined") entry.lastText = "Declined call";
+      else if (c.status === "cancelled") entry.lastText = "Cancelled call";
+      else if (inc) entry.lastText = "Incoming call";
+      else entry.lastText = "Outgoing call";
+    }
+  }
+
+  // Fetch missing names
+  const needNames = [...map.values()].filter(e => e.name === "User" || e.name === "?").map(e => e.uid);
+  if (needNames.length) {
+    try {
+      const { data } = await sb.from("profiles").select("id, username, display_name").in("id", needNames);
+      (data || []).forEach(p => {
+        const e = map.get(p.id);
+        if (e) {
+          e.name = p.display_name || p.username || e.name;
+          e.username = p.username || "";
+          e.avatar = initials(e.name);
+        }
+      });
+    } catch (_) {}
+  }
+
+  // Hidden list
+  let hidden = new Set();
+  try {
+    hidden = new Set(JSON.parse(localStorage.getItem("nx_hidden_recent_" + NEXORA.user.id) || "[]"));
+  } catch (_) {}
+
+  const items = [...map.values()]
+    .filter(e => !hidden.has(e.uid))
+    .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
+
+  const html = items.length
+    ? items.map(e => {
+        const preview = e.lastType === "call" ? e.lastText : escapeHtml(e.lastText || "");
+        const badge = e.unread > 0 ? `<span class="cnt">${e.unread > 99 ? "99+" : e.unread}</span>` : "";
+        return `
+          <button class="card row-card" data-uid="${escapeAttr(e.uid)}"
+            onclick="openRecentUser('${escapeAttr(e.uid)}')"
+            oncontextmenu="event.preventDefault(); showRecentMenu('${escapeAttr(e.uid)}')">
+            <div class="avatar">${escapeHtml(e.avatar)}</div>
+            <div style="min-width:0;flex:1">
+              <div style="font-weight:800;display:flex;align-items:center;gap:6px">
+                ${escapeHtml(e.name)}${badge}
+              </div>
+              <div style="color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                ${preview}
+              </div>
+            </div>
+            <div style="color:var(--muted);font-size:12px">${timeAgo(e.lastAt)}</div>
+          </button>`;
+      }).join("")
+    : `<div class="card" style="padding:30px;text-align:center;color:var(--muted)">Nothing here yet.</div>`;
+
+  $("recentContent").innerHTML = html;
+};
+
+/* Supporting functions */
+async function openRecentUser(uid) {
+  try {
+    const { data } = await sb.from("profiles").select("id,username,display_name").eq("id", uid).maybeSingle();
+    if (!data) return toast("User not found", "error");
+    openChat("", data.id, data.username, data.display_name || data.username);
+  } catch (e) {
+    toast("Could not open chat", "error");
+  }
+}
+
+function showRecentMenu(uid) {
+  openModal(`
+    <div class="modal-title">Actions</div>
+    <div class="modal-sub">Kya karna hai?</div>
+    <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="closeModal();openRecentUser('${escapeAttr(uid)}')">💬 Message</button>
+    <button class="btn" style="width:100%;margin-bottom:10px" onclick="closeModal();callbackUser('${escapeAttr(uid)}')">📞 Call</button>
+    <button class="btn danger" style="width:100%;margin-bottom:10px" onclick="closeModal();deleteRecentEntry('${escapeAttr(uid)}')">🗑️ Remove from Recent</button>
+    <button class="btn" style="width:100%" onclick="closeModal()">Cancel</button>
+  `);
+}
+
+async function deleteRecentEntry(uid) {
+  try {
+    const key = "nx_hidden_recent_" + NEXORA.user.id;
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!list.includes(uid)) {
+      list.push(uid);
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+    toast("Removed from Recent");
+    renderRecent();
+  } catch (e) {
+    toast("Failed", "error");
+  }
+}
+
+function clearMyRecent() {
+  openModal(`
+    <div class="modal-title">Clear Recent?</div>
+    <div class="modal-sub">Sirf aapka Recent list clear hoga. Chats safe rahenge.</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn danger" onclick="confirmClearRecent()">Clear</button>
+    </div>
+  `);
+}
+
+function confirmClearRecent() {
+  try {
+    const key = "nx_hidden_recent_" + NEXORA.user.id;
+    const uids = [...document.querySelectorAll("[data-uid]")].map(el => el.dataset.uid);
+    localStorage.setItem(key, JSON.stringify(uids));
+    closeModal();
+    toast("Recent cleared");
+    renderRecent();
+  } catch (_) {
+    toast("Failed", "error");
+  }
+}
+
+console.log("%cRecent + Games Fixed", "color:#42d392;font-weight:bold");
 
 
