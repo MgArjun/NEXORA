@@ -148,7 +148,7 @@ h2{font-size:27px;margin:2px 0 6px;letter-spacing:-.8px}.sub{color:var(--mu);mar
 <div class="cbs"><button id="cMute" class="cb2" aria-label="Mute"></button><button id="cAcc" class="cb2 gn h" aria-label="Accept"></button><button id="cEnd" class="cb2 r" aria-label="End call"></button></div></div>
 <div id="toast"></div><div id="ov" class="ov h"><div id="md" class="md"></div></div>
 <script>
-/* TURN: free shared relay included so calls work on cellular/Wi-Fi mix. For production add your own at metered.ca (app + key) below. */
+/* TURN: set your own TURN in CFG.metered (app + key) below. The free shared relay here is only a fallback. */
 const CFG={metered:{app:"",key:""},turn:[{urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}]};
 const sb=supabase.createClient("https://ktwluvpmzisonmootdqc.supabase.co","sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm",{auth:{persistSession:true,autoRefreshToken:true}});
 const $=i=>document.getElementById(i),sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -160,8 +160,8 @@ const nm=p=>p.display_name||p.username;
 const tm=d=>new Date(d).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
 let PR={snd:true,hide:false,calls:true,inv:true};try{PR={...PR,...JSON.parse(localStorage.nx_pr)}}catch(_){}
 const savePr=()=>localStorage.nx_pr=JSON.stringify(PR);
-/* sound */
-let AC;function tone(f,d=.08,t="sine",v=.05,at=0){if(!PR.snd)return;try{AC=AC||new(window.AudioContext||webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+at;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d)}catch(_){}}
+/* sound (tone() is defined in the TAIL block) */
+let AC;
 const SFX={tap:()=>tone(520,.04,"triangle",.025),send:()=>tone(600,.06),recv:()=>{tone(700,.08);tone(880,.1,"sine",.04,.08)},move:()=>tone(440,.08,"triangle",.06),win:()=>[523,659,784,1047].forEach((f,k)=>tone(f,.25,"sine",.06,k*.13)),lose:()=>[330,262,196].forEach((f,k)=>tone(f,.25,"sawtooth",.04,k*.15)),ring:()=>{tone(520,.18,"sine",.08);tone(660,.18,"sine",.08,.22)},up:()=>{tone(660,.12);tone(880,.2,"sine",.05,.13)},down:()=>{tone(320,.18);tone(220,.3,"sine",.05,.18)},match:()=>{tone(660,.15);tone(990,.2,"sine",.05,.15)}};
 const sfx=n=>SFX[n]?.(),vib=p=>PR.snd&&navigator.vibrate?.(p);
 let tt;function toast(m){const e=$("toast");e.textContent=m;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2800)}
@@ -205,59 +205,49 @@ async function sig(p){for(let i=0;i<3;i++){if(!SIG||SIG.state!=="joined")await e
 const net=(t,c)=>{const e=$("net");if(!t)return e.classList.remove("show");e.textContent=t;e.style.background=c;e.classList.add("show")};
 let NS="ok";setInterval(()=>{if(!S.user)return;const on=navigator.onLine,ok=SIG?.state==="joined";
  if(on&&!ok&&!sigP)ensureSig();const st=!on?"off":ok?"ok":"rec";if(st===NS)return;const was=NS;NS=st;
- if(st==="off")net("📡 Internet nahi hai","#ff4d63");else if(st==="rec")net("🔄 Reconnecting…","#e0a000");else if(was!=="ok"){net("✓ Back online","#1fae6a");setTimeout(()=>NS==="ok"&&net(),2000)}},2000);
+ if(st==="off")net("📡 No internet connection","#ff4d63");else if(st==="rec")net("🔄 Reconnecting…","#e0a000");else if(was!=="ok"){net("✓ Back online","#1fae6a");setTimeout(()=>NS==="ok"&&net(),2000)}},2000);
 addEventListener("online",()=>{if(S.user){ensureSig();setOnline(true);document.querySelectorAll(".m.fail u").forEach(u=>u.click())}});
 const PRE={};
 function onSig(p){const t=p.type;
  if(t==="offer")return onOffer(p);
  if(t==="greq")return gotReq(p);
- if(t==="gacc"){if(S.pend?.code===p.code)toast("Accept ho gaya, game shuru…");return}
- if(t==="gdec"){if(S.pend?.code===p.code){S.pend=null;closeRoom(false);closeModal();toast("Dost ne game se mana kiya")}return}
- if(t==="gcan"){if(S.inreq?.code===p.code){S.inreq=null;closeModal();toast("Request cancel ho gayi")}return}
+ if(t==="gacc"){if(S.pend?.code===p.code)toast("Accepted, starting the game…");return}
+ if(t==="gdec"){if(S.pend?.code===p.code){S.pend=null;closeRoom(false);closeModal();toast("Your friend declined the game")}return}
+ if(t==="gcan"){if(S.inreq?.code===p.code){S.inreq=null;closeModal();toast("The request was cancelled")}return}
  if(t==="ice"){if(!C||p.id!==C.id){(PRE[p.id]=PRE[p.id]||[]).push(p.c);return}C.pc?.remoteDescription?C.pc.addIceCandidate(p.c).catch(()=>{}):C.q.push(p.c);return}
  if(!C||p.id!==C.id)return;
  if(t==="ring"){C.ringing=true;clearInterval(C.rs2);paintCall()}
- else if(t==="answer"){if(C.st==="calling"){C.st="connecting";clearTimeout(C.to);C.ct=setTimeout(()=>{if(C&&C.st!=="on"){toast("Call connect nahi ho payi");endCall()}},45000)}paintCall();C.pc.setRemoteDescription(p.sdp).then(()=>flush(C)).catch(()=>{})}
+ else if(t==="answer"){if(C.st==="calling"){C.st="connecting";clearTimeout(C.to);C.ct=setTimeout(()=>{if(C&&C.st!=="on"){toast("The call could not connect");endCall()}},45000)}paintCall();C.pc.setRemoteDescription(p.sdp).then(()=>flush(C)).catch(()=>{})}
  else if(t==="reoffer")onReoffer(p);
  else if(t==="nudge"){if(C.init)restartIce(C)}
- else if(t==="end"||t==="busy"||t==="decl"){const r=C.random;toast(t==="busy"?"User abhi busy hai":t==="decl"?"Call decline hui":"Call khatam");endCall(1);if(r)strangerGone()}}
-
+ else if(t==="end"||t==="busy"||t==="decl"){const r=C.random;toast(t==="busy"?"User is busy right now":t==="decl"?"Call declined":"Call ended");endCall(1);if(r)strangerGone()}}
 /* ---------- voice calls (work on every page, auto-reconnect) ---------- */
 let C=null,RING=null,WL=null;const ENDED=new Map(),isEnded=id=>ENDED.has(id)&&Date.now()-ENDED.get(id)<12e4;
 let ICE_C=null,ICE_T=0;
-async function iceServers(){if(ICE_C&&Date.now()-ICE_T<36e5)return ICE_C;const s=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302","stun:stun.cloudflare.com:3478"]},...CFG.turn],m=CFG.metered;
- if(m.app&&m.key){try{const r=await fetch(`https://${m.app}.metered.live/api/v1/turn/credentials?apiKey=${m.key}`);if(r.ok)s.push(...await r.json())}catch(_){}}ICE_T=Date.now();return ICE_C=s}
-async function mic(){if(!navigator.mediaDevices?.getUserMedia)throw new Error("Microphone ke liye Chrome/Safari par HTTPS site kholo.");
+async function mic(){if(!navigator.mediaDevices?.getUserMedia)throw new Error("Open the site over HTTPS in Chrome or Safari to use the microphone.");
  try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})}
- catch(e){throw new Error(e.name==="NotAllowedError"?"Browser settings me Microphone allow karo.":e.name==="NotFoundError"?"Microphone nahi mila.":e.name==="NotReadableError"?"Microphone kisi aur app me chal raha hai.":"Microphone shuru nahi hua.")}}
+ catch(e){throw new Error(e.name==="NotAllowedError"?"Allow the microphone in your browser settings.":e.name==="NotFoundError"?"No microphone found.":e.name==="NotReadableError"?"The microphone is in use by another app.":"The microphone could not start.")}}
 async function wake(on){try{if(on&&!WL&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");if(!on&&WL){await WL.release();WL=null}}catch(_){}}
 function startRing(){stopRing();RING=setInterval(()=>{if(!C)return stopRing();if(C.st==="ringing"){sfx("ring");vib(200)}else if(C.st==="calling")tone(440,.4,"sine",.04)},1800)}
 const stopRing=()=>{clearInterval(RING);RING=null};
-async function mkPc(c){const pc=new RTCPeerConnection({iceServers:await iceServers(),iceCandidatePoolSize:2});c.pc=pc;c.stream.getTracks().forEach(t=>pc.addTrack(t,c.stream));
- pc.onicecandidate=e=>{if(e.candidate)sig({type:"ice",to:c.uid,id:c.id,c:e.candidate})};
- pc.ontrack=e=>{let a=$("ra");if(!a){a=document.createElement("audio");a.id="ra";a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play().catch(()=>{})};
- pc.oniceconnectionstatechange=()=>{if(C!==c)return;const s=pc.iceConnectionState;
-  if(s==="connected"||s==="completed"){clearTimeout(c.t1);clearTimeout(c.dead);clearTimeout(c.ct);if(c.st!=="on"){c.st="on";c.t0=Date.now();sfx("up");vib(60);wake(true)}else if(c.net)toast("Connection wapas aa gaya ✓");c.net=0;paintCall()}
-  else if(s==="disconnected"){c.net="unstable";paintCall();clearTimeout(c.t1);c.t1=setTimeout(()=>recover(c),2500)}
-  else if(s==="failed"){c.net="reconnecting";paintCall();recover(c)}};return pc}
 const flush=c=>{while(c.q.length)c.pc.addIceCandidate(c.q.shift()).catch(()=>{})};
 const okIce=c=>["connected","completed"].includes(c.pc.iceConnectionState);
 function recover(c){if(C!==c||c.rec)return;c.net="reconnecting";paintCall();kick(c);
  c.rec=setInterval(()=>{if(C!==c||okIce(c)){clearInterval(c.rec);c.rec=0;return}kick(c)},5000);
- c.dead=setTimeout(()=>{if(C===c&&!okIce(c)){toast("Call drop ho gayi");endCall()}},45000)}
+ c.dead=setTimeout(()=>{if(C===c&&!okIce(c)){toast("The call dropped");endCall()}},45000)}
 function kick(c){if(C!==c||navigator.onLine===false)return;c.init?restartIce(c):sig({type:"nudge",to:c.uid,id:c.id})}
 async function restartIce(c){const pc=c.pc;if(!pc||c.rs||pc.signalingState!=="stable")return;c.rs=1;try{pc.restartIce?.();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await sig({type:"reoffer",to:c.uid,id:c.id,sdp:pc.localDescription})}catch(_){}c.rs=0}
 async function onReoffer(p){const c=C;try{await c.pc.setRemoteDescription(p.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){}}
 async function startCall(uid,name,random){
- if(uid===S.user.id)return;if(C)return toast("Aap pehle se call me ho");
+ if(uid===S.user.id)return;if(C)return toast("You are already on a call");
  let stream;try{stream=await mic()}catch(e){return toast(e.message)}
  if(C){stream.getTracks().forEach(t=>t.stop());return}
  const c=C={id:crypto.randomUUID(),uid,name,init:1,st:"calling",stream,q:[],random};paintCall();startRing();
- try{await mkPc(c);await c.pc.setLocalDescription(await c.pc.createOffer())}catch(_){toast("Call shuru nahi ho payi");return endCall(1)}
+ try{await mkPc(c);await c.pc.setLocalDescription(await c.pc.createOffer())}catch(_){toast("The call could not start");return endCall(1)}
  const m={type:"offer",to:uid,id:c.id,name:myName(),random:!!random,sdp:c.pc.localDescription};
- if(!await sig(m)){toast("Internet check karo");return endCall(1)}
+ if(!await sig(m)){toast("Check your internet");return endCall(1)}
  let n=0;c.rs2=setInterval(()=>{if(C!==c||c.ringing||c.st!=="calling"||++n>10)return clearInterval(c.rs2);sig(m)},2500);
- c.to=setTimeout(()=>{if(C===c&&c.st==="calling"){toast("Koi jawab nahi");endCall()}},40000)}
+ c.to=setTimeout(()=>{if(C===c&&c.st==="calling"){toast("No answer");endCall()}},40000)}
 function onOffer(p){
  if(isEnded(p.id))return;
  if(C&&C.id===p.id){sig({type:"ring",to:p.from,id:C.id});return}
@@ -269,9 +259,9 @@ function onOffer(p){
 async function accept(){const c=C;if(!c||c.st!=="ringing")return;stopRing();clearTimeout(c.to);
  let stream;try{stream=await mic()}catch(e){toast(e.message);sig({type:"decl",to:c.uid,id:c.id});return endCall(1)}
  if(C!==c){stream.getTracks().forEach(t=>t.stop());return}
- c.stream=stream;c.st="connecting";paintCall();c.ct=setTimeout(()=>{if(C===c&&c.st!=="on"){toast("Call connect nahi ho payi");endCall()}},45000);
- try{await mkPc(c);await c.pc.setRemoteDescription(c.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){toast("Call connect nahi ho payi");endCall()}}
-function endCall(silent){const c=C;if(!c)return;C=null;ENDED.set(c.id,Date.now());stopRing();[c.to,c.t1,c.dead,c.ct].forEach(clearTimeout);[c.rs2,c.rec].forEach(clearInterval);
+ c.stream=stream;c.st="connecting";paintCall();c.ct=setTimeout(()=>{if(C===c&&c.st!=="on"){toast("The call could not connect");endCall()}},45000);
+ try{await mkPc(c);await c.pc.setRemoteDescription(c.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){toast("The call could not connect");endCall()}}
+function endCall(silent){const c=C;if(!c)return;C=null;ENDED.set(c.id,Date.now());stopRing();[c.to,c.t1,c.dead,c.ct,c.rt].forEach(clearTimeout);[c.rs2,c.rec].forEach(clearInterval);
  if(!silent)sig({type:c.st==="ringing"?"decl":"end",to:c.uid,id:c.id});
  try{c.stream?.getTracks().forEach(t=>t.stop())}catch(_){}try{c.pc?.close()}catch(_){}
  $("ra")?.remove();wake(false);const el=$("call");el.className="h";$("cMute").classList.remove("on");$("cMute").innerHTML=I.mic;sfx("down")}
@@ -291,56 +281,22 @@ function voiceBtn(uid,name){if(C)minCall(false);else startCall(uid,name)}
 
 /* ---------- navigation ---------- */
 const PG={home:renderHome,recent:renderRecent,connect:renderConnect,games:renderGames,settings:renderSettings};
-function go(p){stopChat();if(S.room)closeRoom(true);if(typeof LR!=="undefined"&&LR)closeLR(true);if(typeof L!=="undefined")L=null;S.g=null;S.page=p;[...$("nav").children].forEach(b=>b.classList.toggle("on",b.dataset.p===p));PG[p]()}
 $("nav").onclick=e=>{const b=e.target.closest("button");if(b)go(b.dataset.p)};
 const page=h=>$("main").innerHTML=`<section class="pg">${h}</section>`;
 const SUB=()=>["chat","ttt"].includes(S.page);
 history.pushState({n:1},"");addEventListener("popstate",()=>{history.pushState({n:1},"");if(!$("ov").classList.contains("h"))return closeModal();if(S.page==="ludo")return leaveL();if(S.page==="ttt")return leaveG();if(S.page==="chat")return go("recent");if(S.page!=="home"&&S.user)go("home")});
 const P={};const reg=p=>(P[p.id]=p);
-function act(k,id){const p=P[id];if(!p)return;if(k==="text")openChat("",p.id,p.username,nm(p));else if(k==="call")startCall(p.id,nm(p));else if(k==="game")inviteGame(p.id,nm(p));else if(k==="add")addFriend(p.id)}
 
-/* ---------- home / chats ---------- */
-function renderHome(){const q=(i,n,d,p)=>`<button class="card qc" onclick="go('${p}')"><span class="i">${i}</span><span><b>${n}</b><small>${d}</small></span></button>`;
- page(`<div class="card" style="padding:22px;margin-bottom:14px"><div class="live"><i></i><span id="liveN">${S.live} ${S.live===1?"person":"people"} online</span></div><h2 style="margin-top:12px">${greet()}, ${esc(myName())} 👋</h2><p class="sub" style="margin:0">Stay happy. Stay healthy. Stay connected.</p></div>
- <div class="card" style="padding:14px;margin-bottom:14px;display:flex;justify-content:space-around;text-align:center">${[["🎲","Ludo",ST().ludo],["❌","Tic-Tac-Toe",ST().ttt]].map(([i,n,v])=>`<div><div style="font-size:24px">${i}</div><b style="font-size:22px">${v||0}</b><div class="pw">${n} wins</div></div>`).join("")}</div>
- <div class="grid">${q("◷","Chats","Messages and requests","recent")}${q("◎","Connect","Friends, random people","connect")}${q("♟","Games","Play while you talk","games")}${q("⚙","Settings","Profile and privacy","settings")}</div><div class="pw" style="padding:22px 0 4px">Powered by <b>Suraj Kumar</b></div>`)}
-async function renderRecent(){page(`<h2>Chats</h2><p class="sub">One thread for each person.</p><div id="rc"><div class="card empty">Loading…</div></div>`);
- let rows=[];try{const{data,error}=await sb.rpc("nexora_my_conversations");if(error)throw error;rows=data||[]}catch(_){}
- if(S.page!=="recent")return;S.convs=rows;$("rc").innerHTML=rows.length?rows.map((c,i)=>{const n=c.other_display_name||c.other_username;return`<button class="card row" onclick="openIdx(${i})"><span class="av">${esc(ini(n))}</span><span class="t"><b>${esc(n)}</b><small>${esc(c.last_message||"Say hello")}</small></span></button>`}).join(""):`<div class="card empty">No chats yet. Open Connect to find someone.</div>`}
-const openIdx=i=>{const c=S.convs[i];openChat(c.conversation_id,c.other_id,c.other_username,c.other_display_name||c.other_username)};
-
-/* ---------- chat (optimistic send, retry, resync) ---------- */
-function stopChat(){if(S.cch){sb.removeChannel(S.cch);S.cch=null}S.chat=null}
-async function openChat(cid,oid,un,name){
- try{if(!cid){const{data,error}=await sb.rpc("nexora_get_or_create_dm",{target_username:un});if(error)throw error;cid=data}}catch(_){return toast("Chat nahi khul payi")}
- stopChat();if(S.room)closeRoom(true);S.chat={cid,oid,un,name,seen:new Set()};S.page="chat";
- $("main").innerHTML=`<section class="pg chat"><div class="ch"><button class="ib" onclick="go('recent')" aria-label="Back">${I.back}</button><div class="av">${esc(ini(name))}</div><div style="flex:1;min-width:0"><b>${esc(name)}</b><div class="pw" style="text-align:left">@${esc(un)}</div></div><button class="ib" style="color:#8ff0bd" onclick="voiceBtn('${oid}','${esc(name).replace(/'/g,"")}')" aria-label="Voice call">${I.phone}</button><button class="ib" style="color:#c9a8ff" onclick="inviteGame('${oid}','${esc(name).replace(/'/g,"")}')" aria-label="Invite to game">${I.game}</button></div>
- <div id="cb" class="cb"></div><div class="cp"><button class="ib" style="height:50px;width:46px" onclick="emoBar()" aria-label="Emoji">😊</button><input id="ci" placeholder="Write a message" autocomplete="off" maxlength="2000" enterkeyhint="send"><button class="snd" onclick="sendMsg()" aria-label="Send">${I.send}</button></div></section>`;
- $("ci").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();sendMsg()}});
- await fetchNew(true);if(S.chat?.cid!==cid)return;
- S.cch=sb.channel("chat-"+cid).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conversation_id=eq."+cid},p=>{if(p.new.sender_id!==S.user.id)addMsg(p.new)}).subscribe()}
+/* ---------- chat: realtime history sync ---------- */
 async function fetchNew(first){const c=S.chat;if(!c)return;const{data}=await sb.from("messages").select("*").eq("conversation_id",c.cid).order("created_at",{ascending:true}).limit(300);
  if(S.chat!==c)return;(data||[]).forEach(m=>{if(first||m.sender_id!==S.user.id)addMsg(m,first)})}
-function addBubble(m,meta){const b=$("cb");if(!b)return null;const mine=m.sender_id===S.user.id;b.insertAdjacentHTML("beforeend",`<div class="m ${mine?"me":"th"}">${esc(m.message)}<small>${meta}</small></div>`);b.scrollTop=b.scrollHeight;return b.lastElementChild}
-function addMsg(m,quiet){const c=S.chat;if(!c||c.seen.has(m.id))return;c.seen.add(m.id);const mine=m.sender_id===S.user.id;addBubble(m,tm(m.created_at)+(mine?" ✓✓":""));if(!mine&&!quiet)sfx("recv")}
-function sendMsg(){const i=$("ci"),text=i.value.trim().slice(0,2000);if(!text||!S.chat)return;i.value="";sfx("send");
- const cid=S.chat.cid,el=addBubble({sender_id:S.user.id,message:text},"🕓 Sending…");
- const go_=async()=>{try{const{data,error}=await Promise.race([sb.from("messages").insert({conversation_id:cid,sender_id:S.user.id,message:text,message_type:"text"}).select().single(),sleep(15000).then(()=>({error:{message:"timeout"}}))]);if(error)throw error;S.chat?.seen.add(data.id);el.classList.remove("fail");el.querySelector("small").textContent=tm(data.created_at)+" ✓✓"}
-  catch(_){el.classList.add("fail");const s=el.querySelector("small");s.innerHTML="⚠ Not sent · <u>Retry</u>";s.querySelector("u").onclick=()=>{s.textContent="🕓 Sending…";go_()}}};go_()}
 
-/* ---------- connect: search, friends, random ---------- */
+/* ---------- connect: friends, notifications, random ---------- */
 function renderConnect(){page(`<h2>Connect</h2><p class="sub">Friends, usernames and random people.</p>
  <div class="card" style="padding:16px;margin-bottom:14px"><b>Find by username</b><div style="display:flex;gap:8px;margin-top:10px"><input id="us" style="margin:0;flex:1" placeholder="@username" autocapitalize="off" autocomplete="off"><button class="btn pri" onclick="findUser()">Search</button></div></div><div id="sr"></div>
  <div class="grid" style="margin-bottom:16px"><button class="card qc" onclick="matchmake('chat')"><span class="i">💬</span><span><b>Random chat</b><small>Match with someone searching</small></span></button><button class="card qc" onclick="matchmake('call')"><span class="i">📞</span><span><b>Random call</b><small>Talk to someone now</small></span></button></div>
  <b>Friends</b><div id="fl" style="margin-top:10px"><div class="card empty">Loading…</div></div>`);
  $("us").addEventListener("keydown",e=>{if(e.key==="Enter")findUser()});loadFriends()}
-const person=(p,btns)=>{reg(p);return`<div class="card" style="padding:14px;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div class="av">${esc(ini(nm(p)))}</div><div style="flex:1;min-width:0"><b>${esc(nm(p))}</b><div class="pw" style="text-align:left">@${esc(p.username)} · ${p.online?"Online":"Offline"}</div></div></div><div class="grid" style="grid-template-columns:repeat(${btns.length},1fr);gap:8px;margin-top:12px">${btns.map(([k,t,c])=>`<button class="btn ${c||""}" style="padding:0" onclick="act('${k}','${p.id}')">${t}</button>`).join("")}</div></div>`};
-async function findUser(){const u=$("us").value.trim().replace(/^@/,"");if(u.length<3)return toast("Type at least 3 letters.");
- const{data}=await sb.from("profiles").select("id,username,display_name,online").ilike("username",u).limit(1).maybeSingle();
- $("sr").innerHTML=data?person(data,[["text","Text","pri"],["call","Call"],["game","Game"],["add","Add"]]):`<div class="card empty" style="margin-bottom:12px">No user with that username.</div>`}
-async function loadFriends(){const id=S.user.id;let list=[];try{const{data}=await sb.from("friendships").select("requester_id,addressee_id").or(`requester_id.eq.${id},addressee_id.eq.${id}`).eq("status","accepted");
- const ids=(data||[]).map(f=>f.requester_id===id?f.addressee_id:f.requester_id);if(ids.length){const{data:p}=await sb.from("profiles").select("id,username,display_name,online").in("id",ids);list=p||[]}}catch(_){}
- if(S.page!=="connect")return;$("fl").innerHTML=list.length?list.sort((a,b)=>(b.online|0)-(a.online|0)).map(p=>person(p,[["text","Text","pri"],["call","Call"],["game","Game"]])).join(""):`<div class="card empty">No friends yet. Search a username and tap Add.</div>`}
 async function addFriend(id){if(id===S.user.id)return toast("That is you.");const{error}=await sb.from("friendships").insert({requester_id:S.user.id,addressee_id:id,status:"pending"});
  if(error)return toast(/duplicate|unique/i.test(error.message)?"Request already sent.":"Could not send the request.");
  sb.from("notifications").insert({user_id:id,type:"friend_request",title:"New friend request",body:myName()+" wants to be your friend",data:{from:S.user.id}}).then(()=>{},()=>{});toast("Friend request sent.")}
@@ -349,12 +305,12 @@ $("bell").onclick=async()=>{const{data}=await sb.from("notifications").select("*
  openModal(`<h3>Notifications</h3><p class="sub">Friend requests and invites.</p>${l.length?l.map(n=>`<div class="card" style="padding:14px;margin-bottom:10px"><b>${esc(n.title)}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(n.body||"")}</div>${n.type==="friend_request"&&n.data?.from?`<button class="btn pri" style="margin-top:10px;min-height:40px" onclick="acceptFr('${esc(n.data.from)}')">Accept</button>`:""}</div>`).join(""):`<div class="empty">You are all caught up.</div>`}<button class="btn wide" onclick="closeModal()">Close</button>`);
  sb.from("notifications").update({is_read:true}).eq("user_id",S.user.id).eq("is_read",false).then(()=>$("bdot").classList.add("h"),()=>{})};
 async function acceptFr(id){const{error}=await sb.from("friendships").update({status:"accepted"}).eq("requester_id",id).eq("addressee_id",S.user.id);closeModal();toast(error?"Could not accept the request.":"You are now friends.")}
-/* matchmaking (presence pairing) for chat / call / ttt */
+/* matchmaking (presence pairing) for chat / call / ttt / ludo / uno */
 let RM=null;const hash=s=>{let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))>>>0;return h.toString(36).toUpperCase().padStart(6,"0").slice(0,6)};
 function stopRM(){if(!RM)return;clearTimeout(RM.to);clearTimeout(RM.wt);try{sb.removeChannel(RM.ch)}catch(_){}RM=null}
-const TTL={chat:"Random chat",call:"Random call",ttt:"Tic-Tac-Toe"};
+const TTL={chat:"Random chat",call:"Random call",ttt:"Tic-Tac-Toe",ludo:"Ludo",uno:"UNO"};
 async function matchmake(kind){stopRM();if(S.room)closeRoom(true);
- if(kind==="call"){if(C)return toast("Pehle current call khatam karo");try{(await mic()).getTracks().forEach(t=>t.stop())}catch(e){return toast(e.message)}}
+ if(kind==="call"){if(C)return toast("End your current call first");try{(await mic()).getTracks().forEach(t=>t.stop())}catch(e){return toast(e.message)}}
  const R=RM={kind,done:false};openModal(`<h3>${TTL[kind]}</h3><p class="sub">Looking for someone who is searching too…</p><div id="rmN" style="text-align:center;font-weight:900;font-size:18px;margin:18px 0">Searching…</div><button class="btn red wide" onclick="closeModal()">Cancel</button>`,()=>{if(RM===R)stopRM()});
  const ch=R.ch=sb.channel("nx-mm-"+kind,{config:{presence:{key:S.user.id}}}),me={id:S.user.id,name:myName(),un:S.me?.username||"",t:Date.now()};
  ch.on("presence",{event:"sync"},()=>{if(RM!==R||R.done)return;const seen={};Object.values(ch.presenceState()).flat().forEach(x=>{if(x?.id)seen[x.id]=x});
@@ -362,32 +318,29 @@ async function matchmake(kind){stopRM();if(S.room)closeRoom(true);
   R.done=true;const o=l[j];sfx("match");vib([60,40,60]);$("rmN")&&($("rmN").textContent="Match found!");
   setTimeout(()=>{if(RM!==R)return;const host=i<j;
    if(kind==="chat"){stopRM();closeModal();openChat("",o.id,o.un,o.name)}
-   else if(kind==="call"){if(host){stopRM();closeModal();startCall(o.id,o.name,true)}else R.wt=setTimeout(()=>{if(RM===R){stopRM();closeModal();toast("Match connect nahi hua. Dobara try karo")}},20000)}
+   else if(kind==="call"){if(host){stopRM();closeModal();startCall(o.id,o.name,true)}else R.wt=setTimeout(()=>{if(RM===R){stopRM();closeModal();toast("The match did not connect. Try again")}},20000)}
    else if(kind==="ludo"){const code=hash("L"+[me.id,o.id].sort().join(""));stopRM();closeModal();host?hostLudo(code,o):openLR(code,false,o)}
+   else if(kind==="uno"){const code=hash("U"+[me.id,o.id].sort().join(""));stopRM();closeModal();host?hostUno(code,o):uOpen(code,false,o)}
    else{const code=hash([me.id,o.id].sort().join(""));stopRM();closeModal();host?hostTTT(code,o):openRoom(code,false,o)}},700)});
  await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});try{await ch.track(me)}catch(_){}
- R.to=setTimeout(()=>{if(RM===R&&!R.done){stopRM();openModal(`<h3>Koi nahi mila 😕</h3><p class="sub">Abhi koi aur search nahi kar raha.</p>${kind==="ttt"?`<button class="btn pri wide" style="margin-bottom:10px" onclick="startG('bot')">🤖 Robot ke saath khelo</button>`:""}<button class="btn wide" style="margin-bottom:10px" onclick="closeModal();matchmake('${kind}')">🔄 Dobara dhoondho</button><button class="btn wide" onclick="closeModal()">Band karo</button>`)}},60000)}
-const strangerGone=()=>openModal(`<h3>Stranger disconnected</h3><p class="sub">Call khatam ho gayi.</p><button class="btn pri wide" style="margin-bottom:10px" onclick="closeModal();matchmake('call')">🔄 Find another</button><button class="btn wide" onclick="closeModal()">Band karo</button>`);
+ R.to=setTimeout(()=>{if(RM===R&&!R.done){stopRM();openModal(`<h3>No one found 😕</h3><p class="sub">Nobody else is searching right now.</p>${kind==="ttt"?`<button class="btn pri wide" style="margin-bottom:10px" onclick="startG('bot')">🤖 Play against the robot</button>`:""}<button class="btn wide" style="margin-bottom:10px" onclick="closeModal();matchmake('${kind}')">🔄 Search again</button><button class="btn wide" onclick="closeModal()">Close</button>`)}},60000)}
+const strangerGone=()=>openModal(`<h3>Stranger disconnected</h3><p class="sub">The call has ended.</p><button class="btn pri wide" style="margin-bottom:10px" onclick="closeModal();matchmake('call')">🔄 Find another</button><button class="btn wide" onclick="closeModal()">Close</button>`);
 
-/* ---------- games ---------- */
-function renderGames(){const g=(i,n,d,a,soon)=>`<button class="card qc" style="${soon?"opacity:.6":""}" onclick="${a}"><span class="i">${i}</span><span><b>${n}</b><small>${d}</small></span></button>`;
- page(`<h2>Games</h2><p class="sub">Play while you talk. Voice call game ke upar mini bar me chalta rehta hai.</p>
- <div class="card" style="padding:14px;display:flex;align-items:center;gap:10px;margin-bottom:14px"><b style="flex:1">⚡ Quick match · Tic-Tac-Toe</b><button class="btn pri" style="min-height:42px" onclick="matchmake('ttt')">Find player</button></div>
- <div class="grid">${g("❌","Tic-Tac-Toe","Live · 5×5, four wins","tttMenu()")}${g("🎲","Ludo","Live · 2-4 players","ludoMenu()")}${g("🃏","UNO","Next update","toast('UNO agle update me aa raha hai')",1)}${g("⚫","Carrom","Coming soon","toast('Carrom coming soon')",1)}${g("♞","Chess","Coming soon","toast('Chess coming soon')",1)}</div>`)}
+/* ---------- games: Tic-Tac-Toe ---------- */
 function tttMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
  openModal(`<h3>❌ Tic-Tac-Toe</h3><p class="sub">5×5 board. Line up four to win.</p>${s("🌐 Random online")}<button class="btn pri wide" onclick="closeModal();matchmake('ttt')">Find player</button>
- ${s("👥 Friend ke saath (Connect → Game, ya room code)")}<button class="btn wide" onclick="hostTTT()">Room banao</button><div style="display:flex;gap:8px;margin-top:8px"><input id="rc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinTTT($('rc2').value.trim().toUpperCase())">Join</button></div>
- ${s("🤖 Robot / 📱 ek phone")}<div class="grid"><button class="btn" onclick="startG('bot')">Robot</button><button class="btn" onclick="startG('local')">2 players</button></div>`)}
+ ${s("👥 With a friend (room code)")}<button class="btn wide" onclick="hostTTT()">Create room</button><div style="display:flex;gap:8px;margin-top:8px"><input id="rc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinTTT($('rc2').value.trim().toUpperCase())">Join</button></div>
+ ${s("🤖 Robot / 📱 one phone")}<div class="grid"><button class="btn" onclick="startG('bot')">Robot</button><button class="btn" onclick="startG('local')">2 players</button></div>`)}
 function lineWin(b,L=4,N=5){for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=b[r*N+c];if(!v)continue;for(const[dr,dc]of[[0,1],[1,0],[1,1],[1,-1]]){let k=1;for(;k<L;k++){const y=r+dr*k,x=c+dc*k;if(y<0||y>=N||x<0||x>=N||b[y*N+x]!==v)break}if(k===L)return{v,cells:Array.from({length:L},(_,i)=>(r+dr*i)*N+c+dc*i)}}}return null}
-function startG(mode){closeModal();minCall(true);S.page="ttt";S.g={mode,b:Array(25).fill(""),t:"X",over:false,last:-1,msg:mode==="bot"?"Aapki baari (X)":"X ki baari"};draw()}
+function startG(mode){closeModal();minCall(true);S.page="ttt";S.g={mode,b:Array(25).fill(""),t:"X",over:false,last:-1,msg:mode==="bot"?"Your turn (X)":"X's turn"};draw()}
 function draw(){const g=S.g;if(!g||S.page!=="ttt")return;const on=g.mode==="online",w=lineWin(g.b);
  const foot=on?(g.over?`<div class="grid" style="max-width:420px;margin:18px auto 0"><button class="btn pri" ${S.room?.left?"disabled":""} onclick="rematch()">${g.rem?"⏳ Waiting…":"🔁 Rematch"}</button><button class="btn" onclick="leaveG();matchmake('ttt')">⚡ New match</button></div>`:""):`<button class="btn pri wide" style="margin:18px auto 0;display:block;max-width:420px" onclick="startG('${g.mode}')">Restart</button>`;
  $("main").innerHTML=`<section class="pg"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveG()">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${on&&S.room?.oppId?`<button class="ib" style="color:#8ff0bd" onclick="voiceBtn('${S.room.oppId}','${esc(S.room.oppName).replace(/'/g,"")}')" aria-label="Voice">${I.mic}</button>`:""}</div><h2>Tic-Tac-Toe</h2><p class="sub">${esc(g.msg)}</p>
  <div class="bd">${g.b.map((v,i)=>`<button class="cell ${v}${i===g.last?" n":""}${w?.cells.includes(i)?" w":""}" onclick="tap(${i})" aria-label="Cell ${i+1}">${v}</button>`).join("")}</div>${foot}</section>`}
 function leaveG(){closeRoom(true);S.g=null;go("games")}
 function place(i){const g=S.g;g.b[i]=g.t;g.last=i;sfx("move");const w=lineWin(g.b);
- if(w){g.over=true;g.msg=g.mode==="bot"?(w.v==="X"?"Aap jeet gaye! 🏆":"Robot jeet gaya 🤖"):w.v+" jeet gaya! 🏆";sfx(g.mode==="bot"&&w.v==="O"?"lose":"win");vib([60,40,60])}
- else if(g.b.every(Boolean)){g.over=true;g.msg="Draw"}else{g.t=g.t==="X"?"O":"X";g.msg=g.mode==="bot"?(g.t==="X"?"Aapki baari (X)":"Robot soch raha hai…"):g.t+" ki baari"}draw()}
+ if(w){g.over=true;g.msg=g.mode==="bot"?(w.v==="X"?"You won! 🏆":"Robot won 🤖"):w.v+" won! 🏆";sfx(g.mode==="bot"&&w.v==="O"?"lose":"win");vib([60,40,60])}
+ else if(g.b.every(Boolean)){g.over=true;g.msg="Draw"}else{g.t=g.t==="X"?"O":"X";g.msg=g.mode==="bot"?(g.t==="X"?"Your turn (X)":"Robot is thinking…"):g.t+"'s turn"}draw()}
 let tapT=0;function tap(i){const g=S.g;if(!g||g.over||g.b[i])return;
  if(g.mode==="online"){const R=S.room,G=R?.G;if(!G||G.over||R.left||G.t!==g.me||Date.now()-tapT<400)return;tapT=Date.now();vib(10);sfx("move");R.host?hostMove(R,i,G.seq,g.me):R.tx({t:"mv",i,s:G.seq});return}
  if(g.mode==="bot"&&g.t!=="X")return;place(i);if(g.mode==="bot"&&!g.over)setTimeout(bot,650)}
@@ -398,45 +351,45 @@ function bot(){const g=S.g;if(!g||g.over||g.mode!=="bot"||g.t!=="O")return;const
 const fresh=(rd,hm)=>({b:Array(25).fill(""),t:"X",seq:0,rd,hm,over:false,win:null,last:-1});
 function closeRoom(notify){const R=S.room;if(!R)return;S.room=null;clearInterval(R.hb);if(notify&&R.started&&!R.left)R.tx({t:"bye"});try{sb.removeChannel(R.ch)}catch(_){}}
 async function openRoom(code,host,opp){closeRoom(true);const ch=sb.channel("ttt-"+code);
- const R=S.room={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Dost",started:false,seen:Date.now(),rem:{},G:null};
+ const R=S.room={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now(),rem:{},G:null};
  R.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"g"},({payload:m})=>roomMsg(R,m));
  await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});if(S.room!==R)return;
  if(!host){let n=0;const iv=setInterval(()=>{if(S.room!==R||R.started||++n>15)return clearInterval(iv);R.tx({t:"join",name:myName()})},1200);R.tx({t:"join",name:myName()})}
  R.hb=setInterval(()=>tick(R),3000)}
 async function hostTTT(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await openRoom(code,true,opp);
- openModal(`<h3>Room ready ❌</h3><p class="sub">Dost ka wait ho raha hai…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
-function joinTTT(code){if(!code||code.length<4)return toast("Room code daalo.");closeModal();openRoom(code,false);openModal(`<h3>Join ho raha hai…</h3><p class="sub">Host ke start karne ka wait</p><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
+ openModal(`<h3>Room ready ❌</h3><p class="sub">Waiting for your friend…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
+function joinTTT(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();openRoom(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
 function roomMsg(R,m){if(S.room!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();R.slow=false;
- if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Dost";closeModal();minCall(true);R.tx({t:"start",name:myName()});round(R,1,"X")}else R.tx({t:"start",name:myName()})}
- else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Dost";closeModal();minCall(true);S.page="ttt";R.G=fresh(1,"X");view(R)}
+ if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";closeModal();minCall(true);R.tx({t:"start",name:myName()});round(R,1,"X")}else R.tx({t:"start",name:myName()})}
+ else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";closeModal();minCall(true);S.page="ttt";R.G=fresh(1,"X");view(R)}
  else if(m.t==="mv"&&R.host)hostMove(R,m.i,m.s,R.G?.hm==="X"?"O":"X");
  else if(m.t==="snap"&&!R.host)snap(R,m.g);
  else if(m.t==="need"&&R.host&&R.G)R.tx({t:"snap",g:R.G});
  else if(m.t==="emo")floatEmo(m.e,1)
  else if(m.t==="rem"){R.rem.o=1;remCheck(R)}
- else if(m.t==="bye"){R.left=1;toast("Dost ne game chhod diya");view(R)}}
+ else if(m.t==="bye"){R.left=1;toast("Your friend left the game");view(R)}}
 function round(R,rd,hm){R.G=fresh(rd,hm);R.rem={};R.tx({t:"snap",g:R.G});S.page="ttt";view(R)}
 function hostMove(R,i,s,mark){const G=R.G;if(!G||G.over||s!==G.seq||G.t!==mark||!(i>=0&&i<25)||G.b[i])return;G.b[i]=mark;G.last=i;G.seq++;const w=lineWin(G.b);
  if(w){G.over=true;G.win=w.v}else if(G.b.every(Boolean)){G.over=true;G.win="draw"}else G.t=mark==="X"?"O":"X";R.tx({t:"snap",g:G});view(R)}
 function snap(R,g){const o=R.G;if(o&&(g.rd<o.rd||(g.rd===o.rd&&g.seq<o.seq)))return;R.G=g;if(o&&g.rd>o.rd)R.rem={};view(R)}
 function view(R){const G=R.G;if(!G||S.room!==R)return;const me=R.host?G.hm:(G.hm==="X"?"O":"X");
- let msg=R.left?"Dost chala gaya":G.over?(G.win==="draw"?"Draw":G.win===me?"Aap jeet gaye! 🏆":R.oppName+" jeet gaya"):G.t===me?`Aapki baari (${me})`:`${R.oppName} ki baari`;if(R.slow&&!G.over)msg+=" · reconnecting…";
+ let msg=R.left?"Your friend left":G.over?(G.win==="draw"?"Draw":G.win===me?"You won! 🏆":R.oppName+" won"):G.t===me?`Your turn (${me})`:`${R.oppName}'s turn`;if(R.slow&&!G.over)msg+=" · reconnecting…";
  const key=G.rd+"_"+G.seq;if(R.vk!==key){if(R.vk&&G.seq>0)sfx("move");if(G.over&&!R.left){if(G.win===me)incWin("ttt");sfx(G.win===me?"win":G.win==="draw"?"tap":"lose");vib(G.win===me?[60,40,60]:30)}R.vk=key}
  S.g={mode:"online",b:G.b.slice(),t:G.t,over:G.over||!!R.left,me,msg,last:G.last,rem:R.rem.me};if(S.page==="ttt")draw()}
 function rematch(){const R=S.room;if(!R)return;R.rem.me=1;R.tx({t:"rem"});remCheck(R);view(R)}
 function remCheck(R){if(!(R.rem.me&&R.rem.o))return;R.rem={};if(R.host)round(R,R.G.rd+1,R.G.hm==="X"?"O":"X")}
 function tick(R){if(S.room!==R||!R.started)return;R.tx({t:"hb"});
- if(R.ch.state!=="joined"){R.dc=1;R.slow=true;view(R)}else{if(R.dc){R.dc=0;R.tx({t:"need"});toast("Game wapas judd gaya ✓")}
-  const d=Date.now()-R.seen;if(!R.left){if(d>60000){R.left=1;toast("Dost wapas nahi aaya");view(R)}else if(d>12000&&!R.slow){R.slow=true;view(R)}}
+ if(R.ch.state!=="joined"){R.dc=1;R.slow=true;view(R)}else{if(R.dc){R.dc=0;R.tx({t:"need"});toast("Game reconnected ✓")}
+  const d=Date.now()-R.seen;if(!R.left){if(d>60000){R.left=1;toast("Your friend did not come back");view(R)}else if(d>12000&&!R.slow){R.slow=true;view(R)}}
   if(R.host&&R.G)R.tx({t:"snap",g:R.G})}}
 /* game requests (from chat / friends) */
 async function inviteGame(uid,name){if(uid===S.user.id)return;const code=Math.random().toString(36).slice(2,8).toUpperCase();await openRoom(code,true,{id:uid,name});S.pend={code,uid};
- sig({type:"greq",to:uid,code,name:myName()});openModal(`<h3>Request bhej di 🎮</h3><p class="sub">${esc(name)} ke accept karne ka wait…</p><div class="card" style="padding:16px;text-align:center;font-weight:850;margin-bottom:14px">❌ Tic-Tac-Toe</div><button class="btn red wide" onclick="cancelReq()">Cancel</button>`);
+ sig({type:"greq",to:uid,code,name:myName()});openModal(`<h3>Request sent 🎮</h3><p class="sub">Waiting for ${esc(name)} to accept…</p><div class="card" style="padding:16px;text-align:center;font-weight:850;margin-bottom:14px">❌ Tic-Tac-Toe</div><button class="btn red wide" onclick="cancelReq()">Cancel</button>`);
  setTimeout(()=>{if(S.pend?.code===code&&!S.room?.started)cancelReq(true)},45000)}
-function cancelReq(t){const p=S.pend;S.pend=null;if(p){closeRoom(false);sig({type:"gcan",to:p.uid,code:p.code})}closeModal();if(t===true)toast("Koi jawab nahi aaya")}
+function cancelReq(t){const p=S.pend;S.pend=null;if(p){closeRoom(false);sig({type:"gcan",to:p.uid,code:p.code})}closeModal();if(t===true)toast("No response")}
 function gotReq(p){if(!PR.inv||S.room?.started){sig({type:"gdec",to:p.from,code:p.code});return}S.inreq=p;sfx("ring");vib([80,40,80]);
- openModal(`<h3>❌ Tic-Tac-Toe invite</h3><p class="sub">${esc(p.name||"Dost")} aapke saath khelna chahta hai.</p><div class="grid"><button class="btn" onclick="replyReq(0)">Decline</button><button class="btn pri" onclick="replyReq(1)">Accept</button></div>`)}
-function replyReq(ok){const p=S.inreq;S.inreq=null;closeModal();if(!p)return;sig({type:ok?"gacc":"gdec",to:p.from,code:p.code});if(ok){openRoom(p.code,false,{id:p.from,name:p.name});openModal(`<h3>Join ho raha hai…</h3><p class="sub">Game shuru ho raha hai</p>`)}}
+ openModal(`<h3>❌ Tic-Tac-Toe invite</h3><p class="sub">${esc(p.name||"A friend")} wants to play with you.</p><div class="grid"><button class="btn" onclick="replyReq(0)">Decline</button><button class="btn pri" onclick="replyReq(1)">Accept</button></div>`)}
+function replyReq(ok){const p=S.inreq;S.inreq=null;closeModal();if(!p)return;sig({type:ok?"gacc":"gdec",to:p.from,code:p.code});if(ok){openRoom(p.code,false,{id:p.from,name:p.name});openModal(`<h3>Joining…</h3><p class="sub">The game is starting</p>`)}}
 
 /* ---------- settings ---------- */
 function renderSettings(){const p=S.me||{};
@@ -453,7 +406,7 @@ async function saveProfile(){const m=$("pm"),name=$("pn").value.trim(),un=$("pu"
  S.me=data||{...S.me,display_name:name,username:un};paintAv();m.style.color="#65dda1";m.textContent="Saved";toast("Profile updated.")}
 $("prof").onclick=()=>go("settings");
 
-/* ---------- LUDO (canvas, 2-4 players, robot, online 1v1) ---------- */
+/* ---------- LUDO core (canvas, 2-4 players, robot, online 1v1) ---------- */
 const TRK=[[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
 const LC={red:{c:"#ef5368",s:0,h:[[7,1],[7,2],[7,3],[7,4],[7,5]]},green:{c:"#3fc984",s:13,h:[[1,7],[2,7],[3,7],[4,7],[5,7]]},yellow:{c:"#ffc93c",s:26,h:[[7,13],[7,12],[7,11],[7,10],[7,9]]},blue:{c:"#4a9dff",s:39,h:[[13,7],[12,7],[11,7],[10,7],[9,7]]}};
 const SAFE=new Set([0,8,13,21,26,34,39,47]),YD={red:[0,0],green:[0,9],yellow:[9,9],blue:[9,0]},FN={red:[7,6],green:[6,7],yellow:[7,8],blue:[8,7]},FIN=56;
@@ -465,17 +418,6 @@ const shade=(hex,t)=>{const n=parseInt(hex.slice(1),16),f=t<0?0:255,a=Math.abs(t
 const isH=()=>L.mode==="local"||(L.mode==="robot"&&L.turn===0)||(L.mode==="online"&&L.turn===L.me),isBot=()=>L.mode==="robot"&&L.turn>0;
 const canMv=(p,d)=>p!==FIN&&(p===-1?d===6:p+d<=FIN),movable=()=>L.dice?cur().tokens.map((p,i)=>canMv(p,L.dice)?i:-1).filter(i=>i>=0):[];
 const rnd6=()=>1+Math.floor(Math.random()*6);
-function paintBoard(W){BGc=document.createElement("canvas");BGc.width=BGc.height=Math.round(W*DPR);const g=BGc.getContext("2d");g.scale(DPR,DPR);const s=W/15;g.fillStyle="#f4ecd8";g.fillRect(0,0,W,W);
- for(const[k,[r,c]]of Object.entries(YD)){const col=LC[k].c;g.fillStyle=col;g.fillRect(c*s,r*s,6*s,6*s);g.fillStyle="#fbf6ea";g.beginPath();g.rect((c+1)*s,(r+1)*s,4*s,4*s);g.fill();
-  BS[k].forEach(([wr,wc])=>{g.fillStyle=shade(col,.4);g.beginPath();g.arc((wc+.5)*s,(wr+.5)*s,s*.42,0,7);g.fill();g.strokeStyle=col;g.lineWidth=s*.08;g.stroke()})}
- const tile=(r,c,col)=>{g.fillStyle=col;g.fillRect(c*s+.5,r*s+.5,s-1,s-1);g.strokeStyle="rgba(70,45,20,.3)";g.strokeRect(c*s+.5,r*s+.5,s-1,s-1)},st={};Object.values(LC).forEach(v=>st[v.s]=v.c);
- TRK.forEach(([r,c],i)=>{tile(r,c,st[i]||"#fffdf6");if(SAFE.has(i)){g.fillStyle=st[i]?"#fff":"#d9a21b";g.font=`${s*.6}px sans-serif`;g.textAlign="center";g.textBaseline="middle";g.fillText("★",(c+.5)*s,(r+.55)*s)}});
- Object.values(LC).forEach(v=>v.h.forEach(([r,c])=>tile(r,c,v.c)));
- [["green",[6,6],[9,6]],["yellow",[9,6],[9,9]],["blue",[6,9],[9,9]],["red",[6,6],[6,9]]].forEach(([k,a,b])=>{g.fillStyle=LC[k].c;g.beginPath();g.moveTo(a[0]*s,a[1]*s);g.lineTo(b[0]*s,b[1]*s);g.lineTo(7.5*s,7.5*s);g.fill()});
- g.fillStyle="#fff";g.beginPath();g.arc(7.5*s,7.5*s,s*.3,0,7);g.fill()}
-function pawn(g,x,y,z,col,s,sc){const r=s*.3*sc;g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(x,y+r*.55,r*(1.1-z*.5),r*.4,0,0,7);g.fill();y-=z*s;
- g.fillStyle=col;g.strokeStyle="#fff";g.lineWidth=s*.04;g.beginPath();g.moveTo(x-r,y+r*.5);g.quadraticCurveTo(x-r*.3,y-r*.3,x-r*.3,y-r*.9);g.lineTo(x+r*.3,y-r*.9);g.quadraticCurveTo(x+r*.3,y-r*.3,x+r,y+r*.5);g.closePath();g.fill();g.stroke();
- const hg=g.createRadialGradient(x-r*.2,y-r*1.4,r*.1,x,y-r*1.2,r*.55);hg.addColorStop(0,"#fff");hg.addColorStop(1,col);g.fillStyle=hg;g.beginPath();g.arc(x,y-r*1.2,r*.55,0,7);g.fill();g.stroke()}
 const puff=(x,y,col)=>{for(let k=0;k<20;k++){const a=Math.random()*6.28,v=.04+Math.random()*.1;L.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.03,g:.008,life:1,r:3+Math.random()*2.5,col})}};
 const confetti=()=>{const cs=["#ef5368","#3fc984","#ffc93c","#4a9dff","#fff"];for(let k=0;k<100;k++)L.parts.push({x:Math.random()*15,y:-Math.random()*3,vx:(Math.random()-.5)*.05,vy:.03+Math.random()*.06,g:.0015,life:4,col:cs[k%5],sq:1,rot:Math.random()*6})};
 function frame(){const l=L;if(!l||!CV||!CV.isConnected){RAF=0;return}const W=CV.clientWidth,s=W/15,g=CV.getContext("2d"),t=performance.now()/1000,pl=cur();
@@ -493,24 +435,19 @@ function setupCv(){CV=$("ldCv");const fit=()=>{if(!CV.isConnected)return;DPR=Mat
  CV.addEventListener("pointerdown",e=>{if(!L||L.winner||L.busy||L.rolling||!L.dice||!isH())return;const r=CV.getBoundingClientRect(),s=r.width/15,x=(e.clientX-r.left)/s,y=(e.clientY-r.top)/s,pl=cur();let best=null,bd=.9;
   pl.tokens.forEach((p,i)=>{if(!canMv(p,L.dice))return;const sp=L.spr[L.turn][i],d=Math.hypot(sp.x-x,sp.y-.3-y);if(d<bd){bd=d;best=i}});if(best!==null)playMv(best)});if(!RAF)RAF=requestAnimationFrame(frame)}
 function ludoMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
- openModal(`<h3>🎲 Ludo</h3><p class="sub">Kaise khelna hai?</p>${s("🌐 Random online (2 log)")}<button class="btn pri wide" onclick="closeModal();matchmake('ludo')">Find player</button>
- ${s("👥 Dost ke saath (room code)")}<button class="btn wide" onclick="hostLudo()">Room banao</button><div style="display:flex;gap:8px;margin-top:8px"><input id="lc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinLudo($('lc2').value.trim().toUpperCase())">Join</button></div>
- ${s("🤖 Robot ke saath")}<div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="startLudo('robot',null,null,${n+1})">🤖 ×${n}</button>`).join("")}</div>${s("📱 Ek phone par")}<button class="btn wide" onclick="startLudo('local')">2 players</button>`)}
+ openModal(`<h3>🎲 Ludo</h3><p class="sub">How do you want to play?</p>${s("🌐 Random online (2 players)")}<button class="btn pri wide" onclick="closeModal();matchmake('ludo')">Find player</button>
+ ${s("👥 With a friend (room code)")}<button class="btn wide" onclick="hostLudo()">Create room</button><div style="display:flex;gap:8px;margin-top:8px"><input id="lc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinLudo($('lc2').value.trim().toUpperCase())">Join</button></div>
+ ${s("🤖 Against robots")}<div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="startLudo('robot',null,null,${n+1})">🤖 ×${n}</button>`).join("")}</div>${s("📱 One phone")}<button class="btn wide" onclick="startLudo('local')">2 players</button>`)}
 function startLudo(mode="robot",names,me=null,n){closeModal();const cnt=names?names.length:(mode==="robot"?(n||2):2),nms=names||(mode==="robot"?["You","Robot","Robot 2","Robot 3"].slice(0,cnt):["Player 1","Player 2"]);
- L={mode,me,n:cnt,players:SEAT[cnt].map((c,i)=>({name:nms[i],color:c,tokens:[-1,-1,-1,-1]})),turn:0,dice:null,rolling:false,busy:false,winner:null,sixes:0,seq:0,msg:"Game shuru!",parts:[]};
+ L={mode,me,n:cnt,players:SEAT[cnt].map((c,i)=>({name:nms[i],color:c,tokens:[-1,-1,-1,-1]})),turn:0,dice:null,rolling:false,busy:false,winner:null,sixes:0,seq:0,msg:"Game on!",parts:[]};
  L.spr=L.players.map(p=>p.tokens.map((_,i)=>{const xy=xyAt(p,i,-1);return{x:xy[1]+.5,y:xy[0]+.5,z:0,vz:0}}));renderL()}
 function renderL(){S.page="ludo";minCall(true);
  $("main").innerHTML=`<section class="pg"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveL()">‹ Games</button><span style="flex:1"></span>${L.mode==="online"?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${L.mode==="online"?(LR?.oppId?`<button class="ib" style="color:#8ff0bd" onclick="voiceBtn('${LR.oppId}','${esc(LR.oppName).replace(/'/g,"")}')" aria-label="Voice">${I.mic}</button>`:""):`<button class="btn" onclick="startLudo(L.mode,null,null,L.n)">↻ Restart</button>`}</div>
  <div id="ldBan"><i></i><span></span></div><div class="card" id="ldCard" style="padding:10px;position:relative"><canvas id="ldCv" style="width:100%;aspect-ratio:1;display:block;border-radius:12px"></canvas>
  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:12px"><div style="min-width:0"><div id="ldM" style="font-weight:850"></div><div id="ldH" class="pw" style="text-align:left;margin-top:3px"></div></div><button id="ldDice" class="dice" onclick="rollL()" aria-label="Roll dice">⚀</button></div><div id="ldP" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"></div></div></div></section>`;setupCv();updL()}
-function updL(){if(!L||!$("ldBan"))return;const pl=cur();$("ldBan").style.setProperty("--tb",LC[pl.color].c);
- $("ldBan").querySelector("span").textContent=L.winner?"🏆 "+L.winner+" jeet gaya!":(L.mode!=="local"&&isH()?"Aapki baari":pl.name+" ki baari");
- $("ldM").textContent=L.msg;$("ldH").textContent=L.winner?"Game khatam":L.rolling?"Rolling…":!isH()?pl.name+" ki baari…":L.dice?"Chamakti gotti chuno":"Dice par tap karo";
- const rd=!L.rolling&&!L.busy&&!L.dice&&!L.winner&&isH(),d=$("ldDice");d.className="dice"+(rd?" rd":L.rolling?" rl":"");d.textContent="⚀⚁⚂⚃⚄⚅"[(L.dice||L.last||1)-1];
- $("ldP").innerHTML=L.players.map((p,i)=>`<div class="lp ${i===L.turn&&!L.winner?"on":""}" style="--gc:${LC[p.color].c}"><em></em><div style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${L.me===i?" (You)":""}</b><small class="pw" style="text-align:left;display:block">${p.tokens.filter(x=>x===FIN).length}/4 home</small></div></div>`).join("")}
 function rollL(){if(!L||L.winner||L.rolling||L.busy||L.dice||!isH())return;const d=rnd6();lsend({t:"roll",d});animRoll(d)}
-async function animRoll(d){const l=L;l.rolling=true;l.dice=null;updL();tone(180,.8,"triangle",.04);vib(25);await sleep(850);if(L!==l)return;l.rolling=false;l.dice=d;l.last=d;const pl=cur();l.sixes=d===6?l.sixes+1:0;l.msg=`${pl.name} ne ${d} roll kiya`;tone(d===6?760:420,.12);
- if(l.sixes>=3){l.sixes=0;l.dice=null;l.msg=pl.name+": teen 6, turn gaya";updL();await sleep(900);return endT()}
+async function animRoll(d){const l=L;l.rolling=true;l.dice=null;updL();tone(180,.8,"triangle",.04);vib(25);await sleep(850);if(L!==l)return;l.rolling=false;l.dice=d;l.last=d;const pl=cur();l.sixes=d===6?l.sixes+1:0;l.msg=`${pl.name} rolled ${d}`;tone(d===6?760:420,.12);
+ if(l.sixes>=3){l.sixes=0;l.dice=null;l.msg=pl.name+": three sixes, turn lost";updL();await sleep(900);return endT()}
  const mv=movable();updL();if(!mv.length){await sleep(800);l.dice=null;return d===6?again(pl):endT()}
  if(isBot()){await sleep(650);return commit(pl,pickBot(pl,mv,d))}if(isH()&&mv.length===1){await sleep(450);playMv(mv[0])}}
 function pickBot(pl,mv,d){const foes=L.players.filter(p=>p!==pl);let best=mv[0],bs=-1;mv.forEach(i=>{const p=pl.tokens[i],n=p===-1?0:p+d;let s=n;if(p===-1)s+=60;if(n===FIN)s+=90;
@@ -519,41 +456,186 @@ function playMv(i){lsend({t:"mv",i});return commit(cur(),i)}
 async function commit(pl,i){const l=L;l.busy=true;const d=l.dice,old=pl.tokens[i],sp=l.spr[l.players.indexOf(pl)][i],hop=()=>{sp.vz=.18;tone(300+Math.random()*80,.05,"square",.03)};
  if(old===-1){pl.tokens[i]=0;hop();await sleep(300)}else for(let p=old+1;p<=old+d;p++){pl.tokens[i]=p;hop();await sleep(190);if(L!==l)return}
  let cut=false;const p=pl.tokens[i];if(p>=0&&p<=50){const a=(LC[pl.color].s+p)%52;if(!SAFE.has(a))l.players.forEach((o,oi)=>{if(o===pl)return;o.tokens=o.tokens.map((q,qi)=>{if(q>=0&&q<=50&&(LC[o.color].s+q)%52===a){cut=true;const t=l.spr[oi][qi];puff(t.x,t.y,LC[o.color].c);t.slow=true;t.vz=.3;return -1}return q})})}
- if(cut){toast("Gotti kat gayi! 💥");tone(120,.4,"sawtooth",.07);vib([40,30,60]);l.shake=14;await sleep(480)}
+ if(cut){toast("Token captured! 💥");tone(120,.4,"sawtooth",.07);vib([40,30,60]);l.shake=14;await sleep(480)}
  l.dice=null;l.busy=false;l.seq++;
- if(pl.tokens.every(x=>x===FIN)){l.winner=pl.name;l.msg=pl.name+" jeet gaya! 🏆";confetti();const mine=L.mode==="online"?pl===L.players[L.me]:L.mode==="robot"?l.players.indexOf(pl)===0:true;if(mine)incWin("ludo");sfx(mine?"win":"lose");updL();winUI(pl.name);return}
+ if(pl.tokens.every(x=>x===FIN)){l.winner=pl.name;l.msg=pl.name+" won! 🏆";confetti();const mine=L.mode==="online"?pl===L.players[L.me]:L.mode==="robot"?l.players.indexOf(pl)===0:true;if(mine)incWin("ludo");sfx(mine?"win":"lose");updL();winUI(pl.name);return}
  updL();(d===6||cut||p===FIN)?again(pl):endT()}
-function winUI(n){const c=$("ldCard");if(!c||c.querySelector(".wo"))return;const on=L.mode==="online";c.insertAdjacentHTML("beforeend",`<div class="wo"><div>🏆<br>${esc(n)} won!<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:220px">${on?`<button class="btn pri" onclick="leaveL();matchmake('ludo')">⚡ Find new match</button>`:`<button class="btn pri" onclick="startLudo(L.mode,null,null,L.n)">🔁 Phir khelo</button>`}<button class="btn" onclick="leaveL()">Games</button></div></div></div>`)}
+function winUI(n){const c=$("ldCard");if(!c||c.querySelector(".wo"))return;const on=L.mode==="online";c.insertAdjacentHTML("beforeend",`<div class="wo"><div>🏆<br>${esc(n)} won!<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:220px">${on?`<button class="btn pri" onclick="leaveL();matchmake('ludo')">⚡ Find new match</button>`:`<button class="btn pri" onclick="startLudo(L.mode,null,null,L.n)">🔁 Play again</button>`}<button class="btn" onclick="leaveL()">Games</button></div></div></div>`)}
 function botT(){const l=L;if(l&&l.mode==="robot"&&l.turn>0&&!l.winner)setTimeout(()=>{if(L===l&&!l.winner&&l.turn>0)animRoll(rnd6())},850)}
-function again(pl){L.dice=null;L.msg=pl.name+" ko dobara chance";updL();botT()}
-function endT(){const l=L;l.sixes=0;l.dice=null;let k=0;do{l.turn=(l.turn+1)%l.players.length}while(l.players[l.turn].gone&&++k<8);l.msg=cur().name+" ki baari";updL();botT()}
+function again(pl){L.dice=null;L.msg=pl.name+" gets another turn";updL();botT()}
+function endT(){const l=L;l.sixes=0;l.dice=null;let k=0;do{l.turn=(l.turn+1)%l.players.length}while(l.players[l.turn].gone&&++k<8);l.msg=cur().name+"'s turn";updL();botT()}
 function leaveL(){closeLR(true);L=null;go("games")}
 /* online room */
 const lsend=m=>LR?.started&&LR.tx(m);
 function closeLR(notify){const R=LR;if(!R)return;LR=null;clearInterval(R.hb);if(notify&&R.started)R.tx({t:"bye"});try{sb.removeChannel(R.ch)}catch(_){}}
-async function openLR(code,host,opp){closeLR(true);const ch=sb.channel("ludo-"+code),R=LR={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Dost",started:false,seen:Date.now()};
+async function openLR(code,host,opp){closeLR(true);const ch=sb.channel("ludo-"+code),R=LR={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now()};
  R.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"g"},({payload:m})=>lMsg(R,m));
  await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});if(LR!==R)return;
  if(!host){let n=0;const iv=setInterval(()=>{if(LR!==R||R.started||++n>15)return clearInterval(iv);R.tx({t:"join",name:myName()})},1200);R.tx({t:"join",name:myName()})}R.hb=setInterval(()=>lTick(R),3000)}
 async function hostLudo(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await openLR(code,true,opp);
- openModal(`<h3>Room ready 🎲</h3><p class="sub">Dost ka wait ho raha hai…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
-function joinLudo(code){if(!code||code.length<4)return toast("Room code daalo.");closeModal();openLR(code,false);openModal(`<h3>Join ho raha hai…</h3><p class="sub">Host ke start karne ka wait</p><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
+ openModal(`<h3>Room ready 🎲</h3><p class="sub">Waiting for your friend…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
+function joinLudo(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();openLR(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
 function lMsg(R,m){if(LR!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();
- if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Dost";closeModal();R.tx({t:"start",name:myName()});startLudo("online",[myName(),R.oppName],0)}else R.tx({t:"start",name:myName()})}
- else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Dost";closeModal();startLudo("online",[R.oppName,myName()],1)}
+ if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";closeModal();R.tx({t:"start",name:myName()});startLudo("online",[myName(),R.oppName],0)}else R.tx({t:"start",name:myName()})}
+ else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";closeModal();startLudo("online",[R.oppName,myName()],1)}
  else if(m.t==="emo")floatEmo(m.e,1)
  else if(!L||L.mode!=="online")return;
  else if(m.t==="roll"){if(L.turn!==L.me&&!L.rolling&&!L.dice&&!L.busy)animRoll(m.d)}
  else if(m.t==="mv"){if(L.turn!==L.me)(async()=>{while(L&&L.rolling)await sleep(50);if(L&&L.dice&&!L.busy)commit(cur(),m.i)})()}
  else if(m.t==="snap"&&!L.busy&&!L.rolling&&!L.dice&&m.s.seq>L.seq){L.players.forEach((p,i)=>p.tokens=m.s.t[i].slice());L.turn=m.s.turn;L.sixes=m.s.sx;L.seq=m.s.seq;L.spr.forEach(r=>r.forEach(s=>s.slow=false));updL()}
- else if(m.t==="bye"&&!L.winner){toast("Dost ne game chhod diya");L.winner=L.players[L.me].name;L.msg="Dost chala gaya";updL();winUI(L.winner)}}
+ else if(m.t==="bye"&&!L.winner){toast("Your friend left the game");L.winner=L.players[L.me].name;L.msg="Your friend left";updL();winUI(L.winner)}}
 function lTick(R){if(LR!==R||!R.started)return;R.tx({t:"hb"});if(R.ch.state!=="joined"){if(L)L.msg="Reconnecting game…",updL();R.dc=1;return}
- if(R.dc){R.dc=0;toast("Game wapas judd gaya ✓")}if(Date.now()-R.seen>60000&&L&&!L.winner){toast("Dost wapas nahi aaya");lMsg(R,{t:"bye",from:R.oppId})}
+ if(R.dc){R.dc=0;toast("Game reconnected ✓")}if(Date.now()-R.seen>60000&&L&&!L.winner){toast("Your friend did not come back");lMsg(R,{t:"bye",from:R.oppId})}
  if(R.host&&L&&!L.busy&&!L.rolling&&!L.dice&&!L.winner)R.tx({t:"snap",s:{seq:L.seq,turn:L.turn,sx:L.sixes,t:L.players.map(p=>p.tokens.slice())}})}
 
-/* ---------- boot ---------- */
-setTimeout(()=>{$("splash").classList.add("out");setTimeout(()=>$("splash").remove(),800)},2600);
-(async()=>{try{const{data}=await sb.auth.getSession();if(data?.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h")})();
-setInterval(()=>{if(S.user)setOnline(true)},60000);
-addEventListener("unhandledrejection",e=>console.warn(e.reason));
+/* ===== NEXORA TAIL (paste right after the PATCH BLOCK comment line) ===== */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+#ov{z-index:8500}
+.dice.d3{background:none;box-shadow:none;perspective:420px;font-size:0;display:grid;place-items:center;transition:opacity .2s}
+.d3 .c{width:52px;height:52px;position:relative;transform-style:preserve-3d;transition:transform .6s var(--e)}
+.d3 .c.tm{transition:none;animation:tmb .6s linear infinite}
+@keyframes tmb{to{transform:rotateX(720deg) rotateY(540deg) rotateZ(180deg)}}
+.d3 .f{position:absolute;inset:0;border-radius:10px;background:linear-gradient(145deg,#fffdf6,#d9d2bd);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;box-shadow:inset 0 0 8px rgba(0,0,0,.2);backface-visibility:hidden}
+.d3 s{place-self:center;width:9px;height:9px;border-radius:50%}.d3 s.p{background:#2b0a0a;box-shadow:inset 0 2px 2px rgba(0,0,0,.6)}
+.uc{width:62px;height:92px;border-radius:12px;background:linear-gradient(145deg,var(--c),color-mix(in srgb,var(--c) 60%,#000));border:3px solid #fff;color:#fff;font-weight:900;font-size:26px;display:grid;place-items:center;box-shadow:0 8px 0 rgba(0,0,0,.35),0 14px 20px rgba(0,0,0,.4);flex:none;text-shadow:0 2px 0 rgba(0,0,0,.4);transition:transform .2s}
+.uc.back{--c:#1a1f36}.uc:not(.ok):not(.pile):not(.back){opacity:.55}.uc.ok{transform:translateY(-12px)}
+.uh{display:flex;gap:6px;overflow-x:auto;padding:16px 6px 14px}.uc.fly{animation:uf .5s var(--e)}
+@keyframes uf{from{transform:translate(0,160px) rotate(-20deg) scale(.7);opacity:0}}
+.qc:active{transform:perspective(500px) rotateX(8deg) scale(.96)}`}));
+
+/* sound */
+function tone(f,d,t="sine",v=.05,dl=0){if(!PR.snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+dl;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.01);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d+.02)}catch(_){}}
+
+/* local helpers (recents + nicknames live on this device only) */
+const K=k=>k+"_"+(S.user?.id||"x"),LS=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch(_){return d}};
+const dn=(id,n)=>LS(K("nx_nick"),{})[id]||n;
+function rec(uid,un,name,last){const k=K("nx_rc"),o=LS(k,[]),old=o.find(x=>x.id===uid);localStorage[k]=JSON.stringify([{id:uid,un,name,last:last??old?.last??"",t:Date.now()},...o.filter(x=>x.id!==uid)].slice(0,50))}
+const wins=()=>LS(K("nx_w"),{});
+function incWin(k){const w=wins();w[k]=(w[k]||0)+1;localStorage[K("nx_w")]=JSON.stringify(w)}
+
+/* navigation */
+function go(p){if(!S.user)return;S.page=p;S.chat=null;U=null;document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));(PG[p]||renderHome)()}
+const _gr=gotReq;gotReq=p=>{minCall(true);_gr(p)};
+
+/* home + games */
+const Q=["Play more, worry less.","Every game starts with one move.","Good friends make every match better."];
+function renderHome(){const w=wins(),h=new Date().getHours();
+ page(`<h2>${h<12?"Good morning":h<18?"Good afternoon":"Good evening"}, <span class="grad">${esc(myName())}</span></h2><p class="sub">${Q[new Date().getDate()%3]}</p>
+ <div class="card" style="padding:16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><span class="live"><i></i><span id="liveN">${S.live} ${S.live===1?"person":"people"} online</span></span><span class="pw">Powered by <b>Suraj Kumar</b></span></div>
+ <div class="grid">${[["💬","Chats","Your conversations","recent"],["◎","Connect","Friends and random","connect"],["🎮","Games","Ludo, UNO, Tic-Tac-Toe","games"],["⚙","Settings","Profile and privacy","settings"]].map(([i,t,s,p])=>`<button class="card qc" onclick="go('${p}')"><span class="i">${i}</span><span><b>${t}</b><small>${s}</small></span></button>`).join("")}</div>
+ <div class="card" style="padding:16px;margin-top:14px"><b>Your wins</b><div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">${[["🎲","ludo"],["❌","ttt"],["🃏","uno"]].map(([i,k])=>`<div class="card" style="padding:12px;text-align:center"><div style="font-size:22px">${i}</div><b style="font-size:20px">${w[k]||0}</b></div>`).join("")}</div></div>`)}
+function renderGames(){page(`<h2>Games</h2><p class="sub">Voice stays on while you play. Use the mic button inside a game.</p><div class="grid">${[["🎲","Ludo","2–4 players","ludoMenu()"],["❌","Tic-Tac-Toe","5×5, four to win","tttMenu()"],["🃏","UNO","Vs robots","unoMenu()"],["🏁","Carrom","Coming soon","toast('Coming soon')"],["♟","Chess","Coming soon","toast('Coming soon')"]].map(([i,t,s,f])=>`<button class="card qc" onclick="${f}"><span class="i">${i}</span><span><b>${t}</b><small>${s}</small></span></button>`).join("")}</div>`)}
+
+/* reactions */
+function floatEmo(e){const d=document.createElement("div");d.className="fe";d.textContent=e;d.style.left=(10+Math.random()*75)+"%";d.style.bottom="18%";document.body.appendChild(d);setTimeout(()=>d.remove(),2300)}
+function emoPop(){openModal(`<h3>Reactions</h3><p class="sub">Tap to send.</p><div class="ep">${["😀","😂","😍","😎","😮","😢","😡","👍","👏","🔥","🎉","💔"].map(e=>`<button onclick="sendEmo('${e}')">${e}</button>`).join("")}</div>`)}
+function sendEmo(e){closeModal();floatEmo(e);const R=S.room?.started?S.room:LR?.started?LR:null;R?.tx({t:"emo",e})}
+
+/* friends / search / recents / chat */
+const pid=p=>(reg(p),p.id);
+const prow=(p,add)=>{const n=dn(p.id,nm(p));return`<div class="card row"><div class="av">${esc(ini(n))}</div><div class="t"><b>${esc(n)}</b><small>@${esc(p.username)} · ${p.online?"online":"offline"}</small></div>${add?`<button class="ib" onclick="addFriend('${pid(p)}')">➕</button>`:""}<button class="ib" onclick="chatWith('${pid(p)}')">💬</button><button class="ib" onclick="editNick('${p.id}')">✎</button></div>`};
+const chatWith=id=>{const p=P[id];p&&openChat("",id,p.username,nm(p))},callWith=id=>{const p=P[id];voiceBtn(id,p?nm(p):"Friend")},gameWith=id=>{const p=P[id];inviteGame(id,p?nm(p):"Friend")};
+async function loadFriends(){const el=$("fl");try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or(`requester_id.eq.${S.user.id},addressee_id.eq.${S.user.id}`);
+ const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);if(!$("fl"))return;if(!ids.length)return el.innerHTML=`<div class="card empty">No friends yet. Search a username above.</div>`;
+ const{data:ps}=await sb.from("profiles").select("*").in("id",ids);if($("fl"))$("fl").innerHTML=(ps||[]).map(p=>prow(p)).join("")}catch(_){if($("fl"))$("fl").innerHTML=`<div class="card empty">Could not load friends.</div>`}}
+async function findUser(){const q=$("us").value.trim().replace(/^@/,"").toLowerCase();if(q.length<2)return toast("Type at least 2 letters.");
+ const{data}=await sb.from("profiles").select("*").ilike("username","%"+q+"%").neq("id",S.user.id).limit(10);$("sr").innerHTML=(data||[]).length?data.map(p=>prow(p,1)).join(""):`<div class="card empty" style="margin-bottom:12px">No one found.</div>`}
+function renderRecent(){const l=LS(K("nx_rc"),[]);l.forEach(x=>reg({id:x.id,username:x.un,display_name:x.name}));
+ page(`<h2>Chats</h2><p class="sub">Tap ✎ to rename someone. Names are saved only on your phone.</p>${l.length?l.map(x=>{const n=dn(x.id,x.name);return`<div class="card row"><button class="av" onclick="chatWith('${x.id}')">${esc(ini(n))}</button><button class="t" style="text-align:left" onclick="chatWith('${x.id}')"><b>${esc(n)}</b><small>${esc(x.last||"Say hi")}</small></button><button class="ib" onclick="editNick('${x.id}')">✎</button><button class="ib" onclick="delRec('${x.id}')">🗑</button></div>`}).join(""):`<div class="card empty">No chats yet. Open Connect to find people.</div>`}`)}
+function delRec(id){localStorage[K("nx_rc")]=JSON.stringify(LS(K("nx_rc"),[]).filter(x=>x.id!==id));renderRecent()}
+function editNick(id){const p=P[id],cur=dn(id,p?nm(p):"");openModal(`<h3>Rename</h3><p class="sub">Only you will see this name.</p><input id="nk" maxlength="30" value="${esc(cur)}"><div class="grid"><button class="btn" onclick="saveNick('${id}',1)">Reset</button><button class="btn pri" onclick="saveNick('${id}')">Save</button></div>`)}
+function saveNick(id,reset){const k=K("nx_nick"),o=LS(k,{}),v=$("nk").value.trim();if(reset||!v)delete o[id];else o[id]=v;localStorage[k]=JSON.stringify(o);closeModal();S.page==="chat"&&S.chat?openChat("",S.chat.uid,S.chat.un,S.chat.name):go(S.page)}
+function openChat(cid,uid,un,name){if(!uid||uid===S.user.id)return;const a=[S.user.id,uid].sort();cid=a[0].slice(0,19)+a[1].slice(19);rec(uid,un,name);reg({id:uid,username:un,display_name:name});
+ if(S.cch)try{sb.removeChannel(S.cch)}catch(_){}
+ const c=S.chat={cid,uid,un,name};S.page="chat";const n=dn(uid,name);
+ $("main").innerHTML=`<section class="pg chat"><div class="ch"><button class="ib" onclick="go('recent')">${I.back}</button><div class="av">${esc(ini(n))}</div><div style="flex:1;min-width:0"><b>${esc(n)}</b><div class="pw" style="text-align:left">@${esc(un)}</div></div><button class="ib" onclick="editNick('${uid}')">✎</button><button class="ib" style="color:#8ff0bd" onclick="callWith('${uid}')">${I.phone}</button><button class="ib" onclick="gameWith('${uid}')">${I.game}</button></div><div class="cb" id="cb"></div><div class="cp"><input id="ci" placeholder="Message" autocomplete="off"><button class="snd" onclick="sendMsg()">${I.send}</button></div></section>`;
+ const ch=S.cch=sb.channel("chat-"+cid);
+ ch.on("broadcast",{event:"m"},({payload:p})=>{if(S.chat!==c||p.from===S.user.id)return;addMsg({id:p.id,sender_id:p.from,content:p.text,created_at:p.at},false,true);ch.send({type:"broadcast",event:"a",payload:{id:p.id}}).catch(()=>{})})
+  .on("broadcast",{event:"a"},({payload:p})=>{const e=document.querySelector(`[data-id="${p.id}"] .tk`);if(e){e.textContent="✓✓";e.style.color="#7fd3ff"}}).subscribe();
+ $("ci").addEventListener("keydown",e=>{if(e.key==="Enter")sendMsg()});fetchNew(true)}
+function addMsg(m,first,live){const b=$("cb");if(!b||!S.chat)return;const txt=m.content??m.body??m.text??"",mine=m.sender_id===S.user.id,t=new Date(m.created_at||Date.now()).getTime();
+ if(m.id&&b.querySelector(`[data-id="${m.id}"]`))return;
+ if(!live)for(const e of b.children)if(e.dataset.s===m.sender_id&&e.dataset.x===txt&&Math.abs(e.dataset.t-t)<30000)return;
+ const d=document.createElement("div");d.className="m "+(mine?"me":"th");d.dataset.id=m.id||"";d.dataset.s=m.sender_id;d.dataset.x=txt;d.dataset.t=t;
+ d.innerHTML=`${esc(txt)}<small>${tm(t)}${mine?` <span class="tk">✓</span>`:""}</small>`;b.appendChild(d);b.scrollTop=b.scrollHeight;
+ if(!first&&!mine){sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,txt)}}
+async function sendMsg(){const i=$("ci"),c=S.chat;if(!c||!i)return;const text=i.value.trim();if(!text)return;i.value="";const id=crypto.randomUUID(),at=new Date().toISOString();
+ addMsg({id,sender_id:S.user.id,content:text,created_at:at},true,true);sfx("send");rec(c.uid,c.un,c.name,text);
+ S.cch?.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});
+ try{await sb.from("messages").insert({conversation_id:c.cid,sender_id:S.user.id,content:text})}catch(_){}}
+
+/* voice call: WebRTC connection */
+async function iceServers(){if(ICE_C&&Date.now()-ICE_T<3e5)return ICE_C;let l=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}];
+ try{const m=CFG.metered;if(m.app&&m.key){const r=await fetch(`https://${m.app}.metered.live/api/v1/turn/credentials?apiKey=${m.key}`);l=l.concat(await r.json())}else l=l.concat(CFG.turn)}catch(_){l=l.concat(CFG.turn)}
+ if(CFG.own)l=l.concat(CFG.own);ICE_C=l;ICE_T=Date.now();return l}
+async function mkPc(c){const pc=c.pc=new RTCPeerConnection({iceServers:await iceServers(),iceCandidatePoolSize:4});
+ c.stream.getTracks().forEach(t=>pc.addTrack(t,c.stream));
+ pc.onicecandidate=e=>{if(e.candidate)sig({type:"ice",to:c.uid,id:c.id,c:e.candidate})};
+ pc.ontrack=e=>{let a=$("ra");if(!a){a=document.createElement("audio");a.id="ra";a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play().catch(()=>{})};
+ pc.oniceconnectionstatechange=()=>{if(C!==c)return;const s=pc.iceConnectionState;
+  if(s==="connected"||s==="completed"){if(c.st!=="on"){c.st="on";c.t0=Date.now();clearTimeout(c.ct);sfx("up");wake(true)}c.net=null;clearInterval(c.rec);c.rec=0;clearTimeout(c.dead);paintCall()}
+  else if(s==="disconnected"||s==="failed")recover(c)}}
+
+/* Ludo board + pawn + HUD + 3D dice */
+function paintBoard(W){BGc=document.createElement("canvas");BGc.width=BGc.height=Math.round(W*DPR);const g=BGc.getContext("2d"),s=W/15;g.scale(DPR,DPR);
+ const wd=g.createLinearGradient(0,0,W,W);wd.addColorStop(0,"#8a5a34");wd.addColorStop(.5,"#6e4526");wd.addColorStop(1,"#85562f");g.fillStyle=wd;g.fillRect(0,0,W,W);
+ for(let i=0;i<40;i++){g.fillStyle=`rgba(0,0,0,${.03+Math.random()*.04})`;g.fillRect(0,Math.random()*W,W,1+Math.random()*2)}
+ const rr=(x,y,w,h,r,f)=>{g.beginPath();g.roundRect(x,y,w,h,r);g.fillStyle=f;g.fill()};
+ Object.entries(YD).forEach(([k,[r,c]])=>{const col=LC[k].c;rr(c*s+2,r*s+2,6*s-4,6*s-4,s*.5,shade(col,-.25));rr(c*s+s*.5,r*s+s*.5,5*s,5*s,s*.4,shade(col,.1));
+  BS[k].forEach(([y,x])=>{g.fillStyle="rgba(0,0,0,.35)";g.beginPath();g.arc(x*s,y*s+2,s*.42,0,7);g.fill();g.fillStyle=shade(col,.55);g.beginPath();g.arc(x*s,y*s,s*.4,0,7);g.fill()})});
+ const cell=(r,c,f)=>{rr(c*s+1,r*s+1,s-2,s-2,s*.16,f);g.fillStyle="rgba(255,255,255,.25)";g.fillRect(c*s+3,r*s+2,s-6,2)};
+ TRK.forEach(([r,c])=>cell(r,c,"#f6efe0"));
+ Object.keys(LC).forEach(k=>{LC[k].h.forEach(([r,c])=>cell(r,c,LC[k].c));const[r,c]=TRK[LC[k].s];cell(r,c,LC[k].c)});
+ g.fillStyle="rgba(60,40,20,.7)";g.font=`${s*.55}px sans-serif`;g.textAlign="center";g.textBaseline="middle";SAFE.forEach(i=>{const[r,c]=TRK[i];g.fillText("★",(c+.5)*s,(r+.55)*s)});
+ const m=7.5*s,tri=(a,b,c2,d,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(a*s,b*s);g.lineTo(c2*s,d*s);g.lineTo(m,m);g.fill()};
+ tri(6,6,6,9,LC.red.c);tri(6,6,9,6,LC.green.c);tri(9,6,9,9,LC.yellow.c);tri(6,9,9,9,LC.blue.c)}
+function pawn(g,x,y,z,col,s,sc){const r=s*.3*sc,cy=y-z*s-r*.2;g.save();g.fillStyle="rgba(0,0,0,.35)";g.beginPath();g.ellipse(x,y+s*.22,r*(1-z*.3),r*.4,0,0,7);g.fill();
+ const gr=g.createRadialGradient(x-r*.3,cy-r*.5,r*.1,x,cy,r*1.2);gr.addColorStop(0,shade(col,.55));gr.addColorStop(.5,col);gr.addColorStop(1,shade(col,-.45));g.fillStyle=gr;
+ g.beginPath();g.moveTo(x-r,cy+r*.9);g.quadraticCurveTo(x-r*.9,cy-r*.2,x,cy-r*.2);g.quadraticCurveTo(x+r*.9,cy-r*.2,x+r,cy+r*.9);g.closePath();g.fill();g.beginPath();g.arc(x,cy-r*.55,r*.58,0,7);g.fill();g.restore()}
+const ROT={1:"rotateX(0)",2:"rotateY(-90deg)",3:"rotateX(-90deg)",4:"rotateX(90deg)",5:"rotateY(90deg)",6:"rotateY(180deg)"},PIP={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function dice3d(){const d=$("ldDice");if(!d)return;d.className="dice d3";
+ if(!d.querySelector(".c")){const T=["translateZ(26px)","rotateY(90deg) translateZ(26px)","rotateX(90deg) translateZ(26px)","rotateX(-90deg) translateZ(26px)","rotateY(-90deg) translateZ(26px)","rotateY(180deg) translateZ(26px)"];
+  d.innerHTML=`<div class="c">${T.map((t,i)=>`<i class="f" style="transform:${t}">${Array.from({length:9},(_,k)=>`<s${PIP[i+1].includes(k)?' class="p"':""}></s>`).join("")}</i>`).join("")}</div>`}
+ const c=d.firstChild;if(L.rolling){c.style.transform="";c.classList.add("tm")}else{c.classList.remove("tm");c.style.transform=ROT[L.dice||L.last||1]}
+ d.style.opacity=isH()&&!L.dice&&!L.rolling&&!L.winner?1:.65}
+function updL(){if(!L||!$("ldBan"))return;const pl=cur(),ban=$("ldBan");ban.style.setProperty("--tb",LC[pl.color].c);ban.lastElementChild.textContent=L.winner?L.msg:pl.name+"'s turn";
+ $("ldM").textContent=L.msg;$("ldH").textContent=isH()&&!L.winner?(L.dice?"Tap a glowing token":"Tap the dice to roll"):"";
+ $("ldP").innerHTML=L.players.map((p,i)=>`<div class="lp ${i===L.turn?"on":""}" style="--gc:${LC[p.color].c}"><em></em><div><b>${esc(p.name)}</b><div class="pw" style="text-align:left">${p.tokens.filter(x=>x===FIN).length}/4 home</div></div></div>`).join("");dice3d()}
+
+/* UNO (vs robots; +2/+4 stack; UNO is announced automatically) */
+let U=null;const UC=["#ef5368","#3fc984","#ffc93c","#4a9dff","#2b3350"];
+function unoMenu(){openModal(`<h3>🃏 UNO</h3><p class="sub">Play against robots.</p><div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="startUno(${n})">🤖 ×${n}</button>`).join("")}</div><p class="pw" style="margin-top:14px">Online UNO is coming in the next update.</p>`)}
+function hostUno(){toast("Online UNO is coming next")}function uOpen(){hostUno()}
+function mkDeck(){const d=[];for(let c=0;c<4;c++){for(let v=0;v<=9;v++)for(let k=0;k<(v?2:1);k++)d.push({c,v:""+v});["S","R","+2"].forEach(v=>{d.push({c,v});d.push({c,v})})}for(let k=0;k<4;k++){d.push({c:4,v:"W"});d.push({c:4,v:"+4"})}for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
+function startUno(n){closeModal();minCall(true);S.page="uno";const N=n+1;U={n:N,h:Array.from({length:N},()=>[]),dk:mkDeck(),pl:[],t:0,d:1,col:0,pen:0,pt:null,drew:false,busy:false,over:null,fly:0,msg:"Your turn",names:["You","Robot","Robot 2","Robot 3"]};
+ for(let k=0;k<7;k++)U.h.forEach(h=>h.push(U.dk.pop()));let c;do{c=U.dk.pop();if(!/^\d$/.test(c.v))U.dk.unshift(c)}while(!/^\d$/.test(c.v));U.pl.push(c);U.col=c.c;drawU()}
+const topU=()=>U.pl[U.pl.length-1],okc=c=>U.pen?c.v===U.pt:(c.c===4||c.c===U.col||c.v===topU().v),nx=(f=1)=>(U.t+U.d*f+U.n*4)%U.n;
+function dr(p,k){const h=U.h[p];while(k--){if(!U.dk.length){const t=U.pl.pop();U.dk=U.pl.splice(0).sort(()=>Math.random()-.5);U.pl.push(t);if(!U.dk.length)return}h.push(U.dk.pop())}}
+function settle(){const p=U.t;if(U.pen&&!U.h[p].some(okc)){dr(p,U.pen);toast(U.names[p]+" draws "+U.pen);U.pen=0;U.pt=null;U.t=nx(1)}U.drew=false;U.msg=U.t===0?"Your turn":U.names[U.t]+"'s turn"}
+function bestCol(h){const n=[0,0,0,0];h.forEach(c=>c.c<4&&n[c.c]++);return n.indexOf(Math.max(...n))}
+function pickCol(i){openModal(`<h3>Pick a colour</h3><div class="grid" style="margin-top:12px">${UC.slice(0,4).map((c,k)=>`<button class="btn" style="height:64px;background:${c}" onclick="closeModal();playU(0,${i},${k})"></button>`).join("")}</div>`)}
+function playU(p,i,col){if(!U||U.busy||U.over||U.t!==p)return;const h=U.h[p],c=h[i];if(!c||!okc(c))return;
+ if(c.c===4&&col===undefined){if(p===0)return pickCol(i);col=bestCol(h)}
+ h.splice(i,1);U.pl.push(c);U.col=c.c<4?c.c:col;U.drew=false;U.fly=1;sfx("move");let sk=1;
+ if(c.v==="S")sk=2;else if(c.v==="R"){U.d*=-1;if(U.n===2)sk=2}else if(c.v==="+2"||c.v==="+4"){U.pen+=+c.v;U.pt=c.v}
+ if(!h.length){U.over=U.names[p];U.msg=U.names[p]+" won! 🏆";if(p===0){incWin("uno");sfx("win");for(let k=0;k<8;k++)setTimeout(()=>floatEmo("🎉"),k*150)}else sfx("lose");return drawU()}
+ if(h.length===1){toast("UNO! "+U.names[p]);tone(880,.2)}
+ U.t=nx(sk);settle();drawU();nextU()}
+function takeU(){if(!U||U.over||U.t!==0||U.busy)return;
+ if(U.pen){dr(0,U.pen);U.pen=0;U.pt=null;U.t=nx(1)}else if(U.drew){U.t=nx(1)}else{dr(0,1);const c=U.h[0][U.h[0].length-1];if(okc(c)){U.drew=true;U.msg="Play it, or tap the deck to pass";sfx("tap");return drawU()}U.t=nx(1)}
+ settle();drawU();nextU()}
+function nextU(){const u=U;if(!u||u.over||u.t===0)return;u.busy=true;setTimeout(()=>{if(U!==u||u.over)return;u.busy=false;const p=u.t,h=u.h[p],ix=[];h.forEach((c,i)=>okc(c)&&ix.push(i));
+ if(ix.length){ix.sort((a,b)=>(h[a].c===4)-(h[b].c===4));return playU(p,ix[0])}
+ dr(p,1);if(okc(h[h.length-1]))return playU(p,h.length-1);u.t=nx(1);settle();drawU();nextU()},1000)}
+function drawU(){if(!U||S.page!=="uno")return;const t=topU(),cd=(c,cls,oc)=>`<button class="uc ${cls}" style="--c:${UC[c.c]}" ${oc||""}><b>${c.v==="S"?"⦸":c.v==="R"?"⇄":c.v==="W"?"★":c.v}</b></button>`,fly=U.fly?" fly":"";U.fly=0;
+ $("main").innerHTML=`<section class="pg"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn" onclick="go('games')">‹ Games</button><span style="flex:1"></span><button class="btn" onclick="startUno(U.n-1)">↻ Restart</button></div>
+ <div id="ldBan" style="--tb:${UC[U.col]}"><i></i><span>${esc(U.msg)}</span></div><div class="card" style="padding:14px;position:relative">
+ <div class="grid" style="grid-template-columns:repeat(${U.n-1},1fr)">${U.h.slice(1).map((h,i)=>`<div class="lp ${U.t===i+1?"on":""}" style="--gc:#8e9cff"><em></em><div><b>${U.names[i+1]}</b><div class="pw" style="text-align:left">${h.length} cards</div></div></div>`).join("")}</div>
+ <div style="display:flex;justify-content:center;gap:22px;align-items:center;margin:22px 0 10px"><button class="uc back" onclick="takeU()"><b>UNO</b></button>${cd(t,"pile"+fly)}</div>
+ <div class="uh">${U.h[0].map((c,i)=>cd(c,U.t===0&&!U.busy&&!U.over&&okc(c)?"ok":"",`onclick="playU(0,${i})"`)).join("")}</div>
+ ${U.over?`<div class="wo"><div>🏆<br>${esc(U.over)} won!<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:220px"><button class="btn pri" onclick="startUno(U.n-1)">🔁 Play again</button><button class="btn" onclick="go('games')">Games</button></div></div></div>`:""}</div></div></section>`}
+
+/* boot */
+(async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
+
 </script></body></html>
