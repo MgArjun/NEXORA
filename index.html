@@ -21136,5 +21136,355 @@ async function nxFinalHostRoll(){
 
 })();
 </script>
+<style>
+/* =========================================================
+   NEXORA PREMIUM 3D ICON
+   3D LOOK • NO ROTATION • SLIGHT SHAKE ONLY
+   ========================================================= */
+
+.quick-icon{
+  position:relative!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  width:58px!important;
+  height:58px!important;
+
+  font-size:32px!important;
+  line-height:1!important;
+
+  /* premium 3D depth */
+  filter:
+    drop-shadow(0 7px 7px rgba(0,0,0,.42))
+    drop-shadow(0 1px 0 rgba(255,255,255,.22))!important;
+
+  transform:
+    translate3d(0,0,0)
+    scale(1)!important;
+
+  transform-style:preserve-3d!important;
+  perspective:600px!important;
+
+  animation:
+    nxPremiumShake 3.8s ease-in-out infinite!important;
+
+  will-change:transform!important;
+}
+
+
+/* Soft 3D glass/base behind icon */
+.quick-icon::before{
+  content:""!important;
+
+  position:absolute!important;
+  inset:3px!important;
+
+  border-radius:18px!important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.20),
+      rgba(255,255,255,.06) 42%,
+      rgba(70,80,150,.16)
+    )!important;
+
+  border:
+    1px solid rgba(255,255,255,.18)!important;
+
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,.16),
+    inset 0 -5px 8px rgba(0,0,0,.20),
+    0 8px 16px rgba(0,0,0,.22)!important;
+
+  z-index:-1!important;
+
+  transform:none!important;
+}
+
+
+/* Tiny highlight = 3D shine */
+.quick-icon::after{
+  content:""!important;
+
+  position:absolute!important;
+  top:7px!important;
+  left:11px!important;
+
+  width:25px!important;
+  height:10px!important;
+
+  border-radius:50%!important;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.28),
+      rgba(255,255,255,0)
+    )!important;
+
+  filter:blur(1px)!important;
+
+  pointer-events:none!important;
+
+  transform:none!important;
+}
+
+
+/* =========================================================
+   VERY SMALL SHAKE
+   NO ROTATION
+   ========================================================= */
+
+@keyframes nxPremiumShake{
+
+  0%,72%,100%{
+    transform:
+      translate3d(0,0,0)
+      scale(1);
+  }
+
+  75%{
+    transform:
+      translate3d(-1.5px,-1px,0)
+      scale(1.015);
+  }
+
+  78%{
+    transform:
+      translate3d(1.5px,0,0)
+      scale(1.02);
+  }
+
+  81%{
+    transform:
+      translate3d(-1px,1px,0)
+      scale(1.015);
+  }
+
+  84%{
+    transform:
+      translate3d(1px,0,0)
+      scale(1.01);
+  }
+
+  87%{
+    transform:
+      translate3d(0,0,0)
+      scale(1);
+  }
+}
+
+
+/* Hover = no rotation */
+.quick-card:hover .quick-icon{
+  transform:
+    translate3d(0,-2px,0)
+    scale(1.03)!important;
+}
+
+
+/* Tap */
+.quick-card:active .quick-icon{
+  transform:
+    translate3d(0,1px,0)
+    scale(.97)!important;
+}
+
+
+/* IMPORTANT: card itself NEVER rotates */
+.quick-card,
+.quick-card:hover,
+.quick-card:active{
+  transform:none!important;
+  perspective:none!important;
+  rotate:none!important;
+}
+</style>
+
+<script>
+/* Remove old inline transforms from quick icons */
+(function(){
+
+  function cleanIcons(){
+
+    document
+      .querySelectorAll(".quick-icon")
+      .forEach(icon=>{
+
+        icon.style.rotate="none";
+        icon.style.perspective="600px";
+
+      });
+
+    document
+      .querySelectorAll(".quick-card")
+      .forEach(card=>{
+
+        card.style.rotate="none";
+        card.style.transform="none";
+
+      });
+
+  }
+
+  cleanIcons();
+
+  new MutationObserver(cleanIcons)
+    .observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+})();
+</script>
+<style>
+/* ===== LUDO DICE TAP FIX ===== */
+
+#ludoDice{
+  position:relative!important;
+  z-index:9999!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+  cursor:pointer!important;
+}
+
+#ludoDice .cube{
+  pointer-events:none!important;
+}
+
+#ludoDice .face{
+  pointer-events:none!important;
+}
+
+/* Ready dice clearly tappable */
+#ludoDice.ready{
+  pointer-events:auto!important;
+  opacity:1!important;
+}
+
+/* OFF state ko click-blocker mat banao */
+#ludoDice.off{
+  pointer-events:auto!important;
+}
+
+/* Kisi invisible overlay ko dice ke upar click capture nahi karne dena */
+.ludo-bar{
+  position:relative!important;
+  z-index:50!important;
+}
+</style>
+
+<script>
+(function(){
+
+  function nxFixDice(){
+
+    const d=document.getElementById("ludoDice");
+
+    if(!d || d.dataset.nxDiceFixed==="1") return;
+
+    d.dataset.nxDiceFixed="1";
+
+    /*
+      Existing inline onclick:
+      rollLudoDice()
+
+      ko preserve karte hue touch/click ko
+      directly function tak bhejenge.
+    */
+
+    const fire=e=>{
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if(
+        typeof window.rollLudoDice===
+        "function"
+      ){
+
+        window.rollLudoDice();
+
+      }
+
+    };
+
+    d.addEventListener(
+      "pointerup",
+      fire,
+      true
+    );
+
+    d.addEventListener(
+      "touchend",
+      fire,
+      {
+        passive:false,
+        capture:true
+      }
+    );
+
+  }
+
+
+  nxFixDice();
+
+
+  /*
+    renderLudo() game ke andar dice button
+    dobara banata hai, isliye observer.
+  */
+
+  const obs=
+    new MutationObserver(()=>{
+
+      if(
+        document.getElementById("ludoDice")
+      ){
+
+        nxFixDice();
+
+      }
+
+    });
+
+
+  obs.observe(
+    document.body,
+    {
+      childList:true,
+      subtree:true
+    }
+  );
+
+
+  /*
+    Final safety:
+    jab Ludo screen open ho,
+    dice button ko click-able rakho.
+  */
+
+  setInterval(()=>{
+
+    const d=
+      document.getElementById("ludoDice");
+
+    if(!d)return;
+
+    d.style.pointerEvents="auto";
+
+    d.style.touchAction="manipulation";
+
+  },1000);
+
+
+})();
+</script>
 
  
