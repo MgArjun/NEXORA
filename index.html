@@ -10098,6 +10098,1224 @@ window.NEXORA_TRUE_3D={
 })();
 
 </script>
+<!-- =========================================================
+ NEXORA TRUE 3D GAME OBJECTS — FINAL
+ REAL GEOMETRY → FACES → DEPTH → CAMERA → ROTATION
+ APPEND ONLY
+========================================================= -->
+
+<style id="NEXORA_TRUE_3D_FINAL">
+
+/* =========================================================
+   3D CAMERA
+========================================================= */
+
+.nx3d-camera{
+  width:82px !important;
+  height:82px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  position:relative !important;
+
+  perspective:900px !important;
+  perspective-origin:50% 50% !important;
+
+  overflow:visible !important;
+
+  flex:0 0 82px !important;
+}
+
+
+/* =========================================================
+   3D OBJECT ROOT
+
+   IMPORTANT:
+   Camera does NOT rotate.
+   Actual object rotates inside camera.
+========================================================= */
+
+.nx3d-rotor{
+  position:relative;
+
+  transform-style:preserve-3d;
+
+  will-change:transform;
+
+  animation:
+    NX3D_ROTATE 8s linear infinite;
+
+  transform:
+    rotateX(-12deg)
+    rotateY(25deg);
+
+}
+
+
+/* =========================================================
+   FLOOR SHADOW
+========================================================= */
+
+.nx3d-shadow{
+  position:absolute;
+
+  width:58px;
+  height:14px;
+
+  left:50%;
+  top:72px;
+
+  transform:
+    translateX(-50%)
+    rotateX(72deg);
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(0,0,0,.55),
+      rgba(0,0,0,0) 72%
+    );
+
+  filter:blur(4px);
+
+  pointer-events:none;
+}
+
+
+/* =========================================================
+   REAL 3D DICE
+========================================================= */
+
+.nx3d-dice{
+  width:58px;
+  height:58px;
+
+  position:relative;
+
+  transform-style:preserve-3d;
+
+  animation:NX_DICE_TILT 4s ease-in-out infinite;
+}
+
+
+/* Every face is REAL separate face */
+
+.nx3d-dice-face{
+
+  position:absolute;
+
+  width:58px;
+  height:58px;
+
+  left:0;
+  top:0;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  grid-template-rows:
+    repeat(3,1fr);
+
+  padding:8px;
+
+  box-sizing:border-box;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #eeeeee 42%,
+      #c9c9c9 100%
+    );
+
+  border:
+    1px solid rgba(0,0,0,.20);
+
+  box-shadow:
+    inset 3px 3px 6px rgba(255,255,255,.95),
+    inset -5px -6px 10px rgba(0,0,0,.22);
+
+  backface-visibility:hidden;
+
+  transform-style:preserve-3d;
+}
+
+
+/* SIX ACTUAL CUBE SIDES */
+
+.nx3d-dice-front{
+  transform:translateZ(29px);
+}
+
+.nx3d-dice-back{
+  transform:
+    rotateY(180deg)
+    translateZ(29px);
+}
+
+.nx3d-dice-right{
+  transform:
+    rotateY(90deg)
+    translateZ(29px);
+}
+
+.nx3d-dice-left{
+  transform:
+    rotateY(-90deg)
+    translateZ(29px);
+}
+
+.nx3d-dice-top{
+  transform:
+    rotateX(90deg)
+    translateZ(29px);
+}
+
+.nx3d-dice-bottom{
+  transform:
+    rotateX(-90deg)
+    translateZ(29px);
+}
+
+
+/* DICE DOT */
+
+.nx3d-dot{
+
+  width:9px;
+  height:9px;
+
+  align-self:center;
+  justify-self:center;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #555,
+      #111 65%
+    );
+
+  box-shadow:
+    inset 1px 1px 2px rgba(255,255,255,.20),
+    0 1px 2px rgba(0,0,0,.40);
+
+}
+
+
+/* =========================================================
+   DICE INNER HIGHLIGHT
+========================================================= */
+
+.nx3d-dice::after{
+
+  content:"";
+
+  position:absolute;
+
+  width:42px;
+  height:42px;
+
+  left:8px;
+  top:8px;
+
+  border-radius:11px;
+
+  border-top:
+    2px solid rgba(255,255,255,.38);
+
+  transform:
+    translateZ(31px);
+
+  pointer-events:none;
+
+}
+
+
+/* =========================================================
+   REAL 3D UNO CARD
+========================================================= */
+
+.nx3d-uno{
+
+  width:48px;
+  height:66px;
+
+  position:relative;
+
+  transform-style:preserve-3d;
+
+}
+
+
+/* FRONT FACE */
+
+.nx3d-uno-front{
+
+  position:absolute;
+
+  inset:0;
+
+  border-radius:9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff5966 0%,
+      #e11a35 48%,
+      #95091d 100%
+    );
+
+  border:
+    2px solid rgba(255,255,255,.58);
+
+  box-shadow:
+    inset 4px 4px 7px rgba(255,255,255,.28),
+    inset -5px -7px 10px rgba(0,0,0,.28);
+
+  transform:
+    translateZ(4px);
+
+  backface-visibility:hidden;
+}
+
+
+/* UNO white center */
+
+.nx3d-uno-front::before{
+
+  content:"UNO";
+
+  position:absolute;
+
+  left:5px;
+  top:17px;
+
+  width:34px;
+  height:28px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #ddd
+    );
+
+  color:#d61732;
+
+  font-size:11px;
+
+  font-weight:1000;
+
+  letter-spacing:-.5px;
+
+  transform:
+    rotate(-17deg)
+    translateZ(5px);
+
+  box-shadow:
+    0 3px 5px rgba(0,0,0,.35);
+}
+
+
+/* BACK */
+
+.nx3d-uno-back{
+
+  position:absolute;
+
+  inset:0;
+
+  border-radius:9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e72b43,
+      #92091d
+    );
+
+  border:
+    2px solid rgba(255,255,255,.45);
+
+  transform:
+    rotateY(180deg)
+    translateZ(4px);
+
+  backface-visibility:hidden;
+
+}
+
+
+/* BACK DESIGN */
+
+.nx3d-uno-back::after{
+
+  content:"";
+
+  position:absolute;
+
+  left:7px;
+  top:17px;
+
+  width:30px;
+  height:28px;
+
+  border-radius:50%;
+
+  border:
+    2px solid rgba(255,255,255,.55);
+
+  transform:
+    rotate(-17deg);
+
+}
+
+
+/* =========================================================
+   REAL CARD THICKNESS
+========================================================= */
+
+.nx3d-uno-side{
+
+  position:absolute;
+
+  background:
+    linear-gradient(
+      180deg,
+      #b20d24,
+      #720714
+    );
+
+}
+
+
+/* right thickness */
+
+.nx3d-uno-right{
+
+  width:8px;
+  height:66px;
+
+  right:-4px;
+  top:0;
+
+  transform:
+    rotateY(90deg)
+    translateZ(4px);
+
+}
+
+
+/* top thickness */
+
+.nx3d-uno-top{
+
+  width:48px;
+  height:8px;
+
+  top:-4px;
+  left:0;
+
+  transform:
+    rotateX(90deg)
+    translateZ(4px);
+
+}
+
+
+/* =========================================================
+   REAL 3D TIC TAC TOE X
+========================================================= */
+
+.nx3d-x{
+
+  width:62px;
+  height:62px;
+
+  position:relative;
+
+  transform-style:preserve-3d;
+
+}
+
+
+/* two physical bars */
+
+.nx3d-x-bar{
+
+  position:absolute;
+
+  width:15px;
+  height:65px;
+
+  left:23px;
+  top:-1px;
+
+  border-radius:7px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #760610 0%,
+      #ff1b2d 35%,
+      #d2081a 68%,
+      #65040c 100%
+    );
+
+  box-shadow:
+    inset 3px 0 4px rgba(255,255,255,.28),
+    inset -4px 0 6px rgba(0,0,0,.40);
+
+  transform-style:preserve-3d;
+
+}
+
+
+/* actual crossing */
+
+.nx3d-x-one{
+
+  transform:
+    rotate(45deg)
+    translateZ(6px);
+
+}
+
+.nx3d-x-two{
+
+  transform:
+    rotate(-45deg)
+    translateZ(6px);
+
+}
+
+
+/* extruded dark layer behind */
+
+.nx3d-x-bar::after{
+
+  content:"";
+
+  position:absolute;
+
+  width:15px;
+  height:65px;
+
+  left:4px;
+  top:4px;
+
+  border-radius:7px;
+
+  background:
+    #68030b;
+
+  transform:
+    translateZ(-6px);
+
+}
+
+
+/* =========================================================
+   REAL OBJECT ROTATION
+========================================================= */
+
+@keyframes NX3D_ROTATE{
+
+  0%{
+
+    transform:
+      rotateX(-12deg)
+      rotateY(0deg)
+      rotateZ(0deg);
+
+  }
+
+  25%{
+
+    transform:
+      rotateX(8deg)
+      rotateY(90deg)
+      rotateZ(4deg);
+
+  }
+
+  50%{
+
+    transform:
+      rotateX(-10deg)
+      rotateY(180deg)
+      rotateZ(-3deg);
+
+  }
+
+  75%{
+
+    transform:
+      rotateX(9deg)
+      rotateY(270deg)
+      rotateZ(4deg);
+
+  }
+
+  100%{
+
+    transform:
+      rotateX(-12deg)
+      rotateY(360deg)
+      rotateZ(0deg);
+
+  }
+
+}
+
+
+/* =========================================================
+   SECONDARY 3D MOVEMENT
+========================================================= */
+
+@keyframes NX_DICE_TILT{
+
+  0%,100%{
+
+    transform:
+      translateZ(0)
+      rotateX(0deg)
+      rotateY(0deg);
+
+  }
+
+  50%{
+
+    transform:
+      translateZ(7px)
+      rotateX(4deg)
+      rotateY(-5deg);
+
+  }
+
+}
+
+
+/* =========================================================
+   CARD / X DEPTH LIGHT
+========================================================= */
+
+.nx3d-uno,
+.nx3d-x{
+
+  filter:
+    drop-shadow(0 15px 10px rgba(0,0,0,.48))
+    drop-shadow(0 0 18px rgba(120,105,255,.30));
+
+}
+
+
+/* =========================================================
+   CARD HOVER
+========================================================= */
+
+.quick-card:hover .nx3d-rotor{
+
+  animation-duration:3s;
+
+  filter:
+    drop-shadow(0 20px 13px rgba(0,0,0,.55))
+    drop-shadow(0 0 25px rgba(120,105,255,.48));
+
+}
+
+
+/* =========================================================
+   TOUCH
+========================================================= */
+
+.quick-card:active .nx3d-rotor{
+
+  transform:
+    translateZ(-10px)
+    scale(.90);
+
+}
+
+
+/* =========================================================
+   QUICK MATCH HEADER
+   EXACTLY THE DIV GENERATED BY renderGames()
+========================================================= */
+
+.nx-quick-match-heading{
+
+  display:none !important;
+
+}
+
+</style>
+
+
+<script id="NEXORA_TRUE_3D_SCRIPT">
+
+(function(){
+
+"use strict";
+
+
+/* =========================================================
+   QUICK MATCH HEADER
+   renderGames() exact structure:
+
+   <div style="font-weight:850...">
+      ⚡ Quick Match
+      <span>...</span>
+   </div>
+
+   ONLY THIS HEADER HIDE
+========================================================= */
+
+function hideQuickMatchHeader(){
+
+  const main=document.querySelector("main");
+
+  if(!main)return;
+
+  main.querySelectorAll("div").forEach(el=>{
+
+    if(el.dataset.nxQuickHeading==="1")return;
+
+    const text=(el.textContent||"")
+      .replace(/\s+/g," ")
+      .trim();
+
+    if(
+      text.startsWith("⚡ Quick Match") &&
+      el.querySelector("span")
+    ){
+
+      /*
+        Make absolutely sure this isn't
+        a game card.
+      */
+
+      if(
+        !el.classList.contains("card") &&
+        !el.classList.contains("quick-card")
+      ){
+
+        el.classList.add(
+          "nx-quick-match-heading"
+        );
+
+        el.dataset.nxQuickHeading="1";
+
+      }
+
+    }
+
+  });
+
+}
+
+
+/* =========================================================
+   CREATE DOT
+========================================================= */
+
+function dot(){
+
+  const d=document.createElement("i");
+
+  d.className="nx3d-dot";
+
+  return d;
+
+}
+
+
+/* =========================================================
+   CREATE ONE DICE FACE
+========================================================= */
+
+function diceFace(name,number){
+
+  const f=document.createElement("div");
+
+  f.className=
+    "nx3d-dice-face nx3d-dice-"+name;
+
+
+  /*
+    3×3 positions
+
+    1 2 3
+    4 5 6
+    7 8 9
+  */
+
+  const map={
+
+    1:[5],
+
+    2:[1,9],
+
+    3:[1,5,9],
+
+    4:[1,3,7,9],
+
+    5:[1,3,5,7,9],
+
+    6:[1,2,3,7,8,9]
+
+  };
+
+
+  (map[number]||[5]).forEach(pos=>{
+
+    const d=dot();
+
+    const row=Math.floor((pos-1)/3)+1;
+
+    const col=((pos-1)%3)+1;
+
+    d.style.gridRow=row;
+
+    d.style.gridColumn=col;
+
+    f.appendChild(d);
+
+  });
+
+
+  return f;
+
+}
+
+
+/* =========================================================
+   CREATE REAL DICE
+========================================================= */
+
+function createRealDice(){
+
+  const camera=document.createElement("div");
+
+  camera.className="nx3d-camera";
+
+
+  const rotor=document.createElement("div");
+
+  rotor.className="nx3d-rotor";
+
+
+  const dice=document.createElement("div");
+
+  dice.className="nx3d-dice";
+
+
+  dice.appendChild(
+    diceFace("front",1)
+  );
+
+  dice.appendChild(
+    diceFace("back",6)
+  );
+
+  dice.appendChild(
+    diceFace("right",3)
+  );
+
+  dice.appendChild(
+    diceFace("left",4)
+  );
+
+  dice.appendChild(
+    diceFace("top",2)
+  );
+
+  dice.appendChild(
+    diceFace("bottom",5)
+  );
+
+
+  rotor.appendChild(dice);
+
+
+  const shadow=document.createElement("div");
+
+  shadow.className="nx3d-shadow";
+
+
+  camera.appendChild(shadow);
+
+  camera.appendChild(rotor);
+
+
+  return camera;
+
+}
+
+
+/* =========================================================
+   CREATE REAL UNO
+========================================================= */
+
+function createRealUNO(){
+
+  const camera=document.createElement("div");
+
+  camera.className="nx3d-camera";
+
+
+  const rotor=document.createElement("div");
+
+  rotor.className="nx3d-rotor";
+
+
+  const card=document.createElement("div");
+
+  card.className="nx3d-uno";
+
+
+  const front=document.createElement("div");
+
+  front.className="nx3d-uno-front";
+
+
+  const back=document.createElement("div");
+
+  back.className="nx3d-uno-back";
+
+
+  const right=document.createElement("div");
+
+  right.className=
+    "nx3d-uno-side nx3d-uno-right";
+
+
+  const top=document.createElement("div");
+
+  top.className=
+    "nx3d-uno-side nx3d-uno-top";
+
+
+  card.appendChild(front);
+
+  card.appendChild(back);
+
+  card.appendChild(right);
+
+  card.appendChild(top);
+
+
+  rotor.appendChild(card);
+
+
+  const shadow=document.createElement("div");
+
+  shadow.className="nx3d-shadow";
+
+
+  camera.appendChild(shadow);
+
+  camera.appendChild(rotor);
+
+
+  return camera;
+
+}
+
+
+/* =========================================================
+   CREATE REAL 3D X
+========================================================= */
+
+function createRealX(){
+
+  const camera=document.createElement("div");
+
+  camera.className="nx3d-camera";
+
+
+  const rotor=document.createElement("div");
+
+  rotor.className="nx3d-rotor";
+
+
+  const x=document.createElement("div");
+
+  x.className="nx3d-x";
+
+
+  const one=document.createElement("div");
+
+  one.className=
+    "nx3d-x-bar nx3d-x-one";
+
+
+  const two=document.createElement("div");
+
+  two.className=
+    "nx3d-x-bar nx3d-x-two";
+
+
+  x.appendChild(one);
+
+  x.appendChild(two);
+
+
+  rotor.appendChild(x);
+
+
+  const shadow=document.createElement("div");
+
+  shadow.className="nx3d-shadow";
+
+
+  camera.appendChild(shadow);
+
+  camera.appendChild(rotor);
+
+
+  return camera;
+
+}
+
+
+/* =========================================================
+   REPLACE CURRENT ICON
+========================================================= */
+
+function buildGame3D(){
+
+  document
+    .querySelectorAll(".quick-card")
+    .forEach(card=>{
+
+      /*
+        Remove anything created by previous patches.
+      */
+
+      const old3d=
+        card.querySelector(
+          ".nx-real3d, .nx3d-camera"
+        );
+
+
+      const oldIcon=
+        card.querySelector(".quick-icon");
+
+
+      let text="";
+
+
+      if(oldIcon){
+
+        text=
+          (oldIcon.textContent||"")
+          .trim();
+
+      }
+      else if(old3d){
+
+        /*
+          Previous patch may already have replaced
+          the emoji. Determine from card title.
+        */
+
+        text=
+          (card.textContent||"")
+          .trim()
+          .toLowerCase();
+
+      }
+
+
+      let object=null;
+
+
+      /* ---------- LUDO ---------- */
+
+      if(
+        text.includes("🎲") ||
+        text.includes("ludo")
+      ){
+
+        object=createRealDice();
+
+      }
+
+
+      /* ---------- UNO ---------- */
+
+      else if(
+        text.includes("🃏") ||
+        text.includes("uno")
+      ){
+
+        object=createRealUNO();
+
+      }
+
+
+      /* ---------- TIC TAC TOE ---------- */
+
+      else if(
+        text.includes("❌") ||
+        text.includes("✕") ||
+        text.toLowerCase().includes("tic-tac-toe")
+      ){
+
+        object=createRealX();
+
+      }
+
+
+      if(!object)return;
+
+
+      /*
+        IMPORTANT:
+        Existing old icon OR old 3D object is replaced.
+      */
+
+      if(oldIcon){
+
+        oldIcon.replaceWith(object);
+
+      }
+      else if(old3d){
+
+        old3d.replaceWith(object);
+
+      }
+
+
+      card.dataset.nxTrueGeometry="1";
+
+    });
+
+}
+
+
+/* =========================================================
+   RUN
+========================================================= */
+
+function NX_TRUE_3D_RUN(){
+
+  hideQuickMatchHeader();
+
+  buildGame3D();
+
+}
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+NX_TRUE_3D_RUN();
+
+setTimeout(NX_TRUE_3D_RUN,100);
+
+setTimeout(NX_TRUE_3D_RUN,300);
+
+setTimeout(NX_TRUE_3D_RUN,700);
+
+setTimeout(NX_TRUE_3D_RUN,1200);
+
+setTimeout(NX_TRUE_3D_RUN,2000);
+
+
+/* =========================================================
+   NEW GAME PAGE RENDER
+========================================================= */
+
+new MutationObserver(()=>{
+
+  NX_TRUE_3D_RUN();
+
+}).observe(
+  document.body,
+  {
+    childList:true,
+    subtree:true
+  }
+);
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+if(typeof window.setPage==="function"){
+
+  const oldSetPage=
+    window.setPage;
+
+  window.setPage=function(){
+
+    const result=
+      oldSetPage.apply(
+        this,
+        arguments
+      );
+
+    setTimeout(
+      NX_TRUE_3D_RUN,
+      40
+    );
+
+    setTimeout(
+      NX_TRUE_3D_RUN,
+      300
+    );
+
+    setTimeout(
+      NX_TRUE_3D_RUN,
+      800
+    );
+
+    return result;
+
+  };
+
+}
+
+
+/* =========================================================
+   MANUAL REFRESH
+========================================================= */
+
+window.NEXORA_TRUE_3D_FINAL={
+
+  refresh:NX_TRUE_3D_RUN
+
+};
+
+
+})();
+
+</script>
+
+<!-- =========================================================
+ END TRUE 3D
+========================================================= -->
 
 <!-- =========================================================
  END — NEXORA REAL 3D GAME PATCH
