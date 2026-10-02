@@ -20438,5 +20438,703 @@ async function nxFinalHostRoll(){
 
     return;
   }
+  <style>
+/* =========================================================
+   NEXORA FINAL VISUAL FIX
+   2D icons only + very subtle shake. NO rotation / NO 3D.
+   ========================================================= */
+
+.quick-card,
+.quick-card:hover,
+.quick-card:active,
+.quick-card:focus{
+  transform:none!important;
+  transform-style:flat!important;
+  perspective:none!important;
+  animation:none!important;
+  will-change:auto!important;
+}
+
+.quick-icon,
+.quick-card .quick-icon,
+.quick-card:hover .quick-icon,
+.quick-card:active .quick-icon{
+  transform:none!important;
+  transform-style:flat!important;
+  perspective:none!important;
+  filter:none!important;
+  transition:none!important;
+  animation:nxCleanShake 3.2s ease-in-out infinite!important;
+}
+
+.quick-icon::before,
+.quick-icon::after,
+.quick-card::before,
+.quick-card::after{
+  display:none!important;
+  content:none!important;
+  transform:none!important;
+  animation:none!important;
+}
+
+@keyframes nxCleanShake{
+  0%,78%,100%{
+    transform:translate3d(0,0,0) scale(1)
+  }
+
+  80%{
+    transform:translate3d(-2px,0,0) scale(1.01)
+  }
+
+  82%{
+    transform:translate3d(2px,0,0) scale(1.01)
+  }
+
+  84%{
+    transform:translate3d(-1.5px,0,0) scale(1.005)
+  }
+
+  86%{
+    transform:translate3d(1.5px,0,0) scale(1.005)
+  }
+
+  88%{
+    transform:translate3d(0,0,0) scale(1)
+  }
+}
+</style>
+
+<script>
+(function(){
+
+  /* Old pointer-tilt ko override */
+  document.addEventListener("pointermove",function(e){
+
+    const c=e.target?.closest?.(".quick-card");
+
+    if(c){
+      c.style.transform="none";
+    }
+
+  },false);
+
+
+  document.addEventListener("pointerout",function(e){
+
+    const c=e.target?.closest?.(".quick-card");
+
+    if(
+      c &&
+      !c.contains(e.relatedTarget)
+    ){
+      c.style.transform="none";
+    }
+
+  },false);
+
+
+  /* =========================================================
+     LUDO REMATCH FIX
+     ========================================================= */
+
+  const prevMsg=window.onLudoMsg;
+
+  let remReq={};
+  let remBusy=false;
+  let remNonce=0;
+
+
+  function roomHumans(){
+
+    const L=window.LUDO;
+
+    const src=(window.LB||[]).filter(Boolean);
+
+    if(src.length){
+
+      return src.map(p=>({
+        id:p.id,
+        name:p.name
+      }));
+
+    }
+
+
+    if(L?.nxPlayers?.length){
+
+      return L.nxPlayers
+        .filter(p=>!p.bot)
+        .map(p=>({
+          id:p.id,
+          name:p.name
+        }));
+
+    }
+
+
+    return [];
+  }
+
+
+  function remHostId(){
+
+    const L=window.LUDO;
+
+    return window.LROOM?._nxHostId ||
+      L?.nxHostId ||
+      roomHumans()[0]?.id ||
+      null;
+  }
+
+
+  function remKey(){
+
+    return String(
+      window.LROOM?.code ||
+      "default"
+    );
+
+  }
+
+
+  function clearEndOverlay(){
+
+    document
+      .querySelectorAll(
+        "#nxLudoEnd,.confetti"
+      )
+      .forEach(
+        el=>el.remove()
+      );
+
+  }
+
+
+  function startNormalRematch(){
+
+    const humans=roomHumans();
+
+    if(
+      !humans.length ||
+      !window.LROOM
+    )return;
+
+
+    clearEndOverlay();
+
+
+    const me=
+      humans.findIndex(
+        p=>p.id===NEXORA.user.id
+      );
+
+
+    if(me<0)return;
+
+
+    const names=
+      humans.map(
+        p=>p.name
+      );
+
+
+    try{
+
+      startLudo(
+        "online",
+        names,
+        me
+      );
+
+
+      if(window.LUDO){
+
+        LUDO.seq=0;
+        LUDO.dice=null;
+        LUDO.winner=null;
+        LUDO.busy=false;
+        LUDO.rolling=false;
+        LUDO.sixes=0;
+
+        LUDO.message=
+          LUDO.players[LUDO.turn]?.name+
+          " ki baari";
+
+      }
+
+
+      updateLudo();
+
+    }catch(e){
+
+      console.error(
+        "rematch restart",
+        e
+      );
+
+    }
+
+  }
+
+
+  function startBotRematch(){
+
+    clearEndOverlay();
+
+
+    /*
+      Agar current build mein mixed
+      bot-host restart available hai
+      to wahi use karo.
+    */
+
+    if(
+      typeof window.nxRestartHost==="function" &&
+      window.LUDO?.nxActive &&
+      window.LUDO?.nxHost
+    ){
+
+      try{
+
+        window.nxRestartHost();
+
+        return true;
+
+      }catch(e){
+
+        console.warn(
+          "bot rematch",
+          e
+        );
+
+      }
+
+    }
+
+
+    return false;
+  }
+
+
+  function broadcastRematchStart(){
+
+    if(!window.LROOM)return;
+
+
+    const humans=
+      roomHumans();
+
+
+    if(humans.length<2)return;
+
+
+    const nonce=
+      (
+        Date.now()+
+        "-"+
+        Math.random()
+      ).replace(".","");
+
+
+    remBusy=true;
+    remNonce=nonce;
+
+
+    window.LROOM.send({
+
+      type:"broadcast",
+
+      event:"g",
+
+      payload:{
+
+        t:"nx-rematch-start",
+
+        from:NEXORA.user.id,
+
+        nonce,
+
+        players:humans,
+
+        bots:
+          (window.LUDO?.nxPlayers||[])
+            .filter(p=>p.bot)
+            .map(p=>({
+              id:p.id,
+              name:p.name,
+              bot:true
+            }))
+
+      }
+
+    });
+
+
+    if(
+      !startBotRematch()
+    ){
+
+      startNormalRematch();
+
+    }
+
+
+    setTimeout(
+      ()=>{
+        remBusy=false;
+      },
+      1200
+    );
+
+  }
+
+
+  window.rematch=function(k){
+
+    if(k!=="ludo")return;
+
+
+    const L=window.LUDO;
+
+
+    if(
+      !L ||
+      L.mode!=="online" ||
+      !window.LROOM
+    )return;
+
+
+    const key=
+      remKey();
+
+
+    remReq[key]=
+      remReq[key]||{};
+
+
+    remReq[key][
+      NEXORA.user.id
+    ]=true;
+
+
+    const humans=
+      roomHumans();
+
+
+    const host=
+      remHostId();
+
+
+    const btn=
+      document.getElementById(
+        "rmBtn"
+      );
+
+
+    if(btn){
+
+      btn.textContent=
+        "⏳ Waiting for everyone…";
+
+      btn.disabled=true;
+
+    }
+
+
+    /*
+      Host hi final reset karega.
+    */
+
+    if(
+      host===
+      NEXORA.user.id
+    ){
+
+      const all=
+        humans.every(
+          p=>remReq[key][p.id]
+        );
+
+
+      if(
+        all &&
+        !remBusy
+      ){
+
+        broadcastRematchStart();
+
+      }
+
+    }else{
+
+      window.LROOM.send({
+
+        type:"broadcast",
+
+        event:"g",
+
+        payload:{
+
+          t:"nx-rematch-request",
+
+          from:NEXORA.user.id
+
+        }
+
+      });
+
+    }
+
+  };
+
+
+  window.onLudoMsg=
+    async function(m,host){
+
+      if(
+        m?.from===
+        NEXORA.user?.id
+      )return;
+
+
+      /*
+        Opponent ne rematch press kiya.
+      */
+
+      if(
+        m?.t===
+        "nx-rematch-request"
+      ){
+
+        const key=
+          remKey();
+
+
+        remReq[key]=
+          remReq[key]||{};
+
+
+        remReq[key][m.from]=
+          true;
+
+
+        const humans=
+          roomHumans();
+
+
+        const h=
+          remHostId();
+
+
+        if(
+          h===
+          NEXORA.user.id &&
+          humans.length>=2 &&
+          humans.every(
+            p=>remReq[key][p.id]
+          ) &&
+          !remBusy
+        ){
+
+          broadcastRematchStart();
+
+        }
+
+
+        return;
+      }
+
+
+      /*
+        Host ne fresh rematch start
+        announce kiya.
+      */
+
+      if(
+        m?.t===
+        "nx-rematch-start"
+      ){
+
+        const key=
+          remKey();
+
+
+        if(
+          remNonce===
+          m.nonce
+        )return;
+
+
+        remNonce=
+          m.nonce;
+
+
+        remReq[key]={};
+
+
+        clearEndOverlay();
+
+
+        /*
+          Mixed bot game.
+        */
+
+        if(
+          window.LUDO?.nxActive &&
+          (m.bots||[]).length &&
+          typeof window.nxRestartHost===
+          "function"
+        ){
+
+          try{
+
+            if(
+              window.LUDO.nxHost
+            ){
+
+              window.nxRestartHost();
+
+            }else{
+
+              window.LUDO.winner=null;
+
+              updateLudo();
+
+            }
+
+            return;
+
+          }catch(e){
+
+            console.warn(
+              "bot rematch receive",
+              e
+            );
+
+          }
+
+        }
+
+
+        /*
+          Normal online rematch.
+        */
+
+        const humans=
+          m.players||
+          roomHumans();
+
+
+        const me=
+          humans.findIndex(
+            p=>p.id===
+              NEXORA.user.id
+          );
+
+
+        if(me>=0){
+
+          try{
+
+            startLudo(
+              "online",
+              humans.map(
+                p=>p.name
+              ),
+              me
+            );
+
+
+            LUDO.seq=0;
+            LUDO.winner=null;
+            LUDO.dice=null;
+            LUDO.busy=false;
+            LUDO.rolling=false;
+            LUDO.sixes=0;
+
+
+            updateLudo();
+
+          }catch(e){
+
+            console.error(
+              "rematch receive",
+              e
+            );
+
+          }
+
+        }
+
+
+        return;
+      }
+
+
+      /*
+        Baaki purane Ludo messages
+        old system ko.
+      */
+
+      if(
+        typeof prevMsg===
+        "function"
+      ){
+
+        return prevMsg(
+          m,
+          host
+        );
+
+      }
+
+    };
+
+
+  /*
+    Existing Rematch button ko
+    final handler se bind rakho.
+  */
+
+  const remObserver=
+    new MutationObserver(()=>{
+
+      const b=
+        document.getElementById(
+          "rmBtn"
+        );
+
+
+      if(
+        b &&
+        !b.dataset.nxBound
+      ){
+
+        b.dataset.nxBound="1";
+
+        b.onclick=()=>{
+          window.rematch("ludo");
+        };
+
+      }
+
+    });
+
+
+  remObserver.observe(
+    document.body,
+    {
+      childList:true,
+      subtree:true
+    }
+  );
+
+
+  console.log(
+    "NEXORA: clean 2D icon + reliable Ludo rematch loaded"
+  );
+
+})();
+</script>
 
  
