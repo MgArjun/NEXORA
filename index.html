@@ -1891,3 +1891,423 @@ function renderGames(){
   console.log("%cNEXORA%c  Powered by Suraj Kumar","font:900 20px sans-serif;color:#8e9cff","color:#8e9cff");
 })();
 </script>
+<style>
+#callOverlay:not(.mini){padding:0;background:radial-gradient(circle at 50% 0,#2b3470,transparent 60%),radial-gradient(circle at 85% 100%,#5b2e8a,transparent 55%),#070a14;backdrop-filter:none;align-items:stretch;justify-content:stretch}
+#callOverlay:not(.mini) .call-card{width:100%;max-width:none;height:100%;border-radius:0;border:0;background:transparent;box-shadow:none;animation:none;padding:calc(env(safe-area-inset-top,0px) + 16px) 20px calc(env(safe-area-inset-bottom,0px) + 34px);display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.cTop{align-self:stretch;display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:3px;color:#8e9cff;font-weight:800}
+.cMid{display:flex;flex-direction:column;align-items:center;margin-top:5vh}
+.avw{position:relative;width:170px;height:170px;display:grid;place-items:center;margin-bottom:22px}
+.avw i{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(140,155,255,.6);opacity:0;animation:ripple 2.7s ease-out infinite}
+.avw i:nth-child(2){animation-delay:.9s}.avw i:nth-child(3){animation-delay:1.8s}
+@keyframes ripple{0%{transform:scale(.62);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+#callOverlay:not(.mini) .call-avatar{position:relative;z-index:1;width:120px;height:120px;font-size:42px;margin:0;animation:none;box-shadow:0 0 0 6px rgba(255,255,255,.07),0 20px 56px rgba(104,124,255,.6)}
+#callOverlay:not(.mini) .call-name{font-size:30px;letter-spacing:-.5px}
+#callOverlay:not(.mini) .call-state{margin:8px 0 4px}
+.call-state.dots::after{content:"●●●";font-size:7px;letter-spacing:3px;margin-left:8px;vertical-align:middle;animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{50%{opacity:.2}}
+#callOverlay:not(.connected) .call-timer{opacity:0}
+.eq{display:none;gap:4px;height:28px;align-items:flex-end;margin-top:8px}
+#callOverlay.connected .eq{display:flex}
+.eq i{width:4px;height:100%;border-radius:3px;background:linear-gradient(#8e9cff,#c18cff);transform-origin:bottom;animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.15s}.eq i:nth-child(3){animation-delay:.3s}.eq i:nth-child(4){animation-delay:.45s}.eq i:nth-child(5){animation-delay:.6s}
+@keyframes eq{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+#callOverlay.muted .eq i{animation-play-state:paused;opacity:.3}
+#callOverlay:not(.mini) .call-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;max-width:340px}
+#callOverlay:not(.mini) .call-actions .btn{width:66px;height:66px;min-height:66px;padding:0;border-radius:50%;font-size:25px;display:grid;place-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(10px)}
+#callOverlay:not(.mini) #callEnd,#callOverlay:not(.mini) #callDecline{background:linear-gradient(145deg,#ff5468,#c21f35);border-color:transparent;font-size:0;box-shadow:0 10px 26px rgba(229,56,79,.5)}
+#callOverlay:not(.mini) #callAccept{background:linear-gradient(145deg,#38d98b,#1a9e5f);border-color:transparent;font-size:0;box-shadow:0 10px 26px rgba(40,200,120,.5);animation:ushake 1s ease-in-out infinite}
+#callOverlay:not(.mini) #callEnd::after,#callOverlay:not(.mini) #callDecline::after{content:"📞";font-size:28px;transform:rotate(135deg)}
+#callOverlay:not(.mini) #callAccept::after{content:"📞";font-size:28px}
+#callOverlay:not(.mini) #callMute.danger{background:#fff;color:#000}
+@keyframes ushake{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg)}30%{transform:rotate(12deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(0)}}
+.mini .cTop{display:none}.mini .cMid,.mini .avw{display:contents}.mini .avw i,.mini .eq{display:none!important}
+.mini .call-avatar{width:36px;height:36px;cursor:pointer}
+#topBack{font-size:22px}
+</style>
+
+<script>
+/* ============ PART E: back navigation + classic call screen ============ */
+(function(){
+  /* ---- call screen layout ---- */
+  const ov=$("callOverlay"),card=ov.querySelector(".call-card");
+  const av=$("callAvatar"),nm=$("callName"),st=$("callState"),tm=$("callTimer");
+  const top=document.createElement("div");top.className="cTop";
+  top.innerHTML=`<button id="callMin" class="icon-btn" title="Chhota karo">⌄</button><span>NEXORA · VOICE</span><span style="width:42px"></span>`;
+  const mid=document.createElement("div");mid.className="cMid";
+  const aw=document.createElement("div");aw.className="avw";aw.innerHTML="<i></i><i></i><i></i>";aw.appendChild(av);
+  const eq=document.createElement("div");eq.className="eq";eq.innerHTML="<i></i>".repeat(5);
+  mid.append(aw,nm,st,tm,eq);card.prepend(mid);card.prepend(top);
+
+  let CALLMIN=false;
+  const syncMini=()=>ov.classList.toggle("mini",CALLMIN);
+  const _cu=callUI;callUI=function(a,d,m,e){_cu(a,d,m,e);if(a)CALLMIN=false;syncMini()};
+  $("callMin").onclick=()=>{CALLMIN=true;syncMini()};
+  av.onclick=()=>{if(CALLMIN){CALLMIN=false;syncMini()}};
+  const mm=()=>{if(NEXORA.call.state==="connected"||NEXORA.call.state==="calling"){CALLMIN=true;syncMini()}};
+  ["openChat","startLudo","startUno","startTTT","openTicTacToe"].forEach(n=>{
+    const f=window[n];if(typeof f!=="function")return;
+    window[n]=function(...a){mm();return f.apply(this,a)};
+  });
+
+  /* ---- tones + state classes ---- */
+  let ps="idle",rb=null;const beep=()=>{sfx(440,.4,"sine",.04);setTimeout(()=>sfx(480,.4,"sine",.04),60)};
+  setInterval(()=>{
+    const c=NEXORA.call,s=c.state;
+    ov.classList.toggle("connected",s==="connected");ov.classList.toggle("muted",!!c.muted);
+    st.classList.toggle("dots",s==="calling"||s==="connecting"||s==="ringing");
+    if(s===ps)return;
+    if(s==="calling"&&!rb){beep();rb=setInterval(beep,3200)}
+    if(s!=="calling"&&rb){clearInterval(rb);rb=null}
+    if(s==="connected"){sfx(660,.12);setTimeout(()=>sfx(880,.2),130);navigator.vibrate?.(60)}
+    if(s==="idle"&&ps!=="idle"){sfx(320,.18);setTimeout(()=>sfx(220,.3),180);CALLMIN=false;syncMini()}
+    ps=s;
+  },300);
+
+  /* ---- back button + phone back gesture ---- */
+  const main=$("main"),NAV={tab:"home"};
+  const _sp=setPage;setPage=function(p){NAV.tab=p;return _sp(p)};
+  const br=document.querySelector(".brand"),wrap=document.createElement("div");
+  wrap.style.cssText="display:flex;align-items:center;gap:10px";
+  br.parentNode.insertBefore(wrap,br);
+  const bk=document.createElement("button");bk.id="topBack";bk.className="icon-btn hidden";bk.textContent="‹";
+  wrap.append(bk,br);
+  const isSub=()=>!!main.querySelector(".chat-page,.ludo-wrap,.u-page,.cell");
+  function goBack(){
+    if(!$("modalOverlay").classList.contains("hidden"))return closeModal();
+    if(main.querySelector(".ludo-wrap"))return leaveLudo();
+    if(main.querySelector(".u-page"))return leaveUno();
+    const t=NAV.tab&&NAV.tab!=="chat"?NAV.tab:"recent";setPage(t==="home"&&isSub()?"recent":t);
+  }
+  bk.onclick=goBack;
+  let was=false;
+  new MutationObserver(()=>{const s=isSub();bk.classList.toggle("hidden",!s);if(s&&!was)history.pushState({nx:1},"");was=s}).observe(main,{childList:true});
+  function handleBack(){
+    if(!$("modalOverlay").classList.contains("hidden")){closeModal();return true}
+    if(isSub()){goBack();return true}
+    if(NEXORA.user&&NEXORA.page!=="home"){setPage("home");return true}
+    return false;
+  }
+  history.pushState({nx:1},"");
+  addEventListener("popstate",()=>{
+    if(handleBack())return history.pushState({nx:1},"");
+    if(!NAV.warn){NAV.warn=true;toast("Bahar jaane ke liye dobara back dabao");history.pushState({nx:1},"");setTimeout(()=>NAV.warn=false,2200)}
+  });
+})();
+</script>
+<script>
+/* ============ PART F: random matchmaking + Tic-Tac-Toe modes ============ */
+const GM={ludo:{t:"🎲 Ludo"},uno:{t:"🃏 UNO"},ttt:{t:"❌ Tic-Tac-Toe"}};
+let MMC=null,MMS=null,MMG=null;
+const mmHash=s=>{let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))>>>0;return h.toString(36).toUpperCase().padStart(6,"0").slice(0,6)};
+
+/* ---------- matchmaking ---------- */
+function cancelMatch(now){
+  const c=MMC;MMC=null;if(MMS?.to)clearTimeout(MMS.to);MMS=null;
+  if(c){const rm=()=>{try{sb.removeChannel(c)}catch(_){}};now?rm():setTimeout(rm,5000)}
+}
+const _cmF=closeModal;closeModal=function(){if(MMS)cancelMatch(true);_cmF()};
+
+async function findMatch(game,n){
+  if(!NEXORA.user)return toast("Pehle login karo","error");
+  cancelMatch(true);MMS={game,n,to:null};searchUI(1,[{name:myName()}]);
+  const ch=sb.channel(`mm-${game}-${n}`,{config:{presence:{key:NEXORA.user.id}}});MMC=ch;
+  const me={id:NEXORA.user.id,name:myName(),t:Date.now()};
+  ch.on("presence",{event:"sync"},()=>{
+    if(!MMS||MMC!==ch)return;
+    const seen={};Object.values(ch.presenceState()).flat().forEach(x=>{if(x&&x.id&&!seen[x.id])seen[x.id]=x});
+    const list=Object.values(seen).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1));
+    searchUI(Math.min(list.length,n),list.slice(0,n));
+    if(list.length<n)return;
+    const grp=list.slice(0,n);if(!grp.some(x=>x.id===me.id))return;
+    matchedGame(game,n,grp,me);
+  });
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+  try{await ch.track(me)}catch(_){}
+  if(MMS&&MMC===ch)MMS.to=setTimeout(()=>noOne(game,n),60000);
+}
+function searchUI(k,list=[]){
+  const n=MMS?.n||2,g=MMS?.game||"ludo";
+  if(!$("mmCnt")){
+    openModal(`<div class="modal-title">${GM[g].t}</div><div class="modal-sub">Random players dhoondh rahe hain…</div>
+     <div style="display:grid;place-items:center;margin:20px 0 8px"><div class="avw" style="width:130px;height:130px;margin:0"><i></i><i></i><i></i><div class="avatar" style="width:70px;height:70px;font-size:28px;position:relative;z-index:1">🔎</div></div></div>
+     <div id="mmCnt" style="font-weight:900;font-size:19px;text-align:center"></div>
+     <div id="mmNames" style="display:flex;justify-content:center;gap:8px;margin:14px 0 18px;min-height:40px"></div>
+     <button class="btn danger" style="width:100%" onclick="closeModal()">Cancel</button>`);
+  }
+  $("mmCnt").textContent=`${k}/${n} mil gaye`;
+  $("mmNames").innerHTML=Array.from({length:n},(_,i)=>list[i]?`<div class="avatar" title="${escapeHtml(list[i].name)}">${escapeHtml(initials(list[i].name))}</div>`:`<div class="avatar" style="background:#1b2334;color:#566;animation:blink 1.2s ease-in-out infinite">?</div>`).join("");
+}
+function matchedGame(game,n,grp,me){
+  if(!MMS)return;
+  const code=mmHash(game+grp.map(x=>x.id+x.t).join("")),c=MMC;
+  clearTimeout(MMS.to);MMS=null;MMC=null;setTimeout(()=>{try{sb.removeChannel(c)}catch(_){}},5000);
+  const host=grp[0].id===me.id;MMG={game,n};
+  if($("mmCnt"))$("mmCnt").textContent="Match mil gaya! 🎉 Game shuru ho raha hai…";
+  sfx(660,.2);navigator.vibrate?.([60,40,60]);
+  if(game==="ludo")host?hostLudo(code):joinLudo(code);
+  else if(game==="uno")host?hostUno(code):joinUno(code);
+  else openTTTRoom(code,host);
+}
+function noOne(game,n){
+  if(!MMS)return;cancelMatch(true);
+  openModal(`<div class="modal-title">Koi nahi mila 😕</div><div class="modal-sub">Abhi utne log online nahi hain</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="botFallback('${game}',${n})">🤖 Robot ke saath khelo</button>
+   <button class="btn" style="width:100%;margin-bottom:10px" onclick="findMatch('${game}',${n})">🔄 Dobara dhoondho</button>
+   <button class="btn" style="width:100%" onclick="closeModal()">Band karo</button>`);
+}
+function botFallback(g,n){closeModal();if(g==="ludo")startLudo("robot",null,null,n);else if(g==="uno")startUno(n-1);else startTTTBot()}
+
+/* auto-start jab matchmaking ke utne log lobby me aa jayein */
+const _slF=showLobby;showLobby=function(){
+  if(MMG?.game==="ludo"&&LROOM?.host&&LB.length>=MMG.n){MMG=null;return beginOnline()}
+  return _slF();
+};
+const _suF=showUnoLobby;showUnoLobby=function(){
+  if(MMG?.game==="uno"&&UHOST&&UB.length>=MMG.n){MMG=null;return beginUno()}
+  return _suF();
+};
+
+/* ---------- menus ---------- */
+const sec=t=>`<div style="color:var(--muted);font-size:12px;margin:14px 0 6px 4px">${t}</div>`;
+const rnd=(g,ns)=>`<div class="grid" style="grid-template-columns:repeat(${ns.length},1fr)">${ns.map(n=>`<button class="btn primary-btn" onclick="findMatch('${g}',${n})">⚡ ${n} log</button>`).join("")}</div>`;
+const roomIn=(id,join)=>`<div style="display:flex;gap:8px;margin-top:8px"><input id="${id}" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code" autocapitalize="characters"><button class="btn" onclick="${join}($('${id}').value.trim().toUpperCase())">Join</button></div>`;
+const bots=fn=>`<div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="${fn(n)}">🤖 ×${n}</button>`).join("")}</div>`;
+
+openLudoMenu=function(){
+  openModal(`<div class="modal-title">🎲 Ludo</div><div class="modal-sub">Kaise khelna hai?</div>
+   ${sec("🌐 Random online players")}${rnd("ludo",[2,3,4])}
+   ${sec("👥 Dost ke saath")}<button class="btn" style="width:100%" onclick="hostLudo()">Room banao</button>${roomIn("roomCode","joinLudo")}
+   ${sec("🤖 Robot ke saath")}${bots(n=>`startLudo('robot',null,null,${n+1})`)}
+   ${sec("📱 Ek phone par")}<button class="btn" style="width:100%" onclick="startLudo('local')">2 players</button>`);
+};
+openUnoMenu=function(){
+  openModal(`<div class="modal-title">🃏 UNO</div><div class="modal-sub">Kaise khelna hai?</div>
+   ${sec("🌐 Random online players")}${rnd("uno",[2,3,4])}
+   ${sec("👥 Dost ke saath")}<button class="btn" style="width:100%" onclick="hostUno()">Room banao</button>${roomIn("unoCode","joinUno")}
+   ${sec("🤖 Robot ke saath")}${bots(n=>`startUno(${n})`)}`);
+};
+
+/* ---------- Tic-Tac-Toe: robot + online ---------- */
+const _otlF=openTicTacToe;
+openTicTacToe=function(){
+  openModal(`<div class="modal-title">❌ Tic-Tac-Toe</div><div class="modal-sub">5×5 · 4 ek line me jeetta hai</div>
+   ${sec("🌐 Random online player")}${rnd("ttt",[2])}
+   ${sec("👥 Dost ke saath")}<button class="btn" style="width:100%" onclick="hostTTT()">Room banao</button>${roomIn("tttCode","joinTTT")}
+   ${sec("🤖 Robot ke saath")}<button class="btn" style="width:100%" onclick="startTTTBot()">Robot se khelo</button>
+   ${sec("📱 Ek phone par")}<button class="btn" style="width:100%" onclick="startTTTLocal()">2 players</button>`);
+};
+function startTTTLocal(){closeModal();_otlF()}
+function startTTTBot(){closeModal();TTT={b:Array(25).fill(""),t:"X",over:false,bot:true,mine:"X",msg:"Aapki baari (X)"};NEXORA.page="games";renderTTT()}
+async function hostTTT(){
+  const code=Math.random().toString(36).slice(2,8).toUpperCase();await openTTTRoom(code,true);
+  openModal(`<div class="modal-title">Room ready ❌</div><div class="modal-sub">Dost ka wait ho raha hai…</div><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn danger" style="width:100%" onclick="closeTTT();closeModal()">Cancel</button>`);
+}
+function joinTTT(code){
+  if(!code||code.length<4)return toast("Room code daalo.","error");
+  openTTTRoom(code,false);openModal(`<div class="modal-title">Join ho raha hai…</div><div class="modal-sub">Host ke start karne ka wait</div><button class="btn danger" style="width:100%;margin-top:10px" onclick="closeTTT();closeModal()">Cancel</button>`);
+}
+function ttScore(b,i,sym){
+  const r=Math.floor(i/5),c=i%5,opp=sym==="X"?"O":"X";let s=0;
+  for(const[dr,dc]of[[0,1],[1,0],[1,1],[1,-1]])for(let k=0;k<4;k++){
+    let own=0,bad=false;
+    for(let j=0;j<4;j++){const rr=r+dr*(j-k),cc=c+dc*(j-k);if(rr<0||rr>4||cc<0||cc>4){bad=true;break}const v=b[rr*5+cc];if(v===opp){bad=true;break}if(v===sym)own++}
+    if(!bad)s+=[1,3,9,40][own]||0;
+  }
+  return s;
+}
+function tttBot(){
+  if(!TTT||TTT.over||!TTT.bot||TTT.t!=="O")return;
+  const b=TTT.b,emp=b.map((v,i)=>v?-1:i).filter(i=>i>=0);
+  const win=(sym,i)=>{b[i]=sym;const w=lineWin(b,5,5,4)===sym;b[i]="";return w};
+  let pick=emp.find(i=>win("O",i));
+  if(pick===undefined)pick=emp.find(i=>win("X",i));
+  if(pick===undefined){let best=-1;emp.forEach(i=>{const s=ttScore(b,i,"O")*1.1+ttScore(b,i,"X")+Math.random()*.8-(Math.abs(i%5-2)+Math.abs(Math.floor(i/5)-2))*.3;if(s>best){best=s;pick=i}})}
+  applyTTT(pick);botMsg();
+}
+function botMsg(){
+  if(!TTT||!TTT.bot)return;const w=lineWin(TTT.b,5,5,4);
+  TTT.msg=w?(w==="X"?"Aap jeet gaye! 🏆":"Robot jeet gaya 🤖"):TTT.b.every(Boolean)?"Draw":TTT.t==="X"?"Aapki baari (X)":"Robot soch raha hai…";
+  renderTTT();
+}
+tttMove=function(i){
+  if(!TTT||TTT.over||TTT.b[i])return;
+  if(TTT.online&&TTT.t!==TTT.mine)return;
+  if(TTT.bot&&TTT.t!=="X")return;
+  applyTTT(i);
+  if(TTT.online)TCH?.tx({t:"mv",i});
+  if(TTT.bot){botMsg();if(!TTT.over)setTimeout(tttBot,700)}
+};
+function tttRestart(){if(TTT?.online){toast("Online game me restart dost ke saath naya room banao");return}TTT?.bot?startTTTBot():startTTTLocal()}
+const _rtF=renderTTT;renderTTT=function(){_rtF();document.querySelector("#main .card>.btn.primary-btn")?.setAttribute("onclick","tttRestart()")};
+
+/* ---------- Games page: Quick Match ---------- */
+renderGames=function(){
+  const row=(g,ns)=>`<div class="card" style="padding:14px;display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-weight:850;flex:1">${GM[g].t}</div>${ns.map(n=>`<button class="btn primary-btn" style="min-height:42px;min-width:46px;padding:0 14px" onclick="findMatch('${g}',${n})">${n}</button>`).join("")}</div>`;
+  const q=(i,n,d,a)=>`<button class="card quick-card" onclick="${a}"><div class="quick-icon">${i}</div><div><div class="quick-name">${n}</div><div class="quick-desc">${d}</div></div></button>`;
+  $("main").innerHTML=`<section class="page"><h1 class="section-title">Games</h1><div class="section-sub">Random logon ke saath ya dost ke saath.</div>
+   <div style="font-weight:850;margin:0 0 10px 2px">⚡ Quick Match <span style="color:var(--muted);font-weight:500;font-size:12px">· kitne log chahiye? dabao</span></div>
+   ${row("ludo",[2,3,4])}${row("uno",[2,3,4])}${row("ttt",[2])}
+   <div style="font-weight:850;margin:20px 0 10px 2px">Aur options</div>
+   <div class="grid grid2">${q("🎲","Ludo","Dost · Robot · Room","openLudoMenu()")}${q("🃏","UNO","Dost · Robot · Room","openUnoMenu()")}${q("❌","Tic-Tac-Toe","Dost · Robot · Room","openTicTacToe()")}</div></section>`;
+};
+if(NEXORA.page==="games"&&NEXORA.user)renderGames();
+</script>
+<script>
+/* ============ PART F: random matchmaking + Tic-Tac-Toe modes ============ */
+const GM={ludo:{t:"🎲 Ludo"},uno:{t:"🃏 UNO"},ttt:{t:"❌ Tic-Tac-Toe"}};
+let MMC=null,MMS=null,MMG=null;
+const mmHash=s=>{let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))>>>0;return h.toString(36).toUpperCase().padStart(6,"0").slice(0,6)};
+
+/* ---------- matchmaking ---------- */
+function cancelMatch(now){
+  const c=MMC;MMC=null;if(MMS?.to)clearTimeout(MMS.to);MMS=null;
+  if(c){const rm=()=>{try{sb.removeChannel(c)}catch(_){}};now?rm():setTimeout(rm,5000)}
+}
+const _cmF=closeModal;closeModal=function(){if(MMS)cancelMatch(true);_cmF()};
+
+async function findMatch(game,n){
+  if(!NEXORA.user)return toast("Pehle login karo","error");
+  cancelMatch(true);MMS={game,n,to:null};searchUI(1,[{name:myName()}]);
+  const ch=sb.channel(`mm-${game}-${n}`,{config:{presence:{key:NEXORA.user.id}}});MMC=ch;
+  const me={id:NEXORA.user.id,name:myName(),t:Date.now()};
+  ch.on("presence",{event:"sync"},()=>{
+    if(!MMS||MMC!==ch)return;
+    const seen={};Object.values(ch.presenceState()).flat().forEach(x=>{if(x&&x.id&&!seen[x.id])seen[x.id]=x});
+    const list=Object.values(seen).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1));
+    searchUI(Math.min(list.length,n),list.slice(0,n));
+    if(list.length<n)return;
+    const grp=list.slice(0,n);if(!grp.some(x=>x.id===me.id))return;
+    matchedGame(game,n,grp,me);
+  });
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+  try{await ch.track(me)}catch(_){}
+  if(MMS&&MMC===ch)MMS.to=setTimeout(()=>noOne(game,n),60000);
+}
+function searchUI(k,list=[]){
+  const n=MMS?.n||2,g=MMS?.game||"ludo";
+  if(!$("mmCnt")){
+    openModal(`<div class="modal-title">${GM[g].t}</div><div class="modal-sub">Random players dhoondh rahe hain…</div>
+     <div style="display:grid;place-items:center;margin:20px 0 8px"><div class="avw" style="width:130px;height:130px;margin:0"><i></i><i></i><i></i><div class="avatar" style="width:70px;height:70px;font-size:28px;position:relative;z-index:1">🔎</div></div></div>
+     <div id="mmCnt" style="font-weight:900;font-size:19px;text-align:center"></div>
+     <div id="mmNames" style="display:flex;justify-content:center;gap:8px;margin:14px 0 18px;min-height:40px"></div>
+     <button class="btn danger" style="width:100%" onclick="closeModal()">Cancel</button>`);
+  }
+  $("mmCnt").textContent=`${k}/${n} mil gaye`;
+  $("mmNames").innerHTML=Array.from({length:n},(_,i)=>list[i]?`<div class="avatar" title="${escapeHtml(list[i].name)}">${escapeHtml(initials(list[i].name))}</div>`:`<div class="avatar" style="background:#1b2334;color:#566;animation:blink 1.2s ease-in-out infinite">?</div>`).join("");
+}
+function matchedGame(game,n,grp,me){
+  if(!MMS)return;
+  const code=mmHash(game+grp.map(x=>x.id+x.t).join("")),c=MMC;
+  clearTimeout(MMS.to);MMS=null;MMC=null;setTimeout(()=>{try{sb.removeChannel(c)}catch(_){}},5000);
+  const host=grp[0].id===me.id;MMG={game,n};
+  if($("mmCnt"))$("mmCnt").textContent="Match mil gaya! 🎉 Game shuru ho raha hai…";
+  sfx(660,.2);navigator.vibrate?.([60,40,60]);
+  if(game==="ludo")host?hostLudo(code):joinLudo(code);
+  else if(game==="uno")host?hostUno(code):joinUno(code);
+  else openTTTRoom(code,host);
+}
+function noOne(game,n){
+  if(!MMS)return;cancelMatch(true);
+  openModal(`<div class="modal-title">Koi nahi mila 😕</div><div class="modal-sub">Abhi utne log online nahi hain</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="botFallback('${game}',${n})">🤖 Robot ke saath khelo</button>
+   <button class="btn" style="width:100%;margin-bottom:10px" onclick="findMatch('${game}',${n})">🔄 Dobara dhoondho</button>
+   <button class="btn" style="width:100%" onclick="closeModal()">Band karo</button>`);
+}
+function botFallback(g,n){closeModal();if(g==="ludo")startLudo("robot",null,null,n);else if(g==="uno")startUno(n-1);else startTTTBot()}
+
+/* auto-start jab matchmaking ke utne log lobby me aa jayein */
+const _slF=showLobby;showLobby=function(){
+  if(MMG?.game==="ludo"&&LROOM?.host&&LB.length>=MMG.n){MMG=null;return beginOnline()}
+  return _slF();
+};
+const _suF=showUnoLobby;showUnoLobby=function(){
+  if(MMG?.game==="uno"&&UHOST&&UB.length>=MMG.n){MMG=null;return beginUno()}
+  return _suF();
+};
+
+/* ---------- menus ---------- */
+const sec=t=>`<div style="color:var(--muted);font-size:12px;margin:14px 0 6px 4px">${t}</div>`;
+const rnd=(g,ns)=>`<div class="grid" style="grid-template-columns:repeat(${ns.length},1fr)">${ns.map(n=>`<button class="btn primary-btn" onclick="findMatch('${g}',${n})">⚡ ${n} log</button>`).join("")}</div>`;
+const roomIn=(id,join)=>`<div style="display:flex;gap:8px;margin-top:8px"><input id="${id}" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code" autocapitalize="characters"><button class="btn" onclick="${join}($('${id}').value.trim().toUpperCase())">Join</button></div>`;
+const bots=fn=>`<div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="${fn(n)}">🤖 ×${n}</button>`).join("")}</div>`;
+
+openLudoMenu=function(){
+  openModal(`<div class="modal-title">🎲 Ludo</div><div class="modal-sub">Kaise khelna hai?</div>
+   ${sec("🌐 Random online players")}${rnd("ludo",[2,3,4])}
+   ${sec("👥 Dost ke saath")}<button class="btn" style="width:100%" onclick="hostLudo()">Room banao</button>${roomIn("roomCode","joinLudo")}
+   ${sec("🤖 Robot ke saath")}${bots(n=>`startLudo('robot',null,null,${n+1})`)}
+   ${sec("📱 Ek phone par")}<button class="btn" style="width:100%" onclick="startLudo('local')">2 players</button>`);
+};
+openUnoMenu=function(){
+  openModal(`<div class="modal-title">🃏 UNO</div><div class="modal-sub">Kaise khelna hai?</div>
+   ${sec("🌐 Random online players")}${rnd("uno",[2,3,4])}
+   ${sec("👥 Dost ke saath")}<button class="btn" style="width:100%" onclick="hostUno()">Room banao</button>${roomIn("unoCode","joinUno")}
+   ${sec("🤖 Robot ke saath")}${bots(n=>`startUno(${n})`)}`);
+};
+
+/* ---------- Tic-Tac-Toe: robot + online ---------- */
+const _otlF=openTicTacToe;
+openTicTacToe=function(){
+  openModal(`<div class="modal-title">❌ Tic-Tac-Toe</div><div class="modal-sub">5×5 · 4 ek line me jeetta hai</div>
+   ${sec("🌐 Random online player")}${rnd("ttt",[2])}
+   ${sec("👥 Dost ke saath")}<button class="btn" style="width:100%" onclick="hostTTT()">Room banao</button>${roomIn("tttCode","joinTTT")}
+   ${sec("🤖 Robot ke saath")}<button class="btn" style="width:100%" onclick="startTTTBot()">Robot se khelo</button>
+   ${sec("📱 Ek phone par")}<button class="btn" style="width:100%" onclick="startTTTLocal()">2 players</button>`);
+};
+function startTTTLocal(){closeModal();_otlF()}
+function startTTTBot(){closeModal();TTT={b:Array(25).fill(""),t:"X",over:false,bot:true,mine:"X",msg:"Aapki baari (X)"};NEXORA.page="games";renderTTT()}
+async function hostTTT(){
+  const code=Math.random().toString(36).slice(2,8).toUpperCase();await openTTTRoom(code,true);
+  openModal(`<div class="modal-title">Room ready ❌</div><div class="modal-sub">Dost ka wait ho raha hai…</div><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn danger" style="width:100%" onclick="closeTTT();closeModal()">Cancel</button>`);
+}
+function joinTTT(code){
+  if(!code||code.length<4)return toast("Room code daalo.","error");
+  openTTTRoom(code,false);openModal(`<div class="modal-title">Join ho raha hai…</div><div class="modal-sub">Host ke start karne ka wait</div><button class="btn danger" style="width:100%;margin-top:10px" onclick="closeTTT();closeModal()">Cancel</button>`);
+}
+function ttScore(b,i,sym){
+  const r=Math.floor(i/5),c=i%5,opp=sym==="X"?"O":"X";let s=0;
+  for(const[dr,dc]of[[0,1],[1,0],[1,1],[1,-1]])for(let k=0;k<4;k++){
+    let own=0,bad=false;
+    for(let j=0;j<4;j++){const rr=r+dr*(j-k),cc=c+dc*(j-k);if(rr<0||rr>4||cc<0||cc>4){bad=true;break}const v=b[rr*5+cc];if(v===opp){bad=true;break}if(v===sym)own++}
+    if(!bad)s+=[1,3,9,40][own]||0;
+  }
+  return s;
+}
+function tttBot(){
+  if(!TTT||TTT.over||!TTT.bot||TTT.t!=="O")return;
+  const b=TTT.b,emp=b.map((v,i)=>v?-1:i).filter(i=>i>=0);
+  const win=(sym,i)=>{b[i]=sym;const w=lineWin(b,5,5,4)===sym;b[i]="";return w};
+  let pick=emp.find(i=>win("O",i));
+  if(pick===undefined)pick=emp.find(i=>win("X",i));
+  if(pick===undefined){let best=-1;emp.forEach(i=>{const s=ttScore(b,i,"O")*1.1+ttScore(b,i,"X")+Math.random()*.8-(Math.abs(i%5-2)+Math.abs(Math.floor(i/5)-2))*.3;if(s>best){best=s;pick=i}})}
+  applyTTT(pick);botMsg();
+}
+function botMsg(){
+  if(!TTT||!TTT.bot)return;const w=lineWin(TTT.b,5,5,4);
+  TTT.msg=w?(w==="X"?"Aap jeet gaye! 🏆":"Robot jeet gaya 🤖"):TTT.b.every(Boolean)?"Draw":TTT.t==="X"?"Aapki baari (X)":"Robot soch raha hai…";
+  renderTTT();
+}
+tttMove=function(i){
+  if(!TTT||TTT.over||TTT.b[i])return;
+  if(TTT.online&&TTT.t!==TTT.mine)return;
+  if(TTT.bot&&TTT.t!=="X")return;
+  applyTTT(i);
+  if(TTT.online)TCH?.tx({t:"mv",i});
+  if(TTT.bot){botMsg();if(!TTT.over)setTimeout(tttBot,700)}
+};
+function tttRestart(){if(TTT?.online){toast("Online game me restart dost ke saath naya room banao");return}TTT?.bot?startTTTBot():startTTTLocal()}
+const _rtF=renderTTT;renderTTT=function(){_rtF();document.querySelector("#main .card>.btn.primary-btn")?.setAttribute("onclick","tttRestart()")};
+
+/* ---------- Games page: Quick Match ---------- */
+renderGames=function(){
+  const row=(g,ns)=>`<div class="card" style="padding:14px;display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-weight:850;flex:1">${GM[g].t}</div>${ns.map(n=>`<button class="btn primary-btn" style="min-height:42px;min-width:46px;padding:0 14px" onclick="findMatch('${g}',${n})">${n}</button>`).join("")}</div>`;
+  const q=(i,n,d,a)=>`<button class="card quick-card" onclick="${a}"><div class="quick-icon">${i}</div><div><div class="quick-name">${n}</div><div class="quick-desc">${d}</div></div></button>`;
+  $("main").innerHTML=`<section class="page"><h1 class="section-title">Games</h1><div class="section-sub">Random logon ke saath ya dost ke saath.</div>
+   <div style="font-weight:850;margin:0 0 10px 2px">⚡ Quick Match <span style="color:var(--muted);font-weight:500;font-size:12px">· kitne log chahiye? dabao</span></div>
+   ${row("ludo",[2,3,4])}${row("uno",[2,3,4])}${row("ttt",[2])}
+   <div style="font-weight:850;margin:20px 0 10px 2px">Aur options</div>
+   <div class="grid grid2">${q("🎲","Ludo","Dost · Robot · Room","openLudoMenu()")}${q("🃏","UNO","Dost · Robot · Room","openUnoMenu()")}${q("❌","Tic-Tac-Toe","Dost · Robot · Room","openTicTacToe()")}</div></section>`;
+};
+if(NEXORA.page==="games"&&NEXORA.user)renderGames();
+</script>
+
