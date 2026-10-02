@@ -6080,6 +6080,336 @@ setInterval(paintFS,1200);
   document.head.appendChild(style);
 })();
 </script>
+<script>
+(function NX_CLEAN_PART7_FEEDBACK_SOUND() {
+  "use strict";
+
+  let nxAudio = null;
+  let nxAudioReady = false;
+  let nxLastGameState = "";
+  let nxLastBoard = "";
+
+  function nxEnsureAudio() {
+    if (nxAudioReady) return;
+
+    try {
+      nxAudio = new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+      if (nxAudio.state === "suspended") {
+        nxAudio.resume().catch(function () {});
+      }
+
+      nxAudioReady = true;
+    } catch {}
+  }
+
+  function nxTone(
+    frequency,
+    duration,
+    type,
+    volume
+  ) {
+    nxEnsureAudio();
+
+    if (!nxAudio) return;
+
+    try {
+      const oscillator = nxAudio.createOscillator();
+      const gain = nxAudio.createGain();
+
+      oscillator.type = type || "sine";
+      oscillator.frequency.value = frequency;
+
+      gain.gain.setValueAtTime(
+        volume ?? 0.045,
+        nxAudio.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        nxAudio.currentTime + duration
+      );
+
+      oscillator.connect(gain);
+      gain.connect(nxAudio.destination);
+
+      oscillator.start();
+      oscillator.stop(
+        nxAudio.currentTime + duration
+      );
+    } catch {}
+  }
+
+  function nxTapSound() {
+    nxTone(520, 0.055, "sine", 0.025);
+  }
+
+  function nxWinSound() {
+    nxTone(660, 0.12, "sine", 0.05);
+
+    setTimeout(function () {
+      nxTone(880, 0.16, "sine", 0.05);
+    }, 110);
+  }
+
+  function nxLoseSound() {
+    nxTone(220, 0.18, "sawtooth", 0.035);
+
+    setTimeout(function () {
+      nxTone(165, 0.22, "sawtooth", 0.03);
+    }, 130);
+  }
+
+  function nxDrawSound() {
+    nxTone(390, 0.12, "triangle", 0.035);
+
+    setTimeout(function () {
+      nxTone(390, 0.12, "triangle", 0.035);
+    }, 150);
+  }
+
+  function nxRemoveBlackSplash() {
+    const splash = document.getElementById("splash");
+
+    if (splash) {
+      splash.classList.add("out");
+      splash.style.pointerEvents = "none";
+      splash.style.display = "none";
+    }
+
+    document.body.classList.remove("immersive-loading");
+    document.documentElement.classList.remove(
+      "immersive-loading"
+    );
+  }
+
+  function nxTapTarget(target) {
+    if (!target) return;
+
+    target.classList.remove(
+      "nx-tap-feedback"
+    );
+
+    void target.offsetWidth;
+
+    target.classList.add(
+      "nx-tap-feedback"
+    );
+
+    setTimeout(function () {
+      target.classList.remove(
+        "nx-tap-feedback"
+      );
+    }, 220);
+  }
+
+  document.addEventListener(
+    "pointerdown",
+    function (event) {
+      nxEnsureAudio();
+      nxRemoveBlackSplash();
+
+      const target = event.target.closest(
+        "button, .quick-card, .cell, .disc, .tk, .dice, .cubewrap, .uc"
+      );
+
+      if (!target) return;
+
+      nxTapTarget(target);
+      nxTapSound();
+    },
+    {
+      passive: true
+    }
+  );
+
+  function nxGameState() {
+    if (window.TTT) {
+      const board = Array.isArray(TTT.b)
+        ? TTT.b.join("")
+        : "";
+
+      return {
+        type: "ttt",
+        board,
+        over: !!TTT.over,
+        message: String(TTT.msg || "")
+          .toLowerCase()
+      };
+    }
+
+    if (window.LUDO) {
+      return {
+        type: "ludo",
+        board: JSON.stringify(
+          LUDO.players?.map(function (player) {
+            return player.tokens;
+          }) || []
+        ),
+        over: !!LUDO.winner,
+        message: String(LUDO.message || "")
+          .toLowerCase()
+      };
+    }
+
+    if (window.UG) {
+      return {
+        type: "uno",
+        board: JSON.stringify(
+          UG.seats?.map(function (seat) {
+            return seat.hand?.length || 0;
+          }) || []
+        ),
+        over: !!UG.winner,
+        message: String(UG.msg || "")
+          .toLowerCase()
+      };
+    }
+
+    return null;
+  }
+
+  function nxPlayResultSound(state) {
+    if (!state) return;
+
+    const key =
+      state.type +
+      ":" +
+      state.board +
+      ":" +
+      state.over +
+      ":" +
+      state.message;
+
+    if (key === nxLastGameState) return;
+    nxLastGameState = key;
+
+    if (!state.over) return;
+
+    const message = state.message;
+
+    if (
+      message.includes("you won") ||
+      message.includes("jeet gaye") ||
+      message.includes("won the game") ||
+      message.includes("winner") ||
+      message.includes("aap jeet")
+    ) {
+      nxWinSound();
+      return;
+    }
+
+    if (
+      message.includes("draw") ||
+      message.includes("tie")
+    ) {
+      nxDrawSound();
+      return;
+    }
+
+    if (
+      message.includes("lost") ||
+      message.includes("haar") ||
+      message.includes("opponent won") ||
+      message.includes("dost jeet")
+    ) {
+      nxLoseSound();
+    }
+  }
+
+  function nxPlayMoveSound() {
+    const state = nxGameState();
+    if (!state) return;
+
+    const board = state.board;
+
+    if (board !== nxLastBoard) {
+      nxLastBoard = board;
+      nxTone(470, 0.065, "triangle", 0.032);
+    }
+
+    nxPlayResultSound(state);
+  }
+
+  setInterval(function () {
+    nxPlayMoveSound();
+  }, 180);
+
+  window.addEventListener(
+    "pageshow",
+    nxRemoveBlackSplash
+  );
+
+  window.addEventListener(
+    "load",
+    function () {
+      setTimeout(nxRemoveBlackSplash, 300);
+    }
+  );
+
+  document.addEventListener(
+    "visibilitychange",
+    function () {
+      if (
+        document.visibilityState === "visible"
+      ) {
+        nxRemoveBlackSplash();
+      }
+    }
+  );
+
+  const style = document.createElement("style");
+  style.id = "nx-clean-part7-feedback-style";
+
+  style.textContent = `
+    #splash.out {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    .nx-tap-feedback {
+      animation: nxTapFeedback .2s ease-out both;
+    }
+
+    @keyframes nxTapFeedback {
+      0% {
+        transform: scale(1);
+      }
+
+      45% {
+        transform: scale(.965);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    button,
+    .quick-card,
+    .cell,
+    .disc,
+    .tk,
+    .dice,
+    .cubewrap,
+    .uc {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nx-tap-feedback {
+        animation: none !important;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+})();
+</script>
 
 
 
