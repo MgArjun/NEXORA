@@ -9229,6 +9229,875 @@ boot();
 })();
 
 </script>
+<!-- =========================================================
+ NEXORA TRUE 3D OBJECT PATCH
+ REAL 3D CUBE / CARD / X
+ APPEND ONLY
+========================================================= -->
+
+<style>
+
+.nx-real3d{
+  width:78px !important;
+  height:78px !important;
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  perspective:900px !important;
+  perspective-origin:50% 50% !important;
+  overflow:visible !important;
+}
+
+/* =========================================================
+   REAL 3D DICE
+========================================================= */
+
+.nx-dice-scene{
+  width:62px;
+  height:62px;
+  position:relative;
+  transform-style:preserve-3d;
+  animation:nxDiceRealSpin 7s linear infinite;
+}
+
+.nx-dice-cube{
+  width:58px;
+  height:58px;
+  position:absolute;
+  left:2px;
+  top:2px;
+
+  transform-style:preserve-3d;
+
+  /*
+    IMPORTANT:
+    cube rotates around BOTH X and Y,
+    so different faces physically appear.
+  */
+
+  transform:rotateX(-20deg) rotateY(35deg);
+
+  filter:
+    drop-shadow(0 16px 12px rgba(0,0,0,.45))
+    drop-shadow(0 0 18px rgba(120,105,255,.35));
+}
+
+.nx-dice-face{
+  position:absolute;
+
+  width:58px;
+  height:58px;
+
+  border-radius:13px;
+
+  display:grid;
+  place-items:center;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #eeeeee 48%,
+      #cfcfcf 100%
+    );
+
+  border:1px solid rgba(0,0,0,.18);
+
+  box-shadow:
+    inset 3px 3px 7px rgba(255,255,255,.9),
+    inset -5px -6px 10px rgba(0,0,0,.18);
+
+  backface-visibility:hidden;
+
+  font-size:25px;
+  color:#111;
+
+  transform-style:preserve-3d;
+}
+
+
+/* FRONT */
+
+.nx-dice-front{
+  transform:translateZ(29px);
+}
+
+/* BACK */
+
+.nx-dice-back{
+  transform:
+    rotateY(180deg)
+    translateZ(29px);
+}
+
+/* RIGHT */
+
+.nx-dice-right{
+  transform:
+    rotateY(90deg)
+    translateZ(29px);
+}
+
+/* LEFT */
+
+.nx-dice-left{
+  transform:
+    rotateY(-90deg)
+    translateZ(29px);
+}
+
+/* TOP */
+
+.nx-dice-top{
+  transform:
+    rotateX(90deg)
+    translateZ(29px);
+}
+
+/* BOTTOM */
+
+.nx-dice-bottom{
+  transform:
+    rotateX(-90deg)
+    translateZ(29px);
+}
+
+
+/* Dice dots */
+
+.nx-dot{
+  width:9px;
+  height:9px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #555,
+      #111 65%
+    );
+
+  box-shadow:
+    inset 1px 1px 2px rgba(255,255,255,.2),
+    0 1px 2px rgba(0,0,0,.35);
+}
+
+
+/* dot layouts */
+
+.nx-dice-face[data-n="1"]{
+  grid-template-columns:1fr;
+  grid-template-rows:1fr;
+}
+
+.nx-dice-face[data-n="2"],
+.nx-dice-face[data-n="3"],
+.nx-dice-face[data-n="4"],
+.nx-dice-face[data-n="5"],
+.nx-dice-face[data-n="6"]{
+  padding:10px;
+}
+
+
+/* =========================================================
+   REAL 3D UNO CARD
+========================================================= */
+
+.nx-uno-scene{
+  width:48px;
+  height:64px;
+
+  position:relative;
+
+  transform-style:preserve-3d;
+
+  animation:nxUnoRealSpin 6s linear infinite;
+
+  filter:
+    drop-shadow(0 15px 10px rgba(0,0,0,.45))
+    drop-shadow(0 0 18px rgba(255,80,80,.25));
+}
+
+
+.nx-uno-card{
+  width:48px;
+  height:64px;
+
+  position:absolute;
+
+  transform-style:preserve-3d;
+
+  border-radius:9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff5959,
+      #d91632 55%,
+      #9b071e
+    );
+
+  border:2px solid rgba(255,255,255,.55);
+
+  box-shadow:
+    inset 3px 3px 5px rgba(255,255,255,.35),
+    inset -5px -6px 9px rgba(0,0,0,.25);
+
+  transform:translateZ(0);
+}
+
+
+/* front white/black UNO oval */
+
+.nx-uno-front::before{
+  content:"UNO";
+
+  position:absolute;
+
+  left:7px;
+  top:15px;
+
+  width:34px;
+  height:28px;
+
+  border-radius:50%;
+
+  display:grid;
+  place-items:center;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #e5e5e5
+    );
+
+  color:#d4152e;
+
+  font-size:13px;
+  font-weight:1000;
+
+  transform:
+    rotate(-18deg)
+    translateZ(3px);
+
+  box-shadow:
+    0 3px 4px rgba(0,0,0,.30);
+}
+
+
+/* back */
+
+.nx-uno-back{
+  position:absolute;
+
+  inset:0;
+
+  border-radius:9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e51d36,
+      #8b0718
+    );
+
+  transform:
+    rotateY(180deg)
+    translateZ(2px);
+
+  border:2px solid rgba(255,255,255,.4);
+}
+
+
+/* card thickness */
+
+.nx-uno-edge{
+  position:absolute;
+
+  background:#8c0819;
+
+  transform-style:preserve-3d;
+}
+
+.nx-uno-edge.top{
+  width:48px;
+  height:4px;
+
+  top:-2px;
+  left:0;
+
+  transform:
+    rotateX(90deg)
+    translateZ(2px);
+}
+
+.nx-uno-edge.side{
+  width:4px;
+  height:64px;
+
+  right:-2px;
+  top:0;
+
+  transform:
+    rotateY(90deg)
+    translateZ(2px);
+}
+
+
+/* =========================================================
+   REAL 3D TIC TAC TOE X
+========================================================= */
+
+.nx-x-scene{
+  width:64px;
+  height:64px;
+
+  position:relative;
+
+  transform-style:preserve-3d;
+
+  animation:nxXRealSpin 5s linear infinite;
+
+  filter:
+    drop-shadow(0 13px 9px rgba(0,0,0,.45))
+    drop-shadow(0 0 18px rgba(255,30,40,.35));
+}
+
+
+.nx-x-bar{
+  position:absolute;
+
+  width:15px;
+  height:62px;
+
+  left:24px;
+  top:1px;
+
+  border-radius:7px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7e0610,
+      #ff1827 35%,
+      #c70718 72%,
+      #72040b
+    );
+
+  box-shadow:
+    inset 3px 0 4px rgba(255,255,255,.28),
+    inset -4px 0 6px rgba(0,0,0,.35);
+
+  transform-style:preserve-3d;
+}
+
+
+/* X crossing */
+
+.nx-x-bar.one{
+  transform:
+    rotate(45deg)
+    translateZ(5px);
+}
+
+.nx-x-bar.two{
+  transform:
+    rotate(-45deg)
+    translateZ(5px);
+}
+
+
+/* =========================================================
+   REAL 3D ROTATION
+========================================================= */
+
+@keyframes nxDiceRealSpin{
+
+  0%{
+    transform:
+      rotateX(-18deg)
+      rotateY(0deg)
+      rotateZ(0deg);
+  }
+
+  25%{
+    transform:
+      rotateX(18deg)
+      rotateY(90deg)
+      rotateZ(8deg);
+  }
+
+  50%{
+    transform:
+      rotateX(-12deg)
+      rotateY(180deg)
+      rotateZ(-5deg);
+  }
+
+  75%{
+    transform:
+      rotateX(20deg)
+      rotateY(270deg)
+      rotateZ(7deg);
+  }
+
+  100%{
+    transform:
+      rotateX(-18deg)
+      rotateY(360deg)
+      rotateZ(0deg);
+  }
+
+}
+
+
+@keyframes nxUnoRealSpin{
+
+  0%{
+    transform:
+      rotateX(-8deg)
+      rotateY(-20deg)
+      rotateZ(-4deg);
+  }
+
+  25%{
+    transform:
+      rotateX(8deg)
+      rotateY(70deg)
+      rotateZ(5deg);
+  }
+
+  50%{
+    transform:
+      rotateX(-7deg)
+      rotateY(180deg)
+      rotateZ(-4deg);
+  }
+
+  75%{
+    transform:
+      rotateX(8deg)
+      rotateY(290deg)
+      rotateZ(5deg);
+  }
+
+  100%{
+    transform:
+      rotateX(-8deg)
+      rotateY(340deg)
+      rotateZ(-4deg);
+  }
+
+}
+
+
+@keyframes nxXRealSpin{
+
+  0%{
+    transform:
+      rotateX(-12deg)
+      rotateY(0deg)
+      rotateZ(0deg);
+  }
+
+  25%{
+    transform:
+      rotateX(15deg)
+      rotateY(90deg)
+      rotateZ(5deg);
+  }
+
+  50%{
+    transform:
+      rotateX(-10deg)
+      rotateY(180deg)
+      rotateZ(-4deg);
+  }
+
+  75%{
+    transform:
+      rotateX(14deg)
+      rotateY(270deg)
+      rotateZ(5deg);
+  }
+
+  100%{
+    transform:
+      rotateX(-12deg)
+      rotateY(360deg)
+      rotateZ(0deg);
+  }
+
+}
+
+
+/* =========================================================
+   FLOATING
+========================================================= */
+
+.nx-real3d{
+  animation:nxObjectFloat 2.5s ease-in-out infinite;
+}
+
+@keyframes nxObjectFloat{
+
+  0%,100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-7px);
+  }
+
+}
+
+
+/* =========================================================
+   HOVER — MORE DEPTH
+========================================================= */
+
+.quick-card:hover .nx-real3d{
+
+  transform:
+    translateZ(25px)
+    scale(1.08);
+
+}
+
+.quick-card:active .nx-real3d{
+
+  transform:
+    translateZ(-8px)
+    scale(.92);
+
+}
+
+</style>
+
+
+<script>
+
+(function(){
+
+"use strict";
+
+
+/* =========================================================
+   CREATE DICE DOTS
+========================================================= */
+
+function diceFace(n){
+
+  const face=document.createElement("div");
+
+  face.className="nx-dice-face";
+  face.dataset.n=n;
+
+  const layouts={
+    1:[4],
+    2:[2,6],
+    3:[2,4,6],
+    4:[1,3,7,9],
+    5:[1,3,5,7,9],
+    6:[1,2,3,7,8,9]
+  };
+
+  const positions=layouts[n];
+
+  face.style.display="grid";
+  face.style.gridTemplateColumns="repeat(3,1fr)";
+  face.style.gridTemplateRows="repeat(3,1fr)";
+  face.style.padding="8px";
+
+  positions.forEach(pos=>{
+
+    const dot=document.createElement("i");
+
+    dot.className="nx-dot";
+
+    const row=Math.floor((pos-1)/3)+1;
+    const col=((pos-1)%3)+1;
+
+    dot.style.gridRow=row;
+    dot.style.gridColumn=col;
+
+    face.appendChild(dot);
+
+  });
+
+  return face;
+}
+
+
+/* =========================================================
+   REAL DICE
+========================================================= */
+
+function createDice(){
+
+  const scene=document.createElement("div");
+
+  scene.className="nx-real3d";
+
+  const diceScene=document.createElement("div");
+
+  diceScene.className="nx-dice-scene";
+
+  const cube=document.createElement("div");
+
+  cube.className="nx-dice-cube";
+
+  const faces=[
+    ["front",1],
+    ["back",6],
+    ["right",3],
+    ["left",4],
+    ["top",2],
+    ["bottom",5]
+  ];
+
+  faces.forEach(x=>{
+
+    const f=diceFace(x[1]);
+
+    f.classList.add("nx-dice-"+x[0]);
+
+    cube.appendChild(f);
+
+  });
+
+  diceScene.appendChild(cube);
+  scene.appendChild(diceScene);
+
+  return scene;
+}
+
+
+/* =========================================================
+   REAL UNO CARD
+========================================================= */
+
+function createUno(){
+
+  const scene=document.createElement("div");
+
+  scene.className="nx-real3d";
+
+  const uno=document.createElement("div");
+
+  uno.className="nx-uno-scene";
+
+  const card=document.createElement("div");
+
+  card.className="nx-uno-card";
+
+  const front=document.createElement("div");
+
+  front.className="nx-uno-front";
+
+  const back=document.createElement("div");
+
+  back.className="nx-uno-back";
+
+  card.appendChild(front);
+  card.appendChild(back);
+
+  const edgeTop=document.createElement("i");
+
+  edgeTop.className="nx-uno-edge top";
+
+  const edgeSide=document.createElement("i");
+
+  edgeSide.className="nx-uno-edge side";
+
+  card.appendChild(edgeTop);
+  card.appendChild(edgeSide);
+
+  uno.appendChild(card);
+  scene.appendChild(uno);
+
+  return scene;
+}
+
+
+/* =========================================================
+   REAL 3D X
+========================================================= */
+
+function createX(){
+
+  const scene=document.createElement("div");
+
+  scene.className="nx-real3d";
+
+  const x=document.createElement("div");
+
+  x.className="nx-x-scene";
+
+  const a=document.createElement("i");
+
+  a.className="nx-x-bar one";
+
+  const b=document.createElement("i");
+
+  b.className="nx-x-bar two";
+
+  x.appendChild(a);
+  x.appendChild(b);
+
+  scene.appendChild(x);
+
+  return scene;
+}
+
+
+/* =========================================================
+   REPLACE EXISTING EMOJI ICONS
+========================================================= */
+
+function buildRealIcons(){
+
+  document.querySelectorAll(".quick-card").forEach(card=>{
+
+    if(card.dataset.nxTrue3d==="1")return;
+
+    const old=card.querySelector(".quick-icon");
+
+    if(!old)return;
+
+    const text=(old.textContent||"").trim();
+
+    let obj=null;
+
+    if(text.includes("🎲")){
+
+      obj=createDice();
+
+    }
+    else if(text.includes("🃏")){
+
+      obj=createUno();
+
+    }
+    else if(
+      text.includes("❌") ||
+      text.includes("✕")
+    ){
+
+      obj=createX();
+
+    }
+
+    if(!obj)return;
+
+    /*
+      ONLY replace icon.
+      Card, title, buttons etc untouched.
+    */
+
+    old.replaceWith(obj);
+
+    card.dataset.nxTrue3d="1";
+
+  });
+
+}
+
+
+/* =========================================================
+   REMOVE ONLY QUICK MATCH LABEL
+========================================================= */
+
+function removeQuickLabel(){
+
+  document.querySelectorAll("main *").forEach(el=>{
+
+    if(el.children.length)return;
+
+    const t=(el.textContent||"")
+      .replace(/\s+/g," ")
+      .trim()
+      .toLowerCase();
+
+    if(
+      t==="quick match" ||
+      t.startsWith("quick match ·") ||
+      t.startsWith("quick match -") ||
+      t.startsWith("quick match —")
+    ){
+
+      let p=el;
+
+      for(let i=0;i<3;i++){
+
+        if(
+          !p.parentElement ||
+          p.parentElement.tagName==="MAIN"
+        )break;
+
+        p=p.parentElement;
+
+      }
+
+      p.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+
+    }
+
+  });
+
+}
+
+
+/* =========================================================
+   RUN
+========================================================= */
+
+function run(){
+
+  buildRealIcons();
+
+  removeQuickLabel();
+
+}
+
+run();
+
+setTimeout(run,100);
+setTimeout(run,400);
+setTimeout(run,900);
+setTimeout(run,1500);
+setTimeout(run,2500);
+
+
+/* New page/card render hone par */
+
+new MutationObserver(()=>{
+
+  run();
+
+}).observe(document.body,{
+
+  childList:true,
+  subtree:true
+
+});
+
+
+window.NEXORA_TRUE_3D={
+
+  refresh:run
+
+};
+
+})();
+
+</script>
 
 <!-- =========================================================
  END — NEXORA REAL 3D GAME PATCH
