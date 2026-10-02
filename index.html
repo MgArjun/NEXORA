@@ -3730,3 +3730,57 @@ function renderGames(){
    <div class="card" style="padding:16px;margin-top:14px;color:var(--muted);font-size:13px;line-height:1.5">💡 Chat ya call me upar ki pattee neeche kheencho (ya 🎮 dabao), dost ko game ki request bhejo. Accept karte hi dono game me pahunch jaoge.</div></section>`;
 }
 </script>
+    <script>
+/* ===== LOGIN FREEZE FIX ===== */
+(function () {
+  function forceLoginScreen() {
+    const splash = document.getElementById("splash");
+    const auth = document.getElementById("authScreen");
+    const app = document.getElementById("appShell");
+
+    /* Splash ko completely remove */
+    if (splash) {
+      splash.classList.add("out");
+      splash.style.display = "none";
+      splash.style.pointerEvents = "none";
+      splash.style.visibility = "hidden";
+    }
+
+    /* Login/Auth screen visible */
+    if (auth) {
+      auth.classList.remove("hidden");
+      auth.style.display = "flex";
+      auth.style.visibility = "visible";
+      auth.style.opacity = "1";
+      auth.style.pointerEvents = "auto";
+      auth.style.zIndex = "9999";
+    }
+
+    /* App shell login ke time hidden */
+    if (app) {
+      app.classList.add("hidden");
+      app.style.pointerEvents = "none";
+    }
+
+    document.body.classList.remove("loading");
+    document.documentElement.classList.remove("loading");
+  }
+
+  /* Page load ke baad login ko force unlock */
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(forceLoginScreen, 1800);
+  });
+
+  /* Agar boot/login initialization mein error ho jaye */
+  window.addEventListener("error", function () {
+    setTimeout(forceLoginScreen, 100);
+  });
+
+  window.addEventListener("unhandledrejection", function () {
+    setTimeout(forceLoginScreen, 100);
+  });
+
+  /* Final safety fallback */
+  setTimeout(forceLoginScreen, 3500);
+})();
+</script>
