@@ -2310,4 +2310,770 @@ renderGames=function(){
 };
 if(NEXORA.page==="games"&&NEXORA.user)renderGames();
 </script>
+<style>
+.mini #callRetry{display:none}
+#callRetry{background:linear-gradient(145deg,#38d98b,#1a9e5f)!important;border-color:transparent!important}
+</style>
+
+<script>
+/* ============ COMM PART 1: reliable calls ============ */
+/* TURN zaroori hai (Wi-Fi<->cellular). metered.ca par free account banao aur neeche daalo, ya apna TURN daalo. */
+const ICE_CONFIG={metered:{app:"",key:""},turn:[]};
+let ICE_CACHE=null,ICE_AT=0,ICE_TURN=false;
+async function getIce(){
+  if(ICE_CACHE&&Date.now()-ICE_AT<36e5)return ICE_CACHE;
+  const s=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302","stun:stun.cloudflare.com:3478"]},...ICE_CONFIG.turn];
+  const m=ICE_CONFIG.metered;
+  if(m.app&&m.key){try{const r=await fetch(`https://${m.app}.metered.live/api/v1/turn/credentials?apiKey=${m.key}`);if(r.ok)s.push(...await r.json())}catch(e){console.warn("TURN fetch failed",e)}}
+  ICE_TURN=s.some(x=>JSON.stringify(x.urls).includes("turn"));
+  if(!ICE_TURN)console.warn("[NEXORA] TURN server set nahi hai: cellular/strict Wi-Fi par call fail ho sakti hai.");
+  ICE_CACHE=s;ICE_AT=Date.now();return s;
+}
+const sig=m=>sendSignal(m).catch(()=>{});
+const ENDED=new Map(),isEnded=id=>{const t=ENDED.get(id);return!!t&&Date.now()-t<12e4};
+const markEnded=id=>{if(id){ENDED.set(id,Date.now());if(ENDED.size>40)ENDED.delete(ENDED.keys().next().value)}};
+const NET_TXT={ok:"Connected",unstable:"Connection unstable",reconnecting:"Reconnecting…",lost:"Connection lost"};
+const waitJoined=async ms=>{const t=Date.now();while(Date.now()-t<ms){if(NEXORA.channel?.state==="joined")return true;await sleep(150)}return false};
+
+/* signaling: ack ke saath retry */
+sendSignal=async function(p){
+  for(let i=0;i<3;i++){
+    if(NEXORA.channel?.state!=="joined"){if(!NEXORA.channel||["errored","closed"].includes(NEXORA.channel.state))await startRealtime();await waitJoined(3500)}
+    if(NEXORA.channel?.state==="joined"){
+      const r=await NEXORA.channel.send({type:"broadcast",event:"signal",payload:{...p,from:NEXORA.user.id}});
+      if(r==="ok")return;
+    }
+    await sleep(400*(i+1));
+  }
+  throw new Error("signal failed");
+};
+
+/* microphone: saaf messages */
+getMic=async function(){
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error("Is browser me microphone support nahi hai. Chrome ya Safari use karo.");
+  if(!isSecureContext)throw new Error("Voice ke liye HTTPS chahiye.");
+  try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})}
+  catch(e){const n=e.name;throw new Error(n==="NotAllowedError"||n==="SecurityError"?"Microphone access zaroori hai. Browser me 🔒 ➜ Permissions ➜ Microphone ➜ Allow karo.":n==="NotFoundError"?"Microphone nahi mila.":n==="NotReadableError"?"Microphone kisi aur app me use ho raha hai.":"Microphone shuru nahi hua.")}
+};
+let WL=null;async function wake(on){try{if(on&&!WL&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");if(!on&&WL){await WL.release();WL=null}}catch(_){}}
+
+/* retry button */
+$("callGame").insertAdjacentHTML("afterend",`<button id="callRetry" class="btn hidden" title="Retry">⟳</button>`);
+$("callRetry").onclick=()=>retryCall();$("callAccept").onclick=()=>acceptCall();
+
+/* ---- state text ---- */
+function setNet(c,s){c.net=s;paintCall()}
+function paintCall(){
+  const c=CC();if(c.state==="idle")return;
+  let t,col="";
+  if(c.state==="calling")t=c.ringing?"Ringing…":"Calling…";
+  else if(c.state==="ringing")t=(c.members?.length?"Group call · ":"")+"Incoming voice call";
+  else if(c.state==="connecting")t=c.fail?"Couldn't connect":"Connecting…";
+  else{t=NET_TXT[c.net||"ok"];if(c.net==="unstable"||c.net==="reconnecting")col="#ffc857";if(c.net==="lost")col="#ff8797"}
+  const st=$("callState");if(st.textContent!==t)st.textContent=t;st.style.color=col;
+  $("callRetry").classList.toggle("hidden",!(c.fail||c.net==="lost"));
+}
+setInterval(paintCall,400);
+
+/* ---- peer ---- */
+async function mkPeer(uid,name,init){
+  const c=CC();if(c.peers[uid])return c.peers[uid];
+  const cfg={iceServers:await getIce(),iceCandidatePoolSize:2};
+  if(CC()!==c)throw new Error("call changed");if(c.peers[uid])return c.peers[uid];
+  const pc=new RTCPeerConnection(cfg);
+  const P={pc,name,init,muted:false,state:"connecting",audio:null,queue:[...(c.pre?.[uid]||[])],out:[],ready:!init,tmr:null,lost:null,rt:null};
+  c.peers[uid]=P;if(c.pre)delete c.pre[uid];
+  c.stream.getTracks().forEach(t=>pc.addTrack(t,c.stream));
+  pc.onicecandidate=e=>{if(!e.candidate)return;const m={type:"call-ice",to:uid,callId:c.id,candidate:e.candidate};P.ready?sig(m):P.out.push(m)};
+  pc.ontrack=e=>{if(!P.audio){const a=document.createElement("audio");a.autoplay=true;a.playsInline=true;document.body.appendChild(a);P.audio=a}P.audio.srcObject=e.streams[0];P.audio.play().catch(()=>{});applyAudio()};
+  pc.oniceconnectionstatechange=()=>onNet(c,uid);pc.onconnectionstatechange=()=>onNet(c,uid);
+  return P;
+}
+function clearP(P){clearTimeout(P.tmr);clearTimeout(P.lost);clearInterval(P.rt);P.tmr=P.lost=P.rt=null}
+function onNet(c,uid){
+  const P=c.peers[uid];if(!P||CC()!==c)return;
+  const ice=P.pc.iceConnectionState,cs=P.pc.connectionState;console.debug("[call]",uid,ice,cs);
+  if(ice==="connected"||ice==="completed"||cs==="connected"){
+    clearP(P);P.state="connected";clearTimeout(c.dead);
+    if(c.state!=="connected"){c.state="connected";c.fail=false;[c.ctmo,c.ctmo2,c.otmo].forEach(clearTimeout);callUI(0,0,1,1);startCallTimer();wake(true)}
+    if(c.net&&c.net!=="ok")toast("Connection wapas aa gaya ✓");
+    setNet(c,"ok");refreshCall();return;
+  }
+  if(ice==="disconnected"){P.state="unstable";if(c.state==="connected")setNet(c,"unstable");clearTimeout(P.tmr);P.tmr=setTimeout(()=>recover(c,uid),3000);return}
+  if(ice==="failed"||cs==="failed")recover(c,uid);
+}
+function recover(c,uid){
+  const P=c.peers[uid];if(!P||CC()!==c)return;
+  const s=P.pc.iceConnectionState;if(s==="connected"||s==="completed")return;
+  if(c.state==="connected")setNet(c,"reconnecting");
+  const kick=()=>{if(CC()!==c||!c.peers[uid]||navigator.onLine===false)return;P.init?restartIce(c,uid):sig({type:"call-nudge",to:uid,callId:c.id})};
+  kick();clearInterval(P.rt);
+  P.rt=setInterval(()=>{const x=P.pc.iceConnectionState;if(x==="connected"||x==="completed")return clearInterval(P.rt);kick()},6000);
+  if(!P.lost)P.lost=setTimeout(()=>{P.lost=null;if(CC()!==c||!c.peers[uid])return;const x=P.pc.iceConnectionState;if(x!=="connected"&&x!=="completed")netLost(c)},c.state==="connected"?25000:20000);
+}
+function netLost(c){
+  if(c.state==="connected")c.net="lost";else c.fail=true;
+  paintCall();clearTimeout(c.dead);c.dead=setTimeout(()=>{if(CC()===c&&(c.net==="lost"||c.fail)){toast("Connection nahi mil paya. Call khatam.","error");endCall("ended")}},90000);
+}
+function retryCall(){
+  const c=CC();if(c.state==="idle")return;c.fail=false;if(c.net==="lost")c.net="reconnecting";paintCall();clearTimeout(c.dead);
+  Object.keys(c.peers).forEach(u=>{const P=c.peers[u];clearP(P);recover(c,u)});
+}
+async function restartIce(c,uid){
+  const P=c.peers[uid];if(!P||P.restarting||P.pc.signalingState!=="stable")return;
+  P.restarting=true;
+  try{P.pc.restartIce?.();await P.pc.setLocalDescription(await P.pc.createOffer({iceRestart:true}));
+    await sendSignal({type:"call-reoffer",to:uid,callId:c.id,offer:P.pc.localDescription})}
+  catch(e){console.warn("ice restart",e)}finally{P.restarting=false}
+}
+async function onReoffer(p){
+  const c=CC(),P=c.peers[p.from];if(!P||p.callId!==c.id)return;
+  try{await P.pc.setRemoteDescription(new RTCSessionDescription(p.offer));await P.pc.setLocalDescription(await P.pc.createAnswer());
+    await sendSignal({type:"call-answer",to:p.from,callId:c.id,answer:P.pc.localDescription});if(c.state==="connected")setNet(c,"reconnecting")}
+  catch(e){console.warn("reoffer",e)}
+}
+function armConnect(c){
+  clearTimeout(c.ctmo);clearTimeout(c.ctmo2);
+  c.ctmo=setTimeout(()=>{if(CC()===c&&c.state!=="connected"){c.fail=true;paintCall();Object.keys(c.peers).forEach(u=>recover(c,u))}},25000);
+  c.ctmo2=setTimeout(()=>{if(CC()===c&&c.state!=="connected"){toast("Call connect nahi ho payi. Dono taraf internet check karo.","error");endCall("missed")}},75000);
+}
+
+/* ---- outgoing ---- */
+async function dial(uid,name){
+  const c=CC(),P=await mkPeer(uid,name,true);
+  await P.pc.setLocalDescription(await P.pc.createOffer());
+  const msg={type:"call-offer",to:uid,callId:c.id,fromName:myName(),random:!!c.random,members:Object.keys(c.peers).filter(k=>k!==uid).map(k=>({id:k,name:c.peers[k].name})),offer:P.pc.localDescription};
+  await sendSignal(msg);P.ready=true;P.out.splice(0).forEach(sig);
+  if(c.state==="calling"){let n=0;clearInterval(c.resend);c.resend=setInterval(()=>{if(CC()!==c||c.ringing||c.state!=="calling"||++n>10){clearInterval(c.resend);c.resend=null;return}sig(msg)},2500)}
+}
+async function dbStart(tid){
+  try{const{data:pr}=await sb.from("profiles").select("username").eq("id",tid).maybeSingle();if(!pr?.username)return null;
+    const{data,error}=await sb.rpc("nexora_start_call",{target_username:pr.username,call_kind:"voice"});return!error&&data?.call_id?data.call_id:null}catch(_){return null}
+}
+startCallByUser=async function(tid,tname,opts={}){
+  if(!NEXORA.user)return toast("Please log in first.","error");
+  if(tid===NEXORA.user.id)return;
+  if(CC().state!=="idle")return inviteToCall(tid,tname||"User");
+  let stream;try{stream=await getMic()}catch(e){return toast(e.message,"error")}
+  if(CC().state!=="idle"){stream.getTracks().forEach(t=>t.stop());return}
+  const c=NEXORA.call={...IDLE2(),id:crypto.randomUUID(),mode:"outgoing",state:"calling",stream,targetId:tid,targetName:tname||"User",random:!!opts.random};
+  $("callAvatar").textContent=initials(tname);$("callName").textContent=tname||"User";callShow();callUI(0,0,0,1);paintCall();
+  const dbId=await Promise.race([dbStart(tid),sleep(2200).then(()=>null)]);
+  if(CC()!==c)return;if(dbId)c.id=dbId;
+  try{await dial(tid,tname||"User")}catch(e){console.error(e);toast("Call shuru nahi ho payi. Internet check karo.","error");return endCall("cancelled",true)}
+  c.otmo=setTimeout(()=>{if(CC()===c&&c.state==="calling"){toast("Koi jawab nahi");endCall("missed")}},35000);
+};
+
+/* ---- incoming ---- */
+async function onOffer(p){
+  const c=CC(),me=NEXORA.user.id;
+  if(isEnded(p.callId))return;
+  if(p.callId===c.id&&c.state!=="idle"){
+    if(c.state==="ringing"){sig({type:"call-ringing",to:p.from,callId:c.id});return}
+    if(c.peers[p.from])return;
+    try{const P=await mkPeer(p.from,p.fromName||"User",false);await setRemote(P,p.offer);await P.pc.setLocalDescription(await P.pc.createAnswer());
+      await sendSignal({type:"call-answer",to:p.from,callId:c.id,answer:P.pc.localDescription});refreshCall()}catch(e){console.warn(e)}
+    return;
+  }
+  if(c.state!=="idle"){
+    if(c.state==="calling"&&c.targetId===p.from&&me>p.from){markEnded(c.id);await cleanupCall()}  /* glare: chhoti id jeetti hai */
+    else{sig({type:"call-busy",to:p.from,callId:p.callId});return}
+  }
+  NEXORA.call={...IDLE2(),id:p.callId,mode:"incoming",state:"ringing",targetId:p.from,targetName:p.fromName||"Incoming call",pendingOffer:p.offer,members:p.members||[],random:!!p.random};
+  const n=CC();sig({type:"call-ringing",to:p.from,callId:n.id});
+  if(p.random&&RST){cancelRandom(false);closeModal();return acceptCall()}
+  callShow();$("callAvatar").textContent=initials(n.targetName);$("callName").textContent=n.targetName;callUI(1,1,0,0);startRing();paintCall();
+  n.otmo=setTimeout(async()=>{if(CC()===n&&n.state==="ringing"){sig({type:"call-missed",to:n.targetId,callId:n.id});await endCall("missed",true)}},35000);
+}
+acceptCall=async function(){
+  const c=CC();if(c.mode!=="incoming"||c.state!=="ringing")return;
+  stopRing();clearTimeout(c.otmo);
+  let stream;try{stream=await getMic()}catch(e){toast(e.message,"error");sig({type:"call-declined",to:c.targetId,callId:c.id});return endCall("cancelled",true)}
+  if(CC()!==c){stream.getTracks().forEach(t=>t.stop());return}
+  c.stream=stream;c.state="connecting";callUI(0,0,1,1);paintCall();armConnect(c);
+  try{
+    const P=await mkPeer(c.targetId,c.targetName,false);
+    await setRemote(P,c.pendingOffer);await P.pc.setLocalDescription(await P.pc.createAnswer());
+    await sendSignal({type:"call-answer",to:c.targetId,callId:c.id,answer:P.pc.localDescription});
+    for(const m of c.members)await dial(m.id,m.name);
+    sb.from("calls").update({status:"accepted",started_at:new Date().toISOString()}).eq("id",c.id).then(()=>{},()=>{});
+  }catch(e){console.error(e);toast("Call connect nahi ho payi","error");await endCall("cancelled")}
+};
+function onGone(p){
+  const c=CC();if(p.callId!==c.id)return;
+  const P=c.peers[p.from],rnd=c.random;
+  if(P){const n=P.name;dropPeer(p.from);
+    toast(p.type==="call-busy"?n+" abhi busy hai":p.type==="call-declined"?n+" ne call cut kar di":n+" call se chala gaya");
+    if(rnd&&!Object.keys(CC().peers||{}).length)setTimeout(strangerGone,350)}
+  else if(c.state==="ringing"&&p.from===c.targetId){cleanupCall();toast("Missed call")}
+}
+const _hsG=handleSignal;
+handleSignal=async function(p){
+  if(!p||p.from===NEXORA.user?.id)return;
+  const t=p.type;if(!t||!t.startsWith("call-"))return _hsG(p);
+  const c=CC();if(isEnded(p.callId))return;
+  if(t==="call-offer")return onOffer(p);
+  if(t==="call-ringing"){if(p.callId===c.id){c.ringing=true;clearInterval(c.resend);c.resend=null;paintCall()}return}
+  if(t==="call-answer"){const P=c.peers[p.from];if(P&&p.callId===c.id){try{await setRemote(P,p.answer);if(c.state==="calling"){c.state="connecting";clearTimeout(c.otmo);armConnect(c)}}catch(e){console.warn("answer",e)}}return}
+  if(t==="call-ice"){
+    if(p.callId!==c.id||!p.candidate)return;const P=c.peers[p.from];
+    if(!P){(c.pre=c.pre||{});(c.pre[p.from]=c.pre[p.from]||[]).push(p.candidate);return}
+    if(P.pc.remoteDescription)P.pc.addIceCandidate(p.candidate).catch(()=>{});else P.queue.push(p.candidate);return;
+  }
+  if(t==="call-reoffer")return onReoffer(p);
+  if(t==="call-nudge"){const P=c.peers[p.from];if(P&&P.init&&p.callId===c.id)restartIce(c,p.from);return}
+  return onGone(p);
+};
+
+/* ---- cleanup ---- */
+const _ecG=endCall;endCall=async function(s,sil){markEnded(CC().id);return _ecG(s,sil)};
+const _clG=cleanupCall;cleanupCall=async function(){
+  const c=CC();markEnded(c.id);[c.otmo,c.ctmo,c.ctmo2,c.dead].forEach(clearTimeout);clearInterval(c.resend);
+  Object.values(c.peers||{}).forEach(clearP);wake(false);$("callRetry")?.classList.add("hidden");$("callState").style.color="";
+  return _clG();
+};
+const _dpG=dropPeer;dropPeer=function(u){const P=CC().peers[u];if(P)clearP(P);return _dpG(u)};
+
+/* ---- network events ---- */
+addEventListener("online",()=>{const c=CC();if(NEXORA.user&&NEXORA.channel?.state!=="joined")startRealtime();if(c.state==="idle")return;Object.keys(c.peers).forEach(u=>{if(c.peers[u].pc.iceConnectionState!=="connected")recover(c,u)})});
+addEventListener("offline",()=>{const c=CC();if(c.state==="connected")setNet(c,"reconnecting")});
+navigator.connection?.addEventListener?.("change",()=>{const c=CC();if(c.state!=="connected")return;setTimeout(()=>Object.keys(c.peers).forEach(u=>{const P=c.peers[u];if(P)P.init?restartIce(c,u):sig({type:"call-nudge",to:u,callId:c.id})}),900)});
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible")return;if(NEXORA.user&&NEXORA.channel?.state!=="joined")startRealtime();
+  const c=CC();if(c.state==="idle")return;Object.keys(c.peers).forEach(u=>{const s=c.peers[u].pc.iceConnectionState;if(s!=="connected"&&s!=="completed")recover(c,u)});
+});
+addEventListener("pagehide",()=>{const c=CC();if(c.state==="idle")return;Object.keys(c.peers).forEach(u=>{try{NEXORA.channel?.send({type:"broadcast",event:"signal",payload:{type:"call-ended",to:u,callId:c.id,from:NEXORA.user.id}})}catch(_){}})});
+
+/* ---- realtime watchdog + indicator ---- */
+let RTJ=0,CONN="ok";
+setInterval(()=>{
+  if(!NEXORA.user)return;const ch=NEXORA.channel,s=ch?.state,on=navigator.onLine;
+  if(s==="joined")RTJ=0;else if(s==="joining"&&!RTJ)RTJ=Date.now();
+  if(on&&(!ch||s==="errored"||s==="closed"||(s==="joining"&&RTJ&&Date.now()-RTJ>12000))){RTJ=0;startRealtime().catch(()=>{})}
+  const st=!on?"off":s==="joined"?"ok":"rec",bn=$("offline");if(!bn||st===CONN)return;const was=CONN;CONN=st;
+  if(st==="off"){bn.textContent="📡 Internet nahi hai";bn.style.background="#ff4d63";bn.classList.add("show")}
+  else if(st==="rec"){bn.textContent="🔄 Reconnecting…";bn.style.background="#e0a000";bn.classList.add("show")}
+  else if(was!=="ok"){bn.textContent="✓ Back online";bn.style.background="#1fae6a";bn.classList.add("show");setTimeout(()=>{if(CONN==="ok")bn.classList.remove("show")},2200)}
+},2000);
+
+/* ============ RANDOM VOICE CALL ============ */
+let RCH=null,RST=null;
+function cancelRandom(close){
+  const c=RCH;RCH=null;if(RST){clearTimeout(RST.to);clearTimeout(RST.wt)}RST=null;
+  if(c)try{sb.removeChannel(c)}catch(_){}if(close)closeModal();
+}
+const _cmG=closeModal;closeModal=function(){if(RST&&!RST.starting)cancelRandom(false);_cmG()};
+function randomUI(txt){
+  if(!$("rcTxt"))openModal(`<div class="modal-title">📞 Random Call</div><div class="modal-sub">Kisi anjaan se baat karo</div>
+   <div style="display:grid;place-items:center;margin:20px 0 8px"><div class="avw" style="width:130px;height:130px;margin:0"><i></i><i></i><i></i><div class="avatar" style="width:70px;height:70px;font-size:28px;position:relative;z-index:1">🎧</div></div></div>
+   <div id="rcTxt" style="font-weight:900;font-size:17px;text-align:center;margin-bottom:18px"></div><button class="btn danger" style="width:100%" onclick="cancelRandom(true)">Cancel</button>`);
+  $("rcTxt").textContent=txt;
+}
+function randomEnd(title,sub){
+  openModal(`<div class="modal-title">${title}</div><div class="modal-sub">${sub}</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="closeModal();findRandomCall()">🔄 Find another</button><button class="btn" style="width:100%" onclick="closeModal()">Band karo</button>`);
+}
+const strangerGone=()=>randomEnd("Stranger disconnected","Call khatam ho gayi");
+async function findRandomCall(){
+  if(!NEXORA.user)return toast("Pehle login karo","error");
+  if(CC().state!=="idle")return toast("Pehle current call khatam karo");
+  cancelRandom(false);
+  try{(await getMic()).getTracks().forEach(t=>t.stop())}catch(e){return toast(e.message,"error")}
+  const S=RST={starting:false,matched:false};randomUI("Kisi se jod rahe hain…");
+  const ch=sb.channel("mm-rcall",{config:{presence:{key:NEXORA.user.id}}});RCH=ch;
+  const me={id:NEXORA.user.id,name:myName(),t:Date.now()};
+  ch.on("presence",{event:"sync"},()=>{
+    if(RST!==S||RCH!==ch||S.matched)return;
+    const seen={};Object.values(ch.presenceState()).flat().forEach(x=>{if(x?.id&&!seen[x.id])seen[x.id]=x});
+    const list=Object.values(seen).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1)),i=list.findIndex(x=>x.id===me.id);
+    if(i<0)return;const j=i%2===0?i+1:i-1;if(j<0||j>=list.length)return;
+    S.matched=true;const o=list[j];randomUI("Match mil gaya! Connecting…");sfx(660,.15);
+    setTimeout(()=>{try{sb.removeChannel(ch)}catch(_){}},6000);
+    if(i<j)setTimeout(()=>{if(RST!==S)return;S.starting=true;closeModal();RST=null;startCallByUser(o.id,o.name,{random:true})},700);
+    else S.wt=setTimeout(()=>{if(RST===S&&CC().state==="idle"){cancelRandom(false);randomEnd("Match nahi ho paya","Dobara try karo")}},20000);
+  });
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+  try{await ch.track(me)}catch(_){}
+  if(RST===S&&RCH===ch)S.to=setTimeout(()=>{if(RST===S&&!S.matched){cancelRandom(false);randomEnd("Abhi koi online nahi 😕","Thodi der baad dobara try karo")}},60000);
+}
+randomCall=()=>findRandomCall();
+</script>
+<style>
+#gvBtn{position:relative}
+#gvBtn i{position:absolute;right:3px;top:3px;width:10px;height:10px;border-radius:50%;background:#667;border:2px solid #0b1019}
+#gvBtn.s-ok i{background:#2fe08b}#gvBtn.s-wait i{background:#ffc857;animation:blink 1s infinite}#gvBtn.s-bad i{background:#ff5468}
+#gvBtn.speak{box-shadow:0 0 0 2px #2fe08b,0 0 18px rgba(47,224,139,.65)}
+#gvPanel{position:fixed;top:calc(env(safe-area-inset-top,0px) + 72px);right:10px;width:250px;z-index:6600;padding:14px;border-radius:20px;background:rgba(16,23,34,.96);backdrop-filter:blur(16px);border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.6);transform-origin:top right;animation:pop .25s var(--ease)}
+.gvr{display:flex;gap:8px;margin-top:12px}.gvr .btn{flex:1;min-height:46px;padding:0;font-size:19px}.gvr .btn.off{background:rgba(255,85,105,.18);color:#ff8797}
+#gchip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 74px);left:50%;transform:translateX(-50%);z-index:6500;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:800;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.45);animation:pop .25s var(--ease)}
+</style>
+
+<script>
+/* ============ COMM PART 2: game voice + game sync + rematch ============ */
+const GST={},NOW=()=>Date.now();
+function gchip(txt,tone,act){let e=$("gchip");if(!txt){e?.remove();return}
+  if(!e){document.body.insertAdjacentHTML("beforeend",'<div id="gchip"></div>');e=$("gchip");e.onclick=()=>{const a=e.dataset.act;if(a&&window[a])window[a]()}}
+  e.textContent=txt;e.dataset.act=act||"";e.style.background=tone==="ok"?"#1fae6a":"#b88400"}
+
+/* ---- kaun sa game online chal raha hai ---- */
+function gameCtx(){
+  const me=NEXORA.user?.id;if(!me)return null;
+  if(LUDO?.mode==="online"&&LROOM)return{kind:"ludo",code:LROOM.code,others:LB.filter(x=>x.id!==me)};
+  if(TT?.started&&TCH&&TT.oppId)return{kind:"ttt",code:TT.code,others:[{id:TT.oppId,name:"Dost"}]};
+  if(UI&&UCH&&UB.length)return{kind:"uno",code:UCH.code,others:UB.filter(x=>x.id!==me)};
+  return null;
+}
+const gameActive=()=>gameCtx()?.kind||null;
+function gameOnScreen(k){const m=$("main");return k==="ludo"?!!m.querySelector(".ludo-wrap"):k==="ttt"?!!m.querySelector(".cell"):!!m.querySelector(".u-page")}
+function gameBack(){const k=gameActive();NEXORA.page="games";if(k==="ludo")renderLudo();else if(k==="ttt")renderTTT();else if(k==="uno")uRender()}
+
+/* ============ GAME VOICE (alag session, mesh 1-to-1) ============ */
+let GV=null;
+$("notificationBtn").insertAdjacentHTML("beforebegin",'<button id="gvBtn" class="icon-btn hidden" title="Voice">🎙<i></i></button>');
+$("gvBtn").onclick=()=>gvPanel($("gvPanel")?false:true);
+const gvSig=(to,t,x={})=>GV?sendSignal({type:t,to,sid:GV.sid,...x}).catch(()=>{}):Promise.resolve();
+const gvSid=c=>`gv:${c.kind}:${c.code}`;
+function gvStat(){if(!GV)return"off";const a=Object.values(GV.peers);if(!a.length)return"wait";if(a.some(p=>p.state==="bad"))return"bad";return a.every(p=>p.state==="ok")?"ok":"wait"}
+function gvPaint(){
+  const b=$("gvBtn");if(!b)return;const ctx=gameCtx(),st=gvStat();
+  b.classList.toggle("hidden",!ctx&&!GV);b.className=b.className.replace(/ s-\w+/g,"")+(GV?" s-"+st:"");
+  if(GV&&st==="ok")GV.was=true;if($("gvPanel"))gvPanel();
+}
+function gvPanel(open){
+  let p=$("gvPanel");if(open===false){p?.remove();return}
+  if(!p){if(open!==true)return;document.body.insertAdjacentHTML("beforeend",'<div id="gvPanel"></div>');p=$("gvPanel")}
+  if(!GV){const inCall=CC().state!=="idle";
+    p.innerHTML=`<div style="font-weight:850">🎙 Voice chat</div><div style="color:var(--muted);font-size:13px;margin-top:4px">${inCall?"Aap call me ho. Wahi call voice ka kaam karegi.":"Is game ke players ke saath baat karo"}</div>${inCall?"":'<div class="gvr"><button class="btn primary-btn" style="font-size:15px" onclick="gvJoin()">Voice shuru karo</button></div>'}`;return}
+  const st=gvStat(),txt={ok:"Voice connected",wait:GV.was?"Reconnecting voice…":"Connecting voice…",bad:"Voice unavailable"}[st],col={ok:"#2fe08b",wait:"#ffc857",bad:"#ff5468"}[st];
+  p.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-weight:850"><span style="width:9px;height:9px;border-radius:50%;background:${col}"></span>${txt}</div>
+   <div class="gvr"><button class="btn ${GV.muted?"off":""}" onclick="gvMic()">${GV.muted?"🔇":"🎙"}</button><button class="btn ${GV.spk?"":"off"}" onclick="gvSpk()">${GV.spk?"🔊":"🔈"}</button>${st==="bad"?'<button class="btn" onclick="gvRetry()">⟳</button>':""}<button class="btn off" onclick="gvLeave(true);gvPanel(false)">☎</button></div>`;
+}
+async function gvJoin(){
+  const ctx=gameCtx();if(!ctx||GV)return;
+  if(CC().state!=="idle")return toast("Pehle current call khatam karo");
+  let stream;try{stream=await getMic()}catch(e){gvPaint();return toast(e.message,"error")}
+  const c2=gameCtx();if(!c2||GV){stream.getTracks().forEach(t=>t.stop());return}
+  const G=GV={sid:gvSid(c2),ctx:c2,peers:{},pre:{},stream,muted:false,spk:true,was:false};let n=0;
+  const ann=()=>{if(GV!==G)return;const need=G.ctx.others.filter(o=>G.peers[o.id]?.state!=="ok");need.forEach(o=>gvSig(o.id,"gv-join",{}));if(need.length&&++n<10)G.ann=setTimeout(ann,3000)};
+  ann();gvPaint();
+}
+async function gvPeer(uid,init){
+  const G=GV;if(!G)return null;if(G.peers[uid])return G.peers[uid];
+  const pc=new RTCPeerConnection({iceServers:await getIce(),iceCandidatePoolSize:2});
+  if(GV!==G){pc.close();return null}if(G.peers[uid]){pc.close();return G.peers[uid]}
+  const P={pc,init,state:"wait",queue:[...(G.pre[uid]||[])],audio:null,stream:null};G.peers[uid]=P;delete G.pre[uid];
+  G.stream.getTracks().forEach(t=>pc.addTrack(t,G.stream));
+  pc.onicecandidate=e=>{if(e.candidate)gvSig(uid,"gv-ice",{candidate:e.candidate})};
+  pc.ontrack=e=>{if(!P.audio){const a=document.createElement("audio");a.autoplay=true;a.playsInline=true;a.muted=!G.spk;document.body.appendChild(a);P.audio=a}P.audio.srcObject=e.streams[0];P.audio.play().catch(()=>{});P.stream=e.streams[0]};
+  const chk=()=>{if(GV!==G)return;const s=pc.iceConnectionState;
+    if(s==="connected"||s==="completed"){clearTimeout(P.t1);clearTimeout(P.lost);P.lost=null;clearInterval(P.rt);P.state="ok"}
+    else if(s==="disconnected"){P.state="wait";clearTimeout(P.t1);P.t1=setTimeout(()=>gvRecover(uid),3000)}
+    else if(s==="failed")gvRecover(uid);
+    gvPaint()};
+  pc.oniceconnectionstatechange=chk;pc.onconnectionstatechange=chk;
+  return P;
+}
+function gvRecover(uid){
+  const G=GV,P=G?.peers[uid];if(!P)return;if(P.state!=="bad")P.state="wait";gvPaint();
+  const kick=()=>{if(GV!==G||navigator.onLine===false)return;P.init?gvRestart(uid):gvSig(uid,"gv-nudge")};
+  kick();clearInterval(P.rt);P.rt=setInterval(()=>{if(GV!==G||P.state==="ok")return clearInterval(P.rt);kick()},6000);
+  if(!P.lost)P.lost=setTimeout(()=>{P.lost=null;if(GV===G&&P.state!=="ok"){P.state="bad";gvPaint()}},25000);
+}
+async function gvRestart(uid){
+  const P=GV?.peers[uid];if(!P||P.rs||P.pc.signalingState!=="stable")return;P.rs=true;
+  try{P.pc.restartIce?.();await P.pc.setLocalDescription(await P.pc.createOffer({iceRestart:true}));await gvSig(uid,"gv-offer",{offer:P.pc.localDescription})}catch(e){console.warn(e)}finally{P.rs=false}
+}
+async function gvOnSig(p){
+  const G=GV;if(!G||p.sid!==G.sid)return;const u=p.from,me=NEXORA.user.id,t=p.type;
+  if(t==="gv-join"||t==="gv-here"){
+    if(t==="gv-join")gvSig(u,"gv-here");
+    if(me<u&&!G.peers[u]){const P=await gvPeer(u,true);if(!P||GV!==G)return;await P.pc.setLocalDescription(await P.pc.createOffer());gvSig(u,"gv-offer",{offer:P.pc.localDescription})}return}
+  if(t==="gv-offer"){const P=await gvPeer(u,false);if(!P||GV!==G)return;
+    try{await P.pc.setRemoteDescription(new RTCSessionDescription(p.offer));while(P.queue.length)P.pc.addIceCandidate(P.queue.shift()).catch(()=>{});await P.pc.setLocalDescription(await P.pc.createAnswer());gvSig(u,"gv-answer",{answer:P.pc.localDescription})}catch(e){console.warn(e)}return}
+  if(t==="gv-answer"){const P=G.peers[u];if(P)try{await P.pc.setRemoteDescription(new RTCSessionDescription(p.answer));while(P.queue.length)P.pc.addIceCandidate(P.queue.shift()).catch(()=>{})}catch(e){console.warn(e)}return}
+  if(t==="gv-ice"){if(!p.candidate)return;const P=G.peers[u];if(!P)(G.pre[u]=G.pre[u]||[]).push(p.candidate);else if(P.pc.remoteDescription)P.pc.addIceCandidate(p.candidate).catch(()=>{});else P.queue.push(p.candidate);return}
+  if(t==="gv-nudge"){const P=G.peers[u];if(P?.init)gvRestart(u);return}
+  if(t==="gv-leave")gvDrop(u);
+}
+function gvDrop(u){const P=GV?.peers[u];if(!P)return;clearTimeout(P.t1);clearTimeout(P.lost);clearInterval(P.rt);try{P.pc.close()}catch(_){}if(P.audio){try{P.audio.srcObject=null}catch(_){}P.audio.remove()}delete GV.peers[u];gvPaint()}
+function gvLeave(notify){
+  const G=GV;if(!G)return;GV=null;clearTimeout(G.ann);
+  G.ctx.others.forEach(o=>{if(notify)sendSignal({type:"gv-leave",to:o.id,sid:G.sid}).catch(()=>{});const P=G.peers[o.id];if(P){clearTimeout(P.t1);clearTimeout(P.lost);clearInterval(P.rt);try{P.pc.close()}catch(_){}if(P.audio){try{P.audio.srcObject=null}catch(_){}P.audio.remove()}}});
+  try{G.stream.getTracks().forEach(t=>t.stop())}catch(_){}gvPaint();
+}
+function gvMic(){if(!GV)return;GV.muted=!GV.muted;GV.stream.getAudioTracks().forEach(t=>t.enabled=!GV.muted);navigator.vibrate?.(15);gvPaint()}
+function gvSpk(){if(!GV)return;GV.spk=!GV.spk;Object.values(GV.peers).forEach(P=>{if(P.audio)P.audio.muted=!GV.spk});gvPaint()}
+function gvRetry(){
+  if(!GV)return;const G=GV;
+  if(!Object.keys(G.peers).length){gvLeave(false);return gvJoin()}
+  Object.keys(G.peers).forEach(u=>{const P=G.peers[u];clearInterval(P.rt);clearTimeout(P.lost);P.lost=null;P.state="wait";gvRecover(u)});
+  G.ctx.others.forEach(o=>{if(G.peers[o.id]?.state!=="ok")gvSig(o.id,"gv-join")});
+}
+const _hsV=handleSignal;
+handleSignal=async function(p){if(p?.type?.startsWith("gv-")){if(p.from!==NEXORA.user?.id)gvOnSig(p);return}return _hsV(p)};
+addEventListener("online",()=>{if(GV)gvRetry()});
+setInterval(()=>{ /* bolne wala indicator */
+  const b=$("gvBtn");if(!b)return;let sp=false;
+  if(GV&&GV.spk)for(const P of Object.values(GV.peers)){if(P.state!=="ok"||!P.stream)continue;
+    try{if(!P.an){const ac=window.__gvac=window.__gvac||new(window.AudioContext||webkitAudioContext)(),a=ac.createAnalyser();a.fftSize=256;ac.createMediaStreamSource(P.stream).connect(a);P.an=a;P.buf=new Uint8Array(a.frequencyBinCount)}
+      P.an.getByteFrequencyData(P.buf);let m=0;for(const v of P.buf)m+=v;if(m/P.buf.length>14)sp=true}catch(_){}}
+  b.classList.toggle("speak",sp);
+},200);
+
+/* ============ LUDO: sync + reconnect + rematch ============ */
+const snapOf=L=>({seq:L.seq||0,turn:L.turn,sixes:L.sixes,t:L.players.map(p=>p.tokens.slice()),gone:L.players.map(p=>!!p.gone),win:L.winner||null});
+function sendSnap(){const L=LUDO;if(L?.mode==="online")lsend({t:"snap",s:snapOf(L)})}
+function applySnap(s,force){
+  const L=LUDO;if(!L||L.mode!=="online"||!s||L.busy||L.rolling)return;
+  if(!force&&(s.seq<=(L.seq||0)||L.dice))return;
+  L.players.forEach((p,i)=>{p.tokens=s.t[i].slice();p.gone=s.gone[i]});
+  L.turn=s.turn;L.sixes=s.sixes;L.seq=s.seq;L.dice=null;L.spr.forEach(r=>r.forEach(sp=>sp.slow=false));
+  if(s.win&&!L.winner)L.winner=s.win;L.message=cur().name+" ki baari";updateLudo();
+}
+const _cmL=commit;commit=async function(pl,i){await _cmL(pl,i);if(LUDO)LUDO.seq=(LUDO.seq||0)+1};
+let LREM={};
+function ludoRemCheck(){
+  const L=LUDO;if(!L||L.mode!=="online")return;
+  if(LB.every((p,i)=>L.players[i]?.gone||LREM[p.id])){const me=L.me;LREM={};startLudo("online",LB.map(x=>x.name),me)}
+}
+const _olG=onLudoMsg;
+onLudoMsg=function(m){
+  if(m.from===NEXORA.user.id)return;
+  if(LUDO?.mode==="online"){(LUDO.seen=LUDO.seen||{})[m.from]=NOW()}
+  if(m.t==="hb")return;
+  if(m.t==="need"){if(LUDO?.me===0)sendSnap();return}
+  if(m.t==="snap")return applySnap(m.s,!m.s.auto&&LUDO?.dcSync);
+  if(m.t==="rem"){LREM[m.from]=true;ludoRemCheck();return}
+  return _olG(m);
+};
+setInterval(()=>{
+  const L=LUDO;let txt=null;
+  if(L?.mode==="online"&&LROOM){
+    lsend({t:"hb"});const now=NOW();L.seen=L.seen||{};
+    if(LROOM.state!=="joined"){txt="Reconnecting game…";L.dc=true}
+    else{
+      if(L.dc){L.dc=false;L.dcSync=true;lsend({t:"need"});setTimeout(()=>{if(LUDO)LUDO.dcSync=false},4000);toast("Game wapas judd gaya ✓")}
+      LB.forEach((p,i)=>{if(p.id===NEXORA.user.id||L.players[i]?.gone||L.winner)return;const s=L.seen[p.id]||(L.seen[p.id]=now),d=now-s;
+        if(d>60000)onLudoMsg({t:"leave",from:p.id});else if(d>12000)txt=L.players[i].name+" reconnecting…"});
+      if(L.me===0&&!L.busy&&!L.rolling&&!L.dice&&!L.winner&&now-(L.lastSnap||0)>10000){L.lastSnap=now;const s=snapOf(L);s.auto=1;lsend({t:"snap",s})}
+    }
+  }
+  GST.ludo=txt;
+},3000);
+
+/* ============ UNO: heartbeat + rematch ============ */
+function unoRem(id){
+  if(!UG||!UHOST)return;UG.rem=UG.rem||{};UG.rem[id]=true;
+  if(UG.seats.every(s=>s.bot||UG.rem[s.id])){const seats=UG.seats.map(s=>({id:s.id,name:s.name,bot:s.bot}));uStart(seats);UI.won=0;UI.lastTop=undefined;uSync()}
+}
+const _ouG=onUnoMsg;
+onUnoMsg=function(m){
+  if(m.from===NEXORA.user.id)return;
+  if(UHOST&&UG){(UG.seen=UG.seen||{})[m.from]=NOW()}else if(UI)UI.seen=NOW();
+  if(m.t==="S"&&UI&&m.pub&&!m.pub.winner)UI.won=0;
+  if(m.t==="hb")return;
+  if(UHOST&&UG&&m.t==="A"&&m.a==="rem"){unoRem(m.from);return}
+  if(UHOST&&UG&&m.t==="A"&&m.a==="need"){uSync();return}
+  return _ouG(m);
+};
+let UDC=false;
+setInterval(()=>{
+  let txt=null;
+  if(UI&&UCH){
+    UCH.tx({t:"hb"});const now=NOW();
+    if(UCH.state!=="joined"){txt="Reconnecting game…";UDC=true}
+    else{
+      if(UDC){UDC=false;if(!UHOST)UCH.tx({t:"A",a:"need"});toast("Game wapas judd gaya ✓")}
+      if(UHOST&&UG&&!UG.winner){UG.seats.forEach((s,i)=>{if(s.id===NEXORA.user.id||s.bot)return;const d=now-((UG.seen||{})[s.id]||(UG.seen=UG.seen||{},UG.seen[s.id]=now));
+        if(d>60000)onUnoMsg({t:"leave",from:s.id});else if(d>12000)txt=s.name+" reconnecting…"})}
+      else if(!UHOST&&UI.seen&&now-UI.seen>60000){toast("Host wapas nahi aaya");leaveUno();return}
+      else if(!UHOST&&UI.seen&&now-UI.seen>15000)txt="Host reconnecting…";
+    }
+  }
+  GST.uno=txt;
+},3000);
+
+/* ============ TIC-TAC-TOE ONLINE (host authoritative) ============ */
+let TT=null;
+const tttFresh=()=>({b:Array(25).fill(""),t:"X",seq:0,over:false,win:null});
+closeTTT=function(){if(TT)clearInterval(TT.hb);if(TCH){try{sb.removeChannel(TCH)}catch(_){}TCH=null}TT=null;GST.ttt=null};
+openTTTRoom=async function(code,host){
+  closeTTT();const ch=sb.channel("ttt-"+code);TCH=ch;
+  const T=TT={code,host,started:false,seen:NOW(),rem:{},hostMark:"X",G:null,me:null,oppId:null};
+  ch.tx=T.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:NEXORA.user.id}}).catch(()=>{});
+  ch.on("broadcast",{event:"g"},({payload:m})=>tttMsg(m));
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+  if(TT!==T)return;
+  if(!host){let n=0;const iv=setInterval(()=>{if(TT!==T||T.started||++n>12)return clearInterval(iv);T.tx({t:"join"})},1200);T.tx({t:"join"})}
+  T.hb=setInterval(()=>tttTick(T),3000);
+};
+function tttMsg(m){
+  const T=TT;if(!T||m.from===NEXORA.user.id)return;
+  if(T.started&&m.from!==T.oppId)return;
+  T.seen=NOW();
+  switch(m.t){
+    case"join":if(T.host){if(!T.started){T.started=true;T.oppId=m.from;T.me="X";closeModal();T.tx({t:"start",hm:"X"});tttNew(T,true)}else T.tx({t:"start",hm:T.hostMark})}break;
+    case"start":if(!T.host&&!T.started){T.started=true;T.oppId=m.from;T.hostMark=m.hm;T.me=m.hm==="X"?"O":"X";closeModal();NEXORA.page="games";TTT={b:Array(25).fill(""),t:"X",over:false,online:true,mine:T.me,msg:"Game shuru…"};renderTTT()}break;
+    case"mv":if(T.host)tttHostMove(T,m.i,m.s,T.me==="X"?"O":"X");break;
+    case"snap":tttView(T,m.g);break;
+    case"need":if(T.host&&T.G)T.tx({t:"snap",g:T.G});break;
+    case"rem":T.rem.opp=true;tttRemCheck(T);break;
+    case"leave":T.left=true;toast("Dost ne game chhod diya");tttView(T,T.G||tttFresh());break;
+  }
+}
+function tttNew(T,first){T.G=tttFresh();T.rem={};T.tx({t:"snap",g:T.G});if(first){NEXORA.page="games"}tttView(T,T.G,first)}
+function tttHostMove(T,i,s,mark){
+  const G=T.G;if(!G||G.over||s!==G.seq||G.t!==mark||!(i>=0&&i<25)||G.b[i])return;
+  G.b[i]=mark;const w=lineWin(G.b,5,5,4);G.seq++;
+  if(w){G.over=true;G.win=w}else if(G.b.every(Boolean)){G.over=true;G.win="draw"}else G.t=mark==="X"?"O":"X";
+  T.tx({t:"snap",g:G});tttView(T,G);
+}
+function tttView(T,g,force){
+  if(!T||!g)return;if(!T.host){if(T.G&&g.seq<T.G.seq)return;T.G=g}
+  const me=T.me;if(!me)return;
+  const msg=T.left?"Dost chala gaya":g.over?(g.win==="draw"?"Draw":g.win===me?"Aap jeet gaye! 🏆":"Dost jeet gaya"):(g.t===me?`Aapki baari (${me})`:"Dost ki baari");
+  TTT={b:g.b.slice(),t:g.t,over:g.over||!!T.left,online:true,mine:me,msg};
+  if(g.over&&T.vs!==g.seq){T.vs=g.seq;sfx(g.win===me?880:260,.4);navigator.vibrate?.(g.win===me?[60,40,60]:30)}
+  if(force||gameOnScreen("ttt"))renderTTT();
+}
+function tttRem(){const T=TT;if(!T)return;T.rem.me=true;T.tx({t:"rem"});tttRemCheck(T);if(gameOnScreen("ttt"))renderTTT()}
+function tttRemCheck(T){
+  if(!(T.rem.me&&T.rem.opp))return;T.rem={};T.hostMark=T.hostMark==="X"?"O":"X";T.me=T.me==="X"?"O":"X";
+  if(T.host)tttNew(T);else{T.G=null}
+}
+function tttNewMatch(){TT?.tx({t:"leave"});closeTTT();TTT=null;setPage("games");findMatch("ttt",2)}
+function tttTick(T){
+  if(TT!==T||!T.started)return;let txt=null;T.tx({t:"hb"});
+  if(TCH?.state!=="joined"){txt="Reconnecting game…";T.dc=true}
+  else{if(T.dc){T.dc=false;T.tx({t:"need"});toast("Game wapas judd gaya ✓")}
+    const d=NOW()-T.seen;
+    if(!T.left){if(d>60000){T.left=true;toast("Dost wapas nahi aaya");tttView(T,T.G||tttFresh())}else if(d>12000)txt="Opponent reconnecting…"}}
+  GST.ttt=txt;
+}
+const _tmG=tttMove;
+tttMove=function(i){
+  const T=TT;
+  if(T&&TTT?.online){const g=T.G;
+    if(!T.started||!g||g.over||T.left||g.t!==T.me||g.b[i]||NOW()-(T.tap||0)<450)return;
+    T.tap=NOW();navigator.vibrate?.(10);sfx(520,.07);
+    if(T.host)tttHostMove(T,i,g.seq,T.me);else T.tx({t:"mv",i,s:g.seq});return}
+  return _tmG(i);
+};
+const _rtH=renderTTT;
+renderTTT=function(){
+  try{_rtH()}catch(e){console.error(e);toast("Game reload ho raha hai");return setPage("games")}
+  const T=TT;if(!T||!TTT?.online||!TTT.over)return;
+  const b=document.querySelector("#main .card>.btn.primary-btn");if(!b)return;
+  b.outerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><button class="btn primary-btn" ${T.left?"disabled":""} onclick="tttRem()">${T.rem.me?"⏳ Waiting for opponent…":"🔁 Rematch"}</button><button class="btn" onclick="tttNewMatch()">⚡ Find New Match</button></div>`;
+};
+
+/* ============ game khatam: Rematch / Find New Match ============ */
+function rematch(k){
+  if(k==="ludo"){LREM[NEXORA.user.id]=true;lsend({t:"rem"});ludoRemCheck()}
+  else if(k==="uno"){UHOST?unoRem(NEXORA.user.id):UCH?.tx({t:"A",a:"rem"})}
+  const b=$("rmBtn");if(b){b.textContent="⏳ Waiting for opponent…";b.disabled=true}
+}
+function findNew(k){
+  const n=k==="ludo"?LB.length:UB.length;
+  if(k==="ludo")leaveLudo();else leaveUno();
+  setTimeout(()=>findMatch(k,Math.max(2,Math.min(4,n))),150);
+}
+new MutationObserver(()=>{
+  const cf=$("main").querySelector(".confetti:not([data-rm])");if(!cf)return;cf.dataset.rm=1;
+  const bt=cf.querySelector("button"),k=LUDO?.mode==="online"?"ludo":(UI&&UCH?"uno":null);if(!bt)return;
+  const leave=k==="ludo"||LUDO?"leaveLudo()":"leaveUno()";
+  if(k)bt.outerHTML=`<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:230px"><button class="btn primary-btn" id="rmBtn" onclick="rematch('${k}')">🔁 Rematch</button><button class="btn" onclick="findNew('${k}')">⚡ Find New Match</button><button class="btn" onclick="${k==="ludo"?"leaveLudo()":"leaveUno()"}">Games</button></div>`;
+  else if(LUDO?.mode==="robot")bt.outerHTML=`<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:230px"><button class="btn primary-btn" onclick="startLudo('robot',null,null,LUDO.n)">🔁 Phir khelo</button><button class="btn" onclick="leaveLudo()">Games</button></div>`;
+}).observe($("main"),{childList:true,subtree:true});
+
+/* ============ chip + voice button refresh ============ */
+setInterval(()=>{
+  const txt=GST.ludo||GST.ttt||GST.uno;
+  if(txt)gchip(txt,"warn");
+  else{const k=gameActive();if(k&&!gameOnScreen(k)&&NEXORA.page!=="games")gchip("🎮 Game me wapas jao","ok","gameBack");else gchip(null)}
+  const ctx=gameCtx();if(GV&&(!ctx||GV.sid!==gvSid(ctx)))gvLeave(true);gvPaint();
+},1000);
+</script>
+<style>
+.dsep{align-self:center;margin:12px 0 6px;padding:3px 12px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--muted);font-size:11px;font-weight:700}
+.chat-page{position:relative}
+.tobot{position:absolute;right:14px;bottom:88px;width:42px;height:42px;border-radius:50%;background:#1b2436;color:#fff;border:1px solid var(--line);box-shadow:0 8px 20px rgba(0,0,0,.5);z-index:5;font-size:18px;animation:pop .25s var(--ease)}
+.sk{border-radius:22px;height:72px;margin-bottom:10px;background:linear-gradient(100deg,#121a27 30%,#1c2638 50%,#121a27 70%);background-size:300% 100%;animation:shim 1.3s linear infinite}
+@keyframes shim{to{background-position:-300% 0}}
+.bubble .mt u{cursor:pointer;color:#fff;font-weight:800}
+.msg.mine .bubble.fail{box-shadow:0 0 0 1px #ff8797}
+body.immersive .topbar{height:52px}
+body.immersive .brand,body.immersive .bottom-nav,body.immersive #notificationBtn,body.immersive #profileBtn{display:none}
+.quick-card{transform-style:preserve-3d;will-change:transform}
+</style>
+
+<script>
+/* ============ COMM PART 3: chat reliability + privacy + fullscreen + polish ============ */
+let PRIV={hideOnline:false,mute:false};
+try{PRIV={...PRIV,...JSON.parse(localStorage.getItem("nx_priv")||"{}")}}catch(_){}
+const savePriv=()=>{try{localStorage.setItem("nx_priv",JSON.stringify(PRIV))}catch(_){}};
+
+/* ---- privacy: online status chhupana, sound/vibration band ---- */
+const _fromB=sb.from.bind(sb);
+sb.from=t=>{const q=_fromB(t);if(t==="profiles"){const u=q.update.bind(q);q.update=(v,...a)=>u(PRIV.hideOnline&&v&&v.online===true?{...v,online:false}:v,...a)}return q};
+const _sfxP=sfx;sfx=(...a)=>{if(!PRIV.mute)_sfxP(...a)};
+const _vib=navigator.vibrate?.bind(navigator);if(_vib)navigator.vibrate=(...a)=>PRIV.mute?false:_vib(...a);
+
+/* ---- technical errors ko friendly banao ---- */
+const friendlyMsg=m=>{
+  const s=String(m||"");
+  if(/ICE_|WebSocket|RTCPeer|failed to fetch|networkerror|load failed|timeout|signal failed/i.test(s))return"Connection me dikkat hai. Internet check karke dobara try karo.";
+  if(/jwt|refresh token|not authenticated/i.test(s))return"Session khatam ho gaya. Dobara login karo.";
+  if(/PGRST|violates|permission denied|row-level/i.test(s))return"Ye kaam abhi nahi ho paya.";
+  return s;
+};
+const _toastP=toast;toast=(m,t)=>_toastP(t==="error"?friendlyMsg(m):m,t);
+let ERT=0;
+addEventListener("unhandledrejection",e=>{console.error(e.reason);if(Date.now()-ERT>8000){ERT=Date.now();_toastP("Kuch gadbad hui, dobara try karo","error")}});
+
+/* ---- premium: font + desktop 3D tilt ---- */
+document.head.insertAdjacentHTML("beforeend",'<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">');
+if(matchMedia("(hover:hover)").matches){
+  document.addEventListener("pointermove",e=>{const c=e.target.closest?.(".quick-card");if(!c)return;const r=c.getBoundingClientRect();
+    c.style.transform=`perspective(700px) rotateX(${(.5-(e.clientY-r.top)/r.height)*8}deg) rotateY(${((e.clientX-r.left)/r.width-.5)*8}deg) translateY(-3px)`});
+  document.addEventListener("pointerout",e=>{const c=e.target.closest?.(".quick-card");if(c&&!c.contains(e.relatedTarget))c.style.transform=""});
+}
+
+/* ============ CHAT: sending / waiting / not sent / retry ============ */
+const OUT=new Map();let SEEN=new Set(),NOCID=false,RESTORED=false,RATE=[];
+const dayKey=d=>new Date(d).toDateString();
+const dayLbl=d=>{const x=new Date(d);return x.toDateString()===new Date().toDateString()?"Aaj":x.toDateString()===new Date(Date.now()-864e5).toDateString()?"Kal":x.toLocaleDateString([],{day:"numeric",month:"short"})};
+const nearBottom=b=>b.scrollHeight-b.scrollTop-b.clientHeight<120;
+function metaOf(m,st){
+  if(st==="sending")return"🕓 Sending…";
+  if(st==="wait")return"⏳ Waiting for connection";
+  if(st==="fail")return`⚠ Not sent · <u onclick="retryMsg('${m.cid}')">Retry</u>`;
+  const t=new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});return t+(m.sender_id===NEXORA.user.id?" ✓✓":"");
+}
+function bubble(m,st){
+  const mine=m.sender_id===NEXORA.user.id;
+  return`<div class="msg ${mine?"mine":"theirs"}" ${m.cid?`id="m-${m.cid}"`:""}><div class="bubble ${st==="fail"?"fail":""}">${escapeHtml(m.message)}<span class="mt">${metaOf(m,st)}</span></div></div>`;
+}
+messageHtml=m=>bubble(m);
+function appendWithDay(b,m,st){
+  const k=dayKey(m.created_at);let h="";
+  if(b.dataset.day!==k){h=`<div class="dsep">${dayLbl(m.created_at)}</div>`;b.dataset.day=k}
+  b.insertAdjacentHTML("beforeend",h+bubble(m,st));
+}
+const persistOut=()=>{try{const a=[...OUT.values()].map(o=>({cid:o.cid,conv:o.conv,text:o.text,at:o.m.created_at}));localStorage.setItem("nx_out_"+NEXORA.user.id,JSON.stringify(a))}catch(_){}};
+function restoreOutbox(){
+  try{JSON.parse(localStorage.getItem("nx_out_"+NEXORA.user.id)||"[]").forEach(o=>{if(!OUT.has(o.cid))OUT.set(o.cid,{cid:o.cid,conv:o.conv,text:o.text,state:"wait",tries:0,m:{cid:o.cid,sender_id:NEXORA.user.id,message:o.text,created_at:o.at}})})}catch(_){}
+}
+function setSt(o,st){
+  o.state=st;const el=$("m-"+o.cid);if(!el)return;
+  el.querySelector(".mt").innerHTML=metaOf(o.m,st);el.querySelector(".bubble").classList.toggle("fail",st==="fail");
+}
+async function flush(cid){
+  const o=OUT.get(cid);if(!o||o.busy)return;
+  if(!navigator.onLine){setSt(o,"wait");return}
+  o.busy=true;setSt(o,"sending");
+  try{
+    const row={conversation_id:o.conv,sender_id:NEXORA.user.id,message:o.text,message_type:"text"};if(!NOCID)row.client_id=cid;
+    const r=await Promise.race([sb.from("messages").insert(row).select().single(),sleep(15000).then(()=>({error:{message:"timeout"}}))]);
+    let{data,error}=r;
+    if(error&&/client_id/i.test(error.message||"")&&!NOCID){NOCID=true;o.busy=false;return flush(cid)}
+    if(error&&error.code==="23505")error=null;           /* pehle hi save ho chuka tha */
+    if(error)throw error;
+    if(data?.id)SEEN.add(data.id);
+    o.m={...o.m,id:data?.id,created_at:data?.created_at||o.m.created_at};
+    const el=$("m-"+cid);if(el)el.querySelector(".mt").innerHTML=metaOf(o.m);el?.querySelector(".bubble").classList.remove("fail");
+    OUT.delete(cid);persistOut();
+  }catch(e){o.tries++;console.warn("send",e);setSt(o,navigator.onLine?"fail":"wait")}
+  finally{o.busy=false}
+}
+const flushAll=()=>OUT.forEach(o=>{if(o.state!=="sending")flush(o.cid)});
+const retryMsg=cid=>{const o=OUT.get(cid);if(o){o.tries=0;flush(cid)}};
+sendChatMessage=async function(){
+  if(!ACTIVE_CHAT)return;const inp=$("chatInput"),text=inp.value.trim().slice(0,2000);if(!text)return;
+  const now=Date.now();RATE=RATE.filter(t=>now-t<5000);if(RATE.length>=8)return toast("Thoda dheere bhejo");RATE.push(now);
+  inp.value="";const s=$("sendBtn");if(s){s.classList.remove("fire");void s.offsetWidth;s.classList.add("fire")}
+  const cid=crypto.randomUUID(),m={cid,sender_id:NEXORA.user.id,message:text,created_at:new Date().toISOString()};
+  OUT.set(cid,{cid,conv:ACTIVE_CHAT.conversationId,text,m,state:"sending",tries:0});persistOut();
+  const b=$("chatMessages");$("chatEmpty")?.remove();appendWithDay(b,m,"sending");b.scrollTop=b.scrollHeight;
+  flush(cid);inp.focus();
+};
+addMsg=function(m){
+  const b=$("chatMessages");if(!b||(m.id&&SEEN.has(m.id)))return;if(m.id)SEEN.add(m.id);
+  $("chatEmpty")?.remove();const near=nearBottom(b);appendWithDay(b,m);
+  if(near)b.scrollTop=b.scrollHeight;else $("toBot")?.classList.remove("hidden");
+};
+loadChatMessages=async function(){
+  const b=$("chatMessages");if(!b||!ACTIVE_CHAT)return;const conv=ACTIVE_CHAT.conversationId;
+  const{data,error}=await sb.from("messages").select("*").eq("conversation_id",conv).order("created_at",{ascending:true}).limit(300);
+  if(ACTIVE_CHAT?.conversationId!==conv||!$("chatMessages"))return;
+  if(error){if(!b.children.length)b.innerHTML=`<div class="chat-empty">Messages load nahi hue.<br><button class="btn" style="margin-top:10px" onclick="loadChatMessages()">Retry</button></div>`;return}
+  const rows=data||[];
+  OUT.forEach((o,k)=>{if(rows.some(r=>r.client_id===k)){OUT.delete(k)}});
+  let h="",last="";rows.forEach(m=>{const k=dayKey(m.created_at);if(k!==last){h+=`<div class="dsep">${dayLbl(m.created_at)}</div>`;last=k}h+=bubble(m)});
+  b.innerHTML=h||`<div id="chatEmpty" class="chat-empty">👋<br>Pehla message bhejo</div>`;b.dataset.day=last;SEEN=new Set(rows.map(m=>m.id));
+  OUT.forEach(o=>{if(o.conv===conv)appendWithDay(b,o.m,o.state==="fail"?"fail":o.state==="wait"?"wait":"sending")});
+  b.scrollTop=b.scrollHeight;
+};
+const _rcP=renderChat;
+renderChat=function(){
+  _rcP();const p=document.querySelector(".chat-page"),b=$("chatMessages");if(!p||!b)return;
+  const inp=$("chatInput");if(inp)inp.maxLength=2000;
+  p.insertAdjacentHTML("beforeend",'<button id="toBot" class="tobot hidden">↓</button>');
+  $("toBot").onclick=()=>{b.scrollTo({top:b.scrollHeight,behavior:"smooth"})};
+  b.addEventListener("scroll",()=>{if(nearBottom(b))$("toBot")?.classList.add("hidden")},{passive:true});
+};
+addEventListener("online",()=>{flushAll();if(NEXORA.page==="chat")loadChatMessages()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&NEXORA.user){flushAll();if(NEXORA.page==="chat")loadChatMessages()}});
+let CHDOWN=0;
+setInterval(()=>{
+  if(!NEXORA.user)return;
+  if(!RESTORED){RESTORED=true;restoreOutbox();setTimeout(flushAll,1500)}
+  if(NEXORA.page!=="chat"||!ACTIVE_CHAT||!CHAT_CHANNEL)return;
+  if(CHAT_CHANNEL.state==="joined"){if(CHDOWN){CHDOWN=0;loadChatMessages()}}
+  else if(navigator.onLine){CHDOWN=CHDOWN||Date.now();if(Date.now()-CHDOWN>8000){CHDOWN=Date.now();subscribeChat()}}
+},3000);
+
+/* ============ RECENT: skeleton loading ============ */
+const _rrP=renderRecent;
+renderRecent=function(){const p=_rrP();const r=$("recentContent");if(r)r.innerHTML='<div class="sk"></div>'.repeat(4);return p};
+addEventListener("online",()=>{if(NEXORA.page==="recent")renderRecent()});
+
+/* ============ PROFILE: privacy + sound ============ */
+const _pbP=$("profileBtn").onclick;
+$("profileBtn").onclick=async function(e){
+  await _pbP.call(this,e);
+  const act=$("modalContent").querySelector(".modal-actions");if(!act)return;
+  const row=(k,t,s,on)=>`<div class="pr"><div class="nm">${t}<small>${s}</small></div><button class="pb ${on?"on":""}" style="width:58px;font-size:13px;font-weight:800" onclick="togglePriv('${k}',this)">${on?"ON":"OFF"}</button></div>`;
+  act.insertAdjacentHTML("beforebegin",`<div style="margin:14px 0 12px"><div style="font-weight:850;margin-bottom:2px">Privacy & Settings</div>
+    ${row("hideOnline","Online status dikhao","Band karne par dost aapko online nahi dekhenge",!PRIV.hideOnline)}
+    ${row("mute","Sound & vibration","Game aur call ki awaazein",!PRIV.mute)}</div>`);
+};
+function togglePriv(k,btn){
+  PRIV[k]=!PRIV[k];savePriv();const on=!PRIV[k];btn.textContent=on?"ON":"OFF";btn.classList.toggle("on",on);
+  if(k==="hideOnline"&&NEXORA.user)sb.from("profiles").update({online:!PRIV.hideOnline,last_seen:new Date().toISOString()}).eq("id",NEXORA.user.id).then(()=>{},()=>{});
+  toast(k==="hideOnline"?(PRIV.hideOnline?"Aap ab offline dikhoge":"Aap online dikhoge"):(PRIV.mute?"Sound band":"Sound on"));
+}
+
+/* ============ FULLSCREEN ============ */
+const fsEl=document.documentElement,fsReq=fsEl.requestFullscreen||fsEl.webkitRequestFullscreen,fsEx=document.exitFullscreen||document.webkitExitFullscreen;
+const fsNative=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+const fsOn=()=>fsNative()||document.body.classList.contains("immersive");
+async function toggleFS(){
+  if(fsOn()){try{if(fsNative())await fsEx.call(document)}catch(_){}document.body.classList.remove("immersive")}
+  else{document.body.classList.add("immersive");if(fsReq){try{await fsReq.call(fsEl)}catch(_){}}}
+  paintFS();
+}
+["fullscreenchange","webkitfullscreenchange"].forEach(ev=>document.addEventListener(ev,()=>{if(!fsNative())document.body.classList.remove("immersive");paintFS()}));
+$("notificationBtn").insertAdjacentHTML("beforebegin",'<button id="fsBtn" class="icon-btn hidden" title="Fullscreen">⛶</button>');
+$("fsBtn").onclick=toggleFS;
+const cTopR=$("callMin")?.parentElement?.lastElementChild;
+if(cTopR){cTopR.outerHTML='<button id="callFs" class="icon-btn" title="Fullscreen">⛶</button>';$("callFs").onclick=toggleFS}
+function paintFS(){
+  const on=fsOn(),m=$("main"),game=!!m.querySelector(".ludo-wrap,.u-page,.cell");
+  const b=$("fsBtn");if(b){b.classList.toggle("hidden",!(game||on));b.textContent=on?"⤡":"⛶";b.title=on?"Fullscreen se bahar":"Fullscreen"}
+  const c=$("callFs");if(c)c.textContent=on?"⤡":"⛶";
+}
+setInterval(paintFS,1200);
+</script>
+
 
