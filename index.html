@@ -7670,6 +7670,131 @@ setInterval(paintFS,1200);
   document.head.appendChild(style);
 })();
 </script>
+<script>
+(() => {
+  if (window.__FINAL_UI_FIX__) return;
+  window.__FINAL_UI_FIX__ = true;
+
+  const css = document.createElement("style");
+  css.textContent = `
+    html, body {
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+
+    #tttBoard,
+    .ttt-board,
+    .tic-tac-toe-board,
+    .ticTacToeBoard {
+      width: min(86vw, 360px) !important;
+      height: min(86vw, 360px) !important;
+      aspect-ratio: 1 / 1 !important;
+      margin: 16px auto !important;
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      grid-template-rows: repeat(3, 1fr) !important;
+      gap: 8px !important;
+      transform: none !important;
+      flex: none !important;
+    }
+
+    #tttBoard button,
+    .ttt-board button,
+    .tic-tac-toe-board button,
+    .ticTacToeBoard button {
+      width: 100% !important;
+      height: 100% !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      transform: none !important;
+      touch-action: manipulation !important;
+    }
+
+    #recentScreen,
+    .recent-screen,
+    #recentList,
+    .recent-list,
+    [data-screen="recent"] {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow-y: auto !important;
+    }
+
+    .recent-item,
+    .recent-user,
+    .recent-chat,
+    .chat-item,
+    [data-recent-item] {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+  `;
+  document.head.appendChild(css);
+
+  let previousSound = "";
+  let previousTime = 0;
+
+  const oldPlaySound = window.playSound;
+
+  if (typeof oldPlaySound === "function") {
+    window.playSound = function(name, ...args) {
+      const now = Date.now();
+
+      if (name === previousSound && now - previousTime < 250) {
+        return;
+      }
+
+      previousSound = name;
+      previousTime = now;
+
+      return oldPlaySound.call(this, name, ...args);
+    };
+  }
+
+  function restoreRecent() {
+    document.querySelectorAll(`
+      #recentScreen,
+      .recent-screen,
+      #recentList,
+      .recent-list,
+      [data-screen="recent"]
+    `).forEach(element => {
+      element.hidden = false;
+      element.removeAttribute("aria-hidden");
+      element.style.setProperty("display", "block", "important");
+      element.style.setProperty("visibility", "visible", "important");
+      element.style.setProperty("opacity", "1", "important");
+    });
+
+    document.querySelectorAll(`
+      .recent-item,
+      .recent-user,
+      .recent-chat,
+      .chat-item,
+      [data-recent-item]
+    `).forEach(element => {
+      element.hidden = false;
+      element.removeAttribute("aria-hidden");
+      element.style.setProperty("display", "flex", "important");
+      element.style.setProperty("visibility", "visible", "important");
+      element.style.setProperty("opacity", "1", "important");
+    });
+  }
+
+  restoreRecent();
+
+  new MutationObserver(restoreRecent).observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+})();
+</script>
+
 
 
 
