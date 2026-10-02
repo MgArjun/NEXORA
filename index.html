@@ -4104,4 +4104,1807 @@ boot();
 </script>
 </body>
 </html>
+<script>
+/* ===== NEXORA FINAL APPEND-ONLY FIX ===== */
+(function(){
+  if(window.__NX_FINAL_FIX__)return;
+  window.__NX_FINAL_FIX__=true;
 
+  /* =========================================================
+     1. LUDO ONLINE FREEZE / WRONG TURN / DICE DESYNC FIX
+     ========================================================= */
+
+  let NXF_lastGameId=null;
+  let NXF_syncTimer=null;
+  let NXF_actionLock=false;
+  let NXF_actionStarted=0;
+
+  async function nxfFetchGame(forceRender=true){
+    if(!window.NXCORE?.gameId)return null;
+
+    try{
+      const{data,error}=await sb
+        .from("nexora_game_sessions")
+        .select("*")
+        .eq("id",NXCORE.gameId)
+        .maybeSingle();
+
+      if(error)throw error;
+
+      if(data){
+        NXCORE.gameSeq=Math.max(
+          Number(NXCORE.gameSeq||0),
+          Number(data.state_version||0)
+        );
+
+        nxApplyGameRow(data);
+
+        if(forceRender && LUDO?.mode==="online"){
+          LUDO.rolling=false;
+          LUDO.busy=false;
+
+          if(typeof updateLudo==="function"){
+            updateLudo();
+          }
+        }
+      }
+
+      return data||null;
+
+    }catch(e){
+      return null;
+    }
+  }
+
+
+  /*
+    Server state ko continuously verify karta hai.
+
+    Agar kisi player ka realtime event miss ho gaya,
+    internet reconnect hua, tab bhi dono players
+    server ke same state par aa jayenge.
+  */
+  function nxfStartWatch(){
+
+    clearInterval(NXF_syncTimer);
+
+    NXF_syncTimer=setInterval(()=>{
+
+      if(
+        !NEXORA?.user ||
+        !NXCORE?.gameId ||
+        !NXCORE?.gameType
+      )return;
+
+      if(NXF_lastGameId!==NXCORE.gameId){
+        NXF_lastGameId=NXCORE.gameId;
+        NXF_actionLock=false;
+        NXF_actionStarted=0;
+      }
+
+      if(!navigator.onLine)return;
+
+      /*
+        Agar action UI me 7 sec se zyada atak gaya,
+        client ko permanently locked na rehne do.
+      */
+      if(
+        NXF_actionLock &&
+        Date.now()-NXF_actionStarted>7000
+      ){
+        NXF_actionLock=false;
+        NXCORE.actionBusy=false;
+      }
+
+      nxfFetchGame(false);
+
+    },2500);
+  }
+
+  nxfStartWatch();
+
+
+  /*
+    SINGLE authoritative action.
+
+    Online Ludo me:
+    - local random dice nahi
+    - local commit nahi
+    - local endTurn nahi
+    - local capture nahi
+
+    Server result hi final state hai.
+  */
+  async function nxfAction(action,payload){
+
+    if(!NXCORE?.gameId || !NEXORA?.user)return null;
+
+    if(NXF_actionLock)return null;
+
+    NXF_actionLock=true;
+    NXF_actionStarted=Date.now();
+    NXCORE.actionBusy=true;
+
+    try{
+
+      const id=crypto.randomUUID();
+
+      const{data,error}=await sb.rpc(
+        "nexora_game_action",
+        {
+          p_game_id:NXCORE.gameId,
+          p_action_id:id,
+          p_action:action,
+          p_payload:payload||{}
+        }
+      );
+
+      if(error)throw error;
+
+      if(data){
+        nxApplyGameRow(data);
+      }
+
+      /*
+        RPC ke turant baad fresh DB state bhi lo.
+        Isse realtime race/freeze avoid hota hai.
+      */
+      await nxfFetchGame(true);
+
+      return data||null;
+
+    }catch(e){
+
+      toast(
+        e.message||"Game action failed.",
+        "error"
+      );
+
+      return null;
+
+    }finally{
+
+      NXF_actionLock=false;
+      NXCORE.actionBusy=false;
+      NXF_actionStarted=0;
+
+      if(LUDO?.mode==="online"){
+        LUDO.rolling=false;
+        LUDO.busy=false;
+
+        if(typeof updateLudo==="function"){
+          updateLudo();
+        }
+      }
+    }
+  }
+
+
+  /*
+    ONLINE DICE
+
+    Purana rnd6()+animateRoll() online game me
+    ab execute nahi hoga.
+  */
+  window.rollLudoDice=async function(){
+
+    const L=LUDO;
+
+    if(!L)return;
+
+    /*
+      Robot/local game purane system se chalega.
+    */
+    if(L.mode!=="online"){
+      if(typeof nxLegacyRollLudoDice==="function"){
+        return nxLegacyRollLudoDice();
+      }
+      return;
+    }
+
+    if(
+      L.winner ||
+      L.rolling ||
+      L.busy ||
+      L.dice!=null
+    )return;
+
+    const current=L.players?.[L.turn];
+
+    if(!current)return;
+
+    /*
+      Sirf jiski actual server turn hai wahi dice chala sakta hai.
+    */
+    if(current.id!==NEXORA.user.id)return;
+
+    await nxfAction("roll",{});
+  };
+
+  rollLudoDice=window.rollLudoDice;
+
+
+  /*
+    ONLINE TOKEN MOVE
+
+    Sirf server-confirmed dice ke baad.
+  */
+  window.playMove=async function(i){
+
+    const L=LUDO;
+
+    if(!L)return;
+
+    if(L.mode!=="online"){
+      if(typeof nxLegacyPlayMove==="function"){
+        return nxLegacyPlayMove(i);
+      }
+      return;
+    }
+
+    if(
+      L.winner ||
+      L.rolling ||
+      L.busy ||
+      L.dice==null
+    )return;
+
+    const current=L.players?.[L.turn];
+
+    if(!current)return;
+
+    if(current.id!==NEXORA.user.id)return;
+
+    if(!Number.isInteger(i)||i<0||i>3)return;
+
+    if(
+      !canMove(
+        current.tokens[i],
+        Number(L.dice)
+      )
+    )return;
+
+    await nxfAction(
+      "move",
+      {token:i}
+    );
+  };
+
+  playMove=window.playMove;
+
+
+  /*
+    Token click bhi same authoritative route use karega.
+  */
+  window.selectLudoToken=function(color,i){
+
+    const L=LUDO;
+
+    if(!L || L.mode!=="online")return;
+
+    if(
+      L.winner ||
+      L.rolling ||
+      L.busy ||
+      L.dice==null
+    )return;
+
+    const current=L.players?.[L.turn];
+
+    if(!current)return;
+
+    if(current.id!==NEXORA.user.id)return;
+
+    if(current.color!==color)return;
+
+    if(
+      canMove(
+        current.tokens[i],
+        Number(L.dice)
+      )
+    ){
+      window.playMove(i);
+    }
+  };
+
+  selectLudoToken=window.selectLudoToken;
+
+
+  /*
+    Har server update par stale local animation/lock hata do.
+  */
+  const nxfOldApplyLudo=window.nxApplyLudoState;
+
+  window.nxApplyLudoState=function(st){
+
+    if(!st)return;
+
+    const before=NXCORE?.gameSeq||0;
+
+    if(typeof nxfOldApplyLudo==="function"){
+      nxfOldApplyLudo(st);
+    }
+
+    if(LUDO?.mode==="online"){
+
+      LUDO.rolling=false;
+      LUDO.busy=false;
+
+      if(Number(st._version||0)>=before){
+
+        LUDO.serverVersion=
+          Number(st._version||0);
+
+        if(typeof updateLudo==="function"){
+          updateLudo();
+        }
+      }
+    }
+  };
+
+  nxApplyLudoState=window.nxApplyLudoState;
+
+
+  /* =========================================================
+     2. REMATCH / RESTART FREEZE FIX
+     ========================================================= */
+
+  window.rematch=async function(kind){
+
+    if(kind!=="ludo" && kind!=="ttt"){
+
+      if(typeof nxRematch==="function"){
+        return nxRematch(kind);
+      }
+
+      return;
+    }
+
+    if(!NXCORE?.gameId)return;
+
+    /*
+      Dono players rematch request karenge.
+      Server active state banate hi fresh state pull hogi.
+    */
+    const row=await nxfAction(
+      "rematch_request",
+      {}
+    );
+
+    if(!row)return;
+
+    const fresh=await nxfFetchGame(true);
+
+    if(fresh?.status==="active"){
+
+      if(kind==="ludo" && LUDO){
+
+        LUDO.winner=null;
+        LUDO.dice=null;
+        LUDO.rolling=false;
+        LUDO.busy=false;
+        LUDO.sixes=0;
+
+        LUDO.message=
+          (LUDO.players?.[LUDO.turn]?.name||"Player")
+          +" ki baari";
+
+        /*
+          Board ko fresh server state ke saath
+          turant redraw karo.
+        */
+        if(typeof renderLudo==="function"){
+          renderLudo();
+        }
+      }
+
+      if(
+        kind==="ttt" &&
+        typeof renderTTT==="function"
+      ){
+        renderTTT();
+      }
+    }
+  };
+
+  rematch=window.rematch;
+
+
+  /*
+    Internet reconnect ke baad server state pull.
+  */
+  addEventListener(
+    "online",
+    ()=>{
+      setTimeout(
+        ()=>nxfFetchGame(true),
+        400
+      );
+    }
+  );
+
+
+  /*
+    App/background se wapas aane par bhi
+    current server state pull.
+  */
+  document.addEventListener(
+    "visibilitychange",
+    ()=>{
+      if(
+        document.visibilityState==="visible" &&
+        NXCORE?.gameId
+      ){
+        setTimeout(
+          ()=>nxfFetchGame(true),
+          250
+        );
+      }
+    }
+  );
+
+
+  /* =========================================================
+     3. RECENT
+        ONE PERSON = ONE ENTRY
+
+        Same person:
+        - Chats
+        - Calls
+        - Missed calls
+        - Incoming calls
+        - Outgoing calls
+
+        sab ek hi Recent person ke andar.
+     ========================================================= */
+
+
+  function nxfOtherIdFromCall(c){
+
+    return c.caller_id===NEXORA.user.id
+      ? c.receiver_id
+      : c.caller_id;
+  }
+
+
+  function nxfCallText(c){
+
+    const incoming=
+      c.receiver_id===NEXORA.user.id;
+
+    const map={
+      missed:"Missed call",
+      accepted:"Call connected",
+      declined:"Call declined",
+      cancelled:"Call cancelled"
+    };
+
+    return(
+      incoming?"📥 ":"📞 "
+    )+
+    (map[c.status]||"Call");
+  }
+
+
+  /*
+    Call ko chat thread ke andar WhatsApp-style
+    activity item ki tarah dikhayega.
+  */
+  function nxfCallHtml(c){
+
+    const t=
+      new Date(c.created_at)
+      .toLocaleTimeString(
+        [],
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+    const d=
+      (
+        c.status==="accepted" &&
+        c.started_at &&
+        c.ended_at
+      )
+      ? " · "+duration(
+          c.started_at,
+          c.ended_at
+        )
+      : "";
+
+    return `
+      <div
+        class="msg"
+        style="justify-content:center"
+      >
+        <div
+          class="bubble"
+          style="
+            opacity:.82;
+            text-align:center
+          "
+        >
+          ${escapeHtml(
+            nxfCallText(c)+d
+          )}
+          <span class="mt">
+            ${t}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+
+  /*
+    Existing chat loader ko replace nahi,
+    sirf extend kar rahe hain.
+
+    Ab conversation + same user ke calls
+    ek hi thread me load honge.
+  */
+  const nxfOldLoadChatMessages=
+    loadChatMessages;
+
+  window.loadChatMessages=async function(){
+
+    const b=$("chatMessages");
+
+    if(!b || !ACTIVE_CHAT)return;
+
+    try{
+
+      const[
+        {data:msgs,error:me},
+        {data:calls,error:ce}
+      ]=await Promise.all([
+
+        sb
+          .from("messages")
+          .select("*")
+          .eq(
+            "conversation_id",
+            ACTIVE_CHAT.conversationId
+          )
+          .order(
+            "created_at",
+            {ascending:true}
+          )
+          .limit(300),
+
+        sb
+          .from("calls")
+          .select("*")
+          .or(
+            `caller_id.eq.${NEXORA.user.id},receiver_id.eq.${NEXORA.user.id}`
+          )
+          .order(
+            "created_at",
+            {ascending:true}
+          )
+          .limit(300)
+      ]);
+
+      if(me)throw me;
+      if(ce)throw ce;
+
+      /*
+        Sirf current person ke calls.
+      */
+      const relevantCalls=
+        (calls||[]).filter(
+          c=>
+            nxfOtherIdFromCall(c)===
+            ACTIVE_CHAT.otherId
+        );
+
+
+      /*
+        Messages + calls ko ek timeline me merge.
+      */
+      const all=[
+
+        ...(msgs||[]).map(
+          x=>({
+            kind:"message",
+            at:x.created_at,
+            row:x
+          })
+        ),
+
+        ...(relevantCalls||[]).map(
+          x=>({
+            kind:"call",
+            at:x.created_at,
+            row:x
+          })
+        )
+
+      ].sort(
+        (a,b)=>
+          new Date(a.at)-
+          new Date(b.at)
+      );
+
+
+      b.innerHTML=
+        all.length
+
+        ? all.map(
+            x=>
+              x.kind==="message"
+              ? messageHtml(x.row)
+              : nxfCallHtml(x.row)
+          ).join("")
+
+        : `
+          <div
+            id="chatEmpty"
+            class="chat-empty"
+          >
+            👋<br>
+            Pehla message bhejo
+          </div>
+        `;
+
+      b.scrollTop=b.scrollHeight;
+
+    }catch(e){
+
+      /*
+        Agar call query kisi reason se fail ho,
+        normal chat phir bhi chale.
+      */
+      if(
+        typeof nxfOldLoadChatMessages===
+        "function"
+      ){
+        return nxfOldLoadChatMessages();
+      }
+    }
+  };
+
+  loadChatMessages=
+    window.loadChatMessages;
+
+
+  /* =========================================================
+     4. RECENT CONSOLIDATION
+        Same person ko kabhi multiple rows nahi.
+     ========================================================= */
+
+  const nxfOldRenderRecent=
+    renderRecent;
+
+  window.renderRecent=async function(){
+
+    try{
+
+      $("main").innerHTML=`
+        <section class="page">
+          <h1 class="section-title">
+            Recent
+          </h1>
+
+          <div class="section-sub">
+            Your latest activity
+          </div>
+
+          <div id="recentContent">
+            <div
+              class="card"
+              style="
+                padding:22px;
+                color:var(--muted)
+              "
+            >
+              Loading…
+            </div>
+          </div>
+        </section>
+      `;
+
+
+      const hidden=
+        typeof nxLoadHidden==="function"
+        ? await nxLoadHidden()
+        : new Set();
+
+
+      const[
+        calls,
+        notes,
+        convs
+      ]=await Promise.all([
+        loadCalls(),
+        loadNotifications(),
+        loadConversations()
+      ]);
+
+
+      if(NEXORA.page!=="recent")return;
+
+
+      /*
+        Stable USER ID ko key banaya gaya hai.
+        Isliye same person ki multiple entries
+        nahi banengi.
+      */
+      const by=new Map();
+
+
+      function get(
+        id,
+        name,
+        username
+      ){
+
+        if(
+          !id ||
+          id===NEXORA.user.id ||
+          hidden.has(id)
+        ){
+          return null;
+        }
+
+
+        let x=by.get(id);
+
+
+        if(!x){
+
+          x={
+            id,
+            name:name||username||"Unknown",
+            username:username||"",
+            latest:null,
+            preview:"",
+            unread:0,
+            calls:0,
+            open:null
+          };
+
+          by.set(id,x);
+        }
+
+
+        return x;
+      }
+
+
+      /*
+        CHAT activity
+      */
+      (convs||[]).forEach(c=>{
+
+        const x=get(
+          c.other_id,
+          c.other_display_name,
+          c.other_username
+        );
+
+        if(!x)return;
+
+        const at=
+          c.last_message_at||
+          c.created_at;
+
+
+        if(
+          !x.latest ||
+          new Date(at)>
+          new Date(x.latest)
+        ){
+
+          x.latest=at;
+
+          x.preview=
+            c.last_message||
+            "Message";
+        }
+
+
+        x.unread=Math.max(
+          x.unread,
+          Number(
+            c.unread_count||
+            c.unread||
+            0
+          )
+        );
+
+
+        x.open=
+          `openChat(
+            '${escapeAttr(c.conversation_id)}',
+            '${escapeAttr(c.other_id)}',
+            '${escapeAttr(c.other_username)}',
+            '${escapeAttr(c.other_display_name)}'
+          )`;
+      });
+
+
+      /*
+        Calls se user IDs collect.
+      */
+      const callIds=[
+        ...(new Set(
+          (calls||[])
+            .map(nxfOtherIdFromCall)
+            .filter(Boolean)
+        ))
+      ].filter(
+        id=>id!==NEXORA.user.id
+      );
+
+
+      /*
+        User names resolve karo.
+      */
+      if(callIds.length){
+
+        const{
+          data:profiles
+        }=await sb
+          .from("profiles")
+          .select(
+            "id,username,display_name"
+          )
+          .in(
+            "id",
+            callIds
+          );
+
+
+        (profiles||[]).forEach(p=>{
+
+          const x=get(
+            p.id,
+            p.display_name,
+            p.username
+          );
+
+          if(x){
+
+            x.name=
+              p.display_name||
+              p.username;
+
+            x.username=
+              p.username;
+          }
+        });
+      }
+
+
+      /*
+        CALL activity ko same person ke
+        existing row me merge karo.
+      */
+      (calls||[]).forEach(c=>{
+
+        const id=
+          nxfOtherIdFromCall(c);
+
+        const x=
+          get(id,null,null);
+
+        if(!x)return;
+
+
+        x.calls++;
+
+
+        if(
+          !x.latest ||
+          new Date(c.created_at)>
+          new Date(x.latest)
+        ){
+
+          x.latest=
+            c.created_at;
+
+          x.preview=
+            nxfCallText(c);
+        }
+
+
+        /*
+          Agar is person ki conversation already hai,
+          wahi chat open hogi.
+
+          Agar nahi hai, username ke through
+          normal DM create/open hoga.
+        */
+        if(!x.open){
+
+          x.open=
+            `openChat(
+              '',
+              '${escapeAttr(id)}',
+              '${escapeAttr(x.username)}',
+              '${escapeAttr(x.name)}'
+            )`;
+        }
+      });
+
+
+      /*
+        Safety fallback.
+      */
+      [...by.values()].forEach(x=>{
+
+        if(!x.open){
+
+          x.open=
+            `openChat(
+              '',
+              '${escapeAttr(x.id)}',
+              '${escapeAttr(x.username)}',
+              '${escapeAttr(x.name)}'
+            )`;
+        }
+      });
+
+
+      /*
+        Latest activity first.
+      */
+      const rows=
+        [...by.values()]
+        .sort(
+          (a,b)=>
+            new Date(b.latest||0)-
+            new Date(a.latest||0)
+        );
+
+
+      $("recentContent").innerHTML=
+
+        rows.length
+
+        ? rows.map(x=>{
+
+            const meta=
+              x.calls
+
+              ? `${escapeHtml(
+                  x.preview
+                )} · ${
+                  x.calls
+                } call${
+                  x.calls===1
+                  ?""
+                  :"s"
+                }`
+
+              : escapeHtml(
+                  x.preview||
+                  "Recent activity"
+                );
+
+
+            return `
+              <div
+                class="card row-card"
+                style="cursor:pointer"
+                onclick="${x.open}"
+              >
+
+                <div class="avatar">
+                  ${escapeHtml(
+                    initials(x.name)
+                  )}
+                </div>
+
+
+                <div
+                  style="
+                    min-width:0;
+                    flex:1
+                  "
+                >
+
+                  <div
+                    style="
+                      font-weight:800
+                    "
+                  >
+                    ${escapeHtml(x.name)}
+
+                    ${
+                      x.unread
+                      ? `
+                        <span class="cnt">
+                          ${x.unread} unread
+                        </span>
+                      `
+                      :""
+                    }
+                  </div>
+
+
+                  <div
+                    style="
+                      color:var(--muted);
+                      font-size:13px;
+                      white-space:nowrap;
+                      overflow:hidden;
+                      text-overflow:ellipsis
+                    "
+                  >
+                    ${meta}
+                  </div>
+
+                </div>
+
+
+                <div
+                  style="
+                    display:flex;
+                    align-items:center;
+                    gap:6px
+                  "
+                >
+
+                  <div
+                    style="
+                      color:var(--muted);
+                      font-size:12px
+                    "
+                  >
+                    ${timeAgo(x.latest)}
+                  </div>
+
+
+                  <button
+                    class="btn"
+                    style="
+                      min-height:34px;
+                      padding:0 9px
+                    "
+                    onclick="
+                      event.stopPropagation();
+                      nxHideRecent(
+                        '${escapeAttr(x.id)}'
+                      )
+                    "
+                  >
+                    ⋯
+                  </button>
+
+                </div>
+
+              </div>
+            `;
+
+          }).join("")
+
+        : `
+          <div
+            class="card"
+            style="
+              padding:30px;
+              text-align:center;
+              color:var(--muted)
+            "
+          >
+            Nothing here yet.
+          </div>
+        `;
+
+    }catch(e){
+
+      /*
+        Emergency fallback:
+        agar kisi unexpected browser error ki wajah
+        se new Recent renderer fail ho, purana
+        Recent screen completely dead nahi hoga.
+      */
+      if(
+        typeof nxfOldRenderRecent===
+        "function"
+      ){
+        return nxfOldRenderRecent();
+      }
+    }
+  };
+
+
+  renderRecent=
+    window.renderRecent;
+
+})();
+</script>
+<script>
+/* =========================================================
+   NEXORA — RECENT FINAL FIX
+   1 USER = 1 SECTION
+   CHAT + CALLS TOGETHER
+   UNREAD DOT
+   ========================================================= */
+
+(function(){
+
+  if(window.__NX_RECENT_FINAL_FIX__) return;
+  window.__NX_RECENT_FINAL_FIX__ = true;
+
+  /*
+    Local unread-call tracking.
+
+    Missed / declined incoming calls ko unread maana jayega.
+    User jab us person ka thread open karega,
+    unread dot us person ke liye clear ho jayega.
+  */
+  function nxUnreadCallKey(userId){
+    return "nx_unread_calls_"+NEXORA.user.id+"_"+userId;
+  }
+
+  function nxGetUnreadCalls(userId){
+    try{
+      const v=localStorage.getItem(nxUnreadCallKey(userId));
+      return v==="1";
+    }catch(_){
+      return false;
+    }
+  }
+
+  function nxSetUnreadCalls(userId,value){
+    try{
+      if(value)
+        localStorage.setItem(nxUnreadCallKey(userId),"1");
+      else
+        localStorage.removeItem(nxUnreadCallKey(userId));
+    }catch(_){}
+  }
+
+
+  /*
+    Jab chat/thread open ho:
+    us person ka unread call dot clear.
+  */
+  const nxOldOpenChat=window.openChat;
+
+  window.openChat=async function(
+    cid,
+    otherId,
+    username,
+    displayName
+  ){
+
+    if(otherId){
+      nxSetUnreadCalls(otherId,false);
+    }
+
+    const r=nxOldOpenChat?.apply(
+      this,
+      arguments
+    );
+
+    /*
+      Chat open hone ke baad Recent refresh.
+    */
+    setTimeout(()=>{
+      if(
+        NEXORA?.page==="recent" &&
+        typeof renderRecent==="function"
+      ){
+        renderRecent();
+      }
+    },300);
+
+    return r;
+  };
+
+  openChat=window.openChat;
+
+
+  /*
+    Recent renderer
+  */
+  window.renderRecent=async function(){
+
+    const main=$("main");
+
+    if(!main)return;
+
+    main.innerHTML=`
+      <section class="page">
+
+        <h1 class="section-title">
+          Recent
+        </h1>
+
+        <div class="section-sub">
+          Your latest activity
+        </div>
+
+        <div id="recentContent">
+          <div
+            class="card"
+            style="
+              padding:22px;
+              color:var(--muted)
+            "
+          >
+            Loading…
+          </div>
+        </div>
+
+      </section>
+    `;
+
+
+    try{
+
+      const hidden=
+        typeof nxLoadHidden==="function"
+        ? await nxLoadHidden()
+        : new Set();
+
+
+      const [
+        calls,
+        notes,
+        convs
+      ]=await Promise.all([
+
+        loadCalls(),
+
+        loadNotifications(),
+
+        loadConversations()
+
+      ]);
+
+
+      if(NEXORA.page!=="recent")return;
+
+
+      /*
+        ONE USER = ONE OBJECT
+      */
+      const users=new Map();
+
+
+      function getUser(
+        id,
+        name,
+        username
+      ){
+
+        if(
+          !id ||
+          id===NEXORA.user.id ||
+          hidden.has(id)
+        ){
+          return null;
+        }
+
+
+        if(!users.has(id)){
+
+          users.set(
+            id,
+            {
+              id:id,
+
+              name:
+                name ||
+                username ||
+                "Unknown",
+
+              username:
+                username || "",
+
+              latest:null,
+
+              preview:
+                "Recent activity",
+
+              unreadText:0,
+
+              unreadCall:false,
+
+              callCount:0,
+
+              conversationId:null
+            }
+          );
+
+        }
+
+
+        const u=users.get(id);
+
+
+        if(name)
+          u.name=name;
+
+        if(username)
+          u.username=username;
+
+
+        return u;
+      }
+
+
+      /*
+        -------------------------
+        CHAT DATA
+        -------------------------
+      */
+      (convs||[]).forEach(c=>{
+
+        const u=getUser(
+          c.other_id,
+          c.other_display_name,
+          c.other_username
+        );
+
+        if(!u)return;
+
+
+        const at=
+          c.last_message_at ||
+          c.created_at;
+
+
+        if(
+          !u.latest ||
+          new Date(at)>
+          new Date(u.latest)
+        ){
+
+          u.latest=at;
+
+          u.preview=
+            c.last_message ||
+            "Message";
+
+        }
+
+
+        u.unreadText=Math.max(
+          u.unreadText,
+
+          Number(
+            c.unread_count ||
+            c.unread ||
+            0
+          )
+        );
+
+
+        u.conversationId=
+          c.conversation_id;
+
+      });
+
+
+      /*
+        -------------------------
+        CALL USER PROFILES
+        -------------------------
+      */
+
+      const callUserIds=[
+        ...new Set(
+          (calls||[])
+          .map(c=>
+            c.caller_id===
+            NEXORA.user.id
+              ? c.receiver_id
+              : c.caller_id
+          )
+          .filter(Boolean)
+          .filter(id=>
+            id!==NEXORA.user.id
+          )
+        )
+      ];
+
+
+      if(callUserIds.length){
+
+        const {data:profiles}=
+          await sb
+          .from("profiles")
+          .select(
+            "id,username,display_name"
+          )
+          .in(
+            "id",
+            callUserIds
+          );
+
+
+        (profiles||[]).forEach(p=>{
+
+          getUser(
+            p.id,
+            p.display_name,
+            p.username
+          );
+
+        });
+
+      }
+
+
+      /*
+        -------------------------
+        CALLS
+        -------------------------
+      */
+
+      (calls||[]).forEach(c=>{
+
+        const otherId=
+          c.caller_id===
+          NEXORA.user.id
+            ? c.receiver_id
+            : c.caller_id;
+
+
+        const u=
+          getUser(
+            otherId,
+            null,
+            null
+          );
+
+
+        if(!u)return;
+
+
+        u.callCount++;
+
+
+        const incoming=
+          c.receiver_id===
+          NEXORA.user.id;
+
+
+        /*
+          Incoming missed/declined call
+          ko unread maana jayega.
+        */
+        if(
+          incoming &&
+          (
+            c.status==="missed" ||
+            c.status==="declined"
+          )
+        ){
+
+          /*
+            Agar ye latest call hai
+            aur thread abhi open nahi hua,
+            unread dot show karo.
+          */
+          nxSetUnreadCalls(
+            otherId,
+            true
+          );
+
+        }
+
+
+        u.unreadCall=
+          nxGetUnreadCalls(
+            otherId
+          );
+
+
+        if(
+          !u.latest ||
+          new Date(c.created_at)>
+          new Date(u.latest)
+        ){
+
+          u.latest=
+            c.created_at;
+
+
+          if(
+            c.status==="missed"
+          ){
+
+            u.preview=
+              incoming
+                ? "📞 Missed call"
+                : "📞 Outgoing call";
+
+          }else if(
+            c.status==="accepted"
+          ){
+
+            u.preview=
+              "📞 Call";
+
+          }else if(
+            c.status==="declined"
+          ){
+
+            u.preview=
+              incoming
+                ? "📞 Declined call"
+                : "📞 Call declined";
+
+          }else{
+
+            u.preview=
+              "📞 Call";
+
+          }
+
+        }
+
+      });
+
+
+      /*
+        -------------------------
+        SORT
+        -------------------------
+      */
+
+      const rows=
+        [...users.values()]
+        .sort(
+          (a,b)=>
+            new Date(
+              b.latest || 0
+            ) -
+            new Date(
+              a.latest || 0
+            )
+        );
+
+
+      /*
+        -------------------------
+        RENDER
+        -------------------------
+      */
+
+      $("recentContent").innerHTML=
+
+        rows.length
+
+        ? rows.map(u=>{
+
+            const hasUnread=
+              u.unreadText>0 ||
+              u.unreadCall;
+
+
+            const unreadDot=
+              hasUnread
+
+              ? `
+                <span
+                  style="
+                    display:inline-block;
+                    width:9px;
+                    height:9px;
+                    border-radius:50%;
+                    background:#5b8cff;
+                    margin-left:7px;
+                    vertical-align:middle;
+                    box-shadow:0 0 0 3px rgba(91,140,255,.12)
+                  "
+                ></span>
+              `
+
+              : "";
+
+
+            const unreadCount=
+              u.unreadText>0
+
+              ? `
+                <span
+                  class="cnt"
+                  style="
+                    margin-left:5px
+                  "
+                >
+                  ${u.unreadText}
+                </span>
+              `
+
+              : "";
+
+
+            const meta=
+              u.callCount>0
+
+              ? `
+                ${escapeHtml(
+                  u.preview
+                )}
+                <span
+                  style="
+                    opacity:.55
+                  "
+                >
+                  · ${u.callCount}
+                  call${u.callCount===1?"":"s"}
+                </span>
+              `
+
+              : escapeHtml(
+                  u.preview ||
+                  "Recent activity"
+                );
+
+
+            return `
+
+              <div
+                class="card row-card"
+                style="
+                  cursor:pointer;
+                  position:relative
+                "
+                onclick="
+                  openChat(
+                    '${escapeAttr(
+                      u.conversationId || ""
+                    )}',
+                    '${escapeAttr(u.id)}',
+                    '${escapeAttr(u.username)}',
+                    '${escapeAttr(u.name)}'
+                  )
+                "
+              >
+
+                <div class="avatar">
+                  ${escapeHtml(
+                    initials(u.name)
+                  )}
+                </div>
+
+
+                <div
+                  style="
+                    min-width:0;
+                    flex:1
+                  "
+                >
+
+                  <div
+                    style="
+                      font-weight:850;
+                      display:flex;
+                      align-items:center
+                    "
+                  >
+
+                    <span>
+                      ${escapeHtml(
+                        u.name
+                      )}
+                    </span>
+
+                    ${unreadDot}
+
+                    ${unreadCount}
+
+                  </div>
+
+
+                  <div
+                    style="
+                      color:var(--muted);
+                      font-size:13px;
+                      white-space:nowrap;
+                      overflow:hidden;
+                      text-overflow:ellipsis;
+                      margin-top:3px
+                    "
+                  >
+                    ${meta}
+                  </div>
+
+                </div>
+
+
+                <div
+                  style="
+                    display:flex;
+                    align-items:center;
+                    gap:7px
+                  "
+                >
+
+                  <div
+                    style="
+                      color:var(--muted);
+                      font-size:12px;
+                    "
+                  >
+                    ${timeAgo(
+                      u.latest
+                    )}
+                  </div>
+
+
+                  <button
+                    class="btn"
+                    style="
+                      min-height:34px;
+                      padding:0 9px
+                    "
+                    onclick="
+                      event.stopPropagation();
+
+                      nxHideRecent(
+                        '${escapeAttr(u.id)}'
+                      );
+                    "
+                  >
+                    ⋯
+                  </button>
+
+                </div>
+
+              </div>
+
+            `;
+
+          }).join("")
+
+        : `
+
+          <div
+            class="card"
+            style="
+              padding:30px;
+              text-align:center;
+              color:var(--muted)
+            "
+          >
+            Nothing here yet.
+          </div>
+
+        `;
+
+
+    }catch(e){
+
+      console.error(
+        "Recent render error:",
+        e
+      );
+
+      $("recentContent").innerHTML=`
+
+        <div
+          class="card"
+          style="
+            padding:30px;
+            text-align:center;
+            color:var(--muted)
+          "
+        >
+          Could not load Recent.
+        </div>
+
+      `;
+
+    }
+
+  };
+
+
+  renderRecent=
+    window.renderRecent;
+
+
+})();
+</script>
