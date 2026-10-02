@@ -1,1418 +1,7582 @@
 <!doctype html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070a10"><meta name="author" content="Suraj Kumar">
+<meta name="theme-color" content="#080b12">
 <title>NEXORA</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-:root{color-scheme:dark;--bg:#070a10;--ln:rgba(255,255,255,.09);--mu:#8b97ab;--a:#7c8cff;--b:#b07cff;--g:#3fd68f;--r:#ff6377;--e:cubic-bezier(.22,1,.36,1)}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:#f4f6fb;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;overscroll-behavior:none}
-button,input{font:inherit;font-size:16px;color:inherit}button{border:0;background:none;cursor:pointer}
-.h{display:none!important}
-#app{height:100dvh;display:flex;flex-direction:column}
-.grad{background:linear-gradient(135deg,#fff,#8e9cff,#c18cff);-webkit-background-clip:text;background-clip:text;color:transparent}
-.pw{font-size:11px;color:var(--mu);text-align:center}.pw b{color:#aab3ff}
+*{box-sizing:border-box}
+:root{
+  --bg:#070a10;
+  --line:rgba(255,255,255,.08);
+  --text:#f5f7fb;
+  --muted:#8e9aac;
+  --green:#42d392;
+  --shadow:0 20px 70px rgba(0,0,0,.38);
+  --ease:cubic-bezier(.22,1,.36,1)
+}
 
-#auth{flex:1;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 15% 15%,rgba(124,140,255,.16),transparent 40%),radial-gradient(circle at 85% 85%,rgba(176,124,255,.14),transparent 40%)}
-.acard{width:min(420px,100%);padding:30px;border-radius:28px;border:1px solid var(--ln);background:rgba(15,22,35,.9);box-shadow:0 24px 70px rgba(0,0,0,.45);animation:pop .6s var(--e) both}
-@keyframes pop{from{opacity:0;transform:translateY(20px) scale(.96)}}
+html,body{
+  position:fixed;
+  inset:0;
+  margin:0;
+  width:100%;
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  overflow:hidden;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent
+}
 
-#shell{flex:1;min-height:0;display:flex;flex-direction:column}
-.top{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 14px;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--ln);background:rgba(7,10,16,.85);backdrop-filter:blur(18px)}
-.top b{font-size:19px;font-weight:900}
-.ib{width:42px;height:42px;border-radius:13px;background:#111a28;border:1px solid var(--ln);display:grid;place-items:center;position:relative;flex:none}
-.dot{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--r);box-shadow:0 0 10px var(--r)}
-.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:15px;background:linear-gradient(135deg,#697cff,#a26cff);flex:none}
-main{flex:1;min-height:0;position:relative}
-.pg{height:100%;overflow:auto;padding:20px 18px 28px;animation:fade .35s var(--e) both}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}}
-.nav{flex:none;height:66px;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--ln);background:rgba(8,11,17,.95);box-sizing:content-box;padding-bottom:env(safe-area-inset-bottom,0px)}
-.nav button{display:grid;place-content:center;justify-items:center;gap:2px;color:#778398;font-size:11px;position:relative}
-.nav span{font-size:21px;transition:transform .3s var(--e)}
-.nav .on{color:#a8b0ff}.nav .on span{transform:translateY(-2px) scale(1.18)}
-.nav .on::before{content:"";position:absolute;top:0;width:32px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--a),var(--b))}
-h2{font-size:27px;margin:2px 0 6px;letter-spacing:-.8px}.sub{color:var(--mu);margin:0 0 16px}
-.card{border:1px solid var(--ln);border-radius:22px;background:linear-gradient(145deg,#141c2b,#0d131e)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.qc{padding:18px;min-height:116px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;transition:transform .2s var(--e)}
-.qc:active{transform:scale(.96)}.qc .i{font-size:28px}.qc b{display:block}.qc small{color:var(--mu)}
-.live{display:inline-flex;gap:8px;align-items:center;color:#7ce3ae;font-size:13px}
-.live i{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 12px var(--g);animation:bl 1.6s infinite}
-@keyframes bl{50%{opacity:.35}}
-.row{display:flex;align-items:center;gap:12px;padding:13px;margin-bottom:10px;width:100%;text-align:left}
-.row .t{flex:1;min-width:0}.row .t b{display:block}.row .t small{color:var(--mu);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.empty{padding:26px;text-align:center;color:var(--mu)}
-.pr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--ln)}.pr .t{flex:1}.pr small{display:block;color:var(--mu);font-size:12px}
-.tg2{width:50px;height:30px;border-radius:15px;background:#26324a;position:relative;flex:none;transition:.25s}
-.tg2 i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .25s var(--e)}
-.tg2.on{background:linear-gradient(135deg,var(--a),var(--b))}.tg2.on i{transform:translateX(20px)}
-.ov{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);display:grid;place-items:center;padding:16px}
-.md{width:min(480px,100%);max-height:88dvh;overflow:auto;background:#101722;border:1px solid var(--ln);border-radius:26px;padding:22px;animation:pop .3s var(--e) both}
-.md h3{margin:0 0 4px;font-size:21px}
-#toast{position:fixed;left:50%;bottom:96px;z-index:9000;transform:translate(-50%,14px);padding:12px 16px;border-radius:14px;background:#121925;border:1px solid var(--ln);opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-#net{position:fixed;top:0;left:0;right:0;z-index:9500;padding:calc(6px + env(safe-area-inset-top,0px)) 12px 6px;text-align:center;font-size:13px;font-weight:800;color:#fff;background:#ff4d63;transform:translateY(-110%);transition:transform .3s var(--e)}
-#net.show{transform:none}
-.chat{padding:0!important;display:flex;flex-direction:column}
-.ch{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--ln);background:rgba(12,17,25,.8)}
-.cb{flex:1;min-height:0;overflow:auto;padding:16px 12px;display:flex;flex-direction:column;gap:5px}
-.m{max-width:80%;padding:9px 13px 6px;border-radius:19px;line-height:1.4;word-break:break-word;animation:mi .3s var(--e) both}
-@keyframes mi{from{opacity:0;transform:translateY(12px) scale(.94)}}
-.m.me{align-self:flex-end;background:linear-gradient(135deg,#6f82ff,#9a74f0);border-bottom-right-radius:6px}
-.m.th{align-self:flex-start;background:rgba(255,255,255,.07);border-bottom-left-radius:6px}
-.m.fail{box-shadow:0 0 0 1px #ff8797}
-.m small{display:block;text-align:right;font-size:10px;opacity:.7;margin-top:2px}.m u{cursor:pointer;font-weight:800}
-.cp{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--ln)}
-.cp input{margin:0;border-radius:26px;flex:1}
-.snd{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#7889ff,#a077ff);flex:none;display:grid;place-items:center;color:#fff}
-.bd{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;max-width:420px;margin:0 auto}
-.cell{aspect-ratio:1;border-radius:13px;background:#162033;border:1px solid var(--ln);font-size:clamp(24px,8vw,42px);font-weight:900;transition:transform .15s var(--e)}
-.cell:active{transform:scale(.9)}
-.cell.n{animation:cp .35s var(--e)}@keyframes cp{from{transform:scale(.3) rotate(-30deg);opacity:0}}
-.cell.w{background:linear-gradient(135deg,#2b3c78,#5a3a96);box-shadow:0 0 22px rgba(124,140,255,.6);animation:wn .8s ease-in-out infinite alternate}
-@keyframes wn{to{transform:scale(1.07)}}
-.X{color:#9aa7ff}.O{color:#ff8999}
-.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ic.rot{transform:rotate(135deg)}
+button,input{font:inherit;font-size:16px}
+button{border:0;cursor:pointer}
+.hidden{display:none!important}
 
-#call{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 28px) 24px calc(env(safe-area-inset-bottom,0px) + 28px);background:radial-gradient(circle at 50% 30%,#1a2140,#070a10 70%)}
-#call.h{display:none}
-.ctop{width:100%;display:flex;align-items:center;justify-content:space-between}
-.cmid{text-align:center}.cav{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;margin:auto;background:linear-gradient(135deg,#697cff,#a26cff);font-size:34px;font-weight:900}
-.cnm{font-size:25px;font-weight:900;margin-top:20px}.cst{color:var(--mu);margin-top:5px}.ctm{font-size:13px;color:var(--mu);margin-top:8px}
-.eq{height:40px;display:flex;align-items:center;gap:5px;justify-content:center;margin-top:22px}.eq i{width:5px;height:12px;border-radius:4px;background:var(--g);animation:eq 1s ease-in-out infinite alternate}.eq i:nth-child(2){animation-delay:.1s}.eq i:nth-child(3){animation-delay:.2s}.eq i:nth-child(4){animation-delay:.3s}.eq i:nth-child(5){animation-delay:.4s}
-@keyframes eq{to{height:34px}}
-.cbs{display:flex;gap:12px}.cb2{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#1b2434;border:1px solid var(--ln)}.cb2.gn{background:#1f8e5c}.cb2.r{background:#b8334b}.cb2.on{background:#b8334b}
+#app,.shell,.auth-screen{
+  width:100%;
+  height:var(--vh,100dvh);
+  overflow:hidden
+}
 
-.ludo-board{position:relative;width:min(92vw,520px);aspect-ratio:1;margin:12px auto;border-radius:24px;overflow:hidden;border:1px solid var(--ln);background:#0d131e;box-shadow:0 20px 50px rgba(0,0,0,.4)}
-.ludo-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr)}
-.ludo-cell{border:1px solid rgba(255,255,255,.045);background:#111925}
-.ludo-home{position:absolute;width:40%;height:40%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;padding:7%;gap:5%;z-index:2}
-.redh{left:0;top:0;background:rgba(255,99,119,.18)}.greenh{right:0;top:0;background:rgba(63,214,143,.18)}
-.yellowh{left:0;bottom:0;background:rgba(244,199,82,.18)}.blueh{right:0;bottom:0;background:rgba(93,140,255,.18)}
-.ludo-home .ludo-token{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;aspect-ratio:1}
-.ludo-token{border-radius:50%;border:2px solid rgba(255,255,255,.72);box-shadow:0 5px 12px rgba(0,0,0,.35);min-width:10px;min-height:10px}
-.player-pills{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
-.player-pill{padding:7px 10px;border-radius:14px;border:1px solid var(--ln);background:#111925;font-size:11px}
-.player-pill.on{box-shadow:0 0 16px rgba(124,140,255,.22)}
-.dice{width:78px;height:78px;border-radius:20px;background:linear-gradient(145deg,#fff,#d9dde7);color:#111;box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 -5px 8px rgba(0,0,0,.15);font-size:34px}
-.dice.rl{animation:tumble .5s linear infinite}.dice.rd{animation:ready 1s ease-in-out infinite alternate}
-@keyframes ready{to{transform:translateY(-4px);box-shadow:0 16px 30px rgba(124,140,255,.55),inset 0 -5px 8px rgba(0,0,0,.15)}}
-@keyframes tumble{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
-.wo{position:absolute;inset:0;display:grid;place-items:center;background:rgba(7,10,16,.75);backdrop-filter:blur(5px);z-index:30;text-align:center;font-size:28px;font-weight:900}
-.game-toolbar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
-.ludo-cell.rh{background:rgba(255,99,119,.13)}.ludo-cell.gh{background:rgba(63,214,143,.13)}.ludo-cell.yh{background:rgba(244,199,82,.13)}.ludo-cell.bh{background:rgba(93,140,255,.13)}
-.ludo-token{cursor:pointer}.ludo-token.hop{animation:lhop .18s var(--e)}.ludo-token.cut{animation:lcut .4s ease}
-@keyframes lhop{50%{transform:scale(1.25) translateY(-5px)}}@keyframes lcut{0%{transform:scale(1)}50%{transform:scale(1.5) rotate(20deg)}100%{transform:scale(0)}}
-.confetti{position:absolute;inset:0;z-index:100;display:grid;place-items:center;background:rgba(7,10,16,.76);backdrop-filter:blur(4px);text-align:center;font-size:30px;font-weight:900}.confetti>div{animation:pop .5s var(--e) both}
+#app,.shell{
+  display:flex;
+  flex-direction:column
+}
 
-.u-page{position:relative;height:100%;min-height:100%;display:flex;flex-direction:column;padding:10px 10px 16px;background:radial-gradient(circle at 50% 40%,rgba(63,214,143,.07),transparent 35%),radial-gradient(circle at 50% 100%,rgba(124,140,255,.08),transparent 45%);overflow:auto}
-.u-top{display:flex;align-items:center;gap:8px;min-height:44px}.u-top .u-msg{flex:1;min-width:0;text-align:center;color:var(--mu);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.u-opps{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:8px 0}
-.u-op{position:relative;min-width:100px;padding:7px;border-radius:15px;background:#101722;border:1px solid var(--ln);text-align:center;transition:.25s}.u-op.on{border-color:#8cffbf;box-shadow:0 0 22px rgba(63,214,143,.2)}
-.u-fan{height:18px;margin-top:4px;display:flex;justify-content:center}.u-fan s{display:block;width:14px;height:18px;margin-left:-5px;border-radius:5px;background:#293449;border:1px solid rgba(255,255,255,.2);transform:rotate(-8deg)}.u-fan s:nth-child(2n){transform:rotate(8deg)}
-.u-n{font-size:11px;color:var(--mu);margin-top:3px}.u-n.red{color:#ff7e8d;font-weight:900}
-.u-mid{flex:1;min-height:250px;display:flex;align-items:center;justify-content:center;gap:16px;position:relative}
-.u-deck,.u-disc{border:0;background:none;display:grid;place-items:center;position:relative}.u-deck small{color:var(--mu);font-size:11px;margin-top:6px}
-.uc{width:58px;height:82px;flex:none;position:relative;display:grid;place-items:center;border-radius:11px;border:3px solid rgba(255,255,255,.88);background:var(--cc);color:#fff;box-shadow:0 7px 16px rgba(0,0,0,.4);font-weight:900;user-select:none;transition:transform .18s var(--e),filter .18s}
-.uc::before{content:"";position:absolute;inset:8px;border-radius:50%;background:rgba(255,255,255,.16);transform:rotate(-28deg) skewX(-8deg)}.uc i{position:absolute;top:3px;left:5px;font-style:normal;font-size:12px;z-index:2}.uc b{position:relative;z-index:2;font-size:25px;text-shadow:0 2px 2px rgba(0,0,0,.25)}.uc i.br{top:auto;left:auto;right:5px;bottom:3px;transform:rotate(180deg)}
-.uc.uw{background:conic-gradient(#e5384f 0 25%,#2f7fe0 25% 50%,#2fb36a 50% 75%,#f3b92b 75%)}
-.uc.ub{background:radial-gradient(circle at 30% 30%,#444 0 12%,transparent 13%),#151922;border-color:#fff;transform:rotate(-6deg)}.uc.ub::after{content:"";position:absolute;width:80%;height:40%;border-radius:50%;background:#e5384f;transform:rotate(-25deg)}.uc.ub b{color:#fff;font-size:19px;z-index:4;transform:rotate(-10deg)}
-.u-hand{display:flex;justify-content:center;gap:4px;overflow-x:auto;overflow-y:visible;padding:16px 4px 8px;min-height:108px;scrollbar-width:none}.u-hand::-webkit-scrollbar{display:none}
-.u-hand .uc{width:52px;height:74px;margin-left:-8px;transform:translateY(4px) rotate(var(--r,0deg))}.u-hand .uc:first-child{margin-left:0}
-.u-hand.mine .uc.ok{cursor:pointer;box-shadow:0 0 0 2px #fff,0 10px 24px rgba(63,214,143,.35);transform:translateY(-5px)}.u-hand.mine .uc.ok:active{transform:translateY(-16px) scale(1.05)}
-.u-hand.mine .uc.no{filter:grayscale(.35) brightness(.55);opacity:.68}
-.u-disc .uc.land{animation:ucLand .45s var(--e)}@keyframes ucLand{0%{transform:translateY(-40px) rotate(-18deg) scale(.7);opacity:0}70%{transform:translateY(5px) rotate(4deg) scale(1.04)}100%{transform:none;opacity:1}}
-.u-dir{font-size:32px;color:var(--mu);animation:udir 1.2s linear infinite}@keyframes udir{to{transform:rotate(360deg)}}
-.u-turn{text-align:center;font-weight:900;min-height:22px}.u-act{min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
-.uno-btn{min-width:110px;height:46px;border-radius:23px;color:#fff;font-weight:1000;font-size:17px;letter-spacing:1px;background:linear-gradient(135deg,#ff4458,#f59c27);box-shadow:0 8px 24px rgba(255,68,88,.3);border:2px solid rgba(255,255,255,.5)}
-.cpick{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cpick button{height:60px;border-radius:16px;border:2px solid rgba(255,255,255,.55);color:#fff;font-weight:900;text-shadow:0 1px 3px rgba(0,0,0,.4)}
-@media(max-width:390px){.u-op{min-width:86px}.uc{width:50px;height:72px}.u-hand .uc{width:47px;height:68px}.u-mid{gap:8px}}
+input:-webkit-autofill{
+  -webkit-box-shadow:0 0 0 40px #0a0f17 inset!important;
+  -webkit-text-fill-color:#fff!important;
+  caret-color:#fff!important
+}
 
-.confetti{position:absolute;inset:0;display:grid;place-items:center;background:rgba(7,10,16,.72);backdrop-filter:blur(4px);z-index:9;font-size:26px;font-weight:900;animation:fadeIn .5s both;text-align:center}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
 
-/* ---------- second-code auth design ---------- */
-.auth-screen{position:relative;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 20% 20%,rgba(124,140,255,.14),transparent 35%),radial-gradient(circle at 80% 70%,rgba(154,124,255,.12),transparent 35%),var(--bg)}
-.auth-screen::before,.auth-screen::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;filter:blur(90px);opacity:.35;animation:authdrift 14s ease-in-out infinite alternate}
-.auth-screen::before{background:#6b7cff;top:-80px;left:-80px}.auth-screen::after{background:#b36bff;bottom:-100px;right:-80px;animation-delay:-6s}
-@keyframes authdrift{to{transform:translate(60px,40px) scale(1.15)}}
-.auth-card{position:relative;z-index:1;width:min(440px,100%);padding:32px;border:1px solid var(--ln);border-radius:28px;background:rgba(14,19,28,.88);backdrop-filter:blur(24px);box-shadow:0 20px 70px rgba(0,0,0,.38);animation:authrise .7s var(--e) both}
-@keyframes authrise{from{opacity:0;transform:translateY(24px) scale(.97)}}
-.logo{font-size:30px;font-weight:900;letter-spacing:-1px}.logo span{background:linear-gradient(135deg,#fff,#8e9cff,#c18cff);-webkit-background-clip:text;background-clip:text;color:transparent}
-.auth-sub{color:var(--mu);margin:8px 0 28px;line-height:1.5}.field{margin-bottom:13px}.field input{width:100%;height:52px;padding:0 16px;border-radius:15px;border:1px solid var(--ln);outline:none;background:#0a0f17;color:#fff}.field input:focus{border-color:rgba(124,140,255,.65);box-shadow:0 0 0 4px rgba(124,140,255,.1)}
-.primary{width:100%;min-height:52px;border-radius:15px;background:linear-gradient(135deg,#7889ff,#9879ff);color:#fff;font-weight:800;margin-top:5px}.secondary{width:100%;min-height:50px;border-radius:15px;background:#151d29;color:#fff;border:1px solid var(--ln)}
-.auth-switch{text-align:center;color:var(--mu);margin-top:18px;font-size:14px}.auth-switch button{background:none;color:#9ca8ff;font-weight:700;font-size:14px}.auth-message{min-height:22px;margin:12px 0 0;font-size:13px;color:var(--mu);text-align:center}.auth-message.error{color:#ff8190}.auth-message.ok{color:#65dda1}
-.quick-card{transform-style:preserve-3d;will-change:transform}.quick-icon{font-size:28px}.quick-name{font-weight:800}.quick-desc{color:var(--mu);font-size:12px;margin-top:3px}.grid2{grid-template-columns:1fr 1fr}
-</style></head><body>
-<div id="net"></div>
+/* ================= AUTH ================= */
+
+.auth-screen{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(124,140,255,.14),transparent 35%),
+    radial-gradient(circle at 80% 70%,rgba(154,124,255,.12),transparent 35%),
+    var(--bg)
+}
+
+.auth-screen::before,
+.auth-screen::after{
+  content:"";
+  position:absolute;
+  width:340px;
+  height:340px;
+  border-radius:50%;
+  filter:blur(90px);
+  opacity:.35;
+  animation:drift 14s ease-in-out infinite alternate
+}
+
+.auth-screen::before{
+  background:#6b7cff;
+  top:-80px;
+  left:-80px
+}
+
+.auth-screen::after{
+  background:#b36bff;
+  bottom:-100px;
+  right:-80px;
+  animation-delay:-6s
+}
+
+@keyframes drift{
+  to{transform:translate(60px,40px) scale(1.15)}
+}
+
+.auth-card{
+  position:relative;
+  z-index:1;
+  width:min(440px,100%);
+  padding:32px;
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:rgba(14,19,28,.88);
+  backdrop-filter:blur(24px);
+  box-shadow:var(--shadow);
+  animation:rise .7s var(--ease) both
+}
+
+@keyframes rise{
+  from{opacity:0;transform:translateY(24px) scale(.97)}
+}
+
+.logo{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-1px
+}
+
+.logo span{
+  background:linear-gradient(135deg,#fff,#8e9cff,#c18cff);
+  -webkit-background-clip:text;
+  color:transparent
+}
+
+.auth-sub{
+  color:var(--muted);
+  margin:8px 0 28px;
+  line-height:1.5
+}
+
+.field{margin-bottom:13px}
+
+.field input,
+.pf-input{
+  width:100%;
+  height:52px;
+  padding:0 16px;
+  border-radius:15px;
+  border:1px solid var(--line);
+  outline:none;
+  background:#0a0f17;
+  color:var(--text)
+}
+
+.field input:focus,
+.pf-input:focus{
+  border-color:rgba(124,140,255,.65);
+  box-shadow:0 0 0 4px rgba(124,140,255,.1)
+}
+
+.primary{
+  width:100%;
+  min-height:52px;
+  border-radius:15px;
+  background:linear-gradient(135deg,#7889ff,#9879ff);
+  color:#fff;
+  font-weight:800;
+  margin-top:5px
+}
+
+.secondary{
+  width:100%;
+  min-height:50px;
+  border-radius:15px;
+  background:#151d29;
+  color:#fff;
+  border:1px solid var(--line)
+}
+
+.auth-switch{
+  text-align:center;
+  color:var(--muted);
+  margin-top:18px;
+  font-size:14px
+}
+
+.auth-switch button{
+  background:none;
+  color:#9ca8ff;
+  font-weight:700;
+  font-size:14px
+}
+
+.auth-message{
+  min-height:22px;
+  margin:12px 0 0;
+  font-size:13px;
+  color:var(--muted);
+  text-align:center
+}
+
+.auth-message.error{color:#ff8190}
+.auth-message.ok{color:#65dda1}
+
+/* ================= SHELL ================= */
+
+.topbar{
+  flex:0 0 auto;
+  height:68px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  border-bottom:1px solid var(--line);
+  background:rgba(7,10,16,.84);
+  backdrop-filter:blur(20px)
+}
+
+.brand{
+  font-weight:900;
+  font-size:20px
+}
+
+.brand span{color:#929cff}
+
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.icon-btn{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:#111824;
+  color:#fff;
+  border:1px solid var(--line)
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#697cff,#a26cff);
+  color:#fff;
+  font-weight:900;
+  overflow:hidden;
+  font-size:15px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  position:relative
+}
+
+.page{
+  height:100%;
+  overflow:auto;
+  padding:20px 20px 28px;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  animation:fadeIn .45s var(--ease) both
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(8px)}
+}
+
+.page::-webkit-scrollbar,
+.chat-body::-webkit-scrollbar{
+  width:5px
+}
+
+.page::-webkit-scrollbar-thumb,
+.chat-body::-webkit-scrollbar-thumb{
+  background:#293345;
+  border-radius:10px
+}
+
+.bottom-nav{
+  flex:0 0 auto;
+  height:72px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);
+  background:rgba(8,11,17,.94);
+  backdrop-filter:blur(20px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+}
+
+.nav-item{
+  position:relative;
+  background:none;
+  color:#788497;
+  font-size:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px
+}
+
+.nav-item.active{color:#a8b0ff}
+
+.nav-icon{
+  font-size:21px;
+  transition:transform .3s var(--ease)
+}
+
+.nav-item.active .nav-icon{
+  transform:translateY(-2px) scale(1.15);
+  text-shadow:0 0 16px rgba(140,155,255,.8)
+}
+
+.nav-item.active::before{
+  content:"";
+  position:absolute;
+  top:0;
+  width:34px;
+  height:3px;
+  border-radius:0 0 4px 4px;
+  background:linear-gradient(90deg,#7889ff,#a37cff)
+}
+
+.nav-dot{
+  position:absolute;
+  top:12px;
+  margin-left:24px;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#ff6377;
+  box-shadow:0 0 12px #ff6377
+}
+
+.section-title{
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-.8px;
+  margin:4px 0 7px
+}
+
+.section-sub{
+  color:var(--muted);
+  margin-bottom:20px
+}
+
+.card{
+  border:1px solid var(--line);
+  background:linear-gradient(145deg,rgba(20,27,39,.94),rgba(12,17,25,.94));
+  border-radius:22px;
+  box-shadow:0 12px 35px rgba(0,0,0,.16)
+}
+
+.hero{
+  padding:24px;
+  margin-bottom:16px
+}
+
+.live{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#7ce3ae;
+  font-size:13px
+}
+
+.live i{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#46d88e;
+  box-shadow:0 0 14px #46d88e
+}
+
+.grid{
+  display:grid;
+  gap:14px
+}
+
+.grid2{
+  grid-template-columns:repeat(2,minmax(0,1fr))
+}
+
+.quick-card{
+  min-height:125px;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  color:#fff;
+  text-align:left
+}
+
+.quick-icon{font-size:28px}
+.quick-name{font-weight:800}
+.quick-desc{color:var(--muted);font-size:12px}
+
+.btn,
+.primary,
+.secondary,
+.quick-card,
+.icon-btn{
+  transition:
+    transform .18s var(--ease),
+    box-shadow .25s,
+    filter .25s
+}
+
+.btn:active,
+.primary:active,
+.secondary:active,
+.quick-card:active,
+.icon-btn:active{
+  transform:scale(.96)
+}
+
+@media(hover:hover){
+  .quick-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 18px 40px rgba(110,125,255,.18)
+  }
+
+  .primary:hover,
+  .primary-btn:hover{
+    filter:brightness(1.12)
+  }
+}
+
+/* ================= TOAST / MODAL ================= */
+
+.toast{
+  position:fixed;
+  z-index:9999;
+  left:50%;
+  bottom:92px;
+  transform:translateX(-50%) translateY(15px);
+  min-width:220px;
+  max-width:calc(100vw - 30px);
+  padding:13px 16px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#121925;
+  box-shadow:var(--shadow);
+  color:#fff;
+  text-align:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0)
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(12px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px
+}
+
+.modal{
+  width:min(500px,100%);
+  max-height:90dvh;
+  overflow:auto;
+  background:#101722;
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:22px;
+  box-shadow:var(--shadow);
+  animation:pop .35s var(--ease) both
+}
+
+@keyframes pop{
+  from{opacity:0;transform:translateY(20px) scale(.95)}
+}
+
+.modal-title{
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:6px
+}
+
+.modal-sub{
+  color:var(--muted);
+  font-size:14px;
+  margin-bottom:20px
+}
+
+.modal-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px
+}
+
+.btn{
+  min-height:48px;
+  padding:0 17px;
+  border-radius:14px;
+  color:#fff;
+  background:#171f2d;
+  border:1px solid var(--line);
+  font-weight:750
+}
+
+.btn.primary-btn,
+.primary-btn{
+  background:linear-gradient(135deg,#7789ff,#9978ff);
+  box-shadow:0 10px 28px rgba(120,137,255,.28)
+}
+
+.btn.danger{
+  background:rgba(255,85,105,.13);
+  color:#ff8797
+}
+
+.btn.success{
+  background:rgba(65,211,146,.13);
+  color:#65dfa3
+}
+
+.pf-input{margin-bottom:12px}
+
+.pf-label{
+  font-size:12px;
+  color:var(--muted);
+  margin:0 0 6px 4px;
+  display:block
+}
+
+.pf-avatar{
+  width:84px;
+  height:84px;
+  margin:0 auto 18px;
+  font-size:28px;
+  box-shadow:
+    0 0 0 4px rgba(124,140,255,.18),
+    0 14px 40px rgba(124,140,255,.35)
+}
+
+/* ================= CALL ================= */
+
+.call-card{
+  width:min(410px,100%);
+  padding:28px;
+  text-align:center;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 50% 0,rgba(124,140,255,.18),transparent 45%),
+    #101722;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  animation:pop .4s var(--ease) both
+}
+
+.call-avatar{
+  width:92px;
+  height:92px;
+  border-radius:50%;
+  margin:5px auto 18px;
+  display:grid;
+  place-items:center;
+  font-size:30px;
+  font-weight:900;
+  background:linear-gradient(135deg,#687cff,#a36eff);
+  box-shadow:0 0 0 0 rgba(124,140,255,.5);
+  animation:ring 1.8s ease-out infinite
+}
+
+@keyframes ring{
+  to{box-shadow:0 0 0 26px rgba(124,140,255,0)}
+}
+
+.call-name{
+  font-size:23px;
+  font-weight:900
+}
+
+.call-state{
+  color:var(--muted);
+  margin:7px 0 22px
+}
+
+.call-timer{
+  font-size:28px;
+  font-variant-numeric:tabular-nums;
+  margin-bottom:22px
+}
+
+.call-actions{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px
+}
+
+.call-actions .wide{
+  grid-column:1/-1
+}
+
+/* ================= CHAT ================= */
+
+.chat-page{
+  padding:0!important;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden!important;
+  background:
+    radial-gradient(circle at 85% 0,rgba(124,140,255,.10),transparent 40%),
+    radial-gradient(circle at 0 100%,rgba(163,124,255,.08),transparent 40%),
+    var(--bg)
+}
+
+.chat-head{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  background:rgba(12,17,25,.78);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line)
+}
+
+.chat-head .nm{
+  font-weight:850;
+  font-size:16px
+}
+
+.chat-head .un{
+  color:var(--muted);
+  font-size:12px
+}
+
+.chat-body{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  padding:18px 14px 8px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overscroll-behavior:contain
+}
+
+.msg{
+  display:flex;
+  animation:msgIn .38s var(--ease) both
+}
+
+.msg.mine{
+  justify-content:flex-end
+}
+
+@keyframes msgIn{
+  from{
+    opacity:0;
+    transform:translateY(14px) scale(.94)
+  }
+}
+
+.bubble{
+  max-width:80%;
+  padding:10px 13px;
+  border-radius:18px;
+  background:#151e2c;
+  border:1px solid var(--line);
+  line-height:1.45;
+  word-break:break-word
+}
+
+.msg.mine .bubble{
+  background:linear-gradient(135deg,#566bda,#725bc7);
+  border-color:transparent
+}
+
+.bubble-meta{
+  margin-top:4px;
+  font-size:10px;
+  color:rgba(255,255,255,.55)
+}
+
+.chat-compose{
+  flex:0 0 auto;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+  background:rgba(8,11,17,.95);
+  border-top:1px solid var(--line)
+}
+
+.chat-input{
+  flex:1;
+  min-height:46px;
+  max-height:120px;
+  resize:none;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  outline:none;
+  background:#101722;
+  color:#fff
+}
+
+.chat-send{
+  width:46px;
+  height:46px;
+  border-radius:15px;
+  background:linear-gradient(135deg,#7889ff,#9879ff);
+  color:#fff
+}
+
+/* ================= CONNECT ================= */
+
+.person-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  margin-bottom:10px
+}
+
+.person-avatar{
+  width:48px;
+  height:48px;
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:linear-gradient(135deg,#687cff,#a36eff);
+  font-weight:900
+}
+
+.person-main{
+  min-width:0;
+  flex:1
+}
+
+.person-name{
+  font-weight:800
+}
+
+.person-user{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:3px
+}
+
+.person-actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  justify-content:flex-end
+}
+
+/* ================= GAME COMMON ================= */
+
+.game-card{
+  padding:20px;
+  min-height:150px;
+  position:relative;
+  overflow:hidden
+}
+
+.game-card::after{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  right:-55px;
+  bottom:-65px;
+  background:rgba(124,140,255,.12);
+  filter:blur(5px)
+}
+
+.game-title{
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:6px
+}
+
+.game-desc{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+  margin-bottom:18px
+}
+
+.game-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+
+/* ================= LUDO ================= */
+
+.ludo-wrap{
+  width:min(620px,100%);
+  margin:0 auto
+}
+
+.ludo-board{
+  width:100%;
+  aspect-ratio:1;
+  display:grid;
+  grid-template-columns:repeat(15,1fr);
+  grid-template-rows:repeat(15,1fr);
+  border-radius:24px;
+  overflow:hidden;
+  border:4px solid #202838;
+  background:#f5f5f5;
+  box-shadow:0 24px 70px rgba(0,0,0,.38)
+}
+
+.lc{
+  position:relative;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(0,0,0,.08);
+  font-size:11px;
+  user-select:none
+}
+
+.lc.red{background:#ef5368}
+.lc.green{background:#3fc984}
+.lc.yellow{background:#ffc93c}
+.lc.blue{background:#4a9dff}
+.lc.white{background:#fff}
+.lc.path{background:#f4f4f4}
+.lc.safe::after{
+  content:"★";
+  color:#777;
+  font-size:12px
+}
+
+.ludo-token{
+  width:72%;
+  height:72%;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.9);
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.28),
+    inset 0 2px 2px rgba(255,255,255,.35);
+  cursor:pointer;
+  transition:transform .18s,filter .18s
+}
+
+.ludo-token:hover{
+  transform:scale(1.1)
+}
+
+.ludo-token.red{background:#ef5368}
+.ludo-token.green{background:#3fc984}
+.ludo-token.yellow{background:#ffc93c}
+.ludo-token.blue{background:#4a9dff}
+
+.ludo-token.locked{
+  opacity:.55;
+  cursor:default
+}
+
+.ludo-panel{
+  margin-top:14px;
+  padding:15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap
+}
+
+.ludo-turn{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.ludo-dot{
+  width:14px;
+  height:14px;
+  border-radius:50%
+}
+
+.ludo-dice{
+  width:64px;
+  height:64px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  font-size:32px;
+  font-weight:900;
+  background:#fff;
+  color:#111;
+  box-shadow:0 10px 25px rgba(0,0,0,.22);
+  cursor:pointer
+}
+
+.ludo-dice.rolling{
+  animation:diceRoll .55s ease both
+}
+
+@keyframes diceRoll{
+  0%{transform:rotate(0) scale(1)}
+  35%{transform:rotate(180deg) scale(1.12)}
+  70%{transform:rotate(320deg) scale(.94)}
+  100%{transform:rotate(360deg) scale(1)}
+}
+
+/* ================= UNO ================= */
+
+.uno-table{
+  width:min(700px,100%);
+  min-height:520px;
+  margin:0 auto;
+  border-radius:32px;
+  padding:24px;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(100,130,255,.18),transparent 32%),
+    linear-gradient(145deg,#131c2b,#091019);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 25px 80px rgba(0,0,0,.42)
+}
+
+.uno-table::before{
+  content:"";
+  position:absolute;
+  inset:15%;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.06);
+  pointer-events:none
+}
+
+.uno-center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  pointer-events:none
+}
+
+.uno-card{
+  width:74px;
+  height:108px;
+  border-radius:13px;
+  padding:5px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:1000;
+  font-size:30px;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(0,0,0,.35);
+  border:3px solid #fff;
+  user-select:none
+}
+
+.uno-card.red{background:#e84c55}
+.uno-card.yellow{background:#e9bd38;color:#111}
+.uno-card.green{background:#39ad68}
+.uno-card.blue{background:#4388dc}
+.uno-card.black{background:#171b22}
+
+.uno-card.small{
+  width:54px;
+  height:78px;
+  font-size:21px;
+  border-width:2px
+}
+
+.uno-hand{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:4px;
+  flex-wrap:wrap;
+  padding:10px
+}
+
+.uno-hand .uno-card{
+  margin-left:-9px;
+  transform-origin:bottom center;
+  transition:transform .18s,margin .18s
+}
+
+.uno-hand .uno-card:first-child{margin-left:0}
+
+.uno-hand .uno-card:hover{
+  transform:translateY(-18px) rotate(0)!important;
+  z-index:10;
+  margin-right:5px
+}
+
+.uno-top,
+.uno-bottom{
+  position:absolute;
+  left:18px;
+  right:18px
+}
+
+.uno-top{top:18px}
+.uno-bottom{bottom:18px}
+
+.uno-player{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:#dce2ed
+}
+
+.uno-count{
+  padding:4px 8px;
+  border-radius:10px;
+  background:#151e2c;
+  color:#9da9bc;
+  font-size:11px
+}
+
+/* ================= TTT ================= */
+
+.ttt-board{
+  width:min(360px,100%);
+  margin:20px auto;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px
+}
+
+.ttt-cell{
+  aspect-ratio:1;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:#121a27;
+  color:#fff;
+  font-size:52px;
+  font-weight:900;
+  display:grid;
+  place-items:center
+}
+
+.ttt-cell.x{color:#8190ff}
+.ttt-cell.o{color:#ff7690}
+
+/* ================= NOTIFICATION ================= */
+
+.notice-row{
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:10px
+}
+
+.notice-icon{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:#171f2d
+}
+
+.notice-main{
+  flex:1;
+  min-width:0
+}
+
+.notice-title{
+  font-weight:800
+}
+
+.notice-time{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:3px
+}
+
+/* ================= SETTINGS ================= */
+
+.setting-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:16px
+}
+
+.setting-row+.setting-row{
+  border-top:1px solid var(--line)
+}
+
+.setting-main{
+  min-width:0
+}
+
+.setting-title{
+  font-weight:800
+}
+
+.setting-desc{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:3px;
+  line-height:1.4
+}
+
+.toggle{
+  width:48px;
+  height:28px;
+  border-radius:20px;
+  padding:3px;
+  background:#283242;
+  flex:0 0 auto;
+  transition:.2s
+}
+
+.toggle i{
+  display:block;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#fff;
+  transition:.2s
+}
+
+.toggle.on{
+  background:#6578ff
+}
+
+.toggle.on i{
+  transform:translateX(20px)
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:600px){
+  .auth-card{padding:24px}
+  .page{padding:16px 14px 24px}
+  .grid2{grid-template-columns:1fr 1fr}
+  .quick-card{min-height:112px;padding:14px}
+  .section-title{font-size:25px}
+  .ludo-panel{justify-content:center}
+  .uno-table{min-height:470px;padding:14px}
+  .uno-card{width:58px;height:88px;font-size:25px}
+  .uno-card.small{width:45px;height:66px;font-size:18px}
+}
+
+@media(max-width:380px){
+  .grid2{grid-template-columns:1fr}
+  .quick-card{min-height:96px}
+  .topbar{padding:0 12px}
+}
+</style>
+</head>
+
+<body>
+
 <div id="app">
 
-<section id="auth" class="auth-screen">
-  <div class="auth-card">
-    <div class="logo"><span>NEXORA</span></div>
-    <div class="auth-sub">Connect, chat and play — all in one place.</div>
-    <div id="fL">
-      <div class="field"><input id="em" type="email" autocomplete="email" placeholder="Email"></div>
-      <div class="field"><input id="pw" type="password" autocomplete="current-password" placeholder="Password"></div>
-      <button id="bL" class="primary">Log in</button>
-      <div style="height:10px"></div>
-      <button id="bG" class="secondary">Continue as Guest</button>
+  <!-- =====================================================
+       SECOND CODE LOGIN / AUTH PAGE
+       ===================================================== -->
+
+  <section id="auth" class="auth-screen">
+
+    <div class="auth-card">
+
+      <div class="logo">
+        NEXORA<span>.</span>
+      </div>
+
+      <div class="auth-sub">
+        Connect, talk, call and play with people online.
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+
+        <div class="field">
+          <input
+            id="loginEmail"
+            type="email"
+            placeholder="Email"
+            autocomplete="email">
+        </div>
+
+        <div class="field">
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="Password"
+            autocomplete="current-password">
+        </div>
+
+        <button
+          id="loginBtn"
+          class="primary">
+          Log in
+        </button>
+
+        <div style="height:10px"></div>
+
+        <button
+          id="guestBtn"
+          class="secondary">
+          Continue as guest
+        </button>
+
+      </div>
+
+      <!-- SIGNUP -->
+      <div id="signupForm" class="hidden">
+
+        <div class="field">
+          <input
+            id="signupName"
+            placeholder="Display name"
+            maxlength="30">
+        </div>
+
+        <div class="field">
+          <input
+            id="signupEmail"
+            type="email"
+            placeholder="Email"
+            autocomplete="email">
+        </div>
+
+        <div class="field">
+          <input
+            id="signupPassword"
+            type="password"
+            placeholder="Password (6+ characters)"
+            autocomplete="new-password">
+        </div>
+
+        <button
+          id="signupBtn"
+          class="primary">
+          Create account
+        </button>
+
+      </div>
+
+      <div
+        id="authMessage"
+        class="auth-message">
+      </div>
+
+      <div class="auth-switch">
+        <span id="authSwitchText">New here?</span>
+        <button id="authSwitchBtn">Create account</button>
+      </div>
+
+      <div style="text-align:center;color:#667085;font-size:12px;margin-top:18px">
+        Powered by <b>Suraj Kumar</b>
+      </div>
+
     </div>
-    <div id="fS" class="h">
-      <div class="field"><input id="sn" type="text" maxlength="40" placeholder="Display name"></div>
-      <div class="field"><input id="se" type="email" autocomplete="email" placeholder="Email"></div>
-      <div class="field"><input id="sp" type="password" autocomplete="new-password" placeholder="Password"></div>
-      <button id="bS" class="primary">Create account</button>
-    </div>
-    <div id="amsg" class="auth-message"></div>
-    <div class="auth-switch"><span id="swT">New here?</span> <button id="swB">Create account</button></div>
-  </div>
-</section>
-<section id="shell" class="h"><header class="top"><button id="bell" class="ib" aria-label="Notifications">🔔<i id="bdot" class="dot h"></i></button><div style="text-align:center;line-height:1.1"><b class="grad">NEXORA</b><div class="pw">Powered by <b>Suraj Kumar</b></div></div><button id="prof" class="av" aria-label="Profile">N</button></header>
-<main id="main"></main>
-<nav class="nav" id="nav"><button data-p="home" class="on"><span>⌂</span>Home</button><button data-p="recent"><span>◷</span>Chats</button><button data-p="connect"><span>◎</span>Connect</button><button data-p="games"><span>♟</span>Games</button><button data-p="settings"><span>⚙</span>Settings</button></nav></section>
+
+  </section>
+
+
+  <!-- =====================================================
+       MAIN APPLICATION
+       ===================================================== -->
+
+  <section id="shell" class="shell hidden">
+
+    <header class="topbar">
+
+      <button
+        id="notificationBtn"
+        class="icon-btn"
+        aria-label="Notifications">
+        🔔
+      </button>
+
+      <div style="text-align:center">
+        <div class="brand">
+          NEXORA<span>.</span>
+        </div>
+        <div style="font-size:10px;color:#697386">
+          Powered by <b>Suraj Kumar</b>
+        </div>
+      </div>
+
+      <button
+        id="profileBtn"
+        class="avatar"
+        aria-label="Profile">
+        N
+      </button>
+
+    </header>
+
+
+    <main
+      id="main"
+      class="main">
+    </main>
+
+
+    <nav
+      id="nav"
+      class="bottom-nav">
+
+      <button
+        class="nav-item active"
+        data-page="home">
+        <span class="nav-icon">⌂</span>
+        <span>Home</span>
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="recent">
+        <span class="nav-icon">◷</span>
+        <span>Chats</span>
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="connect">
+        <span class="nav-icon">◎</span>
+        <span>Connect</span>
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="games">
+        <span class="nav-icon">♟</span>
+        <span>Games</span>
+      </button>
+
+    </nav>
+
+  </section>
+
 </div>
-<div id="call" class="h"><div class="ctop"><button id="cMin" class="ib" aria-label="Minimize"></button><span>NEXORA VOICE</span><span style="width:42px"></span></div>
-<div class="cmid"><div class="cav" id="cAv">N</div><div class="cnm" id="cNm"></div><div class="cst" id="cSt"></div><div class="ctm" id="cTm">00:00</div><div class="eq"><i></i><i></i><i></i><i></i><i></i></div></div>
-<div class="cbs"><button id="cMute" class="cb2" aria-label="Mute"></button><button id="cAcc" class="cb2 gn h" aria-label="Accept"></button><button id="cEnd" class="cb2 r" aria-label="End call"></button></div></div>
-<div id="toast"></div><div id="ov" class="ov h"><div id="md" class="md"></div></div>
+
+
+<!-- =======================================================
+     CALL OVERLAY
+     ======================================================= -->
+
+<div
+  id="callOverlay"
+  class="overlay hidden">
+
+  <div
+    id="callBox"
+    class="call-card">
+
+    <div
+      id="callAvatar"
+      class="call-avatar">
+      N
+    </div>
+
+    <div
+      id="callName"
+      class="call-name">
+      Calling…
+    </div>
+
+    <div
+      id="callState"
+      class="call-state">
+      Connecting…
+    </div>
+
+    <div
+      id="callTimer"
+      class="call-timer">
+      00:00
+    </div>
+
+    <div class="call-actions">
+
+      <button
+        id="callMuteBtn"
+        class="btn">
+        🎙️ Mute
+      </button>
+
+      <button
+        id="callSpeakerBtn"
+        class="btn">
+        🔊 Speaker
+      </button>
+
+      <button
+        id="callAcceptBtn"
+        class="btn success">
+        Accept
+      </button>
+
+      <button
+        id="callEndBtn"
+        class="btn danger">
+        End call
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     GLOBAL TOAST
+     ======================================================= -->
+
+<div id="toast" class="toast"></div>
+
+
+<!-- =======================================================
+     GLOBAL MODAL
+     ======================================================= -->
+
+<div
+  id="modalOverlay"
+  class="overlay hidden">
+
+  <div
+    id="modal"
+    class="modal">
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     MERGED APPLICATION SCRIPT — PART 1
+     ======================================================= -->
+
 <script>
-/* TURN: free shared relay included so calls work on cellular/Wi-Fi mix. For production add your own at metered.ca (app + key) below. */
-const CFG={metered:{app:"",key:""},turn:[{urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}]};
-const sb=supabase.createClient("https://ktwluvpmzisonmootdqc.supabase.co","sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm",{auth:{persistSession:true,autoRefreshToken:true}});
-const $=i=>document.getElementById(i),sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const S={user:null,me:null,page:"home",live:1,chat:null,g:null,room:null,convs:[]};
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const ini=n=>(n||"N").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"N";
-const myName=()=>S.me?.display_name||S.me?.username||"Player";
-const nm=p=>p.display_name||p.username;
-const tm=d=>new Date(d).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-let PR={snd:true,hide:false,calls:true,inv:true};try{PR={...PR,...JSON.parse(localStorage.nx_pr)}catch(_){}
-const savePr=()=>localStorage.nx_pr=JSON.stringify(PR);
-/* sound */
-let AC;function tone(f,d=.08,t="sine",v=.05,at=0){if(!PR.snd)return;try{AC=AC||new(window.AudioContext||webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+at;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d)}catch(_){}}
-const SFX={tap:()=>tone(520,.04,"triangle",.025),send:()=>tone(600,.06),recv:()=>{tone(700,.08);tone(880,.1,"sine",.04,.08)},move:()=>tone(440,.08,"triangle",.06),win:()=>[523,659,784,1047].forEach((f,k)=>tone(f,.25,"sine",.06,k*.13)),lose:()=>[330,262,196].forEach((f,k)=>tone(f,.25,"sawtooth",.04,k*.15)),ring:()=>{tone(520,.18,"sine",.08);tone(660,.18,"sine",.08,.22)},up:()=>{tone(660,.12);tone(880,.2,"sine",.05,.13)},down:()=>{tone(320,.18);tone(220,.3,"sine",.05,.18)},match:()=>{tone(660,.15);tone(990,.2,"sine",.05,.15)}};
-const sfx=n=>SFX[n]?.(),vib=p=>PR.snd&&navigator.vibrate?.(p);
-let tt;function toast(m){const e=$("toast");e.textContent=m;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2800)}
-let onClose=null;function openModal(h,cb){onClose=cb||null;$("md").innerHTML=h;$("ov").classList.remove("h")}
-function closeModal(){const f=onClose;onClose=null;$("ov").classList.add("h");f&&f()}
-$("ov").onclick=e=>{if(e.target===$("ov"))closeModal()};
-document.addEventListener("pointerdown",e=>{if(e.target.closest(".btn,.qc,.cell,.nav button,.ib"))sfx("tap")});
-const IC=d=>`<svg class="ic" viewBox="0 0 24 24">${d}</svg>`;
-const I={phone:IC('<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.8 2z"/>'),mic:IC('<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v4"/>'),micoff:IC('<path d="M2 2l20 20"/><path d="M9 9v2a3 3 0 005 2M15 9V5a3 3 0 00-5.1-2"/><path d="M5 11a7 7 0 0011 5M12 18v4"/>'),down:IC('<path d="M6 9l6 6 6-6"/>'),send:IC('<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>'),back:IC('<path d="M15 18l-6-6 6-6"/>'),game:IC('<rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 10v5M4.5 12.5h5"/><circle cx="16" cy="11" r=".7"/><circle cx="18.5" cy="14" r=".7"/>')};
-$("cMin").innerHTML=I.down;$("cMute").innerHTML=I.mic;$("cAcc").innerHTML=I.phone;$("cEnd").innerHTML=I.phone.replace('class="ic"','class="ic rot"');
 
-/* ---------- auth ---------- */
-const amsg=(t,c)=>{$("amsg").textContent=t||"";$("amsg").style.color=c==="e"?"#ff8190":c==="o"?"#65dda1":""};
-function authMode(s){$("fL").classList.toggle("h",s);$("fS").classList.toggle("h",!s);$("swT").textContent=s?"Already have an account?":"New here?";$("swB").textContent=s?"Log in":"Create account";amsg("")}
-$("swB").onclick=()=>authMode($("fS").classList.contains("h"));
-const busy=b=>["bL","bG","bS"].forEach(i=>$(i).disabled=b);
-async function ensureProfile(u){try{const{data}=await sb.from("profiles").select("*").eq("id",u.id).maybeSingle();if(data)return data;
- const m=u.user_metadata||{},n=m.display_name||(u.email?u.email.split("@")[0]:"Guest");let un=n.toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,12);if(un.length<3)un="user";un+="_"+u.id.replace(/-/g,"").slice(0,5);
- const{data:c}=await sb.from("profiles").insert({id:u.id,username:un,display_name:n,is_guest:!!u.is_anonymous,online:true,last_seen:new Date().toISOString()}).select("*").maybeSingle();return c}catch(_){return null}}
-async function enter(u){S.user=u;$("auth").classList.add("h");$("shell").classList.remove("h");S.me=await ensureProfile(u);paintAv();go("home");startSig();startLive();setOnline(true);checkNotes()}
-const paintAv=()=>$("prof").textContent=ini(myName());
-$("bL").onclick=async()=>{const email=$("em").value.trim(),password=$("pw").value;if(!email||!password)return amsg("Enter your email and password.","e");busy(1);amsg("Signing in…");try{const{data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;await enter(data.user)}catch(e){amsg(e.message,"e")}busy(0)};
-$("bG").onclick=async()=>{busy(1);amsg("Opening guest mode…");try{const{data,error}=await sb.auth.signInAnonymously();if(error)throw error;amsg("");await enter(data.user)}catch(e){amsg(/anonymous/i.test(e.message)?"Guest mode is turned off in Supabase Auth.":e.message,"e")}busy(0)};
-$("bS").onclick=async()=>{const name=$("sn").value.trim(),email=$("se").value.trim(),password=$("sp").value;if(!name||!email)return amsg("Fill in every field.","e");if(password.length<6)return amsg("Password needs at least 6 characters.","e");busy(1);amsg("Creating your account…");
- try{const{data,error}=await sb.auth.signUp({email,password,options:{data:{display_name:name}}});if(error)throw error;if(data.session)await enter(data.user);else{authMode(false);amsg("Account created. Confirm your email, then log in.","o")}}catch(e){amsg(e.message,"e")}busy(0)};
-[["em","bL"],["pw","bL"],["sp","bS"]].forEach(([i,b])=>$(i).addEventListener("keydown",e=>{if(e.key==="Enter")$(b).click()}));
-async function logout(){endCall();stopRM();closeRoom(true);try{await sb.from("profiles").update({online:false,last_seen:new Date().toISOString()}).eq("id",S.user.id)}catch(_){}
- [SIG,LV,S.cch].forEach(c=>c&&sb.removeChannel(c));SIG=LV=null;await sb.auth.signOut();S.user=S.me=null;$("shell").classList.add("h");$("auth").classList.remove("h");authMode(false)}
-
-/* ---------- realtime / presence ---------- */
-let LV=null;function startLive(){if(LV)sb.removeChannel(LV);const ch=LV=sb.channel("nx-live",{config:{presence:{key:S.user.id}}});
- ch.on("presence",{event:"sync"},()=>{S.live=Math.max(1,Object.keys(ch.presenceState()).length);const e=$("liveN");if(e)e.textContent=S.live+(S.live===1?" person":" people")+" online"});
- ch.subscribe(async s=>{if(s==="SUBSCRIBED")try{await ch.track({at:Date.now()})}catch(_){}}
-)}
-async function setOnline(on){if(!S.user)return;try{await sb.from("profiles").update({online:on,last_seen:new Date().toISOString()}).eq("id",S.user.id)}catch(_){}}
-
-/* ---------- signaling ---------- */
-let SIG=null,sigP=null;
-async function startSig(){if(SIG){try{await sb.removeChannel(SIG)}catch(_){}}
- const ch=SIG=sb.channel("nx-signal",{config:{broadcast:{ack:true}}});ch.on("broadcast",{event:"s"},({payload:p})=>{if(p&&p.to===S.user?.id)onSig(p)});
- await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)})
-}
-const ensureSig=()=>sigP||(sigP=startSig().finally(()=>sigP=null));
-async function sig(p){for(let i=0;i<3;i++){if(!SIG||SIG.state!=="joined")await ensureSig();try{const r=await SIG.send({type:"broadcast",event:"s",payload:{...p,from:S.user.id}});if(r==="ok")return true}catch(_){}await sleep(400*(i+1))}return false}
-const net=(t,c)=>{const e=$("net");if(!t)return e.classList.remove("show");e.textContent=t;e.style.background=c;e.classList.add("show")};
-let NS="ok";setInterval(()=>{if(!S.user)return;const on=navigator.onLine,ok=SIG?.state==="joined";
- if(on&&!ok&&!sigP)ensureSig();const st=!on?"off":ok?"ok":"rec";if(st===NS)return;const was=NS;NS=st;
- if(st==="off")net("📡 Internet nahi hai","#ff4d63");else if(st==="rec")net("🔄 Reconnecting…","#e0a000");else if(was!=="ok"){net("✓ Back online","#1fae6a");setTimeout(()=>NS==="ok"&&net(),2000)}},2000);
-addEventListener("online",()=>{if(S.user){ensureSig();setOnline(true);document.querySelectorAll(".m.fail u").forEach(u=>u.click())}});
-const PRE={};
-function onSig(p){const t=p.type;
- if(t==="offer")return onOffer(p);
- if(t==="greq")return gotReq(p);
- if(t==="gacc"){if(S.pend?.code===p.code)toast("Accept ho gaya, game shuru…");return}
- if(t==="gdec"){if(S.pend?.code===p.code){S.pend=null;closeRoom(false);closeModal();toast("Dost ne game se mana kiya")}return}
- if(t==="gcan"){if(S.inreq?.code===p.code){S.inreq=null;closeModal();toast("Request cancel ho gayi")}return}
- if(t==="ice"){if(!C||p.id!==C.id){(PRE[p.id]=PRE[p.id]||[]).push(p.c);return}C.pc?.remoteDescription?C.pc.addIceCandidate(p.c).catch(()=>{}):C.q.push(p.c);return}
- if(!C||p.id!==C.id)return;
- if(t==="ring"){C.ringing=true;clearInterval(C.rs2);paintCall()}
- else if(t==="answer"){if(C.st==="calling"){C.st="connecting";clearTimeout(C.to);C.ct=setTimeout(()=>{if(C&&C.st!=="on"){toast("Call connect nahi ho payi");endCall()}},45000)}paintCall();C.pc.setRemoteDescription(p.sdp).then(()=>flush(C)).catch(()=>{})}
- else if(t==="reoffer")onReoffer(p);
- else if(t==="nudge"){if(C.init)restartIce(C)}
- else if(t==="end"||t==="busy"||t==="decl"){const r=C.random;toast(t==="busy"?"User abhi busy hai":t==="decl"?"Call decline hui":"Call khatam");endCall(1);if(r)strangerGone()}
-}
-
-/* ---------- call engine ---------- */
-let C=null,RING=null,WL=null;
-const ENDED=new Map();
-async function iceServers(){const a=[...CFG.turn];if(CFG.metered.app&&CFG.metered.key){try{const r=await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${CFG.metered.key}/credentials/generate-ice-servers`,{headers:{Authorization:`Bearer ${CFG.metered.app}`}});const j=await r.json();if(j.iceServers)a.push(...j.iceServers)}catch(_){}}
-return a}
-async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})}
-catch(e){throw new Error(e.name==="NotAllowedError"?"Browser settings me Microphone allow karo.":e.name==="NotFoundError"?"Microphone nahi mila.":e.name==="NotReadableError"?"Microphone kisi aur app me chal raha hai.":"Microphone shuru nahi hua.")}}
-async function wake(on){try{if(on&&!WL&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");if(!on&&WL){await WL.release();WL=null}}catch(_){}}
-function startRing(){stopRing();RING=setInterval(()=>{if(!C)return stopRing();if(C.st==="ringing"){sfx("ring");vib(200)}else if(C.st==="calling")tone(440,.4,"sine",.04)},1800)}
-const stopRing=()=>{clearInterval(RING);RING=null};
-async function mkPc(c){const pc=new RTCPeerConnection({iceServers:await iceServers(),iceCandidatePoolSize:2});c.pc=pc;c.stream.getTracks().forEach(t=>pc.addTrack(t,c.stream));
- pc.onicecandidate=e=>{if(e.candidate)sig({type:"ice",to:c.uid,id:c.id,c:e.candidate})};
- pc.ontrack=e=>{let a=$("ra");if(!a){a=document.createElement("audio");a.id="ra";a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play().catch(()=>{})};
- pc.oniceconnectionstatechange=()=>{if(C!==c)return;const s=pc.iceConnectionState;
-  if(s==="connected"||s==="completed"){clearTimeout(c.t1);clearTimeout(c.dead);clearTimeout(c.ct);if(c.st!=="on"){c.st="on";c.t0=Date.now();sfx("up");vib(60);wake(true)}else if(c.net)toast("Connection wapas aa gaya ✓");c.net=0;paintCall()}
-  else if(s==="disconnected"){c.net="unstable";paintCall();clearTimeout(c.t1);c.t1=setTimeout(()=>recover(c),2500)}
-  else if(s==="failed"){c.net="reconnecting";paintCall();recover(c)}};return pc}
-const flush=c=>{while(c.q.length)c.pc.addIceCandidate(c.q.shift()).catch(()=>{})};
-const okIce=c=>["connected","completed"].includes(c.pc.iceConnectionState);
-function recover(c){if(C!==c||c.rec)return;c.net="reconnecting";paintCall();kick(c);
- c.rec=setInterval(()=>{if(C!==c||okIce(c)){clearInterval(c.rec);c.rec=0;return}kick(c)},5000);
- c.dead=setTimeout(()=>{if(C===c&&!okIce(c)){toast("Call drop ho gayi");endCall()}},45000)}
-function kick(c){if(C!==c||navigator.onLine===false)return;c.init?restartIce(c):sig({type:"nudge",to:c.uid,id:c.id})}
-async function restartIce(c){const pc=c.pc;if(!pc||c.rs||pc.signalingState!=="stable")return;c.rs=1;try{pc.restartIce?.();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await sig({type:"reoffer",to:c.uid,id:c.id,sdp:pc.localDescription})}catch(_){}c.rs=0}
-async function onReoffer(p){const c=C;try{await c.pc.setRemoteDescription(p.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){}}
-async function startCall(uid,name,random){
- if(uid===S.user.id)return;if(C)return toast("Aap pehle se call me ho");
- let stream;try{stream=await mic()}catch(e){return toast(e.message)}
- if(C){stream.getTracks().forEach(t=>t.stop());return}
- const c=C={id:crypto.randomUUID(),uid,name,init:1,st:"calling",stream,q:[],random};paintCall();startRing();
- try{await mkPc(c);await c.pc.setLocalDescription(await c.pc.createOffer())}catch(_){toast("Call shuru nahi ho payi");return endCall(1)}
- const m={type:"offer",to:uid,id:c.id,name:myName(),random:!!random,sdp:c.pc.localDescription};
- if(!await sig(m)){toast("Internet check karo");return endCall(1)}
- let n=0;c.rs2=setInterval(()=>{if(C!==c||c.ringing||c.st!=="calling"||++n>10)return clearInterval(c.rs2);sig(m)},2500);
- c.to=setTimeout(()=>{if(C===c&&c.st==="calling"){toast("Koi jawab nahi");endCall()}},40000)}
-function onOffer(p){
- if(isEnded(p.id))return;
- if(C&&C.id===p.id){sig({type:"ring",to:p.from,id:C.id});return}
- if(C&&C.init&&C.uid===p.from&&C.st==="calling"){if(S.user.id<p.from)return;endCall(1)}
- if(C||!PR.calls){sig({type:C?"busy":"decl",to:p.from,id:p.id});return}
- const c=C={id:p.id,uid:p.from,name:p.name||"Caller",st:"ringing",sdp:p.sdp,q:PRE[p.id]||[]};delete PRE[p.id];sig({type:"ring",to:p.from,id:c.id});
- if(p.random&&RM?.kind==="call"){stopRM();closeModal();return accept()}
- paintCall();startRing();c.to=setTimeout(()=>{if(C===c&&c.st==="ringing"){sig({type:"end",to:c.uid,id:c.id});endCall(1)}},40000)}
-async function accept(){const c=C;if(!c||c.st!=="ringing")return;stopRing();clearTimeout(c.to);
- let stream;try{stream=await mic()}catch(e){toast(e.message);sig({type:"decl",to:c.uid,id:c.id});return endCall(1)}
- if(C!==c){stream.getTracks().forEach(t=>t.stop());return}
- c.stream=stream;c.st="connecting";paintCall();c.ct=setTimeout(()=>{if(C===c&&c.st!=="on"){toast("Call connect nahi ho payi");endCall()}},45000);
- try{await mkPc(c);await c.pc.setRemoteDescription(c.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){toast("Call connect nahi ho payi");endCall()}}
-function endCall(silent){const c=C;if(!c)return;C=null;ENDED.set(c.id,Date.now());stopRing();[c.to,c.t1,c.dead,c.ct].forEach(clearTimeout);[c.rs2,c.rec].forEach(clearInterval);
- if(!silent)sig({type:c.st==="ringing"?"decl":"end",to:c.uid,id:c.id});
- try{c.stream?.getTracks().forEach(t=>t.stop())}catch(_){}try{c.pc?.close()}catch(_){}
- $("ra")?.remove();wake(false);const el=$("call");el.className="h";$("cMute").classList.remove("on");$("cMute").innerHTML=I.mic;sfx("down")}
-function paintCall(){const c=C,el=$("call");if(!c)return;if(el.classList.contains("h"))el.classList.remove("h");el.classList.toggle("on",c.st==="on");
- $("cAv").textContent=ini(c.name);$("cNm").textContent=c.name;
- $("cSt").textContent=c.st==="ringing"?"Incoming voice call":c.st==="calling"?(c.ringing?"Ringing…":"Calling…"):c.st==="connecting"?"Connecting…":c.net==="reconnecting"?"Reconnecting…":c.net==="unstable"?"Connection unstable":"Connected";
- $("cAcc").classList.toggle("h",c.st!=="ringing");$("cMute").classList.toggle("h",c.st==="ringing")}
-const minCall=m=>{if(C)$("call").classList.toggle("mn",m)};
-$("cAcc").onclick=accept;$("cEnd").onclick=()=>endCall();$("cMin").onclick=()=>minCall(true);
-$("call").addEventListener("click",e=>{const el=$("call");if(el.classList.contains("mn")&&!e.target.closest("#cEnd,#cMute"))minCall(false)});
-$("cMute").onclick=()=>{const c=C;if(!c?.stream)return;c.muted=!c.muted;c.stream.getAudioTracks().forEach(t=>t.enabled=!c.muted);$("cMute").innerHTML=c.muted?I.micoff:I.mic;$("cMute").classList.toggle("on",c.muted);vib(20)};
-setInterval(()=>{if(C?.st==="on"){const s=Math.floor((Date.now()-C.t0)/1000);$("cTm").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}},500);
-addEventListener("pagehide",()=>{if(C)sig({type:"end",to:C.uid,id:C.id})});
-document.addEventListener("visibilitychange",()=>{if(document.hidden||!S.user)return;if(SIG?.state!=="joined")ensureSig();if(C?.pc&&!okIce(C)&&C.st==="on")recover(C);if(S.page==="chat")fetchNew()});
-navigator.connection?.addEventListener?.("change",()=>{const c=C;if(c?.st==="on")setTimeout(()=>kick(c),900)});
-function voiceBtn(uid,name){if(C)minCall(false);else startCall(uid,name)}
-
-/* ---------- navigation ---------- */
-const PG={home:renderHome,recent:renderRecent,connect:renderConnect,games:renderGames,settings:renderSettings};
-function go(p){stopChat();if(S.room)closeRoom(true);if(typeof LR!=="undefined"&&LR)closeLR(true);if(typeof L!=="undefined")L=null;S.g=null;S.page=p;[...$("nav").children].forEach(b=>b.classList.toggle("on",b.dataset.p===p));PG[p]()}
-$("nav").onclick=e=>{const b=e.target.closest("button");if(b)go(b.dataset.p)};
-const page=h=>$("main").innerHTML=`<section class="pg">${h}</section>`;
-const SUB=()=>["chat","ttt"].includes(S.page);
-history.pushState({n:1},"");addEventListener("popstate",()=>{history.pushState({n:1},"");if(!$("ov").classList.contains("h"))return closeModal();if(S.page==="ludo")return leaveL();if(S.page==="ttt")return leaveG();if(S.page==="chat")return go("recent");if(S.page!=="home"&&S.user)go("home")});
-const P={};const reg=p=>(P[p.id]=p);
-function act(k,id){const p=P[id];if(!p)return;if(k==="text")openChat("",p.id,p.username,nm(p));else if(k==="call")startCall(p.id,nm(p));else if(k==="game")inviteGame(p.id,nm(p));else if(k==="add")addFriend(p.id)}
-
-/* ---------- home / chats ---------- */
-function renderHome(){
- const q=(i,n,d,p)=>`<button class="card quick-card" onclick="go('${p}')"><div class="quick-icon">${i}</div><div><div class="quick-name">${n}</div><div class="quick-desc">${d}</div></div></button>`;
- page(`<div class="card hero" style="padding:22px;margin-bottom:14px"><div class="live"><i></i><span id="liveN">${S.live} ${S.live===1?"person":"people"} online</span></div><h2 style="margin-top:12px">Welcome${S.me?.display_name?", "+esc(S.me.display_name):""} 👋</h2><p class="sub" style="margin:0">Everything you need to connect, talk and play.</p></div>
- <div class="grid grid2"><div class="card quick-card" onclick="go('recent')"><div class="quick-icon">◷</div><div><div class="quick-name">Recent</div><div class="quick-desc">Chats, calls and notifications</div></div></div>${q("◎","Connect","Find people and call","connect")}${q("♟","Games","Ludo and multiplayer games","games")}${q("🔔","Notifications","Friend requests and invites","recent")}</div>`)}
-async function renderRecent(){page(`<h2>Chats</h2><p class="sub">One thread for each person.</p><div id="rc"><div class="card empty">Loading…</div></div>`);
- let rows=[];try{const{data,error}=await sb.rpc("nexora_my_conversations");if(error)throw error;rows=data||[]}catch(_){}
- if(S.page!=="recent")return;S.convs=rows;$("rc").innerHTML=rows.length?rows.map((c,i)=>{const n=c.other_display_name||c.other_username;return`<button class="card row" onclick="openIdx(${i})"><span class="av">${esc(ini(n))}</span><span class="t"><b>${esc(n)}</b><small>${esc(c.last_message||"Say hello")}</small></span></button>`}).join(""):`<div class="card empty">No chats yet. Open Connect to find someone.</div>`}
- /* ---------- continue: chat / connect / games ---------- */
-
-async function openIdx(i){
- const c=S.convs[i];
- if(!c)return;
- openChat("",c.other_id,c.other_username,c.other_display_name);
-}
-
-let CHAT=null,CCH=null,chatTimer=null;
-
-function stopChat(){
- clearInterval(chatTimer);
- chatTimer=null;
- if(CCH){
-  try{sb.removeChannel(CCH)}catch(_){}
-  CCH=null;
- }
- CHAT=null;
-}
-
-async function openChat(thread,uid,username,name){
- stopChat();
-
- CHAT={
-  uid,
-  username,
-  name:name||username||"User",
-  key:[S.user.id,uid].sort().join("_")
- };
-
- S.page="chat";
- $("nav").querySelectorAll("button").forEach(b=>b.classList.remove("on"));
-
- $("main").innerHTML=`
- <section class="pg chat">
-  <div class="ch">
-   <button class="ib" onclick="go('recent')">${I.back}</button>
-   <div class="av">${esc(ini(CHAT.name))}</div>
-   <div style="flex:1;min-width:0">
-    <b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-     ${esc(CHAT.name)}
-    </b>
-    <small id="chatStatus" style="color:var(--mu)">Connecting…</small>
-   </div>
-   <button class="ib" onclick="startCall('${uid}','${esc(CHAT.name)}')">${I.phone}</button>
-  </div>
-
-  <div class="cb" id="cb">
-   <div class="empty">Loading messages…</div>
-  </div>
-
-  <div class="cp">
-   <button class="ib" onclick="emoBar()">😊</button>
-   <input id="ci" autocomplete="off" placeholder="Message…">
-   <button class="snd" onclick="sendMsg()">${I.send}</button>
-  </div>
- </section>
- `;
-
- $("ci").addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&!e.shiftKey){
-   e.preventDefault();
-   sendMsg();
-  }
- });
-
- await loadChat();
- subscribeChat();
-}
-
-async function loadChat(){
- if(!CHAT)return;
-
- const box=$("cb");
- try{
-  const{data,error}=await sb
-   .from("messages")
-   .select("*")
-   .or(
-    `and(sender_id.eq.${S.user.id},receiver_id.eq.${CHAT.uid}),and(sender_id.eq.${CHAT.uid},receiver_id.eq.${S.user.id})`
-   )
-   .order("created_at",{ascending:true})
-   .limit(200);
-
-  if(error)throw error;
-
-  if(!data?.length){
-   box.innerHTML=`<div class="empty">No messages yet.<br>Start the conversation 👋</div>`;
-  }else{
-   box.innerHTML=data.map(renderMessage).join("");
-   box.scrollTop=box.scrollHeight;
-  }
-
-  $("chatStatus").textContent="Online chat";
- }catch(_){
-  box.innerHTML=`<div class="empty">Messages load nahi ho paaye.</div>`;
-  $("chatStatus").textContent="Offline";
- }
-}
-
-function renderMessage(m){
- const mine=m.sender_id===S.user.id;
- return`
-  <div class="m ${mine?"me":"th"} ${m.failed?"fail":""}" data-mid="${esc(m.id)}">
-   ${esc(m.content||"")}
-   <small>${tm(m.created_at)}</small>
-  </div>
- `;
-}
-
-function subscribeChat(){
- if(!CHAT)return;
-
- CCH=sb.channel("chat-"+CHAT.key);
-
- CCH.on(
-  "postgres_changes",
-  {
-   event:"INSERT",
-   schema:"public",
-   table:"messages"
-  },
-  payload=>{
-   const m=payload.new;
-   if(!m)return;
-
-   const related=
-    (m.sender_id===S.user.id&&m.receiver_id===CHAT.uid)||
-    (m.sender_id===CHAT.uid&&m.receiver_id===S.user.id);
-
-   if(!related)return;
-
-   const box=$("cb");
-   if(!box)return;
-
-   if(box.querySelector(".empty"))box.innerHTML="";
-
-   box.insertAdjacentHTML("beforeend",renderMessage(m));
-   box.scrollTop=box.scrollHeight;
-
-   if(m.sender_id!==S.user.id){
-    sfx("recv");
-    checkNotes();
-   }
-  }
- );
-
- CCH.subscribe();
-}
-
-async function sendMsg(){
- if(!CHAT)return;
-
- const input=$("ci");
- const text=input?.value.trim();
-
- if(!text)return;
-
- input.value="";
- input.focus();
-
- try{
-  const{error}=await sb.from("messages").insert({
-   sender_id:S.user.id,
-   receiver_id:CHAT.uid,
-   content:text
-  });
-
-  if(error)throw error;
-
-  sfx("send");
- }catch(_){
-  input.value=text;
-  toast("Message send nahi hua.");
- }
-}
-
-async function fetchNew(){
- if(S.page==="chat"&&CHAT)await loadChat();
-}
-
-/* ---------- emoji ---------- */
-
-const EM=[
- "😀","😂","🤣","😊","😍","🥰","😎","🤔",
- "😮","😢","😭","😡","🤯","😱","🙄","😴",
- "👍","👎","❤️","🔥","🎉","👏","🙏","💯",
- "🤝","❤️‍🔥","🥳","😈","👀","💀"
-];
-
-function emoBar(){
- const old=$("emojiBar");
-
- if(old){
-  old.remove();
-  return;
- }
-
- const e=document.createElement("div");
-
- e.id="emojiBar";
- e.className="eb";
-
- e.style.cssText=
-  "position:absolute;left:10px;right:10px;bottom:76px;padding:8px;display:flex;gap:4px;flex-wrap:wrap;background:#111925;border:1px solid var(--ln);border-radius:16px;z-index:30";
-
- e.innerHTML=EM.slice(0,18)
-  .map(x=>`<button style="font-size:22px;padding:5px" onclick="putEmoji('${x}')">${x}</button>`)
-  .join("");
-
- $("main").appendChild(e);
-}
-
-function putEmoji(x){
- const i=$("ci");
-
- if(!i)return;
-
- const a=i.selectionStart||i.value.length;
- const b=i.selectionEnd||i.value.length;
-
- i.value=i.value.slice(0,a)+x+i.value.slice(b);
-
- i.focus();
- i.setSelectionRange(
-  a+x.length,
-  a+x.length
- );
-}
-
-/* ---------- connect ---------- */
-
-async function renderConnect(){
- page(`
-  <h2>Connect</h2>
-  <p class="sub">Find people and start a conversation.</p>
-
-  <div style="display:flex;gap:8px;margin-bottom:14px">
-   <input id="searchPeople"
-    style="flex:1"
-    placeholder="Search username or name…">
-
-   <button class="btn pri" onclick="searchPeople()">
-    Search
-   </button>
-  </div>
-
-  <div id="people">
-   <div class="card empty">
-    Search for someone to connect.
-   </div>
-  </div>
- `);
-
- $("searchPeople").addEventListener("keydown",e=>{
-  if(e.key==="Enter")searchPeople();
- });
-}
-
-async function searchPeople(){
- const q=$("searchPeople").value.trim();
-
- if(q.length<2){
-  return toast("Kam se kam 2 characters likho.");
- }
-
- const box=$("people");
-
- box.innerHTML=`<div class="card empty">Searching…</div>`;
-
- try{
-  const{data,error}=await sb
-   .from("profiles")
-   .select("id,username,display_name,online")
-   .neq("id",S.user.id)
-   .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
-   .limit(30);
-
-  if(error)throw error;
-
-  data?.forEach(reg);
-
-  if(!data?.length){
-   box.innerHTML=`<div class="card empty">No user found.</div>`;
-   return;
-  }
-
-  box.innerHTML=data.map(p=>`
-   <div class="card row">
-    <span class="av">${esc(ini(nm(p)))}</span>
-
-    <span class="t">
-     <b>${esc(nm(p))}</b>
-     <small>@${esc(p.username||"user")}
-      ${p.online?" · Online":""}
-     </small>
-    </span>
-
-    <button class="ib"
-     onclick="openChat('', '${p.id}', '${esc(p.username||"")}', '${esc(nm(p))}')">
-     💬
-    </button>
-
-    <button class="ib"
-     onclick="startCall('${p.id}','${esc(nm(p))}')">
-     ${I.phone}
-    </button>
-   </div>
-  `).join("");
-
- }catch(_){
-  box.innerHTML=`<div class="card empty">Search nahi ho paaya.</div>`;
- }
-}
-
-/* ---------- games home ---------- */
-
-function renderGames(){
- page(`
-  <h2>Games 🎮</h2>
-  <p class="sub">Play locally, against robots or online.</p>
-
-  <div class="grid">
-
-   <button class="card qc"
-    onclick="startTTT()">
-    <span class="i">❌⭕</span>
-    <span>
-     <b>Tic Tac Toe</b>
-     <small>Classic 2-player game</small>
-    </span>
-   </button>
-
-   <button class="card qc"
-    onclick="openLudoMenu()">
-    <span class="i">🎲</span>
-    <span>
-     <b>Ludo</b>
-     <small>Robot, local or online</small>
-    </span>
-   </button>
-
-   <button class="card qc"
-    onclick="openUnoMenu()">
-    <span class="i">🃏</span>
-    <span>
-     <b>UNO</b>
-     <small>Cards, wilds and +4</small>
-    </span>
-   </button>
-
-   <button class="card qc"
-    onclick="toast('Carrom coming soon')">
-    <span class="i">🎯</span>
-    <span>
-     <b>Carrom</b>
-     <small>Coming soon</small>
-    </span>
-   </button>
-
-   <button class="card qc"
-    onclick="toast('Chess coming soon')">
-    <span class="i">♟️</span>
-    <span>
-     <b>Chess</b>
-     <small>Coming soon</small>
-    </span>
-   </button>
-
-  </div>
- `);
-}
-
-/* ---------- tic tac toe ---------- */
-
-let TTT=null;
-
-function startTTT(){
- closeModal();
-
- TTT={
-  board:Array(9).fill(""),
-  turn:"X",
-  winner:null
- };
-
- S.page="ttt";
- renderTTT();
-}
-
-function renderTTT(){
- const g=TTT;
-
- page(`
-  <div style="display:flex;align-items:center;margin-bottom:10px">
-   <button class="btn" onclick="leaveG()">‹ Games</button>
-   <span style="flex:1"></span>
-   <button class="btn" onclick="startTTT()">Restart</button>
-  </div>
-
-  <h2>Tic Tac Toe</h2>
-  <p class="sub">
-   ${g.winner?esc(g.winner):`Turn: ${g.turn}`}
-  </p>
-
-  <div class="bd">
-   ${g.board.map((x,i)=>`
-    <button class="cell ${x||""}"
-     onclick="tttMove(${i})">
-     ${x}
-    </button>
-   `).join("")}
-  </div>
- `);
-}
-
-function tttMove(i){
- if(!TTT||TTT.winner||TTT.board[i])return;
-
- TTT.board[i]=TTT.turn;
-
- const w=checkTTT(TTT.board);
-
- if(w){
-  TTT.winner=w;
-  sfx("win");
- }else if(TTT.board.every(Boolean)){
-  TTT.winner="Draw";
- }else{
-  TTT.turn=TTT.turn==="X"?"O":"X";
- }
-
- renderTTT();
-}
-
-function checkTTT(b){
- const lines=[
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
- ];
-
- for(const [a,b1,c] of lines){
-  if(b[a]&&b[a]===b[b1]&&b[a]===b[c])
-   return b[a]+" wins!";
- }
-
- return null;
-}
-
-function leaveG(){
- TTT=null;
- go("games");
-}
-
-/* ---------- ludo ---------- */
-
-const LUDO2_COLORS={
- red:{name:"Red",start:0,color:"#ff6377"},
- green:{name:"Green",start:13,color:"#3fd68f"},
- yellow:{name:"Yellow",start:26,color:"#f4c752"},
- blue:{name:"Blue",start:39,color:"#5d8cff"}
+const SUPABASE_URL =
+  "https://ktwluvpmzisonmootdqc.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
+
+const sb =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true
+      }
+    }
+);
+
+
+/* =========================================================
+   GLOBAL HELPERS
+   ========================================================= */
+
+const $ = id =>
+  document.getElementById(id);
+
+const sleep = ms =>
+  new Promise(resolve => setTimeout(resolve,ms));
+
+const escapeHtml = value =>
+  String(value ?? "")
+    .replace(/[&<>"']/g,char =>
+      ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[char])
+    );
+
+const escapeAttr = value =>
+  escapeHtml(value);
+
+const initials = name =>
+  String(name || "N")
+    .trim()
+    .split(/\s+/)
+    .slice(0,2)
+    .map(x => x[0] || "")
+    .join("")
+    .toUpperCase() || "N";
+
+const formatTime = date =>
+  new Date(date).toLocaleTimeString(
+    [],
+    {
+      hour:"2-digit",
+      minute:"2-digit"
+    }
+  );
+
+const timeAgo = date => {
+
+  const t =
+    Date.now() - new Date(date).getTime();
+
+  const s =
+    Math.max(0,Math.floor(t/1000));
+
+  if(s < 60)
+    return "just now";
+
+  const m =
+    Math.floor(s/60);
+
+  if(m < 60)
+    return `${m}m ago`;
+
+  const h =
+    Math.floor(m/60);
+
+  if(h < 24)
+    return `${h}h ago`;
+
+  const d =
+    Math.floor(h/24);
+
+  return `${d}d ago`;
 };
 
-const SAFE2=new Set([
-  0,8,13,21,26,34,39,47
-]);
 
-const FINISH=57;
+/* =========================================================
+   APPLICATION STATE
+   ========================================================= */
 
-let LUDO2=null;
-let LROOM2=null;
+const NEXORA = {
 
-function ludoPlayers(mode){
- if(mode==="robot"){
-  return[
-   {
-    color:"red",
-    name:myName(),
-    tokens:[-1,-1,-1,-1]
-   },
-   {
-    color:"green",
-    name:"Robot",
-    tokens:[-1,-1,-1,-1]
-   }
-  ];
- }
+  user:null,
 
- if(mode==="local"){
-  return[
-   {
-    color:"red",
-    name:"Player 1",
-    tokens:[-1,-1,-1,-1]
-   },
-   {
-    color:"green",
-    name:"Player 2",
-    tokens:[-1,-1,-1,-1]
-   }
-  ];
- }
+  profile:null,
 
- return[
-  {
-   color:"red",
-   name:myName(),
-   tokens:[-1,-1,-1,-1]
+  isGuest:false,
+
+  page:"home",
+
+  channel:null,
+
+  call:{
+    active:false,
+    incoming:false,
+    peerId:null,
+    peerName:"",
+    status:"idle",
+    muted:false,
+    startedAt:null,
+    timer:null,
+    pc:null,
+    stream:null,
+    remoteStream:null
   },
-  {
-   color:"green",
-   name:"Opponent",
-   tokens:[-1,-1,-1,-1]
+
+  chat:{
+    cid:null,
+    peer:null,
+    channel:null,
+    seen:new Set()
+  },
+
+  notifications:[],
+
+  onlineCount:1
+
+};
+
+
+/* =========================================================
+   PREFERENCES
+   ========================================================= */
+
+let PREFS = {
+  sound:true,
+  calls:true,
+  privateMode:false
+};
+
+try{
+  const saved =
+    localStorage.getItem("nexora_preferences");
+
+  if(saved){
+    PREFS = {
+      ...PREFS,
+      ...JSON.parse(saved)
+    };
   }
- ];
-}
+}catch(_){}
 
-function startLudo(mode="robot",names,me=0){
- closeModal();
-
- const p=ludoPlayers(mode);
-
- if(names){
-  p[0].name=names[0]||p[0].name;
-  p[1].name=names[1]||p[1].name;
- }
-
- LUDO2={
-  mode,
-  players:p,
-  turn:me,
-  dice:null,
-  rolling:false,
-  busy:false,
-  winner:null,
-  message:p[me].name+" ki baari",
-  sixes:0,
-  selected:null
- };
-
- S.page="ludo";
-
- renderLudo();
-}
-
-function isMine2(){
- return LUDO2?.mode!=="online"||LUDO2.turn===0;
-}
-
-function cur2(){
- return LUDO2.players[LUDO2.turn];
-}
-
-function rnd6(){
- return Math.floor(Math.random()*6)+1;
-}
-
-function canMove2(pos,d){
- return pos===-1?d===6:pos+d<=FINISH;
-}
-
-function tokenPos2(color,pos){
- if(pos<0)return null;
-
- if(pos>=51){
-  const end=[
-   [7,6],[7,7],[7,8],[6,7],
-   [6,6],[8,7],[7,5]
-  ];
-
-  return end[Math.min(pos-51,end.length-1)];
- }
-
- const start=LUDO2_COLORS[color].start;
-
- const idx=(start+pos)%52;
-
- const path=[
-  [6,1],[6,2],[6,3],[6,4],[6,5],
-  [5,6],[4,6],[3,6],[2,6],[1,6],
-  [0,6],[0,7],[0,8],[1,8],[2,8],
-  [3,8],[4,8],[5,8],[6,9],[6,10],
-  [6,11],[6,12],[7,12],[8,12],[8,11],
-  [8,10],[8,9],[9,8],[10,8],[11,8],
-  [12,8],[12,7],[12,6],[11,6],[10,6],
-  [9,6],[8,5],[8,4],[8,3],[8,2],
-  [8,1],[8,0],[7,0],[6,0],[5,0],
-  [4,0],[3,0],[2,0],[1,0],[0,0],
-  [0,1],[0,2]
- ];
-
- return path[idx]||[7,7];
-}
-
-function renderLudo(){
- const g=LUDO2;
-
- if(!g){
-  page(`
-   <h2>Ludo 🎲</h2>
-   <p class="sub">Choose how you want to play.</p>
-
-   <div class="grid">
-
-    <button class="card qc"
-     onclick="startLudo('robot')">
-     <span class="i">🤖</span>
-     <span>
-      <b>Robot</b>
-      <small>Play against robot</small>
-     </span>
-    </button>
-
-    <button class="card qc"
-     onclick="startLudo('local')">
-     <span class="i">📱</span>
-     <span>
-      <b>2 Players</b>
-      <small>One phone</small>
-     </span>
-    </button>
-
-    <button class="card qc"
-     onclick="hostLudo()">
-     <span class="i">🌐</span>
-     <span>
-      <b>Create room</b>
-      <small>Play online</small>
-     </span>
-    </button>
-
-    <button class="card qc"
-     onclick="ludoJoinModal()">
-     <span class="i">🔗</span>
-     <span>
-      <b>Join room</b>
-      <small>Use room code</small>
-     </span>
-    </button>
-
-   </div>
-  `);
-
-  return;
- }
-
- const board=Array.from(
-  {length:225},
-  (_,i)=>{
-   const r=Math.floor(i/15);
-   const c=i%15;
-
-   let cls="ludo-cell";
-
-   if(r<6&&c<6)cls+=" rh";
-   else if(r<6&&c>8)cls+=" gh";
-   else if(r>8&&c<6)cls+=" yh";
-   else if(r>8&&c>8)cls+=" bh";
-
-   return `<div class="${cls}"></div>`;
-  }
- ).join("");
-
- const homes=[
-  ["redh","red"],
-  ["greenh","green"],
-  ["yellowh","yellow"],
-  ["blueh","blue"]
- ];
-
- const homeHtml=homes.map(([cl,col])=>`
-  <div class="ludo-home ${cl}">
-   ${[0,1,2,3].map(i=>{
-    const p=g.players.find(x=>x.color===col);
-    const pos=p?.tokens[i]??-1;
-
-    if(pos>=0)return `<span></span>`;
-
-    return `
-     <button class="ludo-token"
-      style="background:${LUDO2_COLORS[col].color}"
-      onclick="selectLudoToken('${col}',${i})">
-     </button>
-    `;
-   }).join("")}
-  </div>
- `).join("");
-
- let activeTokens="";
-
- g.players.forEach(pl=>{
-  pl.tokens.forEach((pos,i)=>{
-
-   if(pos<0||pos>=51)return;
-
-   const xy=tokenPos2(pl.color,pos);
-
-   if(!xy)return;
-
-   activeTokens+=`
-    <button class="ludo-token"
-     style="
-      position:absolute;
-      left:${(xy[1]+.15)/15*100}%;
-      top:${(xy[0]+.15)/15*100}%;
-      width:5.1%;
-      aspect-ratio:1;
-      background:${LUDO2_COLORS[pl.color].color};
-      z-index:10"
-     onclick="selectLudoToken('${pl.color}',${i})">
-    </button>
-   `;
-  });
- });
-
- const cp=cur2();
-
- $("main").innerHTML=`
- <section class="pg">
-
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-   <button class="btn" onclick="leaveLudo()">‹ Games</button>
-   <span style="flex:1"></span>
-
-   ${g.mode==="online"&&LROOM2?
-    `<button class="ib" onclick="emoPop()">😀</button>`:""}
-
-  </div>
-
-  <h2>Ludo 🎲</h2>
-
-  <p class="sub">
-   ${esc(g.message||"")}
-  </p>
-
-  <div class="player-pills">
-   ${g.players.map((p,i)=>`
-    <div class="player-pill ${i===g.turn&&!g.winner?"on":""}"
-     style="border-color:${LUDO2_COLORS[p.color].color}">
-     ${esc(p.name)} ·
-     ${p.tokens.filter(x=>x===FINISH).length}/4
-    </div>
-   `).join("")}
-  </div>
-
-  <div class="ludo-board">
-
-   <div class="ludo-grid">
-    ${board}
-   </div>
-
-   ${homeHtml}
-
-   <div style="
-    position:absolute;
-    left:40%;
-    top:40%;
-    width:20%;
-    height:20%;
-    display:grid;
-    place-items:center;
-    background:conic-gradient(
-     #ff6377 0 25%,
-     #3fd68f 25% 50%,
-     #f4c752 50% 75%,
-     #5d8cff 75%
-    );
-    clip-path:polygon(
-     50% 0,
-     100% 50%,
-     50% 100%,
-     0 50%
-    );
-    z-index:3">
-
-    <span style="font-size:22px">★</span>
-   </div>
-
-   ${activeTokens}
-
-   ${g.winner?
-    `<div class="wo">🏆<br>${esc(g.winner)}</div>`:""}
-
-  </div>
-
-  <div style="
-   display:flex;
-   justify-content:center;
-   margin:10px">
-
-   <button class="dice ${g.rolling?"rl":g.dice?"rd":""}"
-    onclick="animateRoll()"
-    ${g.winner||g.busy||g.rolling||!isMine2()||g.dice!==null?"disabled":""}>
-    ${g.dice||"⚄"}
-   </button>
-
-  </div>
-
-  <div class="game-toolbar">
-
-   ${g.mode==="online"?
-    `<button class="btn" onclick="emoPop()">😀 Reaction</button>`:""}
-
-   <button class="btn"
-    onclick="startLudo('${g.mode}')">
-    Restart
-   </button>
-
-  </div>
-
- </section>
- `;
-
- botTurn();
-}
-
-async function animateRoll(force){
- if(!LUDO2||
-    LUDO2.winner||
-    LUDO2.rolling||
-    LUDO2.dice!==null)return;
-
- if(!isMine2())return;
-
- LUDO2.rolling=true;
- updateLudo();
-
- const d=force||rnd6();
-
- for(let i=0;i<8;i++){
-  const x=rnd6();
-
-  LUDO2.dice=x;
-
-  updateLudo();
-
-  tone(
-   220+i*20,
-   .05,
-   "square",
-   .025
-  );
-
-  await sleep(70);
- }
-
- LUDO2.dice=d;
- LUDO2.rolling=false;
-
- sfx("dice");
-
- if(LUDO2.mode==="online")
-  lsend2({t:"roll",d});
-
- updateLudo();
-
- const pl=cur2();
-
- const mv=pl.tokens
-  .map((x,i)=>canMove2(x,d)?i:-1)
-  .filter(x=>x>=0);
-
- if(!mv.length){
-  await sleep(500);
-
-  LUDO2.dice=null;
-
-  endTurn();
-
-  return;
- }
-
- if(LUDO2.mode==="robot"&&LUDO2.turn===1){
-  await sleep(650);
-
-  return playMove(
-   robotPick(pl,mv,d)
-  );
- }
-
- if(mv.length===1){
-  await sleep(450);
-
-  playMove(mv[0]);
- }
-}
-
-function updateLudo(){
- renderLudo();
-}
-
-function selectLudoToken(color,index){
- const g=LUDO2;
-
- if(!g||g.winner||g.dice===null)return;
-
- const p=cur2();
-
- if(p.color!==color)return;
-
- const idx=p.tokens[index];
-
- if(!canMove2(idx,g.dice))return;
-
- playMove(index);
-}
-
-function robotPick(pl,moves,d){
- const finish=moves.find(i=>pl.tokens[i]===FINISH-d);
-
- if(finish!==undefined)return finish;
-
- const six=moves.find(i=>pl.tokens[i]===-1);
-
- if(d===6&&six!==undefined)return six;
-
- return moves[Math.floor(Math.random()*moves.length)];
-}
-
-async function playMove(i){
- const g=LUDO2;
-
- if(!g||g.busy||g.winner)return;
-
- const p=cur2();
-
- if(!canMove2(p.tokens[i],g.dice))return;
-
- g.busy=true;
-
- const d=g.dice;
- const old=p.tokens[i];
-
- p.tokens[i]=old===-1?0:old+d;
-
- sfx("move");
- vib(35);
-
- updateLudo();
-
- await sleep(300);
-
- const hit=checkLudoCapture(p,i);
-
- if(hit){
-  sfx("up");
-  await sleep(150);
- }
-
- if(p.tokens.every(x=>x===FINISH)){
-  g.winner=p.name;
-
-  sfx("win");
-
-  updateLudo();
+function savePreferences(){
 
   try{
-   await incWin("ludo");
+    localStorage.setItem(
+      "nexora_preferences",
+      JSON.stringify(PREFS)
+    );
   }catch(_){}
 
-  return;
- }
-
- const extra=d===6||hit;
-
- g.dice=null;
- g.busy=false;
-
- if(extra){
-  g.sixes=d===6?g.sixes+1:0;
-  g.message=p.name+" ki baari — again";
-  updateLudo();
- }else{
-  g.sixes=0;
-  endTurn();
- }
 }
 
-function checkLudoCapture(player,index){
- const pos=player.tokens[index];
 
- if(pos<0||pos>=51)return false;
+/* =========================================================
+   SOUND
+   ========================================================= */
 
- const global=(LUDO2_COLORS[player.color].start+pos)%52;
+let audioContext = null;
 
- if(SAFE2.has(global))return false;
+function tone(
+  frequency,
+  duration=.08,
+  type="sine",
+  volume=.05,
+  delay=0
+){
 
- let hit=false;
+  if(!PREFS.sound)
+    return;
 
- LUDO2.players.forEach(other=>{
-  if(other===player)return;
+  try{
 
-  other.tokens.forEach((x,i)=>{
-   if(x<0||x>=51)return;
+    audioContext =
+      audioContext ||
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
 
-   const og=(LUDO2_COLORS[other.color].start+x)%52;
+    const oscillator =
+      audioContext.createOscillator();
 
-   if(og===global){
-    other.tokens[i]=-1;
-    hit=true;
-   }
+    const gain =
+      audioContext.createGain();
+
+    const start =
+      audioContext.currentTime + delay;
+
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+
+    gain.gain.setValueAtTime(
+      volume,
+      start
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      .0001,
+      start + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+
+  }catch(_){}
+
+}
+
+const SFX = {
+
+  tap(){
+    tone(520,.04,"triangle",.025);
+  },
+
+  send(){
+    tone(600,.06);
+  },
+
+  receive(){
+    tone(700,.08);
+    tone(880,.1,"sine",.04,.08);
+  },
+
+  move(){
+    tone(440,.08,"triangle",.06);
+  },
+
+  win(){
+    [523,659,784,1047]
+      .forEach(
+        (f,i) =>
+          tone(
+            f,
+            .25,
+            "sine",
+            .06,
+            i*.13
+          )
+      );
+  },
+
+  lose(){
+    [330,262,196]
+      .forEach(
+        (f,i) =>
+          tone(
+            f,
+            .25,
+            "sawtooth",
+            .04,
+            i*.15
+          )
+      );
+  },
+
+  ring(){
+    tone(520,.18,"sine",.08);
+    tone(660,.18,"sine",.08,.22);
+  },
+
+  match(){
+    tone(660,.15);
+    tone(990,.2,"sine",.05,.15);
+  }
+
+};
+
+function sfx(name){
+  SFX[name]?.();
+}
+
+function vibrate(pattern){
+  if(PREFS.sound)
+    navigator.vibrate?.(pattern);
+}
+
+
+/* =========================================================
+   TOAST / MODAL
+   ========================================================= */
+
+let toastTimer = null;
+
+function toast(message,type=""){
+
+  const el = $("toast");
+
+  if(!el)
+    return;
+
+  el.textContent = message;
+
+  el.classList.add("show");
+
+  if(type === "error")
+    el.style.borderColor =
+      "rgba(255,90,110,.45)";
+  else
+    el.style.borderColor = "";
+
+  clearTimeout(toastTimer);
+
+  toastTimer =
+    setTimeout(
+      () => el.classList.remove("show"),
+      2800
+    );
+
+}
+
+let modalCloseCallback = null;
+
+function openModal(html,callback=null){
+
+  modalCloseCallback =
+    callback;
+
+  $("modal").innerHTML =
+    html;
+
+  $("modalOverlay")
+    .classList.remove("hidden");
+
+}
+
+function closeModal(){
+
+  const callback =
+    modalCloseCallback;
+
+  modalCloseCallback =
+    null;
+
+  $("modalOverlay")
+    .classList.add("hidden");
+
+  if(callback)
+    callback();
+
+}
+
+$("modalOverlay").addEventListener(
+  "click",
+  event => {
+
+    if(
+      event.target ===
+      $("modalOverlay")
+    ){
+      closeModal();
+    }
+
+  }
+);
+
+
+/* =========================================================
+   PROFILE HELPERS
+   ========================================================= */
+
+function myName(){
+
+  return (
+    NEXORA.profile?.display_name ||
+    NEXORA.profile?.username ||
+    NEXORA.user?.email?.split("@")[0] ||
+    "Player"
+  );
+
+}
+
+function paintProfileAvatar(){
+
+  const button =
+    $("profileBtn");
+
+  if(!button)
+    return;
+
+  button.textContent =
+    initials(myName());
+
+}
+
+
+/* =========================================================
+   AUTH UI
+   ========================================================= */
+
+function showLogin(){
+
+  $("loginForm")
+    .classList.remove("hidden");
+
+  $("signupForm")
+    .classList.add("hidden");
+
+  $("authSwitchText")
+    .textContent =
+    "New here?";
+
+  $("authSwitchBtn")
+    .textContent =
+    "Create account";
+
+  authMessage("");
+
+}
+
+function showSignup(){
+
+  $("loginForm")
+    .classList.add("hidden");
+
+  $("signupForm")
+    .classList.remove("hidden");
+
+  $("authSwitchText")
+    .textContent =
+    "Already have an account?";
+
+  $("authSwitchBtn")
+    .textContent =
+    "Log in";
+
+  authMessage("");
+
+}
+
+function authMessage(
+  message,
+  type=""
+){
+
+  const el =
+    $("authMessage");
+
+  if(!el)
+    return;
+
+  el.textContent =
+    message || "";
+
+  el.className =
+    "auth-message";
+
+  if(type)
+    el.classList.add(type);
+
+}
+
+function setAuthBusy(busy){
+
+  [
+    "loginBtn",
+    "guestBtn",
+    "signupBtn",
+    "authSwitchBtn"
+  ].forEach(id => {
+
+    const el = $(id);
+
+    if(el)
+      el.disabled = busy;
+
   });
- });
 
- return hit;
 }
 
-function endTurn(){
- const g=LUDO2;
 
- if(!g)return;
+/* =========================================================
+   PROFILE CREATION
+   ========================================================= */
 
- g.dice=null;
- g.busy=false;
+async function createProfileBestEffort(user){
 
- g.turn=(g.turn+1)%g.players.length;
+  if(!user)
+    return null;
 
- g.message=g.players[g.turn].name+" ki baari";
+  try{
 
- updateLudo();
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("profiles")
+        .select("*")
+        .eq("id",user.id)
+        .maybeSingle();
+
+    if(!error && data)
+      return data;
+
+  }catch(_){}
+
+  const metadata =
+    user.user_metadata || {};
+
+  const displayName =
+    metadata.display_name ||
+    user.email?.split("@")[0] ||
+    "Player";
+
+  let username =
+    displayName
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g,"")
+      .slice(0,12);
+
+  if(username.length < 3)
+    username = "user";
+
+  username +=
+    "_" +
+    user.id
+      .replace(/-/g,"")
+      .slice(0,5);
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("profiles")
+        .insert({
+          id:user.id,
+          username,
+          display_name:displayName,
+          is_guest:!!user.is_anonymous,
+          online:true,
+          last_seen:new Date().toISOString()
+        })
+        .select("*")
+        .maybeSingle();
+
+    if(error)
+      return null;
+
+    return data;
+
+  }catch(_){
+
+    return null;
+
+  }
+
 }
 
-async function botTurn(){
- const g=LUDO2;
 
- if(!g||
-    g.mode!=="robot"||
-    g.turn!==1||
-    g.winner||
-    g.busy||
-    g.rolling||
-    g.dice!==null)return;
+/* =========================================================
+   AUTH ENTER
+   ========================================================= */
 
- await sleep(550);
+async function enterApp(user){
 
- if(
-  LUDO2===g&&
-  !g.winner&&
-  g.dice===null
- ){
-  animateRoll();
- }
+  NEXORA.user =
+    user;
+
+  NEXORA.isGuest =
+    !!user?.is_anonymous;
+
+  $("auth")
+    .classList.add("hidden");
+
+  $("shell")
+    .classList.remove("hidden");
+
+  NEXORA.profile =
+    await createProfileBestEffort(user);
+
+  paintProfileAvatar();
+
+  setPage("home");
+
+  startRealtime();
+
+  updateLiveCount();
+
+  setOnline(true);
+
+  loadNotifications();
+
 }
 
-function leaveLudo(){
- LUDO2=null;
 
- closeLudoRoom(true);
+/* =========================================================
+   LOGIN
+   ========================================================= */
 
- go("games");
+async function login(){
+
+  const email =
+    $("loginEmail")
+      .value
+      .trim();
+
+  const password =
+    $("loginPassword")
+      .value;
+
+  if(!email || !password){
+
+    authMessage(
+      "Enter your email and password.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  setAuthBusy(true);
+
+  authMessage(
+    "Signing in…"
+  );
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if(error)
+      throw error;
+
+    await enterApp(
+      data.user
+    );
+
+  }catch(error){
+
+    authMessage(
+      error.message ||
+      "Unable to sign in.",
+      "error"
+    );
+
+  }finally{
+
+    setAuthBusy(false);
+
+  }
+
 }
 
-function ludoJoinModal(){
- openModal(`
-  <h3>Join Ludo room 🎲</h3>
-  <p class="sub">Friend ka room code enter karo.</p>
 
-  <input id="lcode"
-   maxlength="6"
-   style="text-transform:uppercase"
-   placeholder="ROOM CODE">
+/* =========================================================
+   GUEST LOGIN
+   ========================================================= */
 
-  <button class="btn pri wide"
-   onclick="joinLudo($('lcode').value.trim().toUpperCase())">
-   Join room
-  </button>
+async function guestLogin(){
 
-  <button class="btn wide"
-   style="margin-top:8px"
-   onclick="closeModal()">
-   Cancel
-  </button>
- `);
+  setAuthBusy(true);
+
+  authMessage(
+    "Opening guest mode…"
+  );
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb.auth.signInAnonymously();
+
+    if(error)
+      throw error;
+
+    await enterApp(
+      data.user
+    );
+
+  }catch(error){
+
+    authMessage(
+      /anonymous/i.test(
+        error.message || ""
+      )
+        ? "Guest mode is turned off in Supabase Auth."
+        : error.message ||
+          "Guest mode failed.",
+      "error"
+    );
+
+  }finally{
+
+    setAuthBusy(false);
+
+  }
+
 }
+
+
+/* =========================================================
+   SIGNUP
+   ========================================================= */
+
+async function signup(){
+
+  const name =
+    $("signupName")
+      .value
+      .trim();
+
+  const email =
+    $("signupEmail")
+      .value
+      .trim();
+
+  const password =
+    $("signupPassword")
+      .value;
+
+  if(!name || !email){
+
+    authMessage(
+      "Fill in every field.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  if(password.length < 6){
+
+    authMessage(
+      "Password needs at least 6 characters.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  setAuthBusy(true);
+
+  authMessage(
+    "Creating your account…"
+  );
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb.auth.signUp({
+
+        email,
+        password,
+
+        options:{
+          data:{
+            display_name:name
+          }
+        }
+
+      });
+
+    if(error)
+      throw error;
+
+    if(data.session){
+
+      await enterApp(
+        data.user
+      );
+
+    }else{
+
+      showLogin();
+
+      authMessage(
+        "Account created. Confirm your email, then log in.",
+        "ok"
+      );
+
+    }
+
+  }catch(error){
+
+    authMessage(
+      error.message ||
+      "Unable to create account.",
+      "error"
+    );
+
+  }finally{
+
+    setAuthBusy(false);
+
+  }
+
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+async function logout(){
+
+  try{
+
+    if(
+      NEXORA.user?.id
+    ){
+
+      await sb
+        .from("profiles")
+        .update({
+          online:false,
+          last_seen:new Date().toISOString()
+        })
+        .eq(
+          "id",
+          NEXORA.user.id
+        );
+
+    }
+
+  }catch(_){}
+
+  try{
+
+    if(NEXORA.channel)
+      await sb.removeChannel(
+        NEXORA.channel
+      );
+
+  }catch(_){}
+
+  try{
+
+    if(NEXORA.chat.channel)
+      await sb.removeChannel(
+        NEXORA.chat.channel
+      );
+
+  }catch(_){}
+
+  endCall();
+
+  await sb.auth.signOut();
+
+  NEXORA.user = null;
+  NEXORA.profile = null;
+  NEXORA.page = "home";
+
+  $("shell")
+    .classList.add("hidden");
+
+  $("auth")
+    .classList.remove("hidden");
+
+  showLogin();
+
+}
+
+
+/* =========================================================
+   ONLINE STATUS
+   ========================================================= */
+
+async function setOnline(online){
+
+  if(!NEXORA.user)
+    return;
+
+  try{
+
+    await sb
+      .from("profiles")
+      .update({
+        online:
+          online &&
+          !PREFS.privateMode,
+
+        last_seen:
+          new Date().toISOString()
+      })
+      .eq(
+        "id",
+        NEXORA.user.id
+      );
+
+  }catch(_){}
+
+}
+
+
+/* =========================================================
+   LIVE PRESENCE
+   ========================================================= */
+
+let LIVE_CHANNEL =
+  null;
+
+function startLivePresence(){
+
+  if(!NEXORA.user)
+    return;
+
+  if(LIVE_CHANNEL){
+
+    try{
+      sb.removeChannel(
+        LIVE_CHANNEL
+      );
+    }catch(_){}
+
+  }
+
+  LIVE_CHANNEL =
+    sb.channel(
+      "nexora-live",
+      {
+        config:{
+          presence:{
+            key:
+              NEXORA.user.id
+          }
+        }
+      }
+    );
+
+  LIVE_CHANNEL.on(
+    "presence",
+    {
+      event:"sync"
+    },
+    () => {
+
+      const count =
+        Object.keys(
+          LIVE_CHANNEL
+            .presenceState()
+        ).length;
+
+      NEXORA.onlineCount =
+        Math.max(
+          1,
+          count
+        );
+
+      updateLiveCount();
+
+    }
+  );
+
+  LIVE_CHANNEL.subscribe(
+    async status => {
+
+      if(
+        status ===
+        "SUBSCRIBED"
+      ){
+
+        try{
+
+          await LIVE_CHANNEL.track({
+            at:Date.now()
+          });
+
+        }catch(_){}
+
+      }
+
+    }
+  );
+
+}
+
+function updateLiveCount(){
+
+  const el =
+    document.getElementById(
+      "liveCountText"
+    );
+
+  if(!el)
+    return;
+
+  const n =
+    NEXORA.onlineCount ||
+    1;
+
+  el.textContent =
+    `${n} ${n===1?"person":"people"} live`;
+
+}
+
+
+/* =========================================================
+   REALTIME
+   ========================================================= */
+
+function startRealtime(){
+
+  startLivePresence();
+
+}
+
+
+/* =========================================================
+   PAGE ROUTING
+   ========================================================= */
+
+function setPage(page){
+
+  NEXORA.page =
+    page;
+
+  document
+    .querySelectorAll(
+      ".nav-item"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.page === page
+      );
+
+    });
+
+  if(page === "home")
+    renderHome();
+
+  else if(page === "recent")
+    renderRecent();
+
+  else if(page === "connect")
+    renderConnect();
+
+  else if(page === "games")
+    renderGames();
+
+}
+
+
+/* =========================================================
+   SECOND CODE HOME PAGE
+   ========================================================= */
+
+function renderHome(){
+
+  const quick = (
+    icon,
+    name,
+    description,
+    action
+  ) => `
+
+    <button
+      class="card quick-card"
+      onclick="${action}">
+
+      <div class="quick-icon">
+        ${icon}
+      </div>
+
+      <div>
+        <div class="quick-name">
+          ${name}
+        </div>
+
+        <div class="quick-desc">
+          ${description}
+        </div>
+      </div>
+
+    </button>
+
+  `;
+
+  $("main").innerHTML = `
+
+    <section class="page">
+
+      <div class="card hero">
+
+        <div class="live">
+
+          <i></i>
+
+          <span id="liveCountText">
+            ${NEXORA.onlineCount || 1}
+            people live
+          </span>
+
+        </div>
+
+        <h1
+          class="section-title"
+          style="margin-top:12px">
+
+          Welcome${
+            NEXORA.profile?.display_name
+              ? ", " +
+                escapeHtml(
+                  NEXORA.profile.display_name
+                )
+              : ""
+          }
+
+        </h1>
+
+        <div
+          class="section-sub"
+          style="margin:0">
+
+          Everything you need to connect,
+          talk and play.
+
+        </div>
+
+      </div>
+
+
+      <div class="grid grid2">
+
+        ${quick(
+          "◷",
+          "Recent",
+          "Chats, calls and notifications",
+          "setPage('recent')"
+        )}
+
+        ${quick(
+          "◎",
+          "Connect",
+          "Find people and call",
+          "setPage('connect')"
+        )}
+
+        ${quick(
+          "♟",
+          "Games",
+          "Ludo and multiplayer games",
+          "setPage('games')"
+        )}
+
+        ${quick(
+          "🔔",
+          "Notifications",
+          "Friend requests and invites",
+          "openNotifications()"
+        )}
+
+      </div>
+
+    </section>
+
+  `;
+
+}
+
+
+/* =========================================================
+   RECENT / CHAT LIST
+   ========================================================= */
+
+async function loadConversations(){
+
+  if(!NEXORA.user)
+    return [];
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("messages")
+        .select("*")
+        .or(
+          `sender_id.eq.${NEXORA.user.id}`
+        )
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        )
+        .limit(100);
+
+    if(error)
+      return [];
+
+    return data || [];
+
+  }catch(_){
+
+    return [];
+
+  }
+
+}
+
+
+/* =========================================================
+   RECENT PAGE
+   ========================================================= */
+
+async function renderRecent(){
+
+  $("main").innerHTML = `
+
+    <section class="page">
+
+      <h1 class="section-title">
+        Recent
+      </h1>
+
+      <div class="section-sub">
+        Your chats and activity
+      </div>
+
+      <div id="recentList">
+
+        <div class="card"
+             style="padding:18px;color:#8e9aac">
+
+          Loading…
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+  const list =
+    $("recentList");
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("messages")
+        .select("*")
+        .eq(
+          "sender_id",
+          NEXORA.user.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        )
+        .limit(50);
+
+    if(error)
+      throw error;
+
+    if(!data?.length){
+
+      list.innerHTML = `
+
+        <div
+          class="card"
+          style="padding:22px;text-align:center;color:#8e9aac">
+
+          No recent chats yet.
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+    const unique = [];
+    const seen = new Set();
+
+    for(const row of data){
+
+      const key =
+        row.conversation_id;
+
+      if(
+        !key ||
+        seen.has(key)
+      )
+        continue;
+
+      seen.add(key);
+      unique.push(row);
+
+    }
+
+    list.innerHTML =
+      unique.map(row => `
+
+        <button
+          class="card person-row"
+          style="width:100%;text-align:left;color:#fff"
+          onclick="openChatByConversation('${escapeAttr(row.conversation_id)}')">
+
+          <div class="person-avatar">
+            💬
+          </div>
+
+          <div class="person-main">
+
+            <div class="person-name">
+              Conversation
+            </div>
+
+            <div class="person-user">
+              ${escapeHtml(
+                row.message || ""
+              )}
+            </div>
+
+          </div>
+
+          <div
+            style="font-size:11px;color:#697386">
+
+            ${timeAgo(row.created_at)}
+
+          </div>
+
+        </button>
+
+      `).join("");
+
+  }catch(error){
+
+    list.innerHTML = `
+
+      <div
+        class="card"
+        style="padding:18px;color:#ff8190">
+
+        ${escapeHtml(
+          error.message ||
+          "Unable to load recent chats."
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   CHAT — FIRST CODE BACKEND SCHEMA
+   IMPORTANT:
+   conversation_id is preserved.
+   ========================================================= */
+
+async function openChatByConversation(cid){
+
+  if(!cid)
+    return;
+
+  NEXORA.chat.cid =
+    cid;
+
+  NEXORA.chat.seen =
+    new Set();
+
+  setPage("recent");
+
+  await renderChat();
+
+}
+
+
+async function renderChat(){
+
+  const cid =
+    NEXORA.chat.cid;
+
+  if(!cid)
+    return;
+
+  $("main").innerHTML = `
+
+    <section class="page chat-page">
+
+      <div class="chat-head">
+
+        <button
+          class="icon-btn"
+          onclick="setPage('recent')">
+
+          ←
+
+        </button>
+
+        <div
+          class="person-avatar"
+          style="width:42px;height:42px">
+
+          💬
+
+        </div>
+
+        <div>
+
+          <div class="nm">
+            Chat
+          </div>
+
+          <div class="un">
+            Conversation
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="chatBody"
+        class="chat-body">
+
+      </div>
+
+
+      <div class="chat-compose">
+
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          rows="1"
+          maxlength="2000"
+          placeholder="Write a message…"></textarea>
+
+        <button
+          id="chatSend"
+          class="chat-send">
+
+          ➤
+
+        </button>
+
+      </div>
+
+    </section>
+
+  `;
+
+  $("chatSend").onclick =
+    sendChatMessage;
+
+  $("chatInput").addEventListener(
+    "keydown",
+    event => {
+
+      if(
+        event.key === "Enter" &&
+        !event.shiftKey
+      ){
+
+        event.preventDefault();
+        sendChatMessage();
+
+      }
+
+    }
+  );
+
+  await loadChatMessages();
+
+  subscribeChat();
+
+}
+
+
+async function loadChatMessages(){
+
+  const cid =
+    NEXORA.chat.cid;
+
+  if(!cid)
+    return;
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("messages")
+      .select("*")
+      .eq(
+        "conversation_id",
+        cid
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      )
+      .limit(300);
+
+  if(error){
+
+    toast(
+      error.message ||
+      "Unable to load messages.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  const body =
+    $("chatBody");
+
+  if(!body)
+    return;
+
+  body.innerHTML = "";
+
+  (data || []).forEach(
+    message =>
+      addMsg(
+        message,
+        true
+      )
+  );
+
+}
+
+
+function messageHtml(message){
+
+  const mine =
+    message.sender_id ===
+    NEXORA.user?.id;
+
+  return `
+
+    <div class="msg ${mine ? "mine" : ""}">
+
+      <div class="bubble">
+
+        ${escapeHtml(
+          message.message
+        )}
+
+        <div class="bubble-meta">
+
+          ${formatTime(
+            message.created_at ||
+            Date.now()
+          )}
+
+          ${
+            mine
+              ? " ✓✓"
+              : ""
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+function addMsg(
+  message,
+  quiet=false
+){
+
+  if(!message)
+    return;
+
+  if(
+    message.id &&
+    NEXORA.chat.seen.has(
+      message.id
+    )
+  )
+    return;
+
+  if(message.id)
+    NEXORA.chat.seen.add(
+      message.id
+    );
+
+  const body =
+    $("chatBody");
+
+  if(!body)
+    return;
+
+  body.insertAdjacentHTML(
+    "beforeend",
+    messageHtml(message)
+  );
+
+  body.scrollTop =
+    body.scrollHeight;
+
+  if(
+    !quiet &&
+    message.sender_id !==
+      NEXORA.user?.id
+  ){
+
+    sfx("receive");
+
+  }
+
+}
+
+
+function subscribeChat(){
+
+  const cid =
+    NEXORA.chat.cid;
+
+  if(!cid)
+    return;
+
+  if(
+    NEXORA.chat.channel
+  ){
+
+    try{
+
+      sb.removeChannel(
+        NEXORA.chat.channel
+      );
+
+    }catch(_){}
+
+  }
+
+  const channel =
+    NEXORA.chat.channel =
+      sb.channel(
+        "chat-" + cid
+      );
+
+  channel.on(
+    "postgres_changes",
+    {
+      event:"INSERT",
+      schema:"public",
+      table:"messages",
+      filter:
+        `conversation_id=eq.${cid}`
+    },
+    payload => {
+
+      if(
+        payload.new.sender_id !==
+        NEXORA.user?.id
+      ){
+
+        addMsg(
+          payload.new
+        );
+
+      }
+
+    }
+  );
+
+  channel.subscribe();
+
+}
+
+
+async function sendChatMessage(){
+
+  const input =
+    $("chatInput");
+
+  if(!input)
+    return;
+
+  const text =
+    input.value
+      .trim()
+      .slice(0,2000);
+
+  if(
+    !text ||
+    !NEXORA.chat.cid ||
+    !NEXORA.user
+  )
+    return;
+
+  input.value = "";
+
+  sfx("send");
+
+  const optimistic = {
+
+    id:
+      "local-" +
+      Date.now(),
+
+    conversation_id:
+      NEXORA.chat.cid,
+
+    sender_id:
+      NEXORA.user.id,
+
+    message:text,
+
+    message_type:"text",
+
+    created_at:
+      new Date().toISOString()
+
+  };
+
+  addMsg(
+    optimistic,
+    true
+  );
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("messages")
+        .insert({
+
+          conversation_id:
+            NEXORA.chat.cid,
+
+          sender_id:
+            NEXORA.user.id,
+
+          message:text,
+
+          message_type:
+            "text"
+
+        })
+        .select()
+        .single();
+
+    if(error)
+      throw error;
+
+    if(data?.id){
+
+      NEXORA.chat.seen.delete(
+        optimistic.id
+      );
+
+      NEXORA.chat.seen.add(
+        data.id
+      );
+
+    }
+
+  }catch(error){
+
+    toast(
+      error.message ||
+      "Message not sent.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CONNECT PAGE
+   ========================================================= */
+
+function renderConnect(){
+
+  $("main").innerHTML = `
+
+    <section class="page">
+
+      <h1 class="section-title">
+        Connect
+      </h1>
+
+      <div class="section-sub">
+        Find people, add friends and call.
+      </div>
+
+
+      <div
+        class="card"
+        style="padding:16px;margin-bottom:14px">
+
+        <b>
+          Find by username
+        </b>
+
+        <div
+          style="display:flex;gap:8px;margin-top:10px">
+
+          <input
+            id="userSearch"
+            class="pf-input"
+            style="margin:0;flex:1"
+            placeholder="@username"
+            autocomplete="off">
+
+          <button
+            class="btn primary-btn"
+            onclick="searchUser()">
+
+            Search
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div id="searchResults"></div>
+
+
+      <div
+        class="grid grid2"
+        style="margin-bottom:18px">
+
+        <button
+          class="card quick-card"
+          onclick="findRandom('chat')">
+
+          <div class="quick-icon">
+            💬
+          </div>
+
+          <div>
+
+            <div class="quick-name">
+              Random chat
+            </div>
+
+            <div class="quick-desc">
+              Match with someone
+            </div>
+
+          </div>
+
+        </button>
+
+
+        <button
+          class="card quick-card"
+          onclick="findRandom('call')">
+
+          <div class="quick-icon">
+            📞
+          </div>
+
+          <div>
+
+            <div class="quick-name">
+              Random call
+            </div>
+
+            <div class="quick-desc">
+              Talk to someone now
+            </div>
+
+          </div>
+
+        </button>
+
+      </div>
+
+
+      <h3 style="margin:0 0 10px">
+        Friends
+      </h3>
+
+      <div id="friendsList">
+
+        <div
+          class="card"
+          style="padding:18px;color:#8e9aac">
+
+          Loading…
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+  const search =
+    $("userSearch");
+
+  if(search){
+
+    search.addEventListener(
+      "keydown",
+      event => {
+
+        if(event.key === "Enter")
+          searchUser();
+
+      }
+    );
+
+  }
+
+  loadFriends();
+
+}
+
+
+/* =========================================================
+   USER SEARCH
+   ========================================================= */
+
+async function searchUser(){
+
+  const input =
+    $("userSearch");
+
+  const result =
+    $("searchResults");
+
+  if(!input || !result)
+    return;
+
+  const query =
+    input.value
+      .trim()
+      .replace(/^@/,"");
+
+  if(!query){
+
+    result.innerHTML = "";
+
+    return;
+
+  }
+
+  result.innerHTML = `
+
+    <div
+      class="card"
+      style="padding:18px;color:#8e9aac">
+
+      Searching…
+
+    </div>
+
+  `;
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("profiles")
+        .select("*")
+        .ilike(
+          "username",
+          `%${query}%`
+        )
+        .limit(20);
+
+    if(error)
+      throw error;
+
+    const users =
+      (data || [])
+        .filter(
+          user =>
+            user.id !==
+            NEXORA.user?.id
+        );
+
+    if(!users.length){
+
+      result.innerHTML = `
+
+        <div
+          class="card"
+          style="padding:18px;color:#8e9aac;margin-bottom:14px">
+
+          No users found.
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+    result.innerHTML =
+      users
+        .map(
+          user =>
+            personCard(user)
+        )
+        .join("");
+
+  }catch(error){
+
+    result.innerHTML = `
+
+      <div
+        class="card"
+        style="padding:18px;color:#ff8190;margin-bottom:14px">
+
+        ${escapeHtml(
+          error.message ||
+          "Search failed."
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+function personCard(user){
+
+  return `
+
+    <div class="card person-row">
+
+      <div class="person-avatar">
+
+        ${initials(
+          user.display_name ||
+          user.username
+        )}
+
+      </div>
+
+      <div class="person-main">
+
+        <div class="person-name">
+
+          ${escapeHtml(
+            user.display_name ||
+            user.username ||
+            "User"
+          )}
+
+        </div>
+
+        <div class="person-user">
+
+          @${escapeHtml(
+            user.username ||
+            ""
+          )}
+
+        </div>
+
+      </div>
+
+      <div class="person-actions">
+
+        <button
+          class="btn"
+          onclick="addFriend('${escapeAttr(user.id)}')">
+
+          Add
+
+        </button>
+
+        <button
+          class="btn primary-btn"
+          onclick="startCallByUser('${escapeAttr(user.id)}','${escapeAttr(user.display_name || user.username || "User")}')">
+
+          Call
+
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   FRIENDS
+   ========================================================= */
+
+async function loadFriends(){
+
+  const list =
+    $("friendsList");
+
+  if(!list || !NEXORA.user)
+    return;
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("friendships")
+        .select("*")
+        .or(
+          `user_id.eq.${NEXORA.user.id},friend_id.eq.${NEXORA.user.id}`
+        );
+
+    if(error)
+      throw error;
+
+    if(!data?.length){
+
+      list.innerHTML = `
+
+        <div
+          class="card"
+          style="padding:18px;text-align:center;color:#8e9aac">
+
+          No friends yet.
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+    const ids =
+      data
+        .map(row =>
+          row.user_id ===
+          NEXORA.user.id
+            ? row.friend_id
+            : row.user_id
+        )
+        .filter(Boolean);
+
+    if(!ids.length){
+
+      list.innerHTML = "";
+
+      return;
+
+    }
+
+    const {
+      data:profiles
+    } =
+      await sb
+        .from("profiles")
+        .select("*")
+        .in("id",ids);
+
+    list.innerHTML =
+      (profiles || [])
+        .map(
+          user =>
+            personCard(user)
+        )
+        .join("");
+
+  }catch(error){
+
+    list.innerHTML = `
+
+      <div
+        class="card"
+        style="padding:18px;color:#ff8190">
+
+        ${escapeHtml(
+          error.message ||
+          "Unable to load friends."
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+async function addFriend(friendId){
+
+  if(
+    !NEXORA.user ||
+    !friendId
+  )
+    return;
+
+  try{
+
+    const {
+      error
+    } =
+      await sb
+        .from("friendships")
+        .insert({
+          user_id:
+            NEXORA.user.id,
+
+          friend_id:
+            friendId,
+
+          status:
+            "pending"
+        });
+
+    if(error)
+      throw error;
+
+    toast(
+      "Friend request sent."
+    );
+
+  }catch(error){
+
+    toast(
+      error.message ||
+      "Unable to send request.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+   ========================================================= */
+
+async function loadNotifications(){
+
+  if(!NEXORA.user)
+    return;
+
+  try{
+
+    const {
+      data
+    } =
+      await sb
+        .from("notifications")
+        .select("*")
+        .eq(
+          "user_id",
+          NEXORA.user.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        )
+        .limit(50);
+
+    NEXORA.notifications =
+      data || [];
+
+  }catch(_){
+
+    NEXORA.notifications =
+      [];
+
+  }
+
+}
+
+
+function openNotifications(){
+
+  const rows =
+    NEXORA.notifications || [];
+
+  openModal(`
+
+    <div class="modal-title">
+      Notifications
+    </div>
+
+    <div class="modal-sub">
+      Your latest activity
+    </div>
+
+    ${
+      rows.length
+        ? rows.map(
+            item => `
+
+              <div class="card notice-row">
+
+                <div class="notice-icon">
+                  🔔
+                </div>
+
+                <div class="notice-main">
+
+                  <div class="notice-title">
+                    ${escapeHtml(
+                      item.title ||
+                      item.type ||
+                      "Notification"
+                    )}
+                  </div>
+
+                  <div>
+                    ${escapeHtml(
+                      item.message ||
+                      ""
+                    )}
+                  </div>
+
+                  <div class="notice-time">
+                    ${timeAgo(
+                      item.created_at
+                    )}
+                  </div>
+
+                </div>
+
+              </div>
+
+            `
+          ).join("")
+        : `
+
+          <div
+            style="padding:20px;text-align:center;color:#8e9aac">
+
+            No notifications.
+
+          </div>
+
+        `
+    }
+
+  `);
+
+}
+
+
+/* =========================================================
+   RANDOM CONNECT
+   ========================================================= */
+
+let randomChannel = null;
+
+async function findRandom(type){
+
+  if(!NEXORA.user){
+
+    toast(
+      "Please login first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  if(randomChannel){
+
+    try{
+      await sb.removeChannel(
+        randomChannel
+      );
+    }catch(_){}
+
+    randomChannel =
+      null;
+
+  }
+
+  openModal(`
+
+    <div class="modal-title">
+      Searching…
+    </div>
+
+    <div class="modal-sub">
+      Looking for someone to ${
+        type === "call"
+          ? "call"
+          : "chat"
+      } with.
+    </div>
+
+    <button
+      class="btn danger"
+      style="width:100%"
+      onclick="cancelRandom()">
+
+      Cancel
+
+    </button>
+
+  `);
+
+  const channelName =
+    `random-${type}`;
+
+  const channel =
+    randomChannel =
+      sb.channel(
+        channelName,
+        {
+          config:{
+            presence:{
+              key:
+                NEXORA.user.id
+            }
+          }
+        }
+      );
+
+  channel.on(
+    "presence",
+    {
+      event:"sync"
+    },
+    async () => {
+
+      const state =
+        channel.presenceState();
+
+      const people =
+        Object.values(state)
+          .flat()
+          .filter(
+            person =>
+              person &&
+              person.id !==
+                NEXORA.user.id
+          );
+
+      if(!people.length)
+        return;
+
+      const peer =
+        people[0];
+
+      try{
+
+        await sb.removeChannel(
+          channel
+        );
+
+      }catch(_){}
+
+      randomChannel =
+        null;
+
+      closeModal();
+
+      if(type === "call"){
+
+        startCallByUser(
+          peer.id,
+          peer.name ||
+          "Random user"
+        );
+
+      }else{
+
+        toast(
+          "Random chat matched."
+        );
+
+      }
+
+    }
+  );
+
+  channel.subscribe(
+    async status => {
+
+      if(
+        status ===
+        "SUBSCRIBED"
+      ){
+
+        try{
+
+          await channel.track({
+            id:
+              NEXORA.user.id,
+
+            name:
+              myName(),
+
+            at:
+              Date.now()
+          });
+
+        }catch(_){}
+
+      }
+
+    }
+  );
+
+}
+
+async function cancelRandom(){
+
+  if(randomChannel){
+
+    try{
+
+      await sb.removeChannel(
+        randomChannel
+      );
+
+    }catch(_){}
+
+  }
+
+  randomChannel =
+    null;
+
+  closeModal();
+
+}
+
+
+/* =========================================================
+   CALL CONFIG
+   ========================================================= */
+
+const CALL_CONFIG = {
+
+  iceServers:[
+    {
+      urls:[
+        "stun:stun.l.google.com:19302"
+      ]
+    },
+    {
+      urls:[
+        "turn:openrelay.metered.ca:80",
+        "turn:openrelay.metered.ca:443",
+        "turn:openrelay.metered.ca:443?transport=tcp"
+      ],
+      username:
+        "openrelayproject",
+      credential:
+        "openrelayproject"
+    }
+  ]
+
+};
+
+
+/* =========================================================
+   CALL STATE
+   ========================================================= */
+
+let CALL_SIGNAL =
+  null;
+
+let callTimerInterval =
+  null;
+
+
+/* =========================================================
+   START CALL BY USER
+   ========================================================= */
+
+async function startCallByUser(
+  peerId,
+  peerName
+){
+
+  if(
+    !NEXORA.user ||
+    !peerId
+  )
+    return;
+
+  await startCall({
+    peerId,
+    peerName,
+    incoming:false
+  });
+
+}
+
+
+/* =========================================================
+   START CALL
+   ========================================================= */
+
+async function startCall({
+
+  peerId,
+  peerName,
+  incoming=false
+
+}){
+
+  if(
+    !NEXORA.user ||
+    !peerId
+  )
+    return;
+
+  if(
+    NEXORA.call.active
+  )
+    endCall();
+
+  NEXORA.call = {
+
+    active:true,
+
+    incoming,
+
+    peerId,
+
+    peerName:
+      peerName ||
+      "User",
+
+    status:
+      incoming
+        ? "Incoming call"
+        : "Calling…",
+
+    muted:false,
+
+    startedAt:null,
+
+    timer:null,
+
+    pc:null,
+
+    stream:null,
+
+    remoteStream:null
+
+  };
+
+  paintCall();
+
+  $("callOverlay")
+    .classList.remove(
+      "hidden"
+    );
+
+  try{
+
+    const stream =
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio:true
+        });
+
+    NEXORA.call.stream =
+      stream;
+
+    const pc =
+      new RTCPeerConnection(
+        CALL_CONFIG
+      );
+
+    NEXORA.call.pc =
+      pc;
+
+    stream
+      .getTracks()
+      .forEach(
+        track =>
+          pc.addTrack(
+            track,
+            stream
+          )
+      );
+
+    pc.onicecandidate =
+      async event => {
+
+        if(
+          !event.candidate
+        )
+          return;
+
+        await sendSignal({
+          type:"ice",
+          to:peerId,
+          candidate:
+            event.candidate
+        });
+
+      };
+
+    pc.onconnectionstatechange =
+      () => {
+
+        const state =
+          pc.connectionState;
+
+        if(
+          state ===
+          "connected"
+        ){
+
+          NEXORA.call.status =
+            "Connected";
+
+          NEXORA.call.startedAt =
+            Date.now();
+
+          startCallTimer();
+
+          paintCall();
+
+        }
+
+        if(
+          [
+            "failed",
+            "disconnected",
+            "closed"
+          ].includes(state)
+        ){
+
+          if(
+            NEXORA.call.active
+          )
+            endCall();
+
+        }
+
+      };
+
+    if(!incoming){
+
+      const offer =
+        await pc.createOffer();
+
+      await pc.setLocalDescription(
+        offer
+      );
+
+      await sendSignal({
+
+        type:"call-offer",
+
+        to:peerId,
+
+        peerName:
+          myName(),
+
+        sdp:
+          offer
+
+      });
+
+    }
+
+  }catch(error){
+
+    toast(
+      error.message ||
+      "Microphone permission is required.",
+      "error"
+    );
+
+    endCall();
+
+  }
+
+}
+
+
+/* =========================================================
+   CALL UI
+   ========================================================= */
+
+function paintCall(){
+
+  if(
+    !NEXORA.call.active
+  )
+    return;
+
+  $("callAvatar")
+    .textContent =
+    initials(
+      NEXORA.call.peerName
+    );
+
+  $("callName")
+    .textContent =
+    NEXORA.call.peerName;
+
+  $("callState")
+    .textContent =
+    NEXORA.call.status;
+
+  const accept =
+    $("callAcceptBtn");
+
+  if(accept){
+
+    accept.classList.toggle(
+      "hidden",
+      !NEXORA.call.incoming
+    );
+
+  }
+
+  $("callMuteBtn")
+    .textContent =
+      NEXORA.call.muted
+        ? "🎙️ Unmute"
+        : "🎙️ Mute";
+
+}
+
+
+/* =========================================================
+   CALL TIMER
+   ========================================================= */
+
+function startCallTimer(){
+
+  clearInterval(
+    callTimerInterval
+  );
+
+  callTimerInterval =
+    setInterval(
+      () => {
+
+        if(
+          !NEXORA.call.startedAt
+        )
+          return;
+
+        const seconds =
+          Math.floor(
+            (
+              Date.now() -
+              NEXORA.call.startedAt
+            ) / 1000
+          );
+
+        const min =
+          String(
+            Math.floor(
+              seconds / 60
+            )
+          ).padStart(2,"0");
+
+        const sec =
+          String(
+            seconds % 60
+          ).padStart(2,"0");
+
+        $("callTimer")
+          .textContent =
+          `${min}:${sec}`;
+
+      },
+      1000
+    );
+
+}
+
+
+/* =========================================================
+   END CALL
+   ========================================================= */
+
+function endCall(){
+
+  clearInterval(
+    callTimerInterval
+  );
+
+  callTimerInterval =
+    null;
+
+  try{
+
+    NEXORA.call.stream
+      ?.getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+  }catch(_){}
+
+  try{
+
+    NEXORA.call.pc
+      ?.close();
+
+  }catch(_){}
+
+  NEXORA.call = {
+
+    active:false,
+    incoming:false,
+    peerId:null,
+    peerName:"",
+    status:"idle",
+    muted:false,
+    startedAt:null,
+    timer:null,
+    pc:null,
+    stream:null,
+    remoteStream:null
+
+  };
+
+  $("callOverlay")
+    .classList.add(
+      "hidden"
+    );
+
+  $("callTimer")
+    .textContent =
+    "00:00";
+
+}
+
+
+/* =========================================================
+   MUTE
+   ========================================================= */
+
+function toggleMute(){
+
+  const stream =
+    NEXORA.call.stream;
+
+  if(!stream)
+    return;
+
+  const track =
+    stream.getAudioTracks()[0];
+
+  if(!track)
+    return;
+
+  track.enabled =
+    !track.enabled;
+
+  NEXORA.call.muted =
+    !track.enabled;
+
+  paintCall();
+
+}
+
+
+/* =========================================================
+   SIGNALING CHANNEL
+   ========================================================= */
+
+async function ensureCallSignal(){
+
+  if(
+    CALL_SIGNAL &&
+    CALL_SIGNAL.state ===
+      "joined"
+  )
+    return;
+
+  if(CALL_SIGNAL){
+
+    try{
+      await sb.removeChannel(
+        CALL_SIGNAL
+      );
+    }catch(_){}
+
+  }
+
+  CALL_SIGNAL =
+    sb.channel(
+      "nexora-call-signal",
+      {
+        config:{
+          broadcast:{
+            ack:true
+          }
+        }
+      }
+    );
+
+  CALL_SIGNAL.on(
+    "broadcast",
+    {
+      event:"signal"
+    },
+    ({payload}) => {
+
+      if(
+        payload &&
+        payload.to ===
+          NEXORA.user?.id
+      ){
+
+        handleSignal(
+          payload
+        );
+
+      }
+
+    }
+  );
+
+  await new Promise(
+    resolve => {
+
+      let done = false;
+
+      const finish =
+        () => {
+
+          if(done)
+            return;
+
+          done = true;
+          resolve();
+
+        };
+
+      CALL_SIGNAL.subscribe(
+        status => {
+
+          if(
+            status ===
+            "SUBSCRIBED"
+          )
+            finish();
+
+        }
+      );
+
+      setTimeout(
+        finish,
+        6000
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SEND SIGNAL
+   ========================================================= */
+
+async function sendSignal(payload){
+
+  if(
+    !NEXORA.user ||
+    !payload?.to
+  )
+    return false;
+
+  await ensureCallSignal();
+
+  try{
+
+    const result =
+      await CALL_SIGNAL.send({
+
+        type:"broadcast",
+
+        event:"signal",
+
+        payload:{
+          ...payload,
+          from:
+            NEXORA.user.id
+        }
+
+      });
+
+    return result === "ok";
+
+  }catch(_){
+
+    return false;
+
+  }
+
+}
+
+
+/* =========================================================
+   INCOMING SIGNAL
+   ========================================================= */
+
+async function handleSignal(payload){
+
+  if(!payload)
+    return;
+
+  if(
+    payload.type ===
+    "call-offer"
+  ){
+
+    await receiveCallOffer(
+      payload
+    );
+
+    return;
+
+  }
+
+  if(
+    payload.type ===
+    "call-answer"
+  ){
+
+    const pc =
+      NEXORA.call.pc;
+
+    if(
+      pc &&
+      payload.sdp
+    ){
+
+      try{
+
+        await pc.setRemoteDescription(
+          payload.sdp
+        );
+
+      }catch(_){}
+
+    }
+
+    return;
+
+  }
+
+  if(
+    payload.type ===
+    "ice"
+  ){
+
+    try{
+
+      if(
+        NEXORA.call.pc &&
+        payload.candidate
+      ){
+
+        await NEXORA.call.pc
+          .addIceCandidate(
+            payload.candidate
+          );
+
+      }
+
+    }catch(_){}
+
+  }
+
+}
+
+
+/* =========================================================
+   RECEIVE CALL
+   ========================================================= */
+
+async function receiveCallOffer(
+  payload
+){
+
+  if(
+    NEXORA.call.active
+  ){
+
+    return;
+
+  }
+
+  NEXORA.call = {
+
+    active:true,
+
+    incoming:true,
+
+    peerId:
+      payload.from,
+
+    peerName:
+      payload.peerName ||
+      "Incoming call",
+
+    status:
+      "Incoming call",
+
+    muted:false,
+
+    startedAt:null,
+
+    timer:null,
+
+    pc:null,
+
+    stream:null,
+
+    remoteStream:null
+
+  };
+
+  $("callOverlay")
+    .classList.remove(
+      "hidden"
+    );
+
+  paintCall();
+
+  NEXORA.call.pendingOffer =
+    payload.sdp;
+
+}
+
+
+/* =========================================================
+   ACCEPT INCOMING CALL
+   ========================================================= */
+
+async function acceptCall(){
+
+  const offer =
+    NEXORA.call.pendingOffer;
+
+  if(!offer)
+    return;
+
+  try{
+
+    const stream =
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio:true
+        });
+
+    NEXORA.call.stream =
+      stream;
+
+    const pc =
+      new RTCPeerConnection(
+        CALL_CONFIG
+      );
+
+    NEXORA.call.pc =
+      pc;
+
+    stream
+      .getTracks()
+      .forEach(
+        track =>
+          pc.addTrack(
+            track,
+            stream
+          )
+      );
+
+    pc.onicecandidate =
+      event => {
+
+        if(
+          event.candidate
+        ){
+
+          sendSignal({
+
+            type:"ice",
+
+            to:
+              NEXORA.call.peerId,
+
+            candidate:
+              event.candidate
+
+          });
+
+        }
+
+      };
+
+    pc.onconnectionstatechange =
+      () => {
+
+        if(
+          pc.connectionState ===
+          "connected"
+        ){
+
+          NEXORA.call.status =
+            "Connected";
+
+          NEXORA.call.startedAt =
+            Date.now();
+
+          startCallTimer();
+
+          paintCall();
+
+        }
+
+        if(
+          [
+            "failed",
+            "disconnected",
+            "closed"
+          ].includes(
+            pc.connectionState
+          )
+        ){
+
+          endCall();
+
+        }
+
+      };
+
+    await pc.setRemoteDescription(
+      offer
+    );
+
+    const answer =
+      await pc.createAnswer();
+
+    await pc.setLocalDescription(
+      answer
+    );
+
+    await sendSignal({
+
+      type:"call-answer",
+
+      to:
+        NEXORA.call.peerId,
+
+      sdp:
+        answer
+
+    });
+
+    NEXORA.call.status =
+      "Connecting…";
+
+    NEXORA.call.pendingOffer =
+      null;
+
+    paintCall();
+
+  }catch(error){
+
+    toast(
+      error.message ||
+      "Unable to accept call.",
+      "error"
+    );
+
+    endCall();
+
+  }
+
+}
+
+
+/* =========================================================
+   NAV EVENTS
+   ========================================================= */
+
+document
+  .querySelectorAll(
+    ".nav-item"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          setPage(
+            button.dataset.page
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+$("profileBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      openProfile();
+
+    }
+  );
+
+
+$("notificationBtn")
+  .addEventListener(
+    "click",
+    openNotifications
+  );
+
+
+$("loginBtn")
+  .addEventListener(
+    "click",
+    login
+  );
+
+
+$("guestBtn")
+  .addEventListener(
+    "click",
+    guestLogin
+  );
+
+
+$("signupBtn")
+  .addEventListener(
+    "click",
+    signup
+  );
+
+
+$("authSwitchBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if(
+        $("signupForm")
+          .classList
+          .contains("hidden")
+      )
+        showSignup();
+      else
+        showLogin();
+
+    }
+  );
+
+
+$("callEndBtn")
+  .addEventListener(
+    "click",
+    endCall
+  );
+
+
+$("callMuteBtn")
+  .addEventListener(
+    "click",
+    toggleMute
+  );
+
+
+$("callAcceptBtn")
+  .addEventListener(
+    "click",
+    acceptCall
+  );
+
+
+$("callSpeakerBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      toast(
+        "Speaker output follows your device audio settings."
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   AUTH ENTER KEY
+   ========================================================= */
+
+[
+  ["loginEmail","loginBtn"],
+  ["loginPassword","loginBtn"],
+  ["signupName","signupBtn"],
+  ["signupEmail","signupBtn"],
+  ["signupPassword","signupBtn"]
+].forEach(
+  ([inputId,buttonId]) => {
+
+    $(inputId)
+      .addEventListener(
+        "keydown",
+        event => {
+
+          if(
+            event.key ===
+            "Enter"
+          ){
+
+            $(buttonId).click();
+
+          }
+
+        }
+      );
+
+  }
+);
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+function openProfile(){
+
+  openModal(`
+
+    <div class="modal-title">
+      Profile
+    </div>
+
+    <div class="modal-sub">
+      Your NEXORA account
+    </div>
+
+    <div
+      class="avatar pf-avatar">
+
+      ${initials(myName())}
+
+    </div>
+
+    <label class="pf-label">
+      Display name
+    </label>
+
+    <input
+      id="profileName"
+      class="pf-input"
+      value="${escapeAttr(
+        NEXORA.profile?.display_name ||
+        ""
+      )}"
+      maxlength="30">
+
+    <label class="pf-label">
+      Username
+    </label>
+
+    <input
+      class="pf-input"
+      value="@${escapeAttr(
+        NEXORA.profile?.username ||
+        ""
+      )}"
+      disabled>
+
+    <div
+      class="modal-actions"
+      style="margin-top:8px">
+
+      <button
+        class="btn"
+        onclick="closeModal()">
+
+        Cancel
+
+      </button>
+
+      <button
+        class="btn primary-btn"
+        onclick="saveProfile()">
+
+        Save
+
+      </button>
+
+    </div>
+
+    <button
+      class="btn danger"
+      style="width:100%;margin-top:10px"
+      onclick="logout()">
+
+      Log out
+
+    </button>
+
+  `);
+
+}
+
+
+async function saveProfile(){
+
+  const input =
+    $("profileName");
+
+  if(!input)
+    return;
+
+  const name =
+    input.value
+      .trim()
+      .slice(0,30);
+
+  if(!name){
+
+    toast(
+      "Display name cannot be empty.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("profiles")
+        .update({
+          display_name:name
+        })
+        .eq(
+          "id",
+          NEXORA.user.id
+        )
+        .select()
+        .single();
+
+    if(error)
+      throw error;
+
+    NEXORA.profile =
+      data ||
+      {
+        ...NEXORA.profile,
+        display_name:name
+      };
+
+    paintProfileAvatar();
+
+    closeModal();
+
+    toast(
+      "Profile updated."
+    );
+
+  }catch(error){
+
+    toast(
+      error.message ||
+      "Unable to update profile.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+function renderSettings(){
+
+  $("main").innerHTML = `
+
+    <section class="page">
+
+      <h1 class="section-title">
+        Settings
+      </h1>
+
+      <div class="section-sub">
+        Control your NEXORA experience.
+      </div>
+
+
+      <div class="card">
+
+        <div class="setting-row">
+
+          <div class="setting-main">
+
+            <div class="setting-title">
+              Sounds
+            </div>
+
+            <div class="setting-desc">
+              Button, message and game sounds.
+            </div>
+
+          </div>
+
+          <button
+            class="toggle ${
+              PREFS.sound
+                ? "on"
+                : ""
+            }"
+            onclick="toggleSetting('sound')">
+
+            <i></i>
+
+          </button>
+
+        </div>
+
+
+        <div class="setting-row">
+
+          <div class="setting-main">
+
+            <div class="setting-title">
+              Calls
+            </div>
+
+            <div class="setting-desc">
+              Allow voice-call features.
+            </div>
+
+          </div>
+
+          <button
+            class="toggle ${
+              PREFS.calls
+                ? "on"
+                : ""
+            }"
+            onclick="toggleSetting('calls')">
+
+            <i></i>
+
+          </button>
+
+        </div>
+
+
+        <div class="setting-row">
+
+          <div class="setting-main">
+
+            <div class="setting-title">
+              Private mode
+            </div>
+
+            <div class="setting-desc">
+              Hide your online presence.
+            </div>
+
+          </div>
+
+          <button
+            class="toggle ${
+              PREFS.privateMode
+                ? "on"
+                : ""
+            }"
+            onclick="toggleSetting('privateMode')">
+
+            <i></i>
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn danger"
+        style="width:100%;margin-top:16px"
+        onclick="logout()">
+
+        Log out
+
+      </button>
+
+    </section>
+
+  `;
+
+}
+
+function toggleSetting(key){
+
+  PREFS[key] =
+    !PREFS[key];
+
+  savePreferences();
+
+  if(key === "privateMode")
+    setOnline(true);
+
+  renderSettings();
+
+}
+
+
+/* =========================================================
+   GAMES PAGE
+   ========================================================= */
+
+function renderGames(){
+
+  $("main").innerHTML = `
+
+    <section class="page">
+
+      <h1 class="section-title">
+        Games
+      </h1>
+
+      <div class="section-sub">
+        Play multiplayer games.
+      </div>
+
+
+      <div class="grid grid2">
+
+
+        <div class="card game-card">
+
+          <div class="game-title">
+            🎲 Ludo
+          </div>
+
+          <div class="game-desc">
+            Multiplayer Ludo with the
+            full board, movement,
+            dice and game flow.
+          </div>
+
+          <div class="game-actions">
+
+            <button
+              class="btn primary-btn"
+              onclick="openLudoMenu()">
+
+              Play Ludo
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="card game-card">
+
+          <div class="game-title">
+            🃏 UNO
+          </div>
+
+          <div class="game-desc">
+            Full UNO gameplay with
+            cards, turns, actions,
+            sounds and animations.
+          </div>
+
+          <div class="game-actions">
+
+            <button
+              class="btn primary-btn"
+              onclick="openUnoMenu()">
+
+              Play UNO
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="card game-card">
+
+          <div class="game-title">
+            ❌ Tic-Tac-Toe
+          </div>
+
+          <div class="game-desc">
+            Quick local or multiplayer
+            Tic-Tac-Toe.
+          </div>
+
+          <div class="game-actions">
+
+            <button
+              class="btn"
+              onclick="openTicTacToe()">
+
+              Play
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+  `;
+
+}
+
+
+/* =========================================================
+   SIMPLE GAME BACK
+   ========================================================= */
+
+function gameBack(){
+
+  setPage("games");
+
+}
+
+
+/* =========================================================
+   AUTH SESSION RESTORE
+   ========================================================= */
+
+async function boot(){
+
+  try{
+
+    const {
+      data
+    } =
+      await sb.auth.getSession();
+
+    if(
+      data?.session?.user
+    ){
+
+      await enterApp(
+        data.session.user
+      );
+
+    }else{
+
+      showLogin();
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "NEXORA boot error:",
+      error
+    );
+
+    showLogin();
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTH STATE CHANGES
+   ========================================================= */
+
+sb.auth.onAuthStateChange(
+  async (
+    event,
+    session
+  ) => {
+
+    if(
+      event ===
+        "SIGNED_IN" &&
+      session?.user &&
+      !NEXORA.user
+    ){
+
+      await enterApp(
+        session.user
+      );
+
+    }
+
+    if(
+      event ===
+      "SIGNED_OUT"
+    ){
+
+      NEXORA.user = null;
+      NEXORA.profile = null;
+
+      $("shell")
+        .classList.add(
+          "hidden"
+        );
+
+      $("auth")
+        .classList.remove(
+          "hidden"
+        );
+
+      showLogin();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+boot();
+
+
+/* =========================================================
+   PART 2 CONTINUES HERE
+   ---------------------------------------------------------
+   IMPORTANT:
+   Do NOT close </script>, </body> or </html> here.
+
+   PART 2 will continue directly from this exact point
+   and will contain the final second-code Ludo/UNO/game
+   implementations and remaining wiring.
+   ========================================================= */<script>
+/* ============ COMM PART 1: reliable calls ============ */
+/* TURN zaroori hai (Wi-Fi<->cellular). metered.ca par free account banao and neeche daalo, ya apna TURN daalo. */
+const ICE_CONFIG={metered:{app:"",key:""},turn:[]};
+let ICE_CACHE=null,ICE_AT=0,ICE_TURN=false;
+
+async function getIce(){
+  if(ICE_CACHE&&Date.now()-ICE_AT<36e5)return ICE_CACHE;
+  const s=[
+    {
+      urls:[
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302",
+        "stun:stun.cloudflare.com:3478"
+      ]
+    },
+    ...ICE_CONFIG.turn
+  ];
+  const m=ICE_CONFIG.metered;
+  if(m.app&&m.key){
+    try{
+      const r=await fetch(`https://${m.app}.metered.live/api/v1/turn/credentials?apiKey=${m.key}`);
+      if(r.ok)s.push(...await r.json());
+    }catch(e){
+      console.warn("TURN fetch failed",e);
+    }
+  }
+  ICE_TURN=s.some(x=>JSON.stringify(x.urls).includes("turn"));
+  if(!ICE_TURN)console.warn("[NEXORA] TURN server set nahi hai: cellular/strict Wi-Fi par call fail ho sakti hai.");
+  ICE_CACHE=s;
+  ICE_AT=Date.now();
+  return s;
+}
+
+const sig=m=>sendSignal(m).catch(()=>{});
+const ENDED=new Map();
+const isEnded=id=>{
+  const t=ENDED.get(id);
+  return !!t&&Date.now()-t<12e4;
+};
+const markEnded=id=>{
+  if(id){
+    ENDED.set(id,Date.now());
+    if(ENDED.size>40)ENDED.delete(ENDED.keys().next().value);
+  }
+};
+
+const NET_TXT={
+  ok:"Connected",
+  unstable:"Connection unstable",
+  reconnecting:"Reconnecting…",
+  lost:"Connection lost"
+};
+
+const waitJoined=async ms=>{
+  const t=Date.now();
+  while(Date.now()-t<ms){
+    if(NEXORA.channel?.state==="joined")return true;
+    await sleep(150);
+  }
+  return false;
+};
+
+/* signaling: ack ke saath retry */
+sendSignal=async function(p){
+  for(let i=0;i<3;i++){
+    if(NEXORA.channel?.state!=="joined"){
+      if(!NEXORA.channel||["errored","closed"].includes(NEXORA.channel.state)){
+        await startRealtime();
+      }
+      await waitJoined(3500);
+    }
+
+    if(NEXORA.channel?.state==="joined"){
+      try{
+        const r=await NEXORA.channel.send({
+          type:"broadcast",
+          event:"signal",
+          payload:{
+            ...p,
+            from:NEXORA.user.id
+          }
+        });
+        if(r==="ok")return;
+      }catch(e){}
+    }
+
+    await sleep(400*(i+1));
+  }
+
+  throw new Error("signal failed");
+};
+
+/* ---------------- CALL CORE ---------------- */
+const CALL_IDLE={
+  state:"idle",
+  peerId:null,
+  peerName:"",
+  initiator:false,
+  pc:null,
+  stream:null,
+  remote:null,
+  timer:null,
+  started:0,
+  muted:false,
+  cam:false,
+  sid:"",
+  reconnect:0
+};
+
+let CALL=structuredClone(CALL_IDLE);
+
+function CC(){
+  return CALL||CALL_IDLE;
+}
+
+function resetCall(){
+  try{
+    CC().pc?.close();
+  }catch(_){}
+
+  try{
+    CC().stream?.getTracks().forEach(t=>t.stop());
+  }catch(_){}
+
+  try{
+    CC().remote?.remove();
+  }catch(_){}
+
+  clearInterval(CC().timer);
+
+  CALL=structuredClone(CALL_IDLE);
+  paintCall();
+}
+
+function callLabel(){
+  const c=CC();
+  if(c.state==="idle")return"";
+  if(c.state==="ringing")return"Calling…";
+  if(c.state==="connecting")return"Connecting…";
+  if(c.state==="connected")return"Connected";
+  return"Call";
+}
+
+function paintCall(){
+  const c=CC();
+
+  const ov=$("call");
+  if(!ov)return;
+
+  if(c.state==="idle"){
+    ov.classList.add("h");
+    return;
+  }
+
+  ov.classList.remove("h");
+
+  const title=$("callTitle");
+  const sub=$("callSub");
+  const avatar=$("callAvatar");
+
+  if(title)title.textContent=c.peerName||"Call";
+  if(sub)sub.textContent=callLabel();
+  if(avatar)avatar.textContent=initials(c.peerName||"?");
+
+  const timer=$("callTimer");
+  if(timer){
+    timer.textContent=c.state==="connected"
+      ?fmtDur(Date.now()-c.started)
+      :"";
+  }
+
+  const mute=$("callMute");
+  if(mute)mute.textContent=c.muted?"🔇":"🎙";
+
+  const cam=$("callCam");
+  if(cam)cam.textContent=c.cam?"📹":"📷";
+
+  const mini=$("callMin");
+  if(mini)mini.textContent=c.state==="connected"?"⌄":"";
+}
+
+function startCallTimer(){
+  clearInterval(CC().timer);
+
+  CC().timer=setInterval(()=>{
+    if(CC().state==="connected"){
+      const t=$("callTimer");
+      if(t)t.textContent=fmtDur(Date.now()-CC().started);
+    }
+  },1000);
+}
+
+async function makePC(peerId,initiator){
+  const c=CC();
+
+  const pc=new RTCPeerConnection({
+    iceServers:await getIce()
+  });
+
+  c.pc=pc;
+
+  pc.onicecandidate=e=>{
+    if(e.candidate){
+      sig({
+        type:"ice",
+        to:peerId,
+        sid:c.sid,
+        candidate:e.candidate
+      });
+    }
+  };
+
+  pc.ontrack=e=>{
+    let a=$("remoteAudio");
+
+    if(!a){
+      a=document.createElement("audio");
+      a.id="remoteAudio";
+      a.autoplay=true;
+      a.playsInline=true;
+      document.body.appendChild(a);
+    }
+
+    a.srcObject=e.streams[0];
+    c.remote=a;
+
+    a.play?.().catch(()=>{});
+  };
+
+  pc.onconnectionstatechange=()=>{
+    const st=pc.connectionState;
+
+    if(st==="connected"){
+      c.state="connected";
+      c.started=c.started||Date.now();
+      c.reconnect=0;
+      paintCall();
+      startCallTimer();
+    }
+
+    if(["failed","disconnected"].includes(st)){
+      if(c.state==="connected"){
+        c.state="connecting";
+        paintCall();
+      }
+
+      c.reconnect++;
+
+      if(c.reconnect<3){
+        setTimeout(()=>{
+          if(CC()===c)reconnectCall();
+        },1000*c.reconnect);
+      }
+    }
+
+    if(st==="closed"){
+      if(!isEnded(peerId))resetCall();
+    }
+  };
+
+  if(c.stream){
+    c.stream.getTracks().forEach(t=>pc.addTrack(t,c.stream));
+  }
+
+  return pc;
+}
+
+async function mic(){
+  return navigator.mediaDevices.getUserMedia({
+    audio:{
+      echoCancellation:true,
+      noiseSuppression:true,
+      autoGainControl:true
+    },
+    video:false
+  });
+}
+
+async function startCall(peerId,name,initiator=true){
+  if(!peerId)return toast("User nahi mila","error");
+
+  if(CC().state!=="idle"){
+    return toast("Pehle current call khatam karo","error");
+  }
+
+  CALL={
+    ...structuredClone(CALL_IDLE),
+    state:"ringing",
+    peerId,
+    peerName:name||"User",
+    initiator,
+    sid:"call:"+NEXORA.user.id+":"+peerId+":"+Date.now()
+  };
+
+  paintCall();
+
+  try{
+    CALL.stream=await mic();
+  }catch(e){
+    resetCall();
+    return toast("Microphone permission chahiye","error");
+  }
+
+  CALL.pc=await makePC(peerId,initiator);
+
+  if(initiator){
+    const offer=await CALL.pc.createOffer();
+    await CALL.pc.setLocalDescription(offer);
+
+    await sig({
+      type:"call-offer",
+      to:peerId,
+      sid:CALL.sid,
+      sdp:offer
+    });
+  }
+}
+
+async function acceptCall(){
+  const c=CC();
+  if(c.state!=="ringing"||!c.pc)return;
+
+  c.state="connecting";
+  paintCall();
+
+  const answer=await c.pc.createAnswer();
+  await c.pc.setLocalDescription(answer);
+
+  await sig({
+    type:"call-answer",
+    to:c.peerId,
+    sid:c.sid,
+    sdp:answer
+  });
+}
+
+async function rejectCall(){
+  const c=CC();
+
+  if(c.peerId){
+    await sig({
+      type:"call-reject",
+      to:c.peerId,
+      sid:c.sid
+    }).catch(()=>{});
+  }
+
+  markEnded(c.peerId);
+  resetCall();
+}
+
+async function endCall(){
+  const c=CC();
+
+  if(c.peerId){
+    await sig({
+      type:"call-end",
+      to:c.peerId,
+      sid:c.sid
+    }).catch(()=>{});
+  }
+
+  markEnded(c.peerId);
+  resetCall();
+}
+
+async function reconnectCall(){
+  const c=CC();
+  if(!c.peerId||c.state==="idle")return;
+
+  try{
+    c.pc?.close();
+  }catch(_){}
+
+  c.state="connecting";
+  paintCall();
+
+  c.pc=await makePC(c.peerId,c.initiator);
+
+  if(c.initiator){
+    const offer=await c.pc.createOffer({
+      iceRestart:true
+    });
+
+    await c.pc.setLocalDescription(offer);
+
+    await sig({
+      type:"call-offer",
+      to:c.peerId,
+      sid:c.sid,
+      sdp:offer
+    });
+  }
+}
+
+async function toggleMute(){
+  const c=CC();
+
+  if(!c.stream)return;
+
+  c.muted=!c.muted;
+
+  c.stream.getAudioTracks().forEach(t=>{
+    t.enabled=!c.muted;
+  });
+
+  paintCall();
+}
+
+function toggleCallFS(){
+  toggleFS();
+}
+
+$("callMute")?.addEventListener("click",toggleMute);
+$("callEnd")?.addEventListener("click",endCall);
+$("callAccept")?.addEventListener("click",acceptCall);
+$("callReject")?.addEventListener("click",rejectCall);
+
+/* ---------------- SIGNAL RECEIVER ---------------- */
+const _oldSignal=startRealtime;
+
+async function handleSignal(m){
+  if(!m||m.to!==NEXORA.user?.id)return;
+
+  if(m.type==="call-offer"){
+    if(CC().state!=="idle"){
+      await sig({
+        type:"call-busy",
+        to:m.from,
+        sid:m.sid
+      });
+      return;
+    }
+
+    CALL={
+      ...structuredClone(CALL_IDLE),
+      state:"ringing",
+      peerId:m.from,
+      peerName:m.name||"User",
+      sid:m.sid,
+      initiator:false
+    };
+
+    paintCall();
+
+    try{
+      CALL.stream=await mic();
+      CALL.pc=await makePC(m.from,false);
+      await CALL.pc.setRemoteDescription(m.sdp);
+    }catch(e){
+      resetCall();
+      return;
+    }
+
+    return;
+  }
+
+  const c=CC();
+
+  if(m.sid&&c.sid&&m.sid!==c.sid)return;
+
+  if(m.type==="call-answer"&&c.pc){
+    await c.pc.setRemoteDescription(m.sdp);
+    c.state="connecting";
+    paintCall();
+    return;
+  }
+
+  if(m.type==="ice"&&c.pc&&m.candidate){
+    try{
+      await c.pc.addIceCandidate(m.candidate);
+    }catch(_){}
+    return;
+  }
+
+  if(m.type==="call-reject"){
+    toast("Call reject ho gayi");
+    resetCall();
+    return;
+  }
+
+  if(m.type==="call-busy"){
+    toast("User already call me hai");
+    resetCall();
+    return;
+  }
+
+  if(m.type==="call-end"){
+    markEnded(c.peerId);
+    resetCall();
+    toast("Call ended");
+    return;
+  }
+}
+
+/* startRealtime ko signal receiver ke saath wrap */
+const _startRealtimeOriginal=startRealtime;
+
+startRealtime=async function(){
+  const r=await _startRealtimeOriginal();
+
+  try{
+    if(NEXORA.channel){
+      NEXORA.channel.on(
+        "broadcast",
+        {event:"signal"},
+        ({payload})=>{
+          handleSignal(payload).catch(console.error);
+        }
+      );
+    }
+  }catch(e){
+    console.warn("Signal listener failed",e);
+  }
+
+  return r;
+};
+
+/* ============ CALL UI REFRESH ============ */
+setInterval(()=>{
+  if(CC().state!=="idle")paintCall();
+},1000);
+
+</script>
+
+<script>
+/* ============ COMM PART 2: game voice + game sync + rematch ============ */
+
+const GST={};
+const NOW=()=>Date.now();
+
+function gchip(txt,tone,act){
+  let e=$("gchip");
+
+  if(!txt){
+    e?.remove();
+    return;
+  }
+
+  if(!e){
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<div id="gchip"></div>'
+    );
+
+    e=$("gchip");
+
+    e.onclick=()=>{
+      const a=e.dataset.act;
+      if(a&&window[a])window[a]();
+    };
+  }
+
+  e.textContent=txt;
+  e.dataset.act=act||"";
+  e.style.background=tone==="ok"?"#1fae6a":"#b88400";
+}
+
+/* ---- kaun sa game online chal raha hai ---- */
+function gameCtx(){
+  const me=NEXORA.user?.id;
+  if(!me)return null;
+
+  if(LUDO?.mode==="online"&&LROOM){
+    return{
+      kind:"ludo",
+      code:LROOM.code,
+      others:LB.filter(x=>x.id!==me)
+    };
+  }
+
+  if(TT?.started&&TCH&&TT.oppId){
+    return{
+      kind:"ttt",
+      code:TT.code,
+      others:[{id:TT.oppId,name:"Dost"}]
+    };
+  }
+
+  if(UI&&UCH&&UB.length){
+    return{
+      kind:"uno",
+      code:UCH.code,
+      others:UB.filter(x=>x.id!==me)
+    };
+  }
+
+  return null;
+}
+
+const gameActive=()=>gameCtx()?.kind||null;
+
+function gameOnScreen(k){
+  const m=$("main");
+
+  return k==="ludo"
+    ?!!m.querySelector(".ludo-wrap")
+    :k==="ttt"
+      ?!!m.querySelector(".cell")
+      :!!m.querySelector(".u-page");
+}
+
+function gameBack(){
+  const k=gameActive();
+
+  NEXORA.page="games";
+
+  if(k==="ludo")renderLudo();
+  else if(k==="ttt")renderTTT();
+  else if(k==="uno")uRender();
+}
+
+/* ============ GAME VOICE ============ */
+
+let GV=null;
+
+if($("notificationBtn")){
+  $("notificationBtn").insertAdjacentHTML(
+    "beforebegin",
+    '<button id="gvBtn" class="icon-btn hidden" title="Voice">🎙<i></i></button>'
+  );
+}
+
+$("gvBtn")?.addEventListener("click",()=>{
+  gvPanel($("gvPanel")?false:true);
+});
+
+const gvSig=(to,t,x={})=>
+  GV
+    ?sendSignal({
+        type:t,
+        to,
+        sid:GV.sid,
+        ...x
+      }).catch(()=>{})
+    :Promise.resolve();
+
+const gvSid=c=>`gv:${c.kind}:${c.code}`;
+
+function gvStat(){
+  if(!GV)return"off";
+
+  const a=Object.values(GV.peers);
+
+  if(!a.length)return"wait";
+
+  if(a.some(p=>p.state==="bad"))return"bad";
+
+  return a.every(p=>p.state==="ok")?"ok":"wait";
+}
+
+function gvPaint(){
+  const b=$("gvBtn");
+  if(!b)return;
+
+  const ctx=gameCtx();
+  const st=gvStat();
+
+  b.classList.toggle("hidden",!ctx&&!GV);
+
+  b.className=
+    b.className.replace(/ s-\w+/g,"")+
+    (GV?" s-"+st:"");
+
+  if(GV&&st==="ok")GV.was=true;
+
+  if($("gvPanel"))gvPanel();
+}
+
+function gvPanel(open){
+  let p=$("gvPanel");
+
+  if(open===false){
+    p?.remove();
+    return;
+  }
+
+  if(!p){
+    if(open!==true)return;
+
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<div id="gvPanel"></div>'
+    );
+
+    p=$("gvPanel");
+  }
+
+  if(!GV){
+    const inCall=CC().state!=="idle";
+
+    p.innerHTML=`
+      <div style="font-weight:850">🎙 Voice chat</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px">
+        ${inCall
+          ?"Aap call me ho."
+          :"Game ke players ke saath voice chat start karo."}
+      </div>
+
+      ${
+        inCall
+          ?`<button class="btn wide" style="margin-top:12px" onclick="gvStart()">Game voice</button>`
+          :`<button class="btn wide" style="margin-top:12px" onclick="gvStart()">Start voice</button>`
+      }
+    `;
+
+    return;
+  }
+
+  p.innerHTML=`
+    <div style="font-weight:850">🎙 Game Voice</div>
+    <div style="color:var(--muted);font-size:13px;margin-top:4px">
+      ${gvStat()==="ok"?"Connected":"Connecting…"}
+    </div>
+
+    <div class="gvr">
+      <button class="btn" onclick="gvMute()">🎙</button>
+      <button class="btn off" onclick="gvLeave()">Leave</button>
+    </div>
+  `;
+}
+
+async function gvStart(){
+  const ctx=gameCtx();
+
+  if(!ctx){
+    return toast("Pehle online game start karo");
+  }
+
+  if(GV)return;
+
+  const others=(ctx.others||[]).filter(x=>x.id!==NEXORA.user?.id);
+
+  if(!others.length){
+    return toast("Abhi koi player connected nahi hai");
+  }
+
+  GV={
+    sid:gvSid(ctx),
+    kind:ctx.kind,
+    code:ctx.code,
+    peers:{},
+    stream:null,
+    muted:false,
+    was:false
+  };
+
+  try{
+    GV.stream=await mic();
+  }catch(e){
+    GV=null;
+    return toast("Microphone permission chahiye","error");
+  }
+
+  for(const o of others){
+    GV.peers[o.id]={
+      id:o.id,
+      name:o.name||"Player",
+      state:"wait",
+      pc:null,
+      audio:null
+    };
+  }
+
+  for(const o of others){
+    await gvOffer(o.id);
+  }
+
+  gvPaint();
+}
+
+async function gvOffer(id){
+  if(!GV||!GV.peers[id])return;
+
+  const p=GV.peers[id];
+
+  const pc=new RTCPeerConnection({
+    iceServers:await getIce()
+  });
+
+  p.pc=pc;
+
+  if(GV.stream){
+    GV.stream.getTracks().forEach(t=>pc.addTrack(t,GV.stream));
+  }
+
+  pc.onicecandidate=e=>{
+    if(e.candidate){
+      gvSig(id,"gv-ice",{
+        candidate:e.candidate
+      });
+    }
+  };
+
+  pc.ontrack=e=>{
+    let a=p.audio;
+
+    if(!a){
+      a=document.createElement("audio");
+      a.autoplay=true;
+      a.playsInline=true;
+      document.body.appendChild(a);
+      p.audio=a;
+    }
+
+    a.srcObject=e.streams[0];
+    a.play?.().catch(()=>{});
+  };
+
+  pc.onconnectionstatechange=()=>{
+    if(!GV)return;
+
+    if(pc.connectionState==="connected"){
+      p.state="ok";
+    }else if(
+      ["failed","disconnected"].includes(pc.connectionState)
+    ){
+      p.state="bad";
+    }
+
+    gvPaint();
+  };
+
+  const offer=await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  await gvSig(id,"gv-offer",{
+    sdp:offer
+  });
+}
+
+async function gvAnswer(id,sdp){
+  if(!GV)return;
+
+  let p=GV.peers[id];
+
+  if(!p){
+    p=GV.peers[id]={
+      id,
+      name:"Player",
+      state:"wait",
+      pc:null,
+      audio:null
+    };
+  }
+
+  if(p.pc)return;
+
+  const pc=new RTCPeerConnection({
+    iceServers:await getIce()
+  });
+
+  p.pc=pc;
+
+  if(GV.stream){
+    GV.stream.getTracks().forEach(t=>pc.addTrack(t,GV.stream));
+  }
+
+  pc.onicecandidate=e=>{
+    if(e.candidate){
+      gvSig(id,"gv-ice",{
+        candidate:e.candidate
+      });
+    }
+  };
+
+  pc.ontrack=e=>{
+    let a=p.audio;
+
+    if(!a){
+      a=document.createElement("audio");
+      a.autoplay=true;
+      a.playsInline=true;
+      document.body.appendChild(a);
+      p.audio=a;
+    }
+
+    a.srcObject=e.streams[0];
+    a.play?.().catch(()=>{});
+  };
+
+  pc.onconnectionstatechange=()=>{
+    if(!GV)return;
+
+    if(pc.connectionState==="connected")p.state="ok";
+    else if(["failed","disconnected"].includes(pc.connectionState)){
+      p.state="bad";
+    }
+
+    gvPaint();
+  };
+
+  await pc.setRemoteDescription(sdp);
+
+  const answer=await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+
+  await gvSig(id,"gv-answer",{
+    sdp:answer
+  });
+}
+
+async function gvOnSignal(m){
+  if(!GV||!m?.sid||m.sid!==GV.sid)return;
+
+  const from=m.from;
+  if(!from||from===NEXORA.user?.id)return;
+
+  if(m.type==="gv-offer"){
+    await gvAnswer(from,m.sdp);
+    return;
+  }
+
+  const p=GV.peers[from];
+  if(!p?.pc)return;
+
+  if(m.type==="gv-answer"){
+    await p.pc.setRemoteDescription(m.sdp);
+    return;
+  }
+
+  if(m.type==="gv-ice"&&m.candidate){
+    try{
+      await p.pc.addIceCandidate(m.candidate);
+    }catch(_){}
+  }
+}
+
+function gvMute(){
+  if(!GV?.stream)return;
+
+  GV.muted=!GV.muted;
+
+  GV.stream.getAudioTracks().forEach(t=>{
+    t.enabled=!GV.muted;
+  });
+
+  gvPaint();
+}
+
+function gvLeave(silent=false){
+  if(!GV)return;
+
+  try{
+    GV.stream?.getTracks().forEach(t=>t.stop());
+  }catch(_){}
+
+  Object.values(GV.peers||{}).forEach(p=>{
+    try{p.pc?.close()}catch(_){}
+    try{p.audio?.remove()}catch(_){}
+  });
+
+  GV=null;
+
+  if(!silent)toast("Game voice band");
+  gvPaint();
+}
+
+/* game voice signal ko existing signaling ke saath connect */
+const _gameSendSignal=sendSignal;
+
+sendSignal=async function(p){
+  return _gameSendSignal(p);
+};
+
+const _gameHandleSignal=handleSignal;
+
+handleSignal=async function(m){
+  await _gameHandleSignal(m);
+  await gvOnSignal(m);
+};
+
+/* ============ GAME STATUS ============ */
+
+setInterval(()=>{
+  const txt=GST.ludo||GST.ttt||GST.uno;
+
+  if(txt){
+    gchip(txt,"warn");
+  }else{
+    const k=gameActive();
+
+    if(
+      k&&
+      !gameOnScreen(k)&&
+      NEXORA.page!=="games"
+    ){
+      gchip(
+        "🎮 Game me wapas jao",
+        "ok",
+        "gameBack"
+      );
+    }else{
+      gchip(null);
+    }
+  }
+
+  const ctx=gameCtx();
+
+  if(
+    GV&&
+    (!ctx||GV.sid!==gvSid(ctx))
+  ){
+    gvLeave(true);
+  }
+
+  gvPaint();
+
+},1000);
+
+</script>
+
+<script>
+/* ============ COMM PART 3: chat reliability + privacy + fullscreen + polish ============ */
+
+let PRIV={
+  hideOnline:false,
+  mute:false
+};
+
+try{
+  PRIV={
+    ...PRIV,
+    ...JSON.parse(
+      localStorage.getItem("nx_priv")||"{}"
+    )
+  };
+}catch(_){}
+
+const savePriv=()=>{
+  try{
+    localStorage.setItem(
+      "nx_priv",
+      JSON.stringify(PRIV)
+    );
+  }catch(_){}
+};
+
+/* ---- privacy: online status chhupana, sound/vibration band ---- */
+
+const _fromB=sb.from.bind(sb);
+
+sb.from=t=>{
+  const q=_fromB(t);
+
+  if(t==="profiles"){
+    const u=q.update.bind(q);
+
+    q.update=(v,...a)=>
+      u(
+        PRIV.hideOnline&&v&&v.online===true
+          ?{...v,online:false}
+          :v,
+        ...a
+      );
+  }
+
+  return q;
+};
+
+const _sfxP=sfx;
+
+sfx=(...a)=>{
+  if(!PRIV.mute)_sfxP(...a);
+};
+
+const _vib=navigator.vibrate?.bind(navigator);
+
+if(_vib){
+  navigator.vibrate=(...a)=>
+    PRIV.mute?false:_vib(...a);
+}
+
+/* ---- technical errors ko friendly banao ---- */
+
+const friendlyMsg=m=>{
+  const s=String(m||"");
+
+  if(
+    /ICE_|WebSocket|RTCPeer|failed to fetch|networkerror|load failed|timeout|signal failed/i.test(s)
+  ){
+    return"Connection me dikkat hai. Internet check karke dobara try karo.";
+  }
+
+  if(
+    /jwt|refresh token|not authenticated/i.test(s)
+  ){
+    return"Session khatam ho gaya. Dobara login karo.";
+  }
+
+  if(
+    /PGRST|violates|permission denied|row-level/i.test(s)
+  ){
+    return"Ye kaam abhi nahi ho paya.";
+  }
+
+  return s;
+};
+
+const _toastP=toast;
+
+toast=(m,t)=>
+  _toastP(
+    t==="error"?friendlyMsg(m):m,
+    t
+  );
+
+let ERT=0;
+
+addEventListener(
+  "unhandledrejection",
+  e=>{
+    console.error(e.reason);
+
+    if(Date.now()-ERT>8000){
+      ERT=Date.now();
+
+      _toastP(
+        "Kuch gadbad hui, dobara try karo",
+        "error"
+      );
+    }
+  }
+);
+
+/* ---- premium: font + desktop 3D tilt ---- */
+
+document.head.insertAdjacentHTML(
+  "beforeend",
+  '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">'
+);
+
+if(matchMedia("(hover:hover)").matches){
+
+  document.addEventListener(
+    "pointermove",
+    e=>{
+      const c=e.target.closest?.(".quick-card");
+      if(!c)return;
+
+      const r=c.getBoundingClientRect();
+
+      c.style.transform=
+        `perspective(700px) rotateX(${(.5-(e.clientY-r.top)/r.height)*8}deg) rotateY(${((e.clientX-r.left)/r.width-.5)*8}deg) translateY(-3px)`;
+    }
+  );
+
+  document.addEventListener(
+    "pointerout",
+    e=>{
+      const c=e.target.closest?.(".quick-card");
+
+      if(
+        c&&
+        !c.contains(e.relatedTarget)
+      ){
+        c.style.transform="";
+      }
+    }
+  );
+}
+
+/* ============ CHAT: sending / waiting / not sent / retry ============ */
+
+const OUT=new Map();
+let SEEN=new Set();
+let NOCID=false;
+let RESTORED=false;
+let RATE=[];
+
+const dayKey=d=>
+  new Date(d).toDateString();
+
+const dayLbl=d=>{
+  const x=new Date(d);
+
+  return x.toDateString()===new Date().toDateString()
+    ?"Aaj"
+    :x.toDateString()===new Date(Date.now()-864e5).toDateString()
+      ?"Kal"
+      :x.toLocaleDateString(
+        [],
+        {
+          day:"numeric",
+          month:"short"
+        }
+      );
+};
+
+const nearBottom=b=>
+  b.scrollHeight-b.scrollTop-b.clientHeight<120;
+
+function metaOf(m,st){
+  if(st==="sending")return"🕓 Sending…";
+
+  if(st==="wait")return"⏳ Waiting for connection";
+
+  if(st==="fail"){
+    return`⚠ Not sent · <u onclick="retryMsg('${m.cid}')">Retry</u>`;
+  }
+
+  return"";
+}
+
+function appendWithDay(b,m,st){
+  const k=dayKey(m.created_at||Date.now());
+
+  if(b.dataset.day!==k){
+    b.insertAdjacentHTML(
+      "beforeend",
+      `<div class="dsep">${dayLbl(m.created_at||Date.now())}</div>`
+    );
+
+    b.dataset.day=k;
+  }
+
+  b.insertAdjacentHTML(
+    "beforeend",
+    bubble(m,st)
+  );
+}
+
+const _bubbleOriginal=bubble;
+
+bubble=function(m,st){
+  const html=_bubbleOriginal(m);
+
+  if(!st)return html;
+
+  return html.replace(
+    /(<\/div>\s*<\/div>\s*$)/,
+    `<div class="msg-meta">${metaOf(m,st)}</div>$1`
+  );
+};
+
+function queueOut(m,state="sending"){
+  OUT.set(
+    m.cid,
+    {
+      m,
+      state,
+      conv:m.conversation_id
+    }
+  );
+
+  try{
+    localStorage.setItem(
+      "nx_outbox",
+      JSON.stringify(
+        [...OUT.values()]
+      )
+    );
+  }catch(_){}
+}
+
+function saveOutbox(){
+  try{
+    localStorage.setItem(
+      "nx_outbox",
+      JSON.stringify(
+        [...OUT.values()]
+      )
+    );
+  }catch(_){}
+}
+
+function restoreOutbox(){
+  try{
+    const a=JSON.parse(
+      localStorage.getItem("nx_outbox")||"[]"
+    );
+
+    a.forEach(o=>{
+      if(o?.m?.cid){
+        OUT.set(
+          o.m.cid,
+          o
+        );
+      }
+    });
+  }catch(_){}
+}
+
+async function flushOne(cid){
+  const o=OUT.get(cid);
+
+  if(!o)return;
+
+  const m=o.m;
+
+  if(!navigator.onLine){
+    o.state="wait";
+    saveOutbox();
+    return;
+  }
+
+  try{
+    o.state="sending";
+    saveOutbox();
+
+    const payload={
+      conversation_id:m.conversation_id,
+      sender_id:m.sender_id,
+      message:m.message,
+      message_type:m.message_type||"text"
+    };
+
+    if(m.client_id){
+      payload.client_id=m.client_id;
+    }
+
+    const{data,error}=await sb
+      .from("messages")
+      .insert(payload)
+      .select("*")
+      .single();
+
+    if(error)throw error;
+
+    OUT.delete(cid);
+
+    saveOutbox();
+
+    if(
+      ACTIVE_CHAT?.conversationId===m.conversation_id
+    ){
+      addMsg(data);
+    }
+
+  }catch(e){
+    o.state=navigator.onLine?"fail":"wait";
+    saveOutbox();
+  }
+}
+
+async function flushAll(){
+  for(const cid of [...OUT.keys()]){
+    await flushOne(cid);
+  }
+}
+
+function retryMsg(cid){
+  const o=OUT.get(cid);
+
+  if(!o)return;
+
+  o.state="sending";
+  saveOutbox();
+
+  flushOne(cid);
+
+  if(NEXORA.page==="chat"){
+    loadChatMessages();
+  }
+}
+
+/* override chat sending */
+sendChatMessage=async function(){
+
+  const inp=$("chatInput");
+
+  if(!inp||!ACTIVE_CHAT)return;
+
+  const text=inp.value.trim();
+
+  if(!text)return;
+
+  if(text.length>2000){
+    return toast(
+      "Message bahut lamba hai",
+      "error"
+    );
+  }
+
+  if(
+    RATE.filter(
+      t=>Date.now()-t<60000
+    ).length>80
+  ){
+    return toast(
+      "Thoda slow karo",
+      "error"
+    );
+  }
+
+  RATE.push(Date.now());
+
+  const cid=
+    crypto.randomUUID?.()||
+    "c_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+
+  const m={
+    cid,
+    client_id:cid,
+    conversation_id:ACTIVE_CHAT.conversationId,
+    sender_id:NEXORA.user.id,
+    message:text,
+    message_type:"text",
+    created_at:new Date().toISOString()
+  };
+
+  inp.value="";
+
+  queueOut(m,"sending");
+
+  const b=$("chatMessages");
+
+  if(b){
+    $("chatEmpty")?.remove();
+
+    appendWithDay(
+      b,
+      m,
+      "sending"
+    );
+
+    b.scrollTop=b.scrollHeight;
+  }
+
+  await flushOne(cid);
+};
+
+/* Enter = send */
+document.addEventListener(
+  "keydown",
+  e=>{
+    if(
+      e.target?.id==="chatInput"&&
+      e.key==="Enter"&&
+      !e.shiftKey
+    ){
+      e.preventDefault();
+      sendChatMessage();
+    }
+  }
+);
+
+/* chat subscription reliability */
+
+let CHAT_CHANNEL=null;
+
+async function subscribeChat(){
+  if(!ACTIVE_CHAT)return;
+
+  try{
+    if(CHAT_CHANNEL){
+      sb.removeChannel(CHAT_CHANNEL);
+    }
+  }catch(_){}
+
+  const conv=ACTIVE_CHAT.conversationId;
+
+  CHAT_CHANNEL=sb.channel(
+    "chat:"+conv,
+    {
+      config:{
+        broadcast:{
+          self:false
+        }
+      }
+    }
+  );
+
+  CHAT_CHANNEL.on(
+    "broadcast",
+    {event:"message"},
+    ({payload})=>{
+      if(
+        payload?.conversation_id===conv
+      ){
+        addMsg(payload);
+      }
+    }
+  );
+
+  CHAT_CHANNEL.subscribe(
+    status=>{
+      if(status==="SUBSCRIBED"){
+        loadChatMessages();
+      }
+    }
+  );
+}
+
+/* reload chat data */
+addMsg=function(m){
+  const b=$("chatMessages");
+
+  if(
+    !b||
+    (m.id&&SEEN.has(m.id))
+  )return;
+
+  if(m.id)SEEN.add(m.id);
+
+  $("chatEmpty")?.remove();
+
+  const near=nearBottom(b);
+
+  appendWithDay(b,m);
+
+  if(near){
+    b.scrollTop=b.scrollHeight;
+  }else{
+    $("toBot")?.classList.remove("hidden");
+  }
+};
+
+loadChatMessages=async function(){
+
+  const b=$("chatMessages");
+
+  if(!b||!ACTIVE_CHAT)return;
+
+  const conv=ACTIVE_CHAT.conversationId;
+
+  const{
+    data,
+    error
+  }=await sb
+    .from("messages")
+    .select("*")
+    .eq(
+      "conversation_id",
+      conv
+    )
+    .order(
+      "created_at",
+      {
+        ascending:true
+      }
+    )
+    .limit(300);
+
+  if(
+    ACTIVE_CHAT?.conversationId!==conv||
+    !$("chatMessages")
+  )return;
+
+  if(error){
+    if(!b.children.length){
+      b.innerHTML=`
+        <div class="chat-empty">
+          Messages load nahi hue.
+          <br>
+          <button
+            class="btn"
+            style="margin-top:10px"
+            onclick="loadChatMessages()"
+          >
+            Retry
+          </button>
+        </div>
+      `;
+    }
+
+    return;
+  }
+
+  const rows=data||[];
+
+  OUT.forEach(
+    (o,k)=>{
+      if(
+        rows.some(
+          r=>r.client_id===k
+        )
+      ){
+        OUT.delete(k);
+      }
+    }
+  );
+
+  let h="";
+  let last="";
+
+  rows.forEach(m=>{
+    const k=dayKey(m.created_at);
+
+    if(k!==last){
+      h+=`
+        <div class="dsep">
+          ${dayLbl(m.created_at)}
+        </div>
+      `;
+
+      last=k;
+    }
+
+    h+=bubble(m);
+  });
+
+  b.innerHTML=
+    h||
+    `<div id="chatEmpty" class="chat-empty">👋<br>Pehla message bhejo</div>`;
+
+  b.dataset.day=last;
+
+  SEEN=new Set(
+    rows.map(m=>m.id)
+  );
+
+  OUT.forEach(
+    o=>{
+      if(o.conv===conv){
+        appendWithDay(
+          b,
+          o.m,
+          o.state==="fail"
+            ?"fail"
+            :o.state==="wait"
+              ?"wait"
+              :"sending"
+        );
+      }
+    }
+  );
+
+  b.scrollTop=b.scrollHeight;
+};
+
+const _rcP=renderChat;
+
+renderChat=function(){
+  _rcP();
+
+  const p=document.querySelector(".chat-page");
+  const b=$("chatMessages");
+
+  if(!p||!b)return;
+
+  const inp=$("chatInput");
+
+  if(inp)inp.maxLength=2000;
+
+  p.insertAdjacentHTML(
+    "beforeend",
+    '<button id="toBot" class="tobot hidden">↓</button>'
+  );
+
+  $("toBot").onclick=()=>{
+    b.scrollTo({
+      top:b.scrollHeight,
+      behavior:"smooth"
+    });
+  };
+
+  b.addEventListener(
+    "scroll",
+    ()=>{
+      if(nearBottom(b)){
+        $("toBot")?.classList.add("hidden");
+      }
+    },
+    {passive:true}
+  );
+};
+
+addEventListener(
+  "online",
+  ()=>{
+    flushAll();
+
+    if(NEXORA.page==="chat"){
+      loadChatMessages();
+    }
+  }
+);
+
+document.addEventListener(
+  "visibilitychange",
+  ()=>{
+    if(
+      document.visibilityState==="visible"&&
+      NEXORA.user
+    ){
+      flushAll();
+
+      if(NEXORA.page==="chat"){
+        loadChatMessages();
+      }
+    }
+  }
+);
+
+let CHDOWN=0;
+
+setInterval(
+  ()=>{
+    if(!NEXORA.user)return;
+
+    if(!RESTORED){
+      RESTORED=true;
+      restoreOutbox();
+
+      setTimeout(
+        flushAll,
+        1500
+      );
+    }
+
+    if(
+      NEXORA.page!=="chat"||
+      !ACTIVE_CHAT||
+      !CHAT_CHANNEL
+    )return;
+
+    if(CHAT_CHANNEL.state==="joined"){
+      if(CHDOWN){
+        CHDOWN=0;
+        loadChatMessages();
+      }
+    }else if(navigator.onLine){
+      CHDOWN=CHDOWN||Date.now();
+
+      if(Date.now()-CHDOWN>8000){
+        CHDOWN=Date.now();
+        subscribeChat();
+      }
+    }
+  },
+  3000
+);
+
+/* ============ RECENT: skeleton loading ============ */
+
+const _rrP=renderRecent;
+
+renderRecent=function(){
+  const p=_rrP();
+
+  const r=$("recentContent");
+
+  if(r){
+    r.innerHTML=
+      '<div class="sk"></div>'.repeat(4);
+  }
+
+  return p;
+};
+
+addEventListener(
+  "online",
+  ()=>{
+    if(NEXORA.page==="recent"){
+      renderRecent();
+    }
+  }
+);
+
+/* ============ PROFILE: privacy + sound ============ */
+
+const _pbP=$("profileBtn")?.onclick;
+
+if(_pbP){
+
+  $("profileBtn").onclick=async function(e){
+
+    await _pbP.call(this,e);
+
+    const mc=$("modalContent");
+
+    if(!mc)return;
+
+    const act=mc.querySelector(
+      ".modal-actions"
+    );
+
+    if(!act)return;
+
+    const row=(k,t,s,on)=>
+      `<div class="pr">
+        <div class="nm">
+          ${t}
+          <small>${s}</small>
+        </div>
+        <button
+          class="pb ${on?"on":""}"
+          style="width:58px;font-size:13px;font-weight:800"
+          onclick="togglePriv('${k}',this)"
+        >
+          ${on?"ON":"OFF"}
+        </button>
+      </div>`;
+
+    act.insertAdjacentHTML(
+      "beforebegin",
+      `<div style="margin:14px 0 12px">
+        <div style="font-weight:850;margin-bottom:2px">
+          Privacy & Settings
+        </div>
+
+        ${row(
+          "hideOnline",
+          "Online status dikhao",
+          "Band karne par dost aapko online nahi dekhenge",
+          !PRIV.hideOnline
+        )}
+
+        ${row(
+          "mute",
+          "Sound & vibration",
+          "Game aur call ki awaazein",
+          !PRIV.mute
+        )}
+      </div>`
+    );
+  };
+}
+
+function togglePriv(k,btn){
+
+  PRIV[k]=!PRIV[k];
+
+  savePriv();
+
+  const on=!PRIV[k];
+
+  btn.textContent=on?"ON":"OFF";
+  btn.classList.toggle(
+    "on",
+    on
+  );
+
+  if(
+    k==="hideOnline"&&
+    NEXORA.user
+  ){
+    sb
+      .from("profiles")
+      .update({
+        online:!PRIV.hideOnline,
+        last_seen:new Date().toISOString()
+      })
+      .eq(
+        "id",
+        NEXORA.user.id
+      )
+      .then(
+        ()=>{},
+        ()=>{}
+      );
+  }
+
+  toast(
+    k==="hideOnline"
+      ?(
+        PRIV.hideOnline
+          ?"Aap ab offline dikhoge"
+          :"Aap online dikhoge"
+       )
+      :(
+        PRIV.mute
+          ?"Sound band"
+          :"Sound on"
+       )
+  );
+}
+
+/* ============ FULLSCREEN ============ */
+
+const fsEl=document.documentElement;
+
+const fsReq=
+  fsEl.requestFullscreen||
+  fsEl.webkitRequestFullscreen;
+
+const fsEx=
+  document.exitFullscreen||
+  document.webkitExitFullscreen;
+
+const fsNative=()=>!!(
+  document.fullscreenElement||
+  document.webkitFullscreenElement
+);
+
+const fsOn=()=>
+  fsNative()||
+  document.body.classList.contains("immersive");
+
+async function toggleFS(){
+
+  if(fsOn()){
+
+    try{
+      if(fsNative()){
+        await fsEx.call(document);
+      }
+    }catch(_){}
+
+    document.body.classList.remove(
+      "immersive"
+    );
+
+  }else{
+
+    document.body.classList.add(
+      "immersive"
+    );
+
+    if(fsReq){
+      try{
+        await fsReq.call(fsEl);
+      }catch(_){}
+    }
+  }
+
+  paintFS();
+}
+
+[
+  "fullscreenchange",
+  "webkitfullscreenchange"
+].forEach(
+  ev=>{
+    document.addEventListener(
+      ev,
+      ()=>{
+        if(!fsNative()){
+          document.body.classList.remove(
+            "immersive"
+          );
+        }
+
+        paintFS();
+      }
+    );
+  }
+);
+
+if($("notificationBtn")){
+  $("notificationBtn").insertAdjacentHTML(
+    "beforebegin",
+    '<button id="fsBtn" class="icon-btn hidden" title="Fullscreen">⛶</button>'
+  );
+}
+
+$("fsBtn")?.addEventListener(
+  "click",
+  toggleFS
+);
+
+const cTopR=
+  $("callMin")?.parentElement?.lastElementChild;
+
+if(cTopR){
+
+  cTopR.outerHTML=
+    '<button id="callFs" class="icon-btn" title="Fullscreen">⛶</button>';
+
+  $("callFs").onclick=
+    toggleFS;
+}
+
+function paintFS(){
+
+  const on=fsOn();
+
+  const m=$("main");
+
+  const game=!!m?.querySelector(
+    ".ludo-wrap,.u-page,.cell"
+  );
+
+  const b=$("fsBtn");
+
+  if(b){
+    b.classList.toggle(
+      "hidden",
+      !(game||on)
+    );
+
+    b.textContent=
+      on
+        ?"⤡"
+        :"⛶";
+
+    b.title=
+      on
+        ?"Fullscreen se bahar"
+        :"Fullscreen";
+  }
+
+  const c=$("callFs");
+
+  if(c){
+    c.textContent=
+      on
+        ?"⤡"
+        :"⛶";
+  }
+}
+
+setInterval(
+  paintFS,
+  1200
+);
+
+</script>
+</body>
+</html>
