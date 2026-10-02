@@ -5908,3 +5908,547 @@ boot();
 
 })();
 </script>
+<script>
+/* =========================================================
+   NEXORA — QUICK MATCH + PREMIUM 3D SYMBOL PATCH
+   APPEND ONLY — OLD CODE UNTOUCHED
+   ========================================================= */
+
+(function(){
+
+  if(window.__NX_PREMIUM_UI_FIX__) return;
+  window.__NX_PREMIUM_UI_FIX__=true;
+
+
+  /* =====================================================
+     1. HOME / OUTSIDE QUICK MATCH HIDE
+     -----------------------------------------------------
+     Games ke andar wala Quick Match untouched rahega.
+     Sirf Home/baahar ka Quick Match card hide hoga.
+     ===================================================== */
+
+  function nxHideOutsideQuickMatch(){
+
+    /*
+      Common Quick Match text/card selectors.
+    */
+    document
+      .querySelectorAll(
+        "#main .quick-card, #main .card"
+      )
+      .forEach(card=>{
+
+        const text=
+          (card.innerText||"")
+          .trim()
+          .toLowerCase();
+
+        /*
+          Sirf Quick Match naam/description
+          wale cards ko target karo.
+        */
+        if(
+          text.includes("quick match") &&
+          !text.includes("games")
+        ){
+          /*
+            Games page ke andar ko accidentally
+            hide na karne ke liye page check.
+          */
+          if(
+            NEXORA?.page!=="games"
+          ){
+            card.style.display="none";
+          }
+        }
+
+      });
+
+  }
+
+
+  /*
+    Home render ke baad bhi hide.
+  */
+  const nxOldHome=
+    window.renderHome;
+
+  if(typeof nxOldHome==="function"){
+
+    window.renderHome=function(){
+
+      const r=
+        nxOldHome.apply(
+          this,
+          arguments
+        );
+
+      setTimeout(
+        nxHideOutsideQuickMatch,
+        50
+      );
+
+      setTimeout(
+        nxHideOutsideQuickMatch,
+        300
+      );
+
+      return r;
+    };
+
+    renderHome=
+      window.renderHome;
+  }
+
+
+  /*
+    Navigation ke baad safety check.
+  */
+  const nxOldSetPage=
+    window.setPage;
+
+  if(typeof nxOldSetPage==="function"){
+
+    window.setPage=function(){
+
+      const r=
+        nxOldSetPage.apply(
+          this,
+          arguments
+        );
+
+      setTimeout(
+        nxHideOutsideQuickMatch,
+        80
+      );
+
+      return r;
+    };
+
+    setPage=
+      window.setPage;
+  }
+
+
+  /* =====================================================
+     2. PREMIUM 3D ANIMATED SYMBOLS
+     -----------------------------------------------------
+     Existing emoji/symbols ko replace nahi kar rahe.
+     Unke surrounding UI ko premium animated 3D effect.
+     ===================================================== */
+
+  const style=
+    document.createElement("style");
+
+  style.id=
+    "nx-premium-symbol-style";
+
+  style.textContent=`
+
+    /* -----------------------------------------------
+       PREMIUM ICON / SYMBOL BASE
+       ----------------------------------------------- */
+
+    .quick-icon,
+    .game-icon,
+    .nav-icon,
+    .icon,
+    .call-icon,
+    .feature-icon{
+
+      position:relative;
+
+      transform:
+        translateZ(0)
+        perspective(500px);
+
+      transform-style:preserve-3d;
+
+      text-shadow:
+        0 2px 3px rgba(0,0,0,.45),
+        0 5px 14px rgba(91,140,255,.28);
+
+      filter:
+        drop-shadow(
+          0 5px 8px
+          rgba(0,0,0,.28)
+        );
+
+      transition:
+        transform .25s ease,
+        filter .25s ease;
+
+    }
+
+
+    /* -----------------------------------------------
+       FLOATING 3D ANIMATION
+       ----------------------------------------------- */
+
+    .quick-icon,
+    .game-icon,
+    .nav-icon,
+    .call-icon,
+    .feature-icon{
+
+      animation:
+        nxIconFloat
+        3.2s
+        ease-in-out
+        infinite;
+
+    }
+
+
+    @keyframes nxIconFloat{
+
+      0%,
+      100%{
+
+        transform:
+          translateY(0)
+          rotateX(0deg)
+          rotateY(0deg)
+          scale(1);
+
+      }
+
+      50%{
+
+        transform:
+          translateY(-4px)
+          rotateX(5deg)
+          rotateY(-5deg)
+          scale(1.035);
+
+      }
+
+    }
+
+
+    /* -----------------------------------------------
+       HOVER / TAP 3D POP
+       ----------------------------------------------- */
+
+    .quick-card:hover .quick-icon,
+    .card:hover .game-icon,
+    .nav-item:hover .nav-icon,
+    button:hover .feature-icon{
+
+      transform:
+        translateY(-7px)
+        rotateX(12deg)
+        rotateY(-12deg)
+        scale(1.12);
+
+      filter:
+        drop-shadow(
+          0 10px 18px
+          rgba(91,140,255,.42)
+        );
+
+    }
+
+
+    /* -----------------------------------------------
+       PREMIUM GLOW
+       ----------------------------------------------- */
+
+    .quick-icon::after,
+    .game-icon::after,
+    .feature-icon::after{
+
+      content:"";
+
+      position:absolute;
+
+      left:50%;
+      top:50%;
+
+      width:55%;
+      height:55%;
+
+      transform:
+        translate(-50%,-50%);
+
+      border-radius:50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(255,255,255,.20),
+          transparent 70%
+        );
+
+      opacity:.7;
+
+      pointer-events:none;
+
+      animation:
+        nxIconGlow
+        2.8s
+        ease-in-out
+        infinite;
+
+    }
+
+
+    @keyframes nxIconGlow{
+
+      0%,
+      100%{
+        opacity:.25;
+        transform:
+          translate(-50%,-50%)
+          scale(.85);
+      }
+
+      50%{
+        opacity:.8;
+        transform:
+          translate(-50%,-50%)
+          scale(1.18);
+      }
+
+    }
+
+
+    /* -----------------------------------------------
+       NAV ICONS — SMALLER / CLEANER
+       ----------------------------------------------- */
+
+    .nav-icon{
+
+      display:inline-flex;
+
+      align-items:center;
+      justify-content:center;
+
+      transform-origin:center;
+
+    }
+
+
+    /* -----------------------------------------------
+       QUICK / GAME CARDS
+       ----------------------------------------------- */
+
+    .quick-card,
+    .game-card{
+
+      transform:
+        translateZ(0);
+
+      transform-style:preserve-3d;
+
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+    }
+
+
+    .quick-card:hover,
+    .game-card:hover{
+
+      transform:
+        translateY(-3px)
+        perspective(800px)
+        rotateX(1deg);
+
+      box-shadow:
+        0 14px 35px
+        rgba(0,0,0,.22);
+
+    }
+
+
+    /* -----------------------------------------------
+       AVATAR / PROFILE SYMBOL
+       ----------------------------------------------- */
+
+    .avatar{
+
+      transform:
+        perspective(400px)
+        translateZ(0);
+
+      box-shadow:
+        0 7px 15px
+        rgba(0,0,0,.25),
+        inset 0 1px 2px
+        rgba(255,255,255,.18);
+
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+    }
+
+
+    .avatar:hover{
+
+      transform:
+        perspective(400px)
+        translateY(-3px)
+        rotateY(-8deg)
+        scale(1.05);
+
+      box-shadow:
+        0 12px 24px
+        rgba(0,0,0,.30),
+        inset 0 1px 2px
+        rgba(255,255,255,.25);
+
+    }
+
+
+    /* -----------------------------------------------
+       BUTTON ICONS / EMOJIS
+       ----------------------------------------------- */
+
+    button{
+
+      transform-style:preserve-3d;
+
+    }
+
+
+    button:hover{
+
+      transform:
+        translateY(-1px);
+
+    }
+
+
+    button:active{
+
+      transform:
+        translateY(1px)
+        scale(.97);
+
+    }
+
+
+    /* -----------------------------------------------
+       PREMIUM SYMBOL SHINE
+       ----------------------------------------------- */
+
+    .quick-icon,
+    .game-icon{
+
+      overflow:visible;
+
+    }
+
+
+    .quick-icon::before,
+    .game-icon::before{
+
+      content:"";
+
+      position:absolute;
+
+      width:28px;
+      height:5px;
+
+      left:50%;
+      top:10%;
+
+      transform:
+        translateX(-50%)
+        rotate(-20deg);
+
+      border-radius:50%;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,.55),
+          transparent
+        );
+
+      opacity:.45;
+
+      filter:blur(1px);
+
+      animation:
+        nxIconShine
+        3.8s
+        ease-in-out
+        infinite;
+
+      pointer-events:none;
+
+    }
+
+
+    @keyframes nxIconShine{
+
+      0%{
+        opacity:0;
+        transform:
+          translateX(-80px)
+          rotate(-20deg);
+      }
+
+      30%{
+        opacity:.55;
+      }
+
+      55%{
+        opacity:0;
+        transform:
+          translateX(80px)
+          rotate(-20deg);
+      }
+
+      100%{
+        opacity:0;
+      }
+
+    }
+
+
+    /* -----------------------------------------------
+       ACCESSIBILITY
+       ----------------------------------------------- */
+
+    @media(
+      prefers-reduced-motion:reduce
+    ){
+
+      .quick-icon,
+      .game-icon,
+      .nav-icon,
+      .call-icon,
+      .feature-icon{
+
+        animation:none!important;
+
+      }
+
+    }
+
+  `;
+
+  document.head.appendChild(style);
+
+
+  /*
+    Initial run.
+  */
+  setTimeout(
+    nxHideOutsideQuickMatch,
+    100
+  );
+
+  setTimeout(
+    nxHideOutsideQuickMatch,
+    600
+  );
+
+})();
+</script>
