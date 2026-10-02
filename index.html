@@ -6452,3 +6452,747 @@ boot();
 
 })();
 </script>
+<script>
+/* =========================================================
+   NEXORA FINAL UI FIX
+   QUICK MATCH OUTSIDE GAMES = HIDE
+   GAMES QUICK MATCH = KEEP
+   PREMIUM 3D ANIMATED SYMBOLS
+   APPEND ONLY
+   ========================================================= */
+
+(function(){
+
+  if(window.__NX_FINAL_UI_FIX_2__) return;
+  window.__NX_FINAL_UI_FIX_2__=true;
+
+
+  /* =====================================================
+     1. QUICK MATCH — OUTSIDE GAMES HARD HIDE
+     ===================================================== */
+
+  function nxIsGamesPage(){
+    return (
+      window.NEXORA &&
+      NEXORA.page === "games"
+    );
+  }
+
+
+  function nxHideOutsideQuickMatch(){
+
+    /*
+      Games page par kuch mat chhedo.
+    */
+    if(nxIsGamesPage()) return;
+
+
+    const all=
+      document.querySelectorAll(
+        "body *"
+      );
+
+
+    all.forEach(el=>{
+
+      if(!el.children.length){
+
+        const txt=
+          (el.textContent||"")
+          .trim()
+          .toLowerCase();
+
+        /*
+          Exact / clear Quick Match text.
+        */
+        if(
+          txt === "quick match" ||
+          txt.startsWith("quick match ·") ||
+          txt.includes("quick match")
+        ){
+
+          /*
+            Games page ka element kabhi hide na ho.
+          */
+          if(
+            el.closest(
+              ".games-page,.game-page,[data-page='games']"
+            )
+          ){
+            return;
+          }
+
+
+          /*
+            Sabse nearest meaningful container.
+          */
+          const box=
+            el.closest(
+              ".quick-card,.card,section,.page,div"
+            );
+
+
+          if(!box)return;
+
+
+          /*
+            Agar container bahut bada hai,
+            sirf Quick Match wale direct block
+            ko hide karne ki koshish.
+          */
+          const parent=
+            box.parentElement;
+
+
+          if(
+            parent &&
+            parent.children.length>1 &&
+            box.textContent.trim().length<500
+          ){
+
+            box.style.setProperty(
+              "display",
+              "none",
+              "important"
+            );
+
+          }else{
+
+            el.style.setProperty(
+              "display",
+              "none",
+              "important"
+            );
+
+          }
+
+        }
+
+      }
+
+    });
+
+  }
+
+
+  /*
+    Render ke baad.
+  */
+  setTimeout(
+    nxHideOutsideQuickMatch,
+    50
+  );
+
+  setTimeout(
+    nxHideOutsideQuickMatch,
+    300
+  );
+
+  setTimeout(
+    nxHideOutsideQuickMatch,
+    1000
+  );
+
+
+  /*
+    App jab bhi DOM mein kuch render kare,
+    Quick Match ko dobara check karo.
+  */
+  const nxQuickObserver=
+    new MutationObserver(
+      ()=>{
+        if(!nxIsGamesPage()){
+          nxHideOutsideQuickMatch();
+        }
+      }
+    );
+
+
+  nxQuickObserver.observe(
+    document.body,
+    {
+      childList:true,
+      subtree:true
+    }
+  );
+
+
+  /*
+    Page change ke baad bhi check.
+  */
+  const nxOldSetPage=
+    window.setPage;
+
+  if(
+    typeof nxOldSetPage===
+    "function"
+  ){
+
+    window.setPage=
+      function(){
+
+        const result=
+          nxOldSetPage.apply(
+            this,
+            arguments
+          );
+
+        setTimeout(
+          nxHideOutsideQuickMatch,
+          80
+        );
+
+        setTimeout(
+          nxHideOutsideQuickMatch,
+          400
+        );
+
+        return result;
+      };
+
+    setPage=
+      window.setPage;
+  }
+
+
+
+  /* =====================================================
+     2. PREMIUM 3D SYMBOL SYSTEM
+     ===================================================== */
+
+  const nxStyle=
+    document.createElement(
+      "style"
+    );
+
+  nxStyle.id=
+    "nx-final-premium-symbol-style";
+
+
+  nxStyle.textContent=`
+
+    /* ==============================================
+       MAIN 3D ICONS
+       ============================================== */
+
+    .quick-icon,
+    .game-icon,
+    .nav-icon,
+    .call-icon,
+    .feature-icon,
+    .quick-card .quick-icon{
+
+      position:relative;
+
+      display:inline-flex;
+
+      align-items:center;
+      justify-content:center;
+
+      transform-style:preserve-3d;
+
+      perspective:800px;
+
+      will-change:
+        transform,
+        filter;
+
+      animation:
+        NX3DFloat
+        2.8s
+        ease-in-out
+        infinite;
+
+      filter:
+        drop-shadow(
+          0 5px 5px rgba(0,0,0,.35)
+        )
+        drop-shadow(
+          0 0 10px rgba(120,140,255,.20)
+        );
+
+      transition:
+        transform .22s cubic-bezier(.2,.8,.2,1),
+        filter .22s ease;
+
+    }
+
+
+    /* ==============================================
+       STRONG FLOAT + ROTATION
+       ============================================== */
+
+    @keyframes NX3DFloat{
+
+      0%{
+
+        transform:
+          translate3d(0,0,0)
+          rotateX(0deg)
+          rotateY(0deg)
+          rotateZ(0deg)
+          scale(1);
+
+      }
+
+      25%{
+
+        transform:
+          translate3d(0,-3px,8px)
+          rotateX(6deg)
+          rotateY(-7deg)
+          rotateZ(-1deg)
+          scale(1.035);
+
+      }
+
+      50%{
+
+        transform:
+          translate3d(0,-7px,12px)
+          rotateX(-3deg)
+          rotateY(8deg)
+          rotateZ(1deg)
+          scale(1.07);
+
+      }
+
+      75%{
+
+        transform:
+          translate3d(0,-3px,8px)
+          rotateX(5deg)
+          rotateY(-5deg)
+          rotateZ(-1deg)
+          scale(1.035);
+
+      }
+
+      100%{
+
+        transform:
+          translate3d(0,0,0)
+          rotateX(0deg)
+          rotateY(0deg)
+          rotateZ(0deg)
+          scale(1);
+
+      }
+
+    }
+
+
+    /* ==============================================
+       HOVER / TOUCH 3D POP
+       ============================================== */
+
+    .quick-card:hover .quick-icon,
+    .quick-icon:hover,
+    .game-icon:hover,
+    .feature-icon:hover{
+
+      animation:
+        NX3DPop
+        .65s
+        cubic-bezier(.2,.8,.2,1)
+        both;
+
+      filter:
+        drop-shadow(
+          0 10px 12px rgba(0,0,0,.40)
+        )
+        drop-shadow(
+          0 0 20px rgba(105,130,255,.55)
+        );
+
+    }
+
+
+    @keyframes NX3DPop{
+
+      0%{
+        transform:
+          translateY(0)
+          rotateX(0)
+          rotateY(0)
+          scale(1);
+      }
+
+      45%{
+        transform:
+          translateY(-9px)
+          rotateX(18deg)
+          rotateY(-18deg)
+          scale(1.18);
+      }
+
+      70%{
+        transform:
+          translateY(-4px)
+          rotateX(-8deg)
+          rotateY(9deg)
+          scale(1.10);
+      }
+
+      100%{
+        transform:
+          translateY(0)
+          rotateX(0)
+          rotateY(0)
+          scale(1);
+      }
+
+    }
+
+
+    /* ==============================================
+       3D LIGHT / SHINE
+       ============================================== */
+
+    .quick-icon::before,
+    .game-icon::before,
+    .feature-icon::before{
+
+      content:"";
+
+      position:absolute;
+
+      width:70%;
+      height:24%;
+
+      left:15%;
+      top:8%;
+
+      border-radius:999px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255,255,255,.15) 25%,
+          rgba(255,255,255,.75) 50%,
+          rgba(255,255,255,.15) 75%,
+          transparent 100%
+        );
+
+      filter:blur(2px);
+
+      opacity:.15;
+
+      pointer-events:none;
+
+      transform:
+        translateX(-70%)
+        rotate(-20deg);
+
+      animation:
+        NX3DShine
+        3.5s
+        ease-in-out
+        infinite;
+
+    }
+
+
+    @keyframes NX3DShine{
+
+      0%{
+
+        opacity:0;
+
+        transform:
+          translateX(-80%)
+          rotate(-20deg);
+
+      }
+
+      30%{
+        opacity:.65;
+      }
+
+      55%{
+
+        opacity:.15;
+
+        transform:
+          translateX(80%)
+          rotate(-20deg);
+
+      }
+
+      100%{
+        opacity:0;
+      }
+
+    }
+
+
+    /* ==============================================
+       GLOW HALO
+       ============================================== */
+
+    .quick-icon::after,
+    .game-icon::after,
+    .feature-icon::after{
+
+      content:"";
+
+      position:absolute;
+
+      width:85%;
+      height:85%;
+
+      left:7.5%;
+      top:7.5%;
+
+      border-radius:50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(110,135,255,.22),
+          rgba(110,135,255,.08) 40%,
+          transparent 72%
+        );
+
+      filter:blur(6px);
+
+      opacity:.35;
+
+      z-index:-1;
+
+      pointer-events:none;
+
+      animation:
+        NX3DGlow
+        2.4s
+        ease-in-out
+        infinite;
+
+    }
+
+
+    @keyframes NX3DGlow{
+
+      0%,
+      100%{
+        opacity:.20;
+        transform:scale(.82);
+      }
+
+      50%{
+        opacity:.65;
+        transform:scale(1.22);
+      }
+
+    }
+
+
+    /* ==============================================
+       QUICK / GAME CARD 3D
+       ============================================== */
+
+    .quick-card,
+    .game-card{
+
+      transform-style:preserve-3d;
+
+      perspective:900px;
+
+      will-change:
+        transform,
+        box-shadow;
+
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+    }
+
+
+    .quick-card:hover,
+    .game-card:hover{
+
+      transform:
+        translateY(-4px)
+        rotateX(1.5deg)
+        rotateY(-1.5deg);
+
+      box-shadow:
+        0 15px 35px rgba(0,0,0,.28);
+
+    }
+
+
+    /* ==============================================
+       NAVIGATION SYMBOLS
+       ============================================== */
+
+    .nav-item .nav-icon{
+
+      animation:
+        NXNavFloat
+        3s
+        ease-in-out
+        infinite;
+
+      transform-origin:center;
+
+    }
+
+
+    @keyframes NXNavFloat{
+
+      0%,
+      100%{
+        transform:
+          translateY(0)
+          rotateY(0deg)
+          scale(1);
+      }
+
+      50%{
+        transform:
+          translateY(-2px)
+          rotateY(12deg)
+          scale(1.08);
+      }
+
+    }
+
+
+    /* ==============================================
+       AVATAR PREMIUM DEPTH
+       ============================================== */
+
+    .avatar{
+
+      transform-style:preserve-3d;
+
+      box-shadow:
+        0 7px 16px rgba(0,0,0,.30),
+        inset 0 1px 2px rgba(255,255,255,.20);
+
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+    }
+
+
+    .avatar:hover{
+
+      transform:
+        perspective(600px)
+        translateY(-4px)
+        rotateX(7deg)
+        rotateY(-9deg)
+        scale(1.05);
+
+      box-shadow:
+        0 13px 28px rgba(0,0,0,.38),
+        inset 0 1px 3px rgba(255,255,255,.28);
+
+    }
+
+
+    /* ==============================================
+       BUTTON SYMBOLS
+       ============================================== */
+
+    button{
+
+      transform-style:preserve-3d;
+
+    }
+
+
+    button:active{
+
+      transform:
+        translateY(2px)
+        scale(.96);
+
+    }
+
+
+    /* ==============================================
+       LIVE / STATUS DOT
+       ============================================== */
+
+    .live i{
+
+      box-shadow:
+        0 0 8px currentColor,
+        0 0 18px rgba(80,255,170,.45);
+
+      animation:
+        NXDotPulse
+        1.5s
+        ease-in-out
+        infinite;
+
+    }
+
+
+    @keyframes NXDotPulse{
+
+      0%,
+      100%{
+        transform:scale(1);
+        opacity:.75;
+      }
+
+      50%{
+        transform:scale(1.35);
+        opacity:1;
+      }
+
+    }
+
+
+    /* ==============================================
+       REDUCED MOTION
+       ============================================== */
+
+    @media(
+      prefers-reduced-motion:reduce
+    ){
+
+      .quick-icon,
+      .game-icon,
+      .nav-icon,
+      .call-icon,
+      .feature-icon,
+      .live i{
+
+        animation:none!important;
+
+      }
+
+    }
+
+  `;
+
+
+  document.head.appendChild(
+    nxStyle
+  );
+
+
+  /* =====================================================
+     3. FORCE RECHECK
+     ===================================================== */
+
+  setInterval(
+    ()=>{
+      if(!nxIsGamesPage()){
+        nxHideOutsideQuickMatch();
+      }
+    },
+    1500
+  );
+
+
+})();
+</script>
