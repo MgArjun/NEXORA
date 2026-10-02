@@ -7196,3 +7196,1232 @@ boot();
 
 })();
 </script>
+<!-- =========================================================
+     NEXORA FINAL UI PATCH
+     1. OUTSIDE QUICK MATCH = HIDE
+        GAMES PAGE QUICK MATCH = KEEP
+     2. STRONG VISIBLE 3D PREMIUM ANIMATION
+     3. QUICK ICONS / GAME ICONS / BUTTONS / AVATAR / DICE
+     4. TOUCH + DESKTOP BOTH
+     APPEND ONLY — OLD CODE NOT TOUCHED
+========================================================= -->
+
+<style id="NEXORA_FINAL_3D_PATCH">
+
+/* =========================================================
+   PREMIUM 3D ENGINE
+========================================================= */
+
+:root{
+  --nx3d-blue:#7188ff;
+  --nx3d-purple:#a276ff;
+  --nx3d-cyan:#55dfff;
+  --nx3d-pink:#ff72c8;
+  --nx3d-gold:#ffd866;
+}
+
+/* ---------- UNIVERSAL PREMIUM ICON ---------- */
+
+.nx-premium-symbol{
+  position:relative !important;
+  display:inline-grid !important;
+  place-items:center !important;
+  transform-style:preserve-3d !important;
+  perspective:900px !important;
+  will-change:transform,filter !important;
+  isolation:isolate !important;
+}
+
+/* ---------- QUICK CARDS ---------- */
+
+.quick-card{
+  position:relative !important;
+  overflow:hidden !important;
+  transform-style:preserve-3d !important;
+  perspective:1000px !important;
+  will-change:transform,box-shadow !important;
+}
+
+.quick-card::before{
+  content:"";
+  position:absolute;
+  width:130px;
+  height:130px;
+  left:-70px;
+  top:-70px;
+  border-radius:50%;
+  background:radial-gradient(
+    circle,
+    rgba(113,136,255,.30),
+    rgba(162,118,255,.12) 38%,
+    transparent 72%
+  );
+  pointer-events:none;
+  animation:nxCardGlow 3.2s ease-in-out infinite;
+}
+
+.quick-card::after{
+  content:"";
+  position:absolute;
+  top:-120%;
+  left:-70%;
+  width:45%;
+  height:340%;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.22),
+    transparent
+  );
+  transform:rotate(20deg);
+  pointer-events:none;
+  animation:nxCardShine 4.5s linear infinite;
+}
+
+/* ---------- QUICK ICON ---------- */
+
+.quick-icon{
+  position:relative !important;
+  z-index:3 !important;
+  width:64px !important;
+  height:64px !important;
+  min-width:64px !important;
+  border-radius:21px !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  font-size:36px !important;
+  line-height:1 !important;
+
+  transform-style:preserve-3d !important;
+  perspective:800px !important;
+
+  background:
+    radial-gradient(
+      circle at 28% 20%,
+      rgba(255,255,255,.42),
+      transparent 22%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.18),
+      rgba(113,136,255,.18) 42%,
+      rgba(162,118,255,.20)
+    ) !important;
+
+  border:1px solid rgba(255,255,255,.20) !important;
+
+  box-shadow:
+    0 10px 20px rgba(0,0,0,.35),
+    inset 0 1px 1px rgba(255,255,255,.35),
+    inset 0 -8px 18px rgba(0,0,0,.16),
+    0 0 25px rgba(113,136,255,.20) !important;
+
+  animation:
+    nxIconFloat 2.8s ease-in-out infinite,
+    nxIconGlow 2.2s ease-in-out infinite !important;
+
+  filter:
+    drop-shadow(0 8px 8px rgba(0,0,0,.25)) !important;
+}
+
+/* icon glass highlight */
+
+.quick-icon::before{
+  content:"";
+  position:absolute;
+  inset:3px;
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.30),
+      transparent 35%
+    );
+
+  pointer-events:none;
+  transform:translateZ(8px);
+}
+
+/* icon shine */
+
+.quick-icon::after{
+  content:"";
+  position:absolute;
+  width:22px;
+  height:90px;
+  top:-30px;
+  left:-45px;
+
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.65),
+    transparent
+  );
+
+  transform:rotate(25deg) translateZ(18px);
+  pointer-events:none;
+
+  animation:nxIconShine 3.6s ease-in-out infinite;
+}
+
+/* ---------- QUICK NAME ---------- */
+
+.quick-name{
+  position:relative;
+  z-index:2;
+  font-weight:900 !important;
+  letter-spacing:.1px;
+}
+
+/* ---------- QUICK DESCRIPTION ---------- */
+
+.quick-desc{
+  position:relative;
+  z-index:2;
+}
+
+/* ---------- QUICK CARD HOVER ---------- */
+
+@media(hover:hover){
+
+  .quick-card:hover{
+    transform:
+      translateY(-7px)
+      rotateX(3deg)
+      rotateY(-3deg)
+      scale(1.015) !important;
+
+    box-shadow:
+      0 22px 48px rgba(0,0,0,.40),
+      0 0 35px rgba(113,136,255,.20) !important;
+  }
+
+  .quick-card:hover .quick-icon{
+    transform:
+      translateZ(30px)
+      rotateX(-7deg)
+      rotateY(14deg)
+      scale(1.08) !important;
+
+    filter:
+      drop-shadow(0 15px 12px rgba(0,0,0,.35))
+      drop-shadow(0 0 15px rgba(113,136,255,.35)) !important;
+  }
+}
+
+/* ---------- TOUCH PRESS ---------- */
+
+.quick-card:active{
+  transform:
+    scale(.96)
+    translateY(2px) !important;
+}
+
+.quick-card:active .quick-icon{
+  transform:
+    translateZ(10px)
+    scale(.91)
+    rotateX(8deg) !important;
+}
+
+/* =========================================================
+   ALL IMPORTANT APP BUTTONS
+========================================================= */
+
+.btn,
+.icon-btn,
+.primary-btn,
+.nav-item{
+  transform-style:preserve-3d !important;
+  perspective:700px !important;
+  will-change:transform,filter,box-shadow !important;
+}
+
+.btn:not(.quick-card),
+.primary-btn{
+  position:relative;
+  overflow:hidden;
+}
+
+.primary-btn::after,
+.btn.primary-btn::after{
+  content:"";
+  position:absolute;
+  top:-80%;
+  left:-80%;
+  width:45%;
+  height:260%;
+
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.32),
+    transparent
+  );
+
+  transform:rotate(25deg);
+  pointer-events:none;
+
+  animation:nxButtonShine 4s linear infinite;
+}
+
+@media(hover:hover){
+  .btn:hover,
+  .primary-btn:hover{
+    transform:
+      translateY(-3px)
+      translateZ(8px) !important;
+
+    box-shadow:
+      0 12px 28px rgba(0,0,0,.30),
+      0 0 20px rgba(113,136,255,.18) !important;
+  }
+}
+
+/* =========================================================
+   AVATARS — 3D FLOATING
+========================================================= */
+
+.avatar,
+.pf-avatar,
+.call-avatar{
+  transform-style:preserve-3d !important;
+  perspective:700px !important;
+  will-change:transform,box-shadow !important;
+
+  animation:
+    nxAvatarFloat 3.2s ease-in-out infinite,
+    nxAvatarGlow 2.8s ease-in-out infinite !important;
+
+  box-shadow:
+    0 14px 35px rgba(0,0,0,.40),
+    0 0 0 3px rgba(113,136,255,.14),
+    0 0 28px rgba(113,136,255,.20) !important;
+}
+
+/* =========================================================
+   LUDO DICE — STRONG 3D ANIMATION
+========================================================= */
+
+.cubewrap{
+  transform-style:preserve-3d !important;
+  perspective:900px !important;
+  will-change:transform !important;
+}
+
+.cubewrap.ready{
+  animation:
+    nxDiceFloat 1.5s ease-in-out infinite,
+    nxDiceGlow 1.8s ease-in-out infinite !important;
+}
+
+.cubewrap.ready:hover{
+  transform:
+    translateY(-5px)
+    rotateX(8deg)
+    rotateY(-8deg)
+    scale(1.08) !important;
+}
+
+.cubewrap:active{
+  transform:scale(.90) !important;
+}
+
+.cube{
+  transform-style:preserve-3d !important;
+  perspective:900px !important;
+  filter:
+    drop-shadow(0 15px 12px rgba(0,0,0,.35))
+    drop-shadow(0 0 18px rgba(113,136,255,.20)) !important;
+}
+
+.face{
+  backface-visibility:hidden !important;
+}
+
+/* =========================================================
+   LUDO TOKENS — FLOAT + 3D PULSE
+========================================================= */
+
+.tk{
+  transform-style:preserve-3d !important;
+  perspective:800px !important;
+  will-change:transform,filter !important;
+}
+
+.tk b{
+  transform-style:preserve-3d !important;
+  animation:nxTokenFloat 2.4s ease-in-out infinite !important;
+
+  box-shadow:
+    0 6px 8px rgba(0,0,0,.35),
+    inset 0 2px 3px rgba(255,255,255,.55),
+    inset 0 -4px 7px rgba(0,0,0,.22) !important;
+}
+
+.tk:nth-of-type(2n) b{
+  animation-delay:.25s !important;
+}
+
+.tk:nth-of-type(3n) b{
+  animation-delay:.5s !important;
+}
+
+.tk:nth-of-type(4n) b{
+  animation-delay:.75s !important;
+}
+
+.tk:hover b{
+  transform:
+    translateZ(20px)
+    scale(1.12)
+    rotateX(10deg)
+    rotateY(-10deg) !important;
+
+  filter:
+    brightness(1.18)
+    drop-shadow(0 10px 8px rgba(0,0,0,.40)) !important;
+}
+
+/* =========================================================
+   GAME PLAYER CARDS
+========================================================= */
+
+.pcard{
+  transform-style:preserve-3d !important;
+  transition:
+    transform .35s ease,
+    box-shadow .35s ease,
+    filter .35s ease !important;
+}
+
+.pcard.on{
+  transform:
+    translateZ(12px)
+    translateY(-3px) !important;
+
+  box-shadow:
+    0 14px 28px rgba(0,0,0,.30),
+    0 0 22px color-mix(in srgb,var(--gc),transparent 65%) !important;
+}
+
+.pcard em{
+  animation:nxPlayerDot 1.5s ease-in-out infinite !important;
+}
+
+/* =========================================================
+   LIVE DOT
+========================================================= */
+
+.live i{
+  animation:
+    nxLivePulse 1.3s ease-in-out infinite !important;
+
+  box-shadow:
+    0 0 0 0 rgba(61,220,151,.55),
+    0 0 14px rgba(61,220,151,.75) !important;
+}
+
+/* =========================================================
+   NAV ICON / ICON BUTTONS
+========================================================= */
+
+.icon-btn{
+  transform-style:preserve-3d !important;
+  perspective:700px !important;
+}
+
+.icon-btn:hover{
+  transform:
+    translateY(-3px)
+    translateZ(8px)
+    rotateX(4deg)
+    rotateY(-4deg) !important;
+
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.30),
+    0 0 16px rgba(113,136,255,.22) !important;
+}
+
+.icon-btn:active{
+  transform:scale(.90) !important;
+}
+
+/* =========================================================
+   PREMIUM SYMBOL CLASS
+   JS neeche emoji/symbol elements ko ye class dega
+========================================================= */
+
+.nx-premium-symbol{
+  animation:
+    nxSymbolFloat 2.6s ease-in-out infinite,
+    nxSymbolGlow 2s ease-in-out infinite !important;
+
+  text-shadow:
+    0 4px 4px rgba(0,0,0,.40),
+    0 0 12px rgba(113,136,255,.35) !important;
+}
+
+.nx-premium-symbol:nth-child(2n){
+  animation-delay:.35s !important;
+}
+
+.nx-premium-symbol:nth-child(3n){
+  animation-delay:.7s !important;
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes nxIconFloat{
+  0%,100%{
+    transform:
+      translateY(0)
+      rotateX(0deg)
+      rotateY(-3deg)
+      translateZ(0);
+  }
+
+  25%{
+    transform:
+      translateY(-7px)
+      rotateX(4deg)
+      rotateY(7deg)
+      translateZ(8px);
+  }
+
+  50%{
+    transform:
+      translateY(-2px)
+      rotateX(-3deg)
+      rotateY(12deg)
+      translateZ(14px);
+  }
+
+  75%{
+    transform:
+      translateY(-8px)
+      rotateX(3deg)
+      rotateY(-6deg)
+      translateZ(8px);
+  }
+}
+
+@keyframes nxIconGlow{
+  0%,100%{
+    box-shadow:
+      0 10px 20px rgba(0,0,0,.35),
+      0 0 15px rgba(113,136,255,.12);
+  }
+
+  50%{
+    box-shadow:
+      0 16px 30px rgba(0,0,0,.40),
+      0 0 30px rgba(113,136,255,.35);
+  }
+}
+
+@keyframes nxIconShine{
+  0%{
+    left:-55px;
+    opacity:0;
+  }
+
+  20%{
+    opacity:1;
+  }
+
+  45%{
+    left:130%;
+    opacity:0;
+  }
+
+  100%{
+    left:130%;
+    opacity:0;
+  }
+}
+
+@keyframes nxCardGlow{
+  0%,100%{
+    transform:scale(.8);
+    opacity:.45;
+  }
+
+  50%{
+    transform:scale(1.3);
+    opacity:.9;
+  }
+}
+
+@keyframes nxCardShine{
+  0%{
+    left:-70%;
+    opacity:0;
+  }
+
+  20%{
+    opacity:1;
+  }
+
+  45%{
+    left:140%;
+    opacity:0;
+  }
+
+  100%{
+    left:140%;
+    opacity:0;
+  }
+}
+
+@keyframes nxButtonShine{
+  0%{
+    left:-80%;
+    opacity:0;
+  }
+
+  15%{
+    opacity:1;
+  }
+
+  35%{
+    left:150%;
+    opacity:0;
+  }
+
+  100%{
+    left:150%;
+    opacity:0;
+  }
+}
+
+@keyframes nxAvatarFloat{
+  0%,100%{
+    transform:
+      translateY(0)
+      rotateY(-2deg);
+  }
+
+  50%{
+    transform:
+      translateY(-6px)
+      rotateY(5deg);
+  }
+}
+
+@keyframes nxAvatarGlow{
+  0%,100%{
+    filter:
+      brightness(1)
+      drop-shadow(0 0 8px rgba(113,136,255,.10));
+  }
+
+  50%{
+    filter:
+      brightness(1.08)
+      drop-shadow(0 0 20px rgba(113,136,255,.32));
+  }
+}
+
+@keyframes nxDiceFloat{
+  0%,100%{
+    transform:
+      translateY(0)
+      rotateX(0deg)
+      rotateY(0deg);
+  }
+
+  25%{
+    transform:
+      translateY(-6px)
+      rotateX(8deg)
+      rotateY(-8deg);
+  }
+
+  50%{
+    transform:
+      translateY(-2px)
+      rotateX(-6deg)
+      rotateY(10deg);
+  }
+
+  75%{
+    transform:
+      translateY(-7px)
+      rotateX(5deg)
+      rotateY(-6deg);
+  }
+}
+
+@keyframes nxDiceGlow{
+  0%,100%{
+    filter:
+      drop-shadow(0 10px 10px rgba(0,0,0,.30))
+      drop-shadow(0 0 10px rgba(113,136,255,.12));
+  }
+
+  50%{
+    filter:
+      drop-shadow(0 15px 15px rgba(0,0,0,.38))
+      drop-shadow(0 0 28px rgba(113,136,255,.42));
+  }
+}
+
+@keyframes nxTokenFloat{
+  0%,100%{
+    transform:
+      translateZ(0)
+      translateY(0)
+      rotateX(0deg);
+  }
+
+  50%{
+    transform:
+      translateZ(9px)
+      translateY(-4px)
+      rotateX(8deg)
+      rotateY(-5deg);
+  }
+}
+
+@keyframes nxPlayerDot{
+  0%,100%{
+    transform:scale(1);
+    filter:brightness(1);
+  }
+
+  50%{
+    transform:scale(1.25);
+    filter:brightness(1.35);
+  }
+}
+
+@keyframes nxLivePulse{
+  0%{
+    transform:scale(1);
+    box-shadow:
+      0 0 0 0 rgba(61,220,151,.55),
+      0 0 12px rgba(61,220,151,.65);
+  }
+
+  70%{
+    transform:scale(1.12);
+    box-shadow:
+      0 0 0 9px rgba(61,220,151,0),
+      0 0 24px rgba(61,220,151,.80);
+  }
+
+  100%{
+    transform:scale(1);
+    box-shadow:
+      0 0 0 0 rgba(61,220,151,0),
+      0 0 12px rgba(61,220,151,.65);
+  }
+}
+
+@keyframes nxSymbolFloat{
+  0%,100%{
+    transform:
+      translateY(0)
+      translateZ(0)
+      rotateX(0)
+      rotateY(-3deg);
+  }
+
+  50%{
+    transform:
+      translateY(-5px)
+      translateZ(8px)
+      rotateX(8deg)
+      rotateY(8deg);
+  }
+}
+
+@keyframes nxSymbolGlow{
+  0%,100%{
+    filter:
+      drop-shadow(0 4px 4px rgba(0,0,0,.35))
+      drop-shadow(0 0 5px rgba(113,136,255,.12));
+  }
+
+  50%{
+    filter:
+      drop-shadow(0 7px 7px rgba(0,0,0,.45))
+      drop-shadow(0 0 14px rgba(113,136,255,.42));
+  }
+}
+
+</style>
+
+
+<script>
+/* =========================================================
+   NEXORA FINAL JS CONTROLLER
+========================================================= */
+
+(function(){
+
+  "use strict";
+
+  /* =======================================================
+     1. QUICK MATCH — OUTSIDE GAMES KO REMOVE KARNA
+        Games ke andar wala kabhi hide nahi hoga.
+  ======================================================= */
+
+  function nxIsGamesPage(){
+    try{
+      return window.NEXORA && NEXORA.page === "games";
+    }catch(_){
+      return false;
+    }
+  }
+
+  function nxText(el){
+    return (el?.textContent || "")
+      .replace(/\s+/g," ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function nxIsQuickMatchText(el){
+
+    const t=nxText(el);
+
+    if(!t)return false;
+
+    return (
+      t === "quick match" ||
+      t.startsWith("quick match ") ||
+      t.includes("quick match ·") ||
+      t.includes("quick match-") ||
+      t.includes("quick match —")
+    );
+  }
+
+  function nxFindQuickMatchBox(el){
+
+    /*
+      Pehle actual card/quick-card dhoondo.
+      Isse poora page accidentally hide nahi hoga.
+    */
+
+    let p=el;
+
+    for(let i=0;i<7 && p && p!==document.body;i++,p=p.parentElement){
+
+      if(
+        p.classList?.contains("quick-card") ||
+        p.classList?.contains("card") ||
+        p.matches?.('[onclick*="findMatch"]')
+      ){
+        return p;
+      }
+    }
+
+    /*
+      Agar heading hai aur card nahi hai,
+      to uska immediate small container hide karo.
+    */
+
+    if(
+      el.parentElement &&
+      el.parentElement!==document.body &&
+      el.parentElement!==document.querySelector("main")
+    ){
+      return el.parentElement;
+    }
+
+    return el;
+  }
+
+  function nxHideOutsideQuickMatch(){
+
+    const outside=!nxIsGamesPage();
+
+    /*
+      Agar Games page hai to pehle jo hidden kiya tha
+      usko restore karo.
+    */
+
+    document.querySelectorAll("[data-nx-outside-quickmatch]").forEach(el=>{
+      if(!outside){
+        el.style.removeProperty("display");
+        el.removeAttribute("data-nx-outside-quickmatch");
+      }
+    });
+
+    if(!outside){
+
+      /*
+        Games ke bahar sirf scan karna hai.
+      */
+
+      const all=document.querySelectorAll("main *");
+
+      all.forEach(el=>{
+
+        if(el.children.length>0)return;
+
+        if(!nxIsQuickMatchText(el))return;
+
+        const box=nxFindQuickMatchBox(el);
+
+        if(
+          !box ||
+          box===document.querySelector("main") ||
+          box.classList?.contains("page")
+        ){
+          return;
+        }
+
+        box.setAttribute(
+          "data-nx-outside-quickmatch",
+          "1"
+        );
+
+        box.style.setProperty(
+          "display",
+          "none",
+          "important"
+        );
+      });
+    }
+  }
+
+
+  /* =======================================================
+     2. ALSO REMOVE ELEMENTS WHICH HAVE FINDMATCH BUTTON
+        BUT TEXT DIFFERENT HAI
+  ======================================================= */
+
+  function nxHideOutsideFindMatch(){
+
+    if(nxIsGamesPage())return;
+
+    document
+      .querySelectorAll(
+        'main [onclick*="findMatch"], main button[onclick*="findMatch"]'
+      )
+      .forEach(btn=>{
+
+        let box=btn;
+
+        for(
+          let i=0;
+          i<6 &&
+          box.parentElement &&
+          box.parentElement!==document.body;
+          i++
+        ){
+
+          const p=box.parentElement;
+
+          if(
+            p.classList?.contains("quick-card") ||
+            p.classList?.contains("card")
+          ){
+            box=p;
+            break;
+          }
+
+          box=p;
+        }
+
+        if(
+          box &&
+          !box.classList?.contains("page")
+        ){
+
+          box.setAttribute(
+            "data-nx-outside-quickmatch",
+            "1"
+          );
+
+          box.style.setProperty(
+            "display",
+            "none",
+            "important"
+          );
+        }
+      });
+  }
+
+
+  function nxRemoveOutsideQuickMatch(){
+
+    nxHideOutsideQuickMatch();
+    nxHideOutsideFindMatch();
+  }
+
+
+  /* =======================================================
+     3. NAVIGATION WRAPPER
+  ======================================================= */
+
+  if(typeof window.setPage==="function"){
+
+    const nxOldSetPage=window.setPage;
+
+    window.setPage=function(p){
+
+      const result=nxOldSetPage.apply(this,arguments);
+
+      setTimeout(nxRemoveOutsideQuickMatch,20);
+      setTimeout(nxRemoveOutsideQuickMatch,150);
+      setTimeout(nxRemoveOutsideQuickMatch,500);
+      setTimeout(nxRemoveOutsideQuickMatch,1000);
+
+      return result;
+    };
+  }
+
+
+  /* =======================================================
+     4. RENDER FUNCTIONS WRAPPER
+  ======================================================= */
+
+  ["renderHome","renderRecent","renderConnect"].forEach(fn=>{
+
+    if(typeof window[fn]!=="function")return;
+
+    const old=window[fn];
+
+    window[fn]=function(){
+
+      const result=old.apply(this,arguments);
+
+      setTimeout(nxRemoveOutsideQuickMatch,30);
+      setTimeout(nxRemoveOutsideQuickMatch,200);
+      setTimeout(nxRemoveOutsideQuickMatch,700);
+
+      return result;
+    };
+
+  });
+
+
+  /* =======================================================
+     5. OBSERVER
+        Agar old code baad mein Quick Match inject kare,
+        tab bhi hide hoga.
+  ======================================================= */
+
+  const nxObserver=new MutationObserver(()=>{
+
+    nxRemoveOutsideQuickMatch();
+
+    nxApplyPremiumSymbols();
+
+  });
+
+  nxObserver.observe(document.body,{
+    childList:true,
+    subtree:true
+  });
+
+
+  /* =======================================================
+     6. PREMIUM SYMBOL DETECTION
+  ======================================================= */
+
+  const nxEmojiRegex=
+    /[\u{1F300}-\u{1FAFF}]|[🎲🃏❌⭕🔔📞♟◷◎⚡🏆🔁🎮🌐🔇🎙]/u;
+
+  function nxApplyPremiumSymbols(){
+
+    /*
+      Quick icons ko direct premium class.
+    */
+
+    document
+      .querySelectorAll(".quick-icon")
+      .forEach(el=>{
+        el.classList.add("nx-premium-symbol");
+      });
+
+
+    /*
+      Ludo / game buttons.
+    */
+
+    document
+      .querySelectorAll(
+        ".ludo-wrap button, .game-card button, .pcard"
+      )
+      .forEach(el=>{
+
+        const txt=(el.textContent||"").trim();
+
+        if(
+          txt.length<=8 &&
+          nxEmojiRegex.test(txt)
+        ){
+          el.classList.add("nx-premium-symbol");
+        }
+
+      });
+
+
+    /*
+      Header / navigation icons.
+    */
+
+    document
+      .querySelectorAll(
+        ".icon-btn, .nav-item, .live i"
+      )
+      .forEach(el=>{
+
+        if(
+          nxEmojiRegex.test(
+            (el.textContent||"").trim()
+          ) ||
+          el.classList.contains("live")
+        ){
+          el.classList.add("nx-premium-symbol");
+        }
+
+      });
+
+
+    /*
+      Avatars.
+    */
+
+    document
+      .querySelectorAll(
+        ".avatar, .pf-avatar, .call-avatar"
+      )
+      .forEach(el=>{
+        el.classList.add("nx-premium-symbol");
+      });
+
+
+    /*
+      Ludo token.
+    */
+
+    document
+      .querySelectorAll(".tk b")
+      .forEach(el=>{
+        el.classList.add("nx-premium-symbol");
+      });
+  }
+
+
+  /* =======================================================
+     7. EXTRA 3D TILT
+        Desktop mouse movement par cards halka tilt.
+        Mobile par continuous animation already chalegi.
+  ======================================================= */
+
+  function nxAddTilt(){
+
+    if(!window.matchMedia("(hover:hover)").matches)return;
+
+    document
+      .querySelectorAll(".quick-card")
+      .forEach(card=>{
+
+        if(card.dataset.nxTilt==="1")return;
+
+        card.dataset.nxTilt="1";
+
+        card.addEventListener("pointermove",e=>{
+
+          const r=card.getBoundingClientRect();
+
+          const x=(e.clientX-r.left)/r.width-.5;
+          const y=(e.clientY-r.top)/r.height-.5;
+
+          card.style.transform=
+            "perspective(900px) " +
+            "rotateX("+(-y*7)+"deg) " +
+            "rotateY("+(x*9)+"deg) " +
+            "translateY(-5px) " +
+            "scale(1.015)";
+        });
+
+        card.addEventListener("pointerleave",()=>{
+
+          card.style.transform="";
+
+        });
+
+      });
+  }
+
+
+  /* =======================================================
+     8. CONTINUOUS REFRESH
+        New cards render hone par animation attach hoti rahe.
+  ======================================================= */
+
+  function nxFinalRefresh(){
+
+    nxRemoveOutsideQuickMatch();
+    nxApplyPremiumSymbols();
+    nxAddTilt();
+
+  }
+
+
+  /* =======================================================
+     9. INITIAL + DELAYED
+  ======================================================= */
+
+  nxFinalRefresh();
+
+  setTimeout(nxFinalRefresh,100);
+  setTimeout(nxFinalRefresh,300);
+  setTimeout(nxFinalRefresh,700);
+  setTimeout(nxFinalRefresh,1200);
+  setTimeout(nxFinalRefresh,2000);
+
+
+  /* =======================================================
+     10. SAFETY WATCHDOG
+  ======================================================= */
+
+  setInterval(()=>{
+
+    nxRemoveOutsideQuickMatch();
+    nxApplyPremiumSymbols();
+    nxAddTilt();
+
+  },1200);
+
+
+  /* =======================================================
+     11. GAMES PAGE — QUICK MATCH IS ALWAYS ALLOWED
+  ======================================================= */
+
+  document.addEventListener("visibilitychange",()=>{
+
+    setTimeout(nxFinalRefresh,50);
+
+  });
+
+
+  /* =======================================================
+     12. DEBUG
+  ======================================================= */
+
+  window.NEXORA_FINAL_UI_PATCH={
+    hideQuickMatch:nxRemoveOutsideQuickMatch,
+    premiumSymbols:nxApplyPremiumSymbols,
+    tilt:nxAddTilt
+  };
+
+})();
+</script>
+
+<!-- =========================================================
+     END OF NEXORA FINAL PATCH
+========================================================= -->
