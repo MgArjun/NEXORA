@@ -3075,4 +3075,2402 @@ function paintFS(){
 }
 setInterval(paintFS,1200);
 </script>
+<script>
+/* NEXORA PATCH - PART 1
+   Games UI cleanup only.
+   Existing game engines remain unchanged.
+*/
+(function NX_PART1_GAMES_UI() {
+  "use strict";
+
+  function nxEscape(value) {
+    if (typeof escapeHtml === "function") return escapeHtml(value);
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function nxOpenLocalGame() {
+    closeModal();
+
+    if (typeof startLudo === "function") {
+      startLudo("local", null, null, 2);
+      return;
+    }
+
+    if (typeof startLudorobot === "function") {
+      startLudorobot(null, null, 2);
+      return;
+    }
+
+    toast("Local Game is not available yet.", true);
+  }
+
+  function nxOpenBotOptions() {
+    const botButtons = [1, 2, 3]
+      .map(function (count) {
+        return `
+          <button
+            class="btn primary-btn nx-game-option"
+            type="button"
+            data-bots="${count}">
+            <span class="nx-option-icon">🤖</span>
+            <span>
+              <strong>${count} Bot${count > 1 ? "s" : ""}</strong>
+              <small>Play against ${count} computer opponent${count > 1 ? "s" : ""}</small>
+            </span>
+          </button>
+        `;
+      })
+      .join("");
+
+    openModal(`
+      <div class="modal-title">Play with Bots</div>
+      <div class="modal-sub">
+        Choose the number of computer opponents before starting the game.
+      </div>
+
+      <div class="nx-game-option-list">
+        ${botButtons}
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+
+    modalContent.querySelectorAll("[data-bots]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const count = Number(button.dataset.bots || 1);
+        closeModal();
+
+        /*
+          Current engine supports robot mode.
+          The selected count is stored for Part 2 lobby integration.
+        */
+        window.NX_LUDO_BOT_COUNT = Math.max(1, Math.min(3, count));
+
+        if (typeof startLudorobot === "function") {
+          startLudorobot(null, null, window.NX_LUDO_BOT_COUNT);
+        } else if (typeof startLudo === "function") {
+          startLudo("robot", null, null, window.NX_LUDO_BOT_COUNT);
+        } else {
+          toast("Bot Game is not available yet.", true);
+        }
+      });
+    });
+  }
+
+  function nxOpenRoomMenu() {
+    const roomId = "nxLudoRoomCode_" + Date.now();
+
+    openModal(`
+      <div class="modal-title">Create or Join Room</div>
+      <div class="modal-sub">
+        Play with friends using a private room code.
+      </div>
+
+      <button
+        class="btn primary-btn"
+        type="button"
+        onclick="closeModal(); hostLudo();">
+        Create a Room
+      </button>
+
+      <div class="nx-room-divider">
+        <span>or</span>
+      </div>
+
+      <div class="nx-room-join">
+        <input
+          id="${roomId}"
+          class="pf-input"
+          maxlength="8"
+          autocapitalize="characters"
+          autocomplete="off"
+          placeholder="Enter room code"
+        />
+
+        <button
+          class="btn primary-btn"
+          type="button"
+          onclick="
+            const field = document.getElementById('${roomId}');
+            if (field && typeof joinLudo === 'function') {
+              joinLudo(field.value.trim().toUpperCase());
+            }
+          ">
+          Join Room
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+  }
+
+  function nxOpenQuickMatch() {
+    openModal(`
+      <div class="modal-title">Quick Match</div>
+      <div class="modal-sub">
+        Find random online players and join a lobby before the game starts.
+      </div>
+
+      <div class="nx-quick-grid">
+        <button class="btn primary-btn nx-quick-match" data-count="2">
+          2 Players
+        </button>
+
+        <button class="btn primary-btn nx-quick-match" data-count="3">
+          3 Players
+        </button>
+
+        <button class="btn primary-btn nx-quick-match" data-count="4">
+          4 Players
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+
+    modalContent.querySelectorAll(".nx-quick-match").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const count = Number(button.dataset.count || 2);
+        closeModal();
+
+        if (typeof findMatch === "function") {
+          findMatch("ludo", count);
+        } else {
+          toast("Quick Match is not available yet.", true);
+        }
+      });
+    });
+  }
+
+  function nxOpenLudoMenu() {
+    openModal(`
+      <div class="modal-title">Ludo</div>
+      <div class="modal-sub">
+        Choose how you want to play.
+      </div>
+
+      <div class="nx-game-option-list">
+        <button class="btn nx-game-option" type="button" onclick="NX_PART1_LOCAL()">
+          <span class="nx-option-icon">📱</span>
+          <span>
+            <strong>Local Game</strong>
+            <small>Play on one device</small>
+          </span>
+        </button>
+
+        <button class="btn nx-game-option" type="button" onclick="NX_PART1_BOTS()">
+          <span class="nx-option-icon">🤖</span>
+          <span>
+            <strong>Play with Bots</strong>
+            <small>Choose computer opponents</small>
+          </span>
+        </button>
+
+        <button class="btn nx-game-option" type="button" onclick="NX_PART1_ROOM()">
+          <span class="nx-option-icon">👥</span>
+          <span>
+            <strong>Create or Join Room</strong>
+            <small>Play privately with friends</small>
+          </span>
+        </button>
+
+        <button class="btn nx-game-option" type="button" onclick="NX_PART1_QUICK()">
+          <span class="nx-option-icon">🌐</span>
+          <span>
+            <strong>Quick Match</strong>
+            <small>Find random online players</small>
+          </span>
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+  }
+
+  function nxOpenTicTacToeMenu() {
+    openModal(`
+      <div class="modal-title">Tic-Tac-Toe</div>
+      <div class="modal-sub">
+        5×5 board — connect 4 marks in a row to win.
+      </div>
+
+      <div class="nx-game-option-list">
+        <button class="btn nx-game-option" type="button" onclick="closeModal(); startTTTLocal();">
+          <span class="nx-option-icon">📱</span>
+          <span>
+            <strong>Local Game</strong>
+            <small>Two players on one device</small>
+          </span>
+        </button>
+
+        <button class="btn nx-game-option" type="button" onclick="closeModal(); startTTTBot();">
+          <span class="nx-option-icon">🤖</span>
+          <span>
+            <strong>Play with Bots</strong>
+            <small>Challenge the computer</small>
+          </span>
+        </button>
+
+        <button class="btn nx-game-option" type="button" onclick="closeModal(); hostTTTRoom();">
+          <span class="nx-option-icon">👥</span>
+          <span>
+            <strong>Create or Join Room</strong>
+            <small>Play with a friend online</small>
+          </span>
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+  }
+
+  function nxRenderGames() {
+    if (!window.NEXORA || NEXORA.page !== "games") return;
+
+    main.innerHTML = `
+      <section class="page nx-games-page">
+        <div class="nx-games-hero">
+          <div class="nx-games-kicker">PLAY ZONE</div>
+          <h1 class="section-title">Games</h1>
+          <div class="section-sub">
+            Choose a game and play your way.
+          </div>
+        </div>
+
+        <div class="grid grid2 nx-games-grid">
+          <button
+            class="card quick-card nx-game-card"
+            type="button"
+            onclick="NX_PART1_LUDO()">
+            <div class="quick-icon nx-3d-icon">🎲</div>
+            <div class="quick-name">Ludo</div>
+            <div class="quick-desc">
+              Local, bots, rooms and online matchmaking
+            </div>
+          </button>
+
+          <button
+            class="card quick-card nx-game-card"
+            type="button"
+            onclick="NX_PART1_TTT()">
+            <div class="quick-icon nx-3d-icon">❎</div>
+            <div class="quick-name">Tic-Tac-Toe</div>
+            <div class="quick-desc">
+              5×5 board with 4 connected marks
+            </div>
+          </button>
+
+          <button
+            class="card quick-card nx-game-card nx-coming-soon"
+            type="button"
+            onclick="toast('UNO is coming soon.')">
+            <div class="quick-icon nx-3d-icon">🃏</div>
+            <div class="quick-name">UNO</div>
+            <div class="quick-desc">Coming soon</div>
+          </button>
+
+          <button
+            class="card quick-card nx-game-card nx-coming-soon"
+            type="button"
+            onclick="toast('Chess is coming soon.')">
+            <div class="quick-icon nx-3d-icon">♟️</div>
+            <div class="quick-name">Chess</div>
+            <div class="quick-desc">Coming soon</div>
+          </button>
+        </div>
+
+        <div class="card nx-games-note">
+          <span class="nx-note-icon">🎮</span>
+          <span>
+            More multiplayer games and improved online lobbies are coming soon.
+          </span>
+        </div>
+      </section>
+    `;
+  }
+
+  function nxAddStyles() {
+    if (document.getElementById("nx-part1-game-styles")) return;
+
+    const style = document.createElement("style");
+    style.id = "nx-part1-game-styles";
+
+    style.textContent = `
+      .nx-games-page {
+        padding-top: 18px;
+      }
+
+      .nx-games-hero {
+        margin-bottom: 18px;
+      }
+
+      .nx-games-kicker {
+        color: #8e9cff;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        margin-bottom: 5px;
+      }
+
+      .nx-games-grid {
+        gap: 14px;
+      }
+
+      .nx-game-card {
+        min-height: 160px;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        border-color: rgba(160, 170, 255, .18);
+        background:
+          radial-gradient(circle at 85% 10%, rgba(130, 145, 255, .18), transparent 38%),
+          linear-gradient(145deg, rgba(25, 34, 52, .98), rgba(11, 16, 25, .98));
+      }
+
+      .nx-game-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        opacity: .6;
+        background:
+          linear-gradient(135deg, transparent 38%, rgba(255,255,255,.06) 50%, transparent 62%);
+        transform: translateX(-100%);
+        transition: transform .7s ease;
+      }
+
+      .nx-game-card:hover::before,
+      .nx-game-card:active::before {
+        transform: translateX(100%);
+      }
+
+      .nx-3d-icon {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        font-size: 34px;
+        border-radius: 19px;
+        margin-bottom: 13px;
+        background: linear-gradient(145deg, #35456d, #141c31);
+        border: 1px solid rgba(255,255,255,.16);
+        box-shadow:
+          inset 0 2px 3px rgba(255,255,255,.18),
+          inset 0 -7px 12px rgba(0,0,0,.3),
+          0 12px 24px rgba(0,0,0,.3);
+        transform: translateZ(0) rotate(-3deg);
+        transition: transform .25s ease, filter .25s ease;
+      }
+
+      .nx-game-card:hover .nx-3d-icon,
+      .nx-game-card:active .nx-3d-icon {
+        transform: translateY(-4px) rotate(3deg) scale(1.06);
+        filter: brightness(1.16);
+      }
+
+      .nx-game-card .quick-name {
+        font-size: 17px;
+        letter-spacing: -.2px;
+      }
+
+      .nx-game-card .quick-desc {
+        line-height: 1.35;
+      }
+
+      .nx-coming-soon {
+        opacity: .72;
+      }
+
+      .nx-coming-soon .nx-3d-icon {
+        filter: grayscale(.4);
+      }
+
+      .nx-games-note {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+        padding: 15px 16px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .nx-note-icon {
+        font-size: 22px;
+      }
+
+      .nx-game-option-list {
+        display: grid;
+        gap: 10px;
+        margin: 16px 0;
+      }
+
+      .nx-game-option {
+        width: 100%;
+        min-height: 62px;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        text-align: left;
+        padding: 11px 13px;
+        background:
+          linear-gradient(145deg, rgba(31, 42, 66, .95), rgba(14, 20, 32, .95));
+      }
+
+      .nx-game-option strong,
+      .nx-game-option small {
+        display: block;
+      }
+
+      .nx-game-option strong {
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+
+      .nx-game-option small {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .nx-option-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        font-size: 21px;
+        background: linear-gradient(145deg, #5268ad, #202a4a);
+        box-shadow:
+          inset 0 2px 3px rgba(255,255,255,.18),
+          0 8px 16px rgba(0,0,0,.25);
+      }
+
+      .nx-room-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 14px 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nx-room-divider::before,
+      .nx-room-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+        background: var(--line);
+      }
+
+      .nx-room-join {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .nx-room-join .pf-input {
+        margin: 0;
+        min-width: 0;
+      }
+
+      .nx-quick-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 16px 0;
+      }
+
+      .nx-quick-grid .btn {
+        padding: 0 8px;
+        min-height: 48px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 390px) {
+        .nx-room-join {
+          grid-template-columns: 1fr;
+        }
+
+        .nx-quick-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  window.NX_PART1_LOCAL = nxOpenLocalGame;
+  window.NX_PART1_BOTS = nxOpenBotOptions;
+  window.NX_PART1_ROOM = nxOpenRoomMenu;
+  window.NX_PART1_QUICK = nxOpenQuickMatch;
+  window.NX_PART1_LUDO = nxOpenLudoMenu;
+  window.NX_PART1_TTT = nxOpenTicTacToeMenu;
+
+  nxAddStyles();
+
+  /*
+    Delay the override slightly so all original scripts finish first.
+    The original app can continue using its own engine functions.
+  */
+  setTimeout(function () {
+    window.renderGames = nxRenderGames;
+
+    if (window.NEXORA && NEXORA.page === "games") {
+      nxRenderGames();
+    }
+
+    document.querySelectorAll(".nav-item[data-page='games']").forEach(function (button) {
+      button.addEventListener("click", function () {
+        setTimeout(function () {
+          if (window.NEXORA && NEXORA.page === "games") {
+            nxRenderGames();
+          }
+        }, 30);
+      });
+    });
+  }, 0);
+})();
+</script>
+<script>
+/* NEXORA PATCH - PART 2
+   Lobby layer for Ludo.
+   Existing Ludo engine remains unchanged.
+*/
+(function NX_PART2_LUDO_LOBBY() {
+  "use strict";
+
+  window.NX_LUDO_BOT_COUNT = window.NX_LUDO_BOT_COUNT || 0;
+  window.NX_LUDO_LOCAL_COUNT = 2;
+  window.NX_LUDO_LOBBY_MODE = null;
+  window.NX_LUDO_LOBBY_ACTIVE = false;
+
+  function nxClose() {
+    if (typeof closeModal === "function") closeModal();
+  }
+
+  function nxToast(message, error) {
+    if (typeof toast === "function") {
+      toast(message, !!error);
+    } else {
+      alert(message);
+    }
+  }
+
+  function nxSafe(value) {
+    if (typeof escapeHtml === "function") return escapeHtml(value);
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function nxGetName() {
+    return (
+      window.myName ||
+      window.NEXORA?.profile?.displayname ||
+      window.NEXORA?.profile?.username ||
+      window.NEXORA?.user?.email?.split("@")[0] ||
+      "Player"
+    );
+  }
+
+  function nxStartExistingLudo(mode, playerCount, botCount) {
+    window.NX_LUDO_BOT_COUNT = botCount || 0;
+    window.NX_LUDO_LOCAL_COUNT = playerCount || 2;
+    window.NX_LUDO_LOBBY_ACTIVE = false;
+
+    nxClose();
+
+    /*
+      Existing engine compatibility:
+      - Newer engine: startLudo(mode, names, me, count)
+      - Older engine: startLudorobot(names, names, count)
+      - Local engine: startLudolocal()
+    */
+
+    try {
+      if (mode === "local") {
+        if (typeof startLudolocal === "function") {
+          startLudolocal(playerCount);
+          return;
+        }
+
+        if (typeof startLudo === "function") {
+          startLudo("local", null, null, playerCount);
+          return;
+        }
+      }
+
+      if (mode === "bot") {
+        if (typeof startLudorobot === "function") {
+          startLudorobot(null, null, botCount || 1);
+          return;
+        }
+
+        if (typeof startLudo === "function") {
+          startLudo("robot", null, null, botCount || 1);
+          return;
+        }
+      }
+
+      if (mode === "online") {
+        if (typeof startLudoonline === "function") {
+          startLudoonline(
+            nxGetName(),
+            "Player",
+            0
+          );
+          return;
+        }
+
+        if (typeof beginOnline === "function") {
+          beginOnline();
+          return;
+        }
+
+        if (typeof startLudo === "function") {
+          startLudo("online", null, null, playerCount || 2);
+          return;
+        }
+      }
+
+      nxToast("The selected game mode is not available yet.", true);
+    } catch (error) {
+      console.error("NX Ludo start error:", error);
+      nxToast("The game could not be started. Please try again.", true);
+    }
+  }
+
+  function nxRenderLocalLobby() {
+    window.NX_LUDO_LOBBY_MODE = "local";
+    window.NX_LUDO_LOBBY_ACTIVE = true;
+
+    openModal(`
+      <div class="modal-title">Local Game</div>
+      <div class="modal-sub">
+        Choose the number of players on this device.
+      </div>
+
+      <div class="nx-lobby-list">
+        <button class="btn nx-lobby-choice" data-local-count="2">
+          <span class="nx-lobby-icon">👥</span>
+          <span>
+            <strong>2 Players</strong>
+            <small>Two players on one device</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" data-local-count="3">
+          <span class="nx-lobby-icon">👥</span>
+          <span>
+            <strong>3 Players</strong>
+            <small>Three players on one device</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" data-local-count="4">
+          <span class="nx-lobby-icon">👥</span>
+          <span>
+            <strong>4 Players</strong>
+            <small>Four players on one device</small>
+          </span>
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+
+    modalContent.querySelectorAll("[data-local-count]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const count = Number(button.dataset.localCount || 2);
+        nxStartExistingLudo("local", count, 0);
+      });
+    });
+  }
+
+  function nxRenderBotLobby() {
+    window.NX_LUDO_LOBBY_MODE = "bot";
+    window.NX_LUDO_LOBBY_ACTIVE = true;
+
+    openModal(`
+      <div class="modal-title">Play with Bots</div>
+      <div class="modal-sub">
+        Select how many computer opponents you want to add.
+      </div>
+
+      <div class="nx-lobby-list">
+        <button class="btn nx-lobby-choice" data-bot-count="1">
+          <span class="nx-lobby-icon">🤖</span>
+          <span>
+            <strong>1 Bot</strong>
+            <small>You versus one computer opponent</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" data-bot-count="2">
+          <span class="nx-lobby-icon">🤖</span>
+          <span>
+            <strong>2 Bots</strong>
+            <small>Play with two computer opponents</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" data-bot-count="3">
+          <span class="nx-lobby-icon">🤖</span>
+          <span>
+            <strong>3 Bots</strong>
+            <small>Full four-player bot match</small>
+          </span>
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+
+    modalContent.querySelectorAll("[data-bot-count]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const count = Number(button.dataset.botCount || 1);
+        nxStartExistingLudo("bot", count + 1, count);
+      });
+    });
+  }
+
+  function nxRenderRoomLobby() {
+    window.NX_LUDO_LOBBY_MODE = "room";
+    window.NX_LUDO_LOBBY_ACTIVE = true;
+
+    openModal(`
+      <div class="modal-title">Create or Join Room</div>
+      <div class="modal-sub">
+        Create a private room or join one with a room code.
+      </div>
+
+      <button
+        class="btn primary-btn"
+        type="button"
+        onclick="NX_PART2_CREATE_ROOM()">
+        Create a Room
+      </button>
+
+      <div class="nx-lobby-divider">
+        <span>OR</span>
+      </div>
+
+      <div class="nx-room-form">
+        <input
+          id="nxPart2RoomCode"
+          class="pf-input"
+          maxlength="8"
+          autocomplete="off"
+          autocapitalize="characters"
+          placeholder="Enter room code"
+        />
+
+        <button
+          class="btn primary-btn"
+          type="button"
+          onclick="NX_PART2_JOIN_ROOM()">
+          Join Room
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+  }
+
+  function nxCreateRoom() {
+    nxClose();
+
+    try {
+      if (typeof hostLudo === "function") {
+        hostLudo();
+        return;
+      }
+
+      if (typeof hostLudocode === "function") {
+        hostLudocode();
+        return;
+      }
+
+      nxToast("Room creation is not available yet.", true);
+    } catch (error) {
+      console.error("NX room creation error:", error);
+      nxToast("The room could not be created.", true);
+    }
+  }
+
+  function nxJoinRoom() {
+    const field = document.getElementById("nxPart2RoomCode");
+    const code = field?.value?.trim()?.toUpperCase();
+
+    if (!code || code.length < 4) {
+      nxToast("Please enter a valid room code.", true);
+      return;
+    }
+
+    nxClose();
+
+    try {
+      if (typeof joinLudo === "function") {
+        joinLudo(code);
+        return;
+      }
+
+      nxToast("Room joining is not available yet.", true);
+    } catch (error) {
+      console.error("NX room joining error:", error);
+      nxToast("The room could not be joined.", true);
+    }
+  }
+
+  function nxRenderQuickMatchLobby() {
+    window.NX_LUDO_LOBBY_MODE = "quick";
+    window.NX_LUDO_LOBBY_ACTIVE = true;
+
+    openModal(`
+      <div class="modal-title">Quick Match</div>
+      <div class="modal-sub">
+        Choose the maximum number of players for the online lobby.
+      </div>
+
+      <div class="nx-lobby-list">
+        <button class="btn nx-lobby-choice" data-match-count="2">
+          <span class="nx-lobby-icon">🌐</span>
+          <span>
+            <strong>2 Players</strong>
+            <small>Find one random online player</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" data-match-count="3">
+          <span class="nx-lobby-icon">🌐</span>
+          <span>
+            <strong>3 Players</strong>
+            <small>Find two random online players</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" data-match-count="4">
+          <span class="nx-lobby-icon">🌐</span>
+          <span>
+            <strong>4 Players</strong>
+            <small>Find a full online lobby</small>
+          </span>
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+
+    modalContent.querySelectorAll("[data-match-count]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const count = Number(button.dataset.matchCount || 2);
+        nxClose();
+
+        if (typeof findMatch === "function") {
+          findMatch("ludo", count);
+        } else {
+          nxToast("Quick Match is not available yet.", true);
+        }
+      });
+    });
+  }
+
+  function nxShowLudoLobby() {
+    const roomCode = window.LROOM?.code || "ONLINE";
+    const players = Array.isArray(window.LB) ? window.LB : [];
+    const hostId = window.LROOM?.host || players[0]?.id;
+    const isHost = hostId && window.NEXORA?.user?.id === hostId;
+
+    const playerRows = players.length
+      ? players.map(function (player, index) {
+          const name = nxSafe(player.name || "Player");
+          const role = player.id === hostId ? "Host" : "Player";
+
+          return `
+            <div class="nx-player-row">
+              <div class="avatar">${nxSafe((player.name || "P").slice(0, 1).toUpperCase())}</div>
+              <div class="nx-player-info">
+                <strong>${name}</strong>
+                <small>${role} · Connected</small>
+              </div>
+              <span class="nx-player-status">●</span>
+            </div>
+          `;
+        }).join("")
+      : `
+        <div class="nx-empty-lobby">
+          Waiting for players to join...
+        </div>
+      `;
+
+    openModal(`
+      <div class="modal-title">Ludo Lobby</div>
+      <div class="modal-sub">
+        Room code: <strong>${nxSafe(roomCode)}</strong>
+      </div>
+
+      <div class="nx-lobby-card">
+        ${playerRows}
+      </div>
+
+      <div class="nx-lobby-settings">
+        <div>
+          <strong>Match settings</strong>
+          <small>Bot selection will be available before starting.</small>
+        </div>
+        <span class="nx-setting-chip">
+          ${Math.max(2, players.length)}/4 players
+        </span>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          class="btn danger"
+          type="button"
+          onclick="NX_PART2_LEAVE_ROOM()">
+          Leave Room
+        </button>
+
+        ${
+          isHost
+            ? `
+              <button
+                class="btn primary-btn"
+                type="button"
+                ${players.length < 2 ? "disabled" : ""}
+                onclick="NX_PART2_START_ONLINE()">
+                Start Game
+              </button>
+            `
+            : `
+              <button class="btn" type="button" disabled>
+                Waiting for Host
+              </button>
+            `
+        }
+      </div>
+    `);
+  }
+
+  function nxLeaveRoom() {
+    try {
+      if (typeof closeRoom === "function") closeRoom();
+    } catch (error) {
+      console.warn("NX leave room warning:", error);
+    }
+
+    window.NX_LUDO_LOBBY_ACTIVE = false;
+    nxClose();
+
+    if (window.NEXORA) {
+      NEXORA.page = "games";
+    }
+
+    if (typeof setPage === "function") {
+      setPage("games");
+    }
+  }
+
+  function nxStartOnline() {
+    const players = Array.isArray(window.LB) ? window.LB : [];
+
+    if (players.length < 2) {
+      nxToast("At least two players are required to start.", true);
+      return;
+    }
+
+    window.NX_LUDO_BOT_COUNT = 0;
+    window.NX_LUDO_LOBBY_ACTIVE = false;
+    nxClose();
+
+    try {
+      if (typeof beginOnline === "function") {
+        beginOnline();
+        return;
+      }
+
+      if (typeof startLudoonline === "function") {
+        const first = players[0]?.name || nxGetName();
+        const second = players[1]?.name || "Player 2";
+        startLudoonline(first, second, 0);
+        return;
+      }
+
+      nxToast("Online game start is not available yet.", true);
+    } catch (error) {
+      console.error("NX online start error:", error);
+      nxToast("The online game could not be started.", true);
+    }
+  }
+
+  function nxRenderLudoMenuOverride() {
+    openModal(`
+      <div class="modal-title">Ludo</div>
+      <div class="modal-sub">
+        Select a game mode.
+      </div>
+
+      <div class="nx-lobby-list">
+        <button class="btn nx-lobby-choice" type="button" onclick="NX_PART2_LOCAL()">
+          <span class="nx-lobby-icon">📱</span>
+          <span>
+            <strong>Local Game</strong>
+            <small>Play on one device</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" type="button" onclick="NX_PART2_BOTS()">
+          <span class="nx-lobby-icon">🤖</span>
+          <span>
+            <strong>Play with Bots</strong>
+            <small>Choose computer opponents</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" type="button" onclick="NX_PART2_ROOM()">
+          <span class="nx-lobby-icon">👥</span>
+          <span>
+            <strong>Create or Join Room</strong>
+            <small>Play privately with friends</small>
+          </span>
+        </button>
+
+        <button class="btn nx-lobby-choice" type="button" onclick="NX_PART2_QUICK()">
+          <span class="nx-lobby-icon">🌐</span>
+          <span>
+            <strong>Quick Match</strong>
+            <small>Find random online players</small>
+          </span>
+        </button>
+      </div>
+
+      <button class="btn" type="button" onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+  }
+
+  window.NX_PART2_LOCAL = nxRenderLocalLobby;
+  window.NX_PART2_BOTS = nxRenderBotLobby;
+  window.NX_PART2_ROOM = nxRenderRoomLobby;
+  window.NX_PART2_QUICK = nxRenderQuickMatchLobby;
+  window.NX_PART2_CREATE_ROOM = nxCreateRoom;
+  window.NX_PART2_JOIN_ROOM = nxJoinRoom;
+  window.NX_PART2_SHOW_LOBBY = nxShowLudoLobby;
+  window.NX_PART2_LEAVE_ROOM = nxLeaveRoom;
+  window.NX_PART2_START_ONLINE = nxStartOnline;
+
+  /*
+    Override the Part 1 menu after all previous scripts have loaded.
+  */
+  setTimeout(function () {
+    window.openLudoMenu = nxRenderLudoMenuOverride;
+  }, 0);
+
+  /*
+    If an existing online room opens, show the patched lobby.
+    The polling stops automatically when the room/game is gone.
+  */
+  let nxLobbyWatch = null;
+
+  function nxWatchRoomLobby() {
+    if (nxLobbyWatch) clearInterval(nxLobbyWatch);
+
+    nxLobbyWatch = setInterval(function () {
+      if (!window.NX_LUDO_LOBBY_ACTIVE) return;
+
+      if (
+        window.LROOM &&
+        Array.isArray(window.LB) &&
+        window.NEXORA?.page === "games" &&
+        !window.LUDO
+      ) {
+        if (!modalOverlay.classList.contains("hidden")) {
+          nxShowLudoLobby();
+        }
+      }
+    }, 1400);
+  }
+
+  nxWatchRoomLobby();
+
+  /*
+    Lightweight visual update when the original room/lobby state changes.
+  */
+  const nxStyle = document.createElement("style");
+  nxStyle.id = "nx-part2-lobby-styles";
+
+  nxStyle.textContent = `
+    .nx-lobby-list {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .nx-lobby-choice {
+      width: 100%;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 11px 13px;
+      text-align: left;
+      background:
+        linear-gradient(145deg, rgba(31,42,66,.96), rgba(14,20,32,.96));
+    }
+
+    .nx-lobby-choice strong,
+    .nx-lobby-choice small {
+      display: block;
+    }
+
+    .nx-lobby-choice strong {
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .nx-lobby-choice small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .nx-lobby-icon {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      font-size: 22px;
+      background: linear-gradient(145deg, #536ab0, #202a4a);
+      box-shadow:
+        inset 0 2px 3px rgba(255,255,255,.18),
+        0 8px 18px rgba(0,0,0,.28);
+    }
+
+    .nx-lobby-card {
+      max-height: 245px;
+      overflow: auto;
+      margin: 14px 0;
+      padding: 4px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .nx-player-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 58px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .nx-player-row:last-child {
+      border-bottom: 0;
+    }
+
+    .nx-player-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .nx-player-info strong,
+    .nx-player-info small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nx-player-info strong {
+      font-size: 14px;
+    }
+
+    .nx-player-info small {
+      color: var(--muted);
+      margin-top: 3px;
+      font-size: 11px;
+    }
+
+    .nx-player-status {
+      color: #42d392;
+      font-size: 16px;
+      text-shadow: 0 0 12px #42d392;
+    }
+
+    .nx-empty-lobby {
+      padding: 28px 10px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .nx-lobby-settings {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 13px;
+      margin-bottom: 14px;
+      border-radius: 15px;
+      background: rgba(124,140,255,.09);
+      border: 1px solid rgba(124,140,255,.18);
+    }
+
+    .nx-lobby-settings > div {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .nx-lobby-settings strong,
+    .nx-lobby-settings small {
+      display: block;
+    }
+
+    .nx-lobby-settings strong {
+      font-size: 13px;
+    }
+
+    .nx-lobby-settings small {
+      color: var(--muted);
+      margin-top: 3px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .nx-setting-chip {
+      flex: 0 0 auto;
+      padding: 5px 8px;
+      border-radius: 10px;
+      color: #aab3ff;
+      background: rgba(124,140,255,.16);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .nx-lobby-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .nx-lobby-divider::before,
+    .nx-lobby-divider::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
+    .nx-room-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 13px;
+    }
+
+    .nx-room-form .pf-input {
+      min-width: 0;
+      margin: 0;
+    }
+
+    @media (max-width: 390px) {
+      .nx-room-form {
+        grid-template-columns: 1fr;
+      }
+    }
+  `;
+
+  document.head.appendChild(nxStyle);
+})();
+</script>
+<script>
+/* NEXORA PATCH - PART 3A
+   Critical UI stability patch:
+   1. Stable floating call bar
+   2. Rematch UI cleanup
+   3. Correct local turn display
+*/
+(function NX_PART3A_CRITICAL_FIXES() {
+  "use strict";
+
+  window.NX_CALL_MINIMIZED = true;
+  window.NX_REMATCH_STATE = {
+    requested: false,
+    accepted: false,
+    game: null,
+    at: 0
+  };
+
+  function nxToast(message, error) {
+    if (typeof toast === "function") toast(message, !!error);
+  }
+
+  function nxCallState() {
+    return window.NEXORA?.call || window.CC || null;
+  }
+
+  function nxIsCallActive() {
+    const call = nxCallState();
+    return !!call && call.state && call.state !== "idle";
+  }
+
+  function nxApplyMiniCallState() {
+    const overlay =
+      document.getElementById("callOverlay") ||
+      document.querySelector("#callOverlay");
+
+    if (!overlay || !nxIsCallActive()) return;
+
+    const mini = window.NX_CALL_MINIMIZED !== false;
+    overlay.classList.toggle("mini", mini);
+
+    /*
+      Important:
+      A mini call must remain visible and clickable.
+      It is never hidden while the call is active.
+    */
+    overlay.classList.remove("hidden");
+    overlay.style.pointerEvents = "none";
+
+    const card = overlay.querySelector(".call-card");
+    if (card) card.style.pointerEvents = "auto";
+
+    const avatar = overlay.querySelector(".call-avatar");
+    if (avatar) {
+      avatar.onclick = function () {
+        window.NX_CALL_MINIMIZED = false;
+        nxApplyMiniCallState();
+      };
+    }
+
+    const minimizeButton =
+      overlay.querySelector("#callMin") ||
+      overlay.querySelector("[title*='hota']") ||
+      overlay.querySelector("[title*='Minimize']");
+
+    if (minimizeButton) {
+      minimizeButton.onclick = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        window.NX_CALL_MINIMIZED = true;
+        nxApplyMiniCallState();
+      };
+    }
+  }
+
+  function nxForceMiniCall() {
+    window.NX_CALL_MINIMIZED = true;
+    nxApplyMiniCallState();
+  }
+
+  function nxOpenFullCall() {
+    window.NX_CALL_MINIMIZED = false;
+    nxApplyMiniCallState();
+  }
+
+  window.NX_FORCE_MINI_CALL = nxForceMiniCall;
+  window.NX_OPEN_FULL_CALL = nxOpenFullCall;
+
+  /*
+    Re-apply mini state after existing call-state functions run.
+    Existing code may call callUI() repeatedly, so one call is not enough.
+  */
+  setInterval(function () {
+    if (nxIsCallActive()) {
+      nxApplyMiniCallState();
+    }
+  }, 350);
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && nxIsCallActive()) {
+      setTimeout(nxApplyMiniCallState, 80);
+    }
+  });
+
+  window.addEventListener("resize", function () {
+    if (nxIsCallActive()) {
+      setTimeout(nxApplyMiniCallState, 80);
+    }
+  });
+
+  function nxGameKind() {
+    const page = document.getElementById("main");
+    if (!page) return null;
+
+    if (
+      page.querySelector(".ludo-wrap") ||
+      page.querySelector("#ludoCv") ||
+      page.querySelector("#ludoBoard")
+    ) return "ludo";
+
+    if (page.querySelector(".cell")) return "ttt";
+
+    if (page.querySelector(".u-page")) return "uno";
+
+    return null;
+  }
+
+  function nxCurrentUserId() {
+    return window.NEXORA?.user?.id || null;
+  }
+
+  function nxIsMyLudoTurn() {
+    const game = window.LUDO;
+    const me = nxCurrentUserId();
+
+    if (!game || !Array.isArray(game.players)) return null;
+
+    const current = game.players[game.turn];
+    if (!current) return null;
+
+    if (typeof game.me === "number") {
+      return game.turn === game.me;
+    }
+
+    if (me && current.id) {
+      return current.id === me;
+    }
+
+    return game.mode === "local"
+      ? true
+      : game.turn === 0;
+  }
+
+  function nxUpdateLudoTurnText() {
+    const game = window.LUDO;
+    if (!game) return;
+
+    const message =
+      document.getElementById("lMsg") ||
+      document.getElementById("idlMsg") ||
+      document.querySelector("#lMsg");
+
+    const hint =
+      document.getElementById("lHint") ||
+      document.getElementById("idlHint") ||
+      document.querySelector("#lHint");
+
+    if (!message && !hint) return;
+
+    const current =
+      Array.isArray(game.players) ? game.players[game.turn] : null;
+
+    if (game.winner) {
+      if (message) message.textContent = game.winner + " won the game.";
+      if (hint) hint.textContent = "Game finished.";
+      return;
+    }
+
+    if (!current) return;
+
+    const myTurn = nxIsMyLudoTurn();
+    const name = current.name || "Opponent";
+
+    if (message) {
+      message.textContent = myTurn
+        ? "Your turn"
+        : name + "'s turn";
+    }
+
+    if (hint) {
+      if (game.rolling) {
+        hint.textContent = "Rolling the dice...";
+      } else if (game.dice) {
+        hint.textContent = myTurn
+          ? "Choose a token."
+          : "Waiting for " + name + ".";
+      } else {
+        hint.textContent = myTurn
+          ? "Roll the dice to continue."
+          : "Waiting for " + name + ".";
+      }
+    }
+  }
+
+  function nxIsMyTTTTurn() {
+    const game = window.TTT;
+    if (!game) return null;
+
+    if (typeof game.mine === "string" && typeof game.t === "string") {
+      return game.t === game.mine;
+    }
+
+    if (typeof game.me === "string" && typeof game.t === "string") {
+      return game.t === game.me;
+    }
+
+    return null;
+  }
+
+  function nxUpdateTTTTurnText() {
+    const game = window.TTT;
+    if (!game || game.over) return;
+
+    const myTurn = nxIsMyTTTTurn();
+    if (myTurn === null) return;
+
+    if (typeof game.msg === "string") {
+      game.msg = myTurn
+        ? "Your turn"
+        : "Opponent's turn";
+    }
+
+    const selectors = [
+      ".game-shell .section-sub",
+      ".page .section-sub",
+      "#tttMessage",
+      "#tttMsg"
+    ];
+
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (!element) continue;
+
+      const text = element.textContent || "";
+
+      if (
+        text.includes("Your turn") ||
+        text.includes("Opponent") ||
+        text.includes("ki baari") ||
+        text.includes("Dost")
+      ) {
+        element.textContent = myTurn
+          ? "Your turn"
+          : "Opponent's turn";
+      }
+    }
+  }
+
+  function nxRefreshTurnUI() {
+    const kind = nxGameKind();
+
+    if (kind === "ludo") nxUpdateLudoTurnText();
+    if (kind === "ttt") nxUpdateTTTTurnText();
+  }
+
+  setInterval(nxRefreshTurnUI, 260);
+
+  function nxCleanRematchUI() {
+    const game = nxGameKind();
+    if (!game) return;
+
+    const buttons = Array.from(
+      document.querySelectorAll(
+        "button, .btn, .primary-btn"
+      )
+    );
+
+    const rematchButtons = buttons.filter(function (button) {
+      const text = (button.textContent || "").trim().toLowerCase();
+
+      return (
+        text.includes("rematch") ||
+        text.includes("waiting for opponent") ||
+        text.includes("phir khel") ||
+        text.includes("dobara")
+      );
+    });
+
+    if (!rematchButtons.length) return;
+
+    const winner =
+      window.LUDO?.winner ||
+      window.TTT?.over ||
+      window.UG?.winner;
+
+    /*
+      Do not show Waiting for opponent before a rematch
+      has actually been requested.
+    */
+    rematchButtons.forEach(function (button) {
+      const text = (button.textContent || "").toLowerCase();
+
+      if (text.includes("waiting for opponent")) {
+        if (!window.NX_REMATCH_STATE.requested) {
+          button.textContent = "Rematch";
+          button.disabled = false;
+        }
+      }
+
+      if (
+        winner &&
+        text.includes("rematch") &&
+        !button.dataset.nxBound
+      ) {
+        button.dataset.nxBound = "1";
+
+        button.addEventListener("click", function () {
+          window.NX_REMATCH_STATE.requested = true;
+          window.NX_REMATCH_STATE.game = game;
+          window.NX_REMATCH_STATE.at = Date.now();
+
+          button.disabled = true;
+          button.textContent = "Waiting for opponent";
+
+          setTimeout(function () {
+            if (
+              window.NX_REMATCH_STATE.requested &&
+              Date.now() - window.NX_REMATCH_STATE.at > 15000
+            ) {
+              window.NX_REMATCH_STATE.requested = false;
+              button.disabled = false;
+              button.textContent = "Rematch";
+              nxToast(
+                "The opponent has not accepted the rematch yet.",
+                true
+              );
+            }
+          }, 15500);
+        });
+      }
+    });
+  }
+
+  setInterval(nxCleanRematchUI, 400);
+
+  /*
+    Prevent duplicate end-state controls from stacking.
+  */
+  const nxRematchObserver = new MutationObserver(function () {
+    nxCleanRematchUI();
+    nxRefreshTurnUI();
+
+    if (nxIsCallActive()) {
+      nxApplyMiniCallState();
+    }
+  });
+
+  const nxMain = document.getElementById("main");
+  if (nxMain) {
+    nxRematchObserver.observe(nxMain, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  /*
+    Re-apply critical state after the original functions are called.
+  */
+  ["renderLudo", "updateLudo", "renderTTT"].forEach(function (name) {
+    const original = window[name];
+
+    if (typeof original !== "function") return;
+    if (original.__nxPart3aWrapped) return;
+
+    function wrappedFunction() {
+      const result = original.apply(this, arguments);
+
+      setTimeout(function () {
+        nxRefreshTurnUI();
+        nxCleanRematchUI();
+
+        if (nxIsCallActive()) {
+          nxApplyMiniCallState();
+        }
+      }, 0);
+
+      return result;
+    }
+
+    wrappedFunction.__nxPart3aWrapped = true;
+    window[name] = wrappedFunction;
+  });
+
+  /*
+    Fix accidental full-screen reset from old callUI implementations.
+  */
+  const originalCallUI = window.callUI;
+
+  if (
+    typeof originalCallUI === "function" &&
+    !originalCallUI.__nxPart3aWrapped
+  ) {
+    function wrappedCallUI() {
+      const result = originalCallUI.apply(this, arguments);
+
+      setTimeout(function () {
+        if (nxIsCallActive()) {
+          nxApplyMiniCallState();
+        }
+      }, 0);
+
+      return result;
+    }
+
+    wrappedCallUI.__nxPart3aWrapped = true;
+    window.callUI = wrappedCallUI;
+  }
+
+  setTimeout(function () {
+    if (nxIsCallActive()) {
+      nxApplyMiniCallState();
+    }
+
+    nxCleanRematchUI();
+    nxRefreshTurnUI();
+  }, 500);
+})();
+</script>
+<script>
+/* NEXORA PATCH - PART 3B
+   Reconnect and stale-state recovery.
+*/
+(function NX_PART3B_RECOVERY() {
+  "use strict";
+
+  const NX = {
+    connected: true,
+    lastLudoSeq: -1,
+    lastTTTSeq: -1,
+    reconnecting: false,
+    reconnectTimer: null,
+    heartbeatTimer: null,
+    staleTimer: null,
+    rematchToken: 0,
+    botFallbackShown: false
+  };
+
+  window.NX_RECOVERY = NX;
+
+  function nxToast(message, error) {
+    if (typeof toast === "function") toast(message, !!error);
+  }
+
+  function nxGameKind() {
+    const mainEl = document.getElementById("main");
+    if (!mainEl) return null;
+
+    if (
+      mainEl.querySelector(".ludo-wrap") ||
+      mainEl.querySelector("#ludoCv") ||
+      mainEl.querySelector("#ludoBoard")
+    ) return "ludo";
+
+    if (mainEl.querySelector(".cell")) return "ttt";
+
+    if (mainEl.querySelector(".u-page")) return "uno";
+
+    return null;
+  }
+
+  function nxRoomActive() {
+    return !!(
+      window.LROOM ||
+      window.TCH ||
+      window.UCH ||
+      window.MMC
+    );
+  }
+
+  function nxSetStatus(text, tone) {
+    let node = document.getElementById("nxRecoveryStatus");
+
+    if (!node) {
+      node = document.createElement("div");
+      node.id = "nxRecoveryStatus";
+      node.className = "nx-recovery-status";
+      document.body.appendChild(node);
+    }
+
+    node.textContent = text;
+    node.dataset.tone = tone || "info";
+    node.classList.add("show");
+
+    if (tone === "ok") {
+      setTimeout(function () {
+        node.classList.remove("show");
+      }, 2600);
+    }
+  }
+
+  function nxClearStatus() {
+    document.getElementById("nxRecoveryStatus")?.classList.remove("show");
+  }
+
+  function nxSendLudoMessage(payload) {
+    try {
+      if (typeof lsend === "function") {
+        lsend(payload);
+        return true;
+      }
+
+      if (
+        window.LROOM &&
+        typeof LROOM.send === "function"
+      ) {
+        LROOM.send({
+          type: "broadcast",
+          event: "g",
+          payload: {
+            ...payload,
+            from: window.NEXORA?.user?.id
+          }
+        });
+
+        return true;
+      }
+    } catch (error) {
+      console.warn("NX Ludo send failed:", error);
+    }
+
+    return false;
+  }
+
+  function nxSendTTTMessage(payload) {
+    try {
+      if (
+        window.TCH &&
+        typeof TCH.send === "function"
+      ) {
+        TCH.send({
+          type: "broadcast",
+          event: "g",
+          payload: {
+            ...payload,
+            from: window.NEXORA?.user?.id
+          }
+        });
+
+        return true;
+      }
+    } catch (error) {
+      console.warn("NX TTT send failed:", error);
+    }
+
+    return false;
+  }
+
+  function nxRequestLudoSnapshot() {
+    if (!window.LUDO || LUDO.mode !== "online") return;
+
+    nxSetStatus("Reconnecting game...", "warn");
+
+    nxSendLudoMessage({
+      t: "need",
+      seq: NX.lastLudoSeq
+    });
+
+    setTimeout(function () {
+      if (window.LUDO && LUDO.mode === "online") {
+        try {
+          if (typeof sendSnap === "function") {
+            sendSnap();
+          } else if (typeof sendSnapshot === "function") {
+            sendSnapshot();
+          }
+        } catch (error) {
+          console.warn("NX snapshot request failed:", error);
+        }
+      }
+    }, 1800);
+  }
+
+  function nxRequestTTTSnapshot() {
+    if (!window.TTT || !TTT.online) return;
+
+    nxSetStatus("Reconnecting game...", "warn");
+
+    nxSendTTTMessage({
+      t: "need",
+      seq: NX.lastTTTSeq
+    });
+  }
+
+  function nxRecoverGame() {
+    const kind = nxGameKind();
+
+    if (!kind) return;
+
+    NX.reconnecting = true;
+    nxSetStatus("Reconnecting game...", "warn");
+
+    if (kind === "ludo") {
+      nxRequestLudoSnapshot();
+    }
+
+    if (kind === "ttt") {
+      nxRequestTTTSnapshot();
+    }
+
+    if (kind === "uno") {
+      try {
+        if (typeof UCH !== "undefined" && UCH?.send) {
+          UCH.send({
+            type: "broadcast",
+            event: "u",
+            payload: {
+              t: "need",
+              from: window.NEXORA?.user?.id
+            }
+          });
+        }
+      } catch (error) {
+        console.warn("NX UNO recovery failed:", error);
+      }
+    }
+
+    setTimeout(function () {
+      NX.reconnecting = false;
+      NX.connected = true;
+      nxSetStatus("Game connection restored", "ok");
+    }, 2400);
+  }
+
+  function nxRecoverCall() {
+    try {
+      if (typeof retryCall === "function") {
+        retryCall();
+        return;
+      }
+
+      if (typeof gvRetry === "function") {
+        gvRetry();
+        return;
+      }
+
+      if (typeof wake === "function") {
+        wake();
+      }
+    } catch (error) {
+      console.warn("NX call recovery failed:", error);
+    }
+  }
+
+  function nxHandleOnline() {
+    NX.connected = true;
+
+    if (nxGameKind()) {
+      nxRecoverGame();
+    }
+
+    if (window.NEXORA?.call?.state !== "idle") {
+      setTimeout(nxRecoverCall, 500);
+    }
+  }
+
+  function nxHandleOffline() {
+    NX.connected = false;
+
+    if (nxGameKind()) {
+      nxSetStatus("Internet connection lost", "bad");
+    }
+
+    if (window.NEXORA?.call?.state !== "idle") {
+      nxSetStatus("Call reconnecting...", "warn");
+    }
+  }
+
+  window.addEventListener("online", nxHandleOnline);
+  window.addEventListener("offline", nxHandleOffline);
+
+  function nxAcceptLudoSnapshot(snapshot) {
+    const game = window.LUDO;
+    if (!game || !snapshot) return;
+
+    const seq = Number(snapshot.seq ?? 0);
+
+    if (seq < NX.lastLudoSeq) return;
+    NX.lastLudoSeq = seq;
+
+    if (Array.isArray(snapshot.tokens) && Array.isArray(game.players)) {
+      snapshot.tokens.forEach(function (tokens, index) {
+        if (game.players[index] && Array.isArray(tokens)) {
+          game.players[index].tokens = tokens.slice(0, 4);
+        }
+      });
+    }
+
+    if (
+      typeof snapshot.turn === "number" &&
+      Number.isInteger(snapshot.turn)
+    ) {
+      game.turn = snapshot.turn;
+    }
+
+    if (typeof snapshot.sixes === "number") {
+      game.sixes = snapshot.sixes;
+    }
+
+    if (typeof snapshot.winner === "string" || snapshot.winner === null) {
+      game.winner = snapshot.winner;
+    }
+
+    game.dice = null;
+    game.rolling = false;
+    game.busy = false;
+
+    try {
+      if (typeof updateLudo === "function") {
+        updateLudo();
+      }
+    } catch (error) {
+      console.warn("NX Ludo UI recovery failed:", error);
+    }
+
+    nxSetStatus("Game state synchronized", "ok");
+  }
+
+  function nxAcceptTTTSnapshot(snapshot) {
+    const game = window.TTT;
+    if (!game || !snapshot) return;
+
+    const seq = Number(snapshot.seq ?? 0);
+
+    if (seq < NX.lastTTTSeq) return;
+    NX.lastTTTSeq = seq;
+
+    if (Array.isArray(snapshot.board) && snapshot.board.length === 25) {
+      game.b = snapshot.board.slice(0, 25);
+    }
+
+    if (typeof snapshot.turn === "string") {
+      game.t = snapshot.turn;
+    }
+
+    if (typeof snapshot.over === "boolean") {
+      game.over = snapshot.over;
+    }
+
+    if (typeof snapshot.win !== "undefined") {
+      game.win = snapshot.win;
+    }
+
+    try {
+      if (typeof renderTTT === "function") {
+        renderTTT();
+      }
+    } catch (error) {
+      console.warn("NX TTT UI recovery failed:", error);
+    }
+
+    nxSetStatus("Game state synchronized", "ok");
+  }
+
+  function nxLudoSnapshot() {
+    const game = window.LUDO;
+    if (!game || !Array.isArray(game.players)) return null;
+
+    return {
+      seq: Number(game.seq || NX.lastLudoSeq + 1),
+      turn: Number(game.turn || 0),
+      sixes: Number(game.sixes || 0),
+      winner: game.winner || null,
+      tokens: game.players.map(function (player) {
+        return Array.isArray(player.tokens)
+          ? player.tokens.slice(0, 4)
+          : [-1, -1, -1, -1];
+      })
+    };
+  }
+
+  function nxTTTSnapshot() {
+    const game = window.TTT;
+    if (!game) return null;
+
+    return {
+      seq: Number(game.seq || NX.lastTTTSeq + 1),
+      board: Array.isArray(game.b)
+        ? game.b.slice(0, 25)
+        : Array(25).fill(""),
+      turn: game.t || "X",
+      over: !!game.over,
+      win: game.win || null
+    };
+  }
+
+  function nxWrapLudoMessageHandler() {
+    const original = window.onLudoMsg;
+
+    if (typeof original !== "function") return;
+    if (original.__nxPart3bWrapped) return;
+
+    function wrapped(message, host) {
+      const payload = message?.payload || message || {};
+
+      if (payload.t === "snap" && payload.s) {
+        nxAcceptLudoSnapshot(payload.s);
+      }
+
+      if (payload.t === "need") {
+        const snapshot = nxLudoSnapshot();
+
+        if (snapshot) {
+          nxSendLudoMessage({
+            t: "snap",
+            s: snapshot,
+            auto: true
+          });
+        }
+      }
+
+      if (payload.t === "rem") {
+        NX.rematchToken += 1;
+        NX.lastLudoSeq = -1;
+        nxSetStatus("Opponent requested a rematch", "info");
+      }
+
+      return original.apply(this, arguments);
+    }
+
+    wrapped.__nxPart3bWrapped = true;
+    window.onLudoMsg = wrapped;
+  }
+
+  function nxWrapTTTMessageHandler() {
+    const original = window.tttMsg;
+
+    if (typeof original !== "function") return;
+    if (original.__nxPart3bWrapped) return;
+
+    function wrapped(message) {
+      const payload = message?.payload || message || {};
+
+      if (payload.t === "snap" && payload.g) {
+        nxAcceptTTTSnapshot(payload.g);
+      }
+
+      if (payload.t === "need") {
+        const snapshot = nxTTTSnapshot();
+
+        if (snapshot) {
+          nxSendTTTMessage({
+            t: "snap",
+            g: snapshot
+          });
+        }
+      }
+
+      if (payload.t === "rem") {
+        NX.rematchToken += 1;
+        NX.lastTTTSeq = -1;
+        nxSetStatus("Opponent requested a rematch", "info");
+      }
+
+      return original.apply(this, arguments);
+    }
+
+    wrapped.__nxPart3bWrapped = true;
+    window.tttMsg = wrapped;
+  }
+
+  nxWrapLudoMessageHandler();
+  nxWrapTTTMessageHandler();
+
+  function nxRejectStaleLudoMove(move) {
+    const seq = Number(move?.seq ?? 0);
+
+    if (seq && seq <= NX.lastLudoSeq) {
+      return true;
+    }
+
+    if (seq) {
+      NX.lastLudoSeq = seq;
+    }
+
+    return false;
+  }
+
+  function nxRejectStaleTTTMove(move) {
+    const seq = Number(move?.s ?? move?.seq ?? 0);
+
+    if (seq && seq <= NX.lastTTTSeq) {
+      return true;
+    }
+
+    if (seq) {
+      NX.lastTTTSeq = seq;
+    }
+
+    return false;
+  }
+
+  window.NX_REJECT_STALE_LUDO_MOVE = nxRejectStaleLudoMove;
+  window.NX_REJECT_STALE_TTT_MOVE = nxRejectStaleTTTMove;
+
+  function nxShowReconnectAction() {
+    if (!nxGameKind()) return;
+
+    let button = document.getElementById("nxReconnectGame");
+
+    if (button) return;
+
+    button = document.createElement("button");
+    button.id = "nxReconnectGame";
+    button.className = "btn primary-btn nx-reconnect-button";
+    button.textContent = "Reconnect Game";
+    button.onclick = function () {
+      button.disabled = true;
+      button.textContent = "Reconnecting...";
+      nxRecoverGame();
+
+      setTimeout(function () {
+        button.remove();
+      }, 2800);
+    };
+
+    const mainEl = document.getElementById("main");
+    const page = mainEl?.querySelector(".page");
+
+    if (page) {
+      page.insertBefore(button, page.firstChild);
+    }
+  }
+
+  let nxLastActive = Date.now();
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+      const away = Date.now() - nxLastActive;
+
+      if (away > 2500 && nxGameKind()) {
+        nxRecoverGame();
+        nxShowReconnectAction();
+      }
+    } else {
+      nxLastActive = Date.now();
+    }
+  });
+
+  NX.heartbeatTimer = setInterval(function () {
+    const kind = nxGameKind();
+
+    if (!kind) return;
+    if (!nxRoomActive()) return;
+
+    if (kind === "ludo") {
+      try {
+        nxSendLudoMessage({
+          t: "thb",
+          at: Date.now(),
+          from: window.NEXORA?.user?.id
+        });
+      } catch (error) {}
+    }
+
+    if (kind === "ttt") {
+      try {
+        nxSendTTTMessage({
+          t: "hb",
+          at: Date.now(),
+          from: window.NEXORA?.user?.id
+        });
+      } catch (error) {}
+    }
+  }, 3000);
+
+  NX.staleTimer = setInterval(function () {
+    const kind = nxGameKind();
+
+    if (!kind) return;
+
+    const state = window.NEXORA?.channel?.state;
+
+    if (
+      state &&
+      ["errored", "closed", "leaving"].includes(state)
+    ) {
+      nxSetStatus("Game connection lost", "bad");
+      nxShowReconnectAction();
+    }
+  }, 2200);
+
+  const style = document.createElement("style");
+  style.id = "nx-part3b-recovery-styles";
+
+  style.textContent = `
+    .nx-recovery-status {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 74px);
+      left: 50%;
+      z-index: 9998;
+      transform: translate(-50%, -14px);
+      opacity: 0;
+      pointer-events: none;
+      max-width: calc(100vw - 30px);
+      padding: 9px 14px;
+      border-radius: 18px;
+      color: #fff;
+      background: rgba(18,25,37,.96);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 12px 32px rgba(0,0,0,.42);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+
+    .nx-recovery-status.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .nx-recovery-status[data-tone="warn"] {
+      color: #ffd36b;
+      border-color: rgba(255,211,107,.35);
+    }
+
+    .nx-recovery-status[data-tone="bad"] {
+      color: #ff8797;
+      border-color: rgba(255,90,110,.4);
+    }
+
+    .nx-recovery-status[data-tone="ok"] {
+      color: #65dfa3;
+      border-color: rgba(65,211,146,.35);
+    }
+
+    .nx-reconnect-button {
+      width: 100%;
+      margin-bottom: 12px;
+      min-height: 44px;
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  setTimeout(function () {
+    nxWrapLudoMessageHandler();
+    nxWrapTTTMessageHandler();
+  }, 1200);
+})();
+</script>
+
 
