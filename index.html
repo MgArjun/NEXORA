@@ -8920,6 +8920,2637 @@ boot();
 .nx-quick-match-clean{
   display:none !important;
 }
+  <style>
+/* NEXORA FIX: quick icons static + no tilt/3D */
+.quick-card,
+.quick-card:hover,
+.quick-card:active{
+  transform:none!important;
+  transform-style:flat!important;
+  perspective:none!important;
+  animation:none!important;
+  will-change:auto!important
+}
+
+.quick-icon,
+.quick-card .quick-icon,
+.quick-card:hover .quick-icon,
+.quick-card:active .quick-icon{
+  transform:none!important;
+  transform-style:flat!important;
+  perspective:none!important;
+  animation:none!important;
+  transition:none!important
+}
+
+.quick-icon::before,
+.quick-icon::after,
+.quick-card::before,
+.quick-card::after{
+  display:none!important;
+  content:none!important;
+  animation:none!important;
+  transform:none!important
+}
+
+/* Floating microphone remove */
+#gvBtn{
+  display:none!important
+}
+
+/* Call mini bar hide/restore */
+#nxCallRestore{
+  display:none;
+  position:fixed;
+  top:calc(10px + env(safe-area-inset-top,0px));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:100001;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(16,23,34,.92);
+  color:#fff;
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:800;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  backdrop-filter:blur(12px)
+}
+
+#nxCallHide{
+  display:none!important
+}
+
+#callOverlay.mini #nxCallHide{
+  display:inline-grid!important
+}
+
+#callOverlay.mini.nx-call-hidden{
+  display:none!important
+}
+
+#callOverlay.mini #nxCallHide{
+  display:inline-grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  min-width:30px;
+  padding:0;
+  border-radius:50%;
+  font-size:16px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.16);
+  color:#fff
+}
+</style>
+
+<script>
+/* ============================================================
+   NEXORA FINAL FIX
+
+   1. Quick icons = normal 2D, no animation
+   2. Floating microphone hidden
+   3. Call top mini-bar can be hidden/restored
+   4. Ludo:
+      MATCH -> LOBBY -> HOST START
+      Optional +1 / +2 / +3 bots
+      Host is selected automatically
+      Host controls dice, moves and turns
+   ============================================================ */
+
+(function(){
+
+  /* =========================================================
+     CALL MINI BAR HIDE
+     ========================================================= */
+
+  function nxCallBarSetup(){
+
+    const ov=$("callOverlay");
+    if(!ov)return false;
+
+    const card=ov.querySelector(".call-card");
+    if(!card)return false;
+
+    if(!$("nxCallRestore")){
+
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        '<button id="nxCallRestore">☎ Show call</button>'
+      );
+
+      $("nxCallRestore").onclick=()=>{
+        ov.classList.remove("nx-call-hidden");
+        $("nxCallRestore").style.display="none";
+      };
+    }
+
+    if(!$("nxCallHide")){
+
+      const b=document.createElement("button");
+
+      b.id="nxCallHide";
+      b.className="btn";
+      b.type="button";
+      b.title="Hide call bar";
+      b.textContent="×";
+
+      b.onclick=e=>{
+        e.stopPropagation();
+
+        if(!ov.classList.contains("mini"))return;
+
+        ov.classList.add("nx-call-hidden");
+
+        $("nxCallRestore").style.display="block";
+      };
+
+      card.appendChild(b);
+    }
+
+    return true;
+  }
+
+  nxCallBarSetup();
+
+  const nxCallWatch=new MutationObserver(()=>{
+    nxCallBarSetup();
+  });
+
+  nxCallWatch.observe(
+    document.body,
+    {
+      childList:true,
+      subtree:true
+    }
+  );
+
+  setInterval(()=>{
+
+    if(
+      $("callOverlay")?.classList.contains("mini")===false &&
+      $("nxCallRestore")
+    ){
+      $("nxCallRestore").style.display="none";
+    }
+
+  },500);
+
+
+  /* =========================================================
+     LUDO LOBBY / MATCH STATE
+     ========================================================= */
+
+  let NXLM={
+    mm:null,
+    mmChannel:null,
+    seq:0,
+    action:0,
+    active:false,
+    hostId:null,
+    players:[],
+    lastState:-1,
+    botBusy:false
+  };
+
+  const oldFindMatch=window.findMatch;
+  const oldBeginOnline=window.beginOnline;
+  const oldShowLobby=window.showLobby;
+  const oldOnLudoMsg=window.onLudoMsg;
+  const oldRollLudoDice=window.rollLudoDice;
+  const oldPlayMove=window.playMove;
+  const oldBotTurn=window.botTurn;
+  const oldLeaveLudo=window.leaveLudo;
+
+
+  const nxSend=(ch,m)=>{
+    try{
+      return ch?.send({
+        type:"broadcast",
+        event:"g",
+        payload:{
+          ...m,
+          from:NEXORA.user.id
+        }
+      });
+    }catch(_){
+      return null;
+    }
+  };
+
+
+  const nxName=p=>p?.name||"Player";
+
+  const nxHuman=p=>!p.bot;
+
+
+  /* Randomly/deterministically select one of matched users as host */
+  const nxHostPick=list=>{
+
+    let h=0;
+
+    for(const p of list){
+
+      for(
+        const c of String(p.id).replace(/-/g,"")
+      ){
+
+        h=(h*33+c.charCodeAt(0))>>>0;
+      }
+    }
+
+    return list[h%list.length].id;
+  };
+
+
+  const nxRoomCode=list=>
+    mmHash(
+      "NX"+
+      list
+        .map(p=>p.id)
+        .sort()
+        .join("|")
+    );
+
+
+  const nxCurrentPlayers=()=>NXLM.players?.length
+    ?NXLM.players
+    :(LUDO?.nxPlayers||[]);
+
+
+  const nxIsActive=()=>
+    !!(
+      LUDO &&
+      LUDO.mode==="online" &&
+      LUDO.nxActive &&
+      LROOM
+    );
+
+
+  const nxIsHost=()=>
+    nxIsActive() &&
+    LUDO.nxHostId===NEXORA.user.id;
+
+
+  function nxCancelMM(){
+
+    const c=NXLM.mmChannel;
+
+    NXLM.mmChannel=null;
+    NXLM.mm=null;
+
+    try{
+      if(c)sb.removeChannel(c);
+    }catch(_){}
+  }
+
+
+  function nxPresenceList(ch){
+
+    const seen={};
+
+    Object
+      .values(ch.presenceState())
+      .flat()
+      .forEach(x=>{
+
+        if(x?.id && !seen[x.id]){
+          seen[x.id]=x;
+        }
+
+      });
+
+    return Object
+      .values(seen)
+      .sort(
+        (a,b)=>
+          a.t-b.t ||
+          (a.id<b.id?-1:1)
+      );
+  }
+
+
+  /* =========================================================
+     OPEN MATCHED ROOM
+     ========================================================= */
+
+  async function nxOpenMatchedRoom(
+    code,
+    host,
+    list
+  ){
+
+    cancelMatch?.(true);
+    nxCancelMM();
+
+    try{
+      if(LROOM)closeRoom();
+    }catch(_){}
+
+    LB=list.map(p=>({
+      id:p.id,
+      name:p.name
+    }));
+
+    const ch=sb.channel("ludo-"+code);
+
+    LROOM=ch;
+
+    ch.code=code;
+
+    ch.host=host;
+
+    ch._nxHostId=
+      host
+      ?NEXORA.user.id
+      :list.find(p=>p.id===host)?.id||host;
+
+
+    ch.on(
+      "broadcast",
+      {event:"g"},
+      ({payload:m})=>{
+        onLudoMsg(m);
+      }
+    );
+
+
+    await new Promise(resolve=>{
+
+      ch.subscribe(s=>{
+        if(s==="SUBSCRIBED"){
+          resolve();
+        }
+      });
+
+    });
+
+
+    if(!LROOM||LROOM!==ch)return;
+
+
+    /*
+      IMPORTANT:
+      Match found ke baad game start nahi hoga.
+      Host ko Ludo lobby milegi.
+    */
+
+    if(host){
+
+      showLobby();
+
+    }else{
+
+      showWaiting();
+
+    }
+  }
+
+
+  /* =========================================================
+     MATCHMAKING UI
+     ========================================================= */
+
+  function nxMatchUI(k,list,n){
+
+    const g=GM.ludo;
+
+    if(!$("mmCnt")){
+
+      openModal(`
+        <div class="modal-title">${g.t}</div>
+
+        <div class="modal-sub">
+          Random players dhoondh rahe hain…
+        </div>
+
+        <div style="
+          display:grid;
+          place-items:center;
+          margin:20px 0 8px
+        ">
+          <div class="avw"
+            style="
+              width:130px;
+              height:130px;
+              margin:0
+            ">
+            <i></i>
+            <i></i>
+            <i></i>
+
+            <div
+              class="avatar"
+              style="
+                width:70px;
+                height:70px;
+                font-size:28px;
+                position:relative;
+                z-index:1
+              "
+            >
+              🔎
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="mmCnt"
+          style="
+            font-weight:900;
+            font-size:19px;
+            text-align:center
+          "
+        ></div>
+
+        <div
+          id="mmNames"
+          style="
+            display:flex;
+            justify-content:center;
+            gap:8px;
+            margin:14px 0 18px;
+            min-height:40px
+          "
+        ></div>
+
+        <button
+          class="btn danger"
+          style="width:100%"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+      `);
+    }
+
+
+    $("mmCnt").textContent=
+      `${k}/${n} mil gaye`;
+
+
+    $("mmNames").innerHTML=
+      Array.from(
+        {length:n},
+        (_,i)=>
+          list[i]
+          ?`
+            <div
+              class="avatar"
+              title="${escapeHtml(list[i].name)}"
+            >
+              ${escapeHtml(initials(list[i].name))}
+            </div>
+           `
+          :`
+            <div
+              class="avatar"
+              style="
+                background:#1b2334;
+                color:#566
+              "
+            >
+              ?
+            </div>
+           `
+      ).join("");
+  }
+
+
+  /* =========================================================
+     NEW LUDO MATCHMAKING
+     ========================================================= */
+
+  window.findMatch=async function(game,n){
+
+    /*
+      Ludo ko new lobby system use karna hai.
+      Baaki games old system par rahenge.
+    */
+
+    if(game!=="ludo"){
+
+      return oldFindMatch(game,n);
+    }
+
+
+    if(!NEXORA.user){
+
+      return toast(
+        "Pehle login karo",
+        "error"
+      );
+    }
+
+
+    try{
+      cancelMatch?.(true);
+    }catch(_){}
+
+
+    nxCancelMM();
+
+
+    NXLM.mm={
+      game:"ludo",
+      n
+    };
+
+
+    const ch=sb.channel(
+      `nx-mm-ludo-${n}`,
+      {
+        config:{
+          presence:{
+            key:NEXORA.user.id
+          }
+        }
+      }
+    );
+
+
+    NXLM.mmChannel=ch;
+
+
+    const me={
+      id:NEXORA.user.id,
+      name:myName(),
+      t:Date.now()
+    };
+
+
+    /* Presence sync */
+    ch.on(
+      "presence",
+      {event:"sync"},
+      async()=>{
+
+        if(
+          NXLM.mmChannel!==ch ||
+          !NXLM.mm
+        )return;
+
+
+        const list=nxPresenceList(ch);
+
+
+        nxMatchUI(
+          Math.min(list.length,n),
+          list.slice(0,n),
+          n
+        );
+
+
+        if(
+          list.length<n ||
+          !list.some(x=>x.id===me.id)
+        )return;
+
+
+        const grp=list.slice(0,n);
+
+        const hostId=nxHostPick(grp);
+
+        const code=nxRoomCode(grp);
+
+
+        /*
+          Sirf selected host room announce karega.
+        */
+
+        if(
+          hostId===me.id &&
+          !NXLM.mm.sent
+        ){
+
+          NXLM.mm.sent=true;
+
+
+          await nxSend(
+            ch,
+            {
+              t:"nx-match",
+              code,
+              hostId,
+              players:grp
+            }
+          );
+
+
+          await nxOpenMatchedRoom(
+            code,
+            true,
+            grp
+          );
+
+
+          setTimeout(()=>{
+            try{
+              sb.removeChannel(ch);
+            }catch(_){}
+          },1200);
+        }
+
+      }
+    );
+
+
+    /* Non-host receives matched room */
+    ch.on(
+      "broadcast",
+      {event:"g"},
+      async({payload:m})=>{
+
+        if(
+          NXLM.mmChannel!==ch ||
+          !NXLM.mm ||
+          m.from===NEXORA.user.id
+        )return;
+
+
+        if(m.t!=="nx-match")return;
+
+
+        NXLM.mm.sent=true;
+
+
+        await nxOpenMatchedRoom(
+          m.code,
+          m.hostId===NEXORA.user.id,
+          m.players
+        );
+
+
+        setTimeout(()=>{
+          try{
+            sb.removeChannel(ch);
+          }catch(_){}
+        },1200);
+      }
+    );
+
+
+    await new Promise(resolve=>{
+
+      ch.subscribe(s=>{
+
+        if(s==="SUBSCRIBED"){
+          resolve();
+        }
+
+      });
+
+    });
+
+
+    if(NXLM.mmChannel!==ch)return;
+
+
+    await ch.track(me);
+
+
+    nxMatchUI(
+      1,
+      [me],
+      n
+    );
+
+
+    /*
+      60 sec baad match nahi mila
+    */
+
+    NXLM.mm.to=setTimeout(()=>{
+
+      if(!NXLM.mm)return;
+
+
+      nxCancelMM();
+
+
+      openModal(`
+        <div class="modal-title">
+          Koi nahi mila 😕
+        </div>
+
+        <div class="modal-sub">
+          Abhi utne Ludo players nahi mile.
+        </div>
+
+        <button
+          class="btn primary-btn"
+          style="
+            width:100%;
+            margin-bottom:10px
+          "
+          onclick="
+            startLudo(
+              'robot',
+              null,
+              null,
+              ${Math.max(2,n)}
+            )
+          "
+        >
+          🤖 Robot ke saath khelo
+        </button>
+
+        <button
+          class="btn"
+          style="width:100%"
+          onclick="
+            findMatch('ludo',${n})
+          "
+        >
+          🔄 Dobara dhoondho
+        </button>
+      `);
+
+    },60000);
+  };
+
+
+  /* =========================================================
+     LUDO LOBBY
+     IMPORTANT: NEVER AUTO START
+     ========================================================= */
+
+  window.showLobby=function(){
+
+    const code=LROOM?.code||"";
+
+    const humans=
+      LB?.slice(0,4)||[];
+
+
+    if(!LROOM?.host){
+
+      return showWaiting();
+    }
+
+
+    const max=4;
+
+    const canBot=
+      Math.max(
+        0,
+        max-humans.length
+      );
+
+
+    const row=(
+      txt,
+      botCount
+    )=>`
+
+      <button
+        class="btn ${botCount===0?"primary-btn":""}"
+        style="
+          width:100%;
+          margin-top:8px
+        "
+        ${
+          humans.length+botCount<2
+          ?"disabled"
+          :""
+        }
+        onclick="
+          nxStartLudo(${botCount})
+        "
+      >
+        ${txt}
+      </button>
+    `;
+
+
+    const opts=[];
+
+
+    /* Start with humans */
+    opts.push(
+      row(
+        `▶ Start (${humans.length} players)`,
+        0
+      )
+    );
+
+
+    /* Add bots */
+    for(
+      let b=1;
+      b<=canBot;
+      b++
+    ){
+
+      opts.push(
+        row(
+          `🤖 Play with +${b} bot${b>1?"s":""}`,
+          b
+        )
+      );
+    }
+
+
+    openModal(`
+
+      <div class="modal-title">
+        Ludo lobby 🎲
+      </div>
+
+      <div class="modal-sub">
+        Game start karne se pehle
+        players/bots choose karo.
+      </div>
+
+      <div
+        class="card"
+        style="
+          padding:14px;
+          text-align:center;
+          font-size:30px;
+          font-weight:900;
+          letter-spacing:6px;
+          margin-bottom:12px
+        "
+      >
+        ${code}
+      </div>
+
+
+      <div
+        style="
+          font-size:12px;
+          color:var(--muted);
+          margin:0 0 7px 3px
+        "
+      >
+        Host:
+        <b style="color:#fff">
+          ${
+            escapeHtml(
+              (
+                LB.find(
+                  x=>x.id===LROOM._nxHostId
+                )||LB[0]
+              )?.name||"Host"
+            )
+          }
+        </b>
+      </div>
+
+
+      ${
+        humans.map(
+          (p,i)=>`
+
+            <div class="pr">
+
+              <div class="avatar">
+                ${escapeHtml(initials(p.name))}
+              </div>
+
+              <div class="nm">
+                ${escapeHtml(p.name)}
+
+                ${
+                  p.id===LROOM._nxHostId
+                  ?" (Host)"
+                  :""
+                }
+              </div>
+
+            </div>
+
+          `
+        ).join("")
+      }
+
+
+      <div style="margin-top:10px">
+        ${opts.join("")}
+      </div>
+
+
+      <button
+        class="btn danger"
+        style="
+          width:100%;
+          margin-top:10px
+        "
+        onclick="
+          closeRoom();
+          closeModal()
+        "
+      >
+        Cancel
+      </button>
+
+    `);
+  };
+
+
+  /* =========================================================
+     NON-HOST WAITING LOBBY
+     ========================================================= */
+
+  window.showWaiting=function(){
+
+    const code=LROOM?.code||"";
+
+
+    openModal(`
+
+      <div class="modal-title">
+        Ludo lobby 🎲
+      </div>
+
+      <div class="modal-sub">
+        Host players/bots choose karke
+        Start karega…
+      </div>
+
+
+      <div
+        class="card"
+        style="
+          padding:14px;
+          text-align:center;
+          font-size:30px;
+          font-weight:900;
+          letter-spacing:6px;
+          margin-bottom:12px
+        "
+      >
+        ${code}
+      </div>
+
+
+      ${
+        (LB||[]).map(
+          p=>`
+
+            <div class="pr">
+
+              <div class="avatar">
+                ${escapeHtml(initials(p.name))}
+              </div>
+
+              <div class="nm">
+
+                ${escapeHtml(p.name)}
+
+                ${
+                  p.id===LROOM._nxHostId
+                  ?" (Host)"
+                  :""
+                }
+
+              </div>
+
+            </div>
+
+          `
+        ).join("")
+      }
+
+
+      <div
+        class="card"
+        style="
+          margin-top:12px;
+          padding:12px;
+          text-align:center;
+          color:var(--muted);
+          font-size:12px
+        "
+      >
+        Host ke start button ka wait karo.
+      </div>
+
+
+      <button
+        class="btn danger"
+        style="
+          width:100%;
+          margin-top:10px
+        "
+        onclick="
+          closeRoom();
+          closeModal()
+        "
+      >
+        Leave
+      </button>
+
+    `);
+  };
+
+
+  /* =========================================================
+     HOST STARTS GAME
+     ========================================================= */
+
+  async function nxStartLudo(botCount){
+
+    if(
+      !LROOM?.host ||
+      LB.length<2 ||
+      LB.length+botCount>4
+    ){
+      return;
+    }
+
+
+    const humans=
+      LB
+        .slice(0,4)
+        .map(p=>({
+          id:p.id,
+          name:p.name,
+          bot:false
+        }));
+
+
+    const players=
+      humans.slice();
+
+
+    for(
+      let i=1;
+      i<=botCount;
+      i++
+    ){
+
+      players.push({
+        id:`bot-${i}-${LROOM.code}`,
+        name:`Bot ${i}`,
+        bot:true
+      });
+
+    }
+
+
+    const hostId=
+      NEXORA.user.id;
+
+
+    LROOM._nxHostId=
+      hostId;
+
+
+    NXLM.players=players;
+    NXLM.hostId=hostId;
+    NXLM.active=true;
+    NXLM.lastState=-1;
+    NXLM.seq=0;
+
+
+    /*
+      Everyone receives same final player list.
+    */
+
+    nxSend(
+      LROOM,
+      {
+        t:"nx-start",
+        hostId,
+        players
+      }
+    );
+
+
+    nxStartLocal(
+      players,
+      hostId,
+      true
+    );
+  }
+
+
+  window.nxStartLudo=
+    nxStartLudo;
+
+
+  window.beginOnline=function(){
+
+    return nxStartLudo(0);
+
+  };
+
+
+  /* =========================================================
+     START LOCAL CLIENT FROM AUTHORITATIVE LIST
+     ========================================================= */
+
+  function nxStartLocal(
+    players,
+    hostId,
+    isHost
+  ){
+
+    const names=
+      players.map(p=>p.name);
+
+
+    const me=
+      players.findIndex(
+        p=>p.id===NEXORA.user.id
+      );
+
+
+    if(me<0)return;
+
+
+    startLudo(
+      "online",
+      names,
+      me
+    );
+
+
+    LUDO.nxActive=true;
+
+    LUDO.nxHostId=
+      hostId;
+
+    LUDO.nxHost=
+      hostId===NEXORA.user.id;
+
+
+    LUDO.nxPlayers=
+      players.map(
+        (p,i)=>({
+          ...p,
+          color:LUDO.players[i].color
+        })
+      );
+
+
+    LUDO.nxRoomCode=
+      LROOM?.code||"";
+
+
+    NXLM.players=
+      LUDO.nxPlayers;
+
+    NXLM.hostId=
+      hostId;
+
+    NXLM.active=true;
+
+    NXLM.lastState=-1;
+
+
+    LUDO.message=
+      LUDO.nxHost
+      ?"Lobby se game start ho gaya"
+      :"Host ne game start kiya";
+
+
+    updateLudo();
+
+
+    if(LUDO.nxHost){
+
+      setTimeout(
+        ()=>nxSendState(),
+        150
+      );
+    }
+  }
+
+
+  /* =========================================================
+     AUTHORITATIVE SNAPSHOT
+     ========================================================= */
+
+  function nxSnapshot(){
+
+    const L=LUDO;
+
+    if(!L)return null;
+
+
+    return {
+      seq:++NXLM.seq,
+
+      turn:L.turn,
+
+      dice:L.dice,
+
+      rolling:!!L.rolling,
+
+      busy:!!L.busy,
+
+      winner:L.winner||null,
+
+      sixes:L.sixes||0,
+
+      message:L.message||"",
+
+      tokens:
+        L.players.map(
+          p=>p.tokens.slice()
+        ),
+
+      players:
+        (L.nxPlayers||[]).map(
+          p=>({
+            id:p.id,
+            name:p.name,
+            bot:!!p.bot
+          })
+        )
+    };
+  }
+
+
+  function nxSendState(){
+
+    if(
+      !nxIsHost() ||
+      !LROOM
+    )return;
+
+
+    const s=
+      nxSnapshot();
+
+
+    if(!s)return;
+
+
+    LROOM.send({
+      type:"broadcast",
+      event:"g",
+      payload:{
+        t:"nx-state",
+        from:NEXORA.user.id,
+        state:s
+      }
+    });
+  }
+
+
+  /* =========================================================
+     APPLY AUTHORITATIVE STATE
+     ========================================================= */
+
+  function nxApplyState(s){
+
+    if(!s)return;
+
+
+    if(!LUDO?.nxActive){
+
+      if(!s.players?.length)return;
+
+
+      const ps=s.players;
+
+
+      nxStartLocal(
+        ps,
+        NXLM.hostId||ps[0].id,
+        false
+      );
+    }
+
+
+    if(!LUDO)return;
+
+
+    if(
+      s.seq<=NXLM.lastState
+    )return;
+
+
+    NXLM.lastState=
+      s.seq;
+
+
+    LUDO.turn=
+      s.turn;
+
+    LUDO.dice=
+      s.dice;
+
+    LUDO.rolling=
+      s.rolling;
+
+    LUDO.busy=
+      s.busy;
+
+    LUDO.winner=
+      s.winner;
+
+    LUDO.sixes=
+      s.sixes;
+
+    LUDO.message=
+      s.message;
+
+
+    s.tokens.forEach(
+      (tok,i)=>{
+
+        if(LUDO.players[i]){
+
+          LUDO.players[i].tokens=
+            tok.slice();
+        }
+
+      }
+    );
+
+
+    LUDO.spr=
+      LUDO.players.map(
+        p=>
+          p.tokens.map(
+            (pos,i)=>{
+
+              const xy=
+                xyAt(
+                  p,
+                  i,
+                  pos
+                );
+
+              return {
+                x:xy[1]+.5,
+                y:xy[0]+.5,
+                z:0,
+                vz:0
+              };
+            }
+          )
+      );
+
+
+    if(
+      gameOnScreen("ludo")
+    ){
+
+      updateLudo();
+
+    }else{
+
+      NEXORA.page="games";
+      renderLudo();
+    }
+
+
+    if(LUDO.winner){
+
+      nxFinishButtons();
+
+    }
+  }
+
+
+  /* =========================================================
+     GAME END + REMATCH
+     ========================================================= */
+
+  function nxFinishButtons(){
+
+    if(
+      !LUDO?.nxActive ||
+      !$("ludoCv")
+    )return;
+
+
+    if($("nxLudoEnd"))return;
+
+
+    $("ludoCv")
+      .parentElement
+      .insertAdjacentHTML(
+        "beforeend",
+
+        `
+        <div
+          id="nxLudoEnd"
+          class="confetti"
+          style="border-radius:26px"
+        >
+
+          <div>
+
+            🏆<br>
+
+            ${escapeHtml(LUDO.winner)}
+            won!
+
+            <div
+              style="
+                display:flex;
+                gap:8px;
+                justify-content:center;
+                margin-top:14px
+              "
+            >
+
+              <button
+                class="btn primary-btn"
+                onclick="nxLudoRematch()"
+              >
+                🔁 Rematch
+              </button>
+
+              <button
+                class="btn"
+                onclick="leaveLudo()"
+              >
+                Games
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+        `
+      );
+  }
+
+
+  window.nxLudoRematch=function(){
+
+    if(!nxIsActive())return;
+
+
+    if(!LUDO.nxHost){
+
+      return nxSend(
+        LROOM,
+        {
+          t:"nx-rematch",
+          from:NEXORA.user.id
+        }
+      );
+    }
+
+
+    nxRestartHost();
+  };
+
+
+  function nxRestartHost(){
+
+    if(!nxIsHost())return;
+
+
+    LUDO.players.forEach(
+      p=>
+        p.tokens=[
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+    );
+
+
+    LUDO.turn=0;
+    LUDO.dice=null;
+    LUDO.rolling=false;
+    LUDO.busy=false;
+    LUDO.winner=null;
+    LUDO.sixes=0;
+
+    LUDO.message=
+      "Rematch start!";
+
+
+    NXLM.seq=0;
+    NXLM.lastState=-1;
+
+
+    $("nxLudoEnd")?.remove();
+
+
+    renderLudo();
+
+
+    nxSendState();
+
+
+    setTimeout(
+      nxBotTurn,
+      400
+    );
+  }
+
+
+  /* =========================================================
+     TURN MANAGEMENT
+     ========================================================= */
+
+  function nxAdvanceTurn(){
+
+    const L=LUDO;
+
+    if(!L)return;
+
+
+    L.sixes=0;
+    L.dice=null;
+
+
+    let guard=0;
+
+
+    do{
+
+      L.turn=
+        (L.turn+1)%
+        L.players.length;
+
+    }while(
+      L.players[L.turn].gone &&
+      ++guard<8
+    );
+
+
+    L.message=
+      L.players[L.turn].name+
+      " ki baari";
+
+
+    L.busy=false;
+    L.rolling=false;
+
+
+    updateLudo();
+
+    nxSendState();
+
+
+    setTimeout(
+      nxBotTurn,
+      500
+    );
+  }
+
+
+  function nxAgain(pl){
+
+    const L=LUDO;
+
+    L.dice=null;
+    L.busy=false;
+    L.rolling=false;
+
+
+    L.message=
+      pl.name+
+      " ko dobara chance";
+
+
+    updateLudo();
+
+    nxSendState();
+
+
+    setTimeout(
+      nxBotTurn,
+      500
+    );
+  }
+
+
+  /* =========================================================
+     HOST DICE
+     ========================================================= */
+
+  async function nxHostRoll(){
+
+    const L=LUDO;
+
+
+    if(
+      !nxIsHost() ||
+      !L ||
+      L.winner ||
+      L.rolling ||
+      L.busy ||
+      L.dice
+    )return;
+
+
+    const pl=
+      L.players[L.turn];
+
+
+    if(!pl||pl.gone)return;
+
+
+    L.rolling=true;
+    L.dice=null;
+
+
+    L.message=
+      pl.name+
+      " dice roll kar raha hai…";
+
+
+    updateLudo();
+    nxSendState();
+
+
+    const d=
+      rnd6();
+
+
+    spinCube(d);
+
+    sfx(
+      180,
+      .8,
+      "triangle",
+      .04
+    );
+
+
+    await sleep(850);
+
+
+    if(
+      !nxIsHost() ||
+      LUDO!==L
+    )return;
+
+
+    L.rolling=false;
+
+    L.dice=d;
+
+    L.sixes=
+      d===6
+      ?L.sixes+1
+      :0;
+
+
+    L.message=
+      `${pl.name} ne ${d} roll kiya`;
+
+
+    sfx(
+      d===6
+      ?760
+      :420,
+      .12
+    );
+
+
+    updateLudo();
+    nxSendState();
+
+
+    if(L.sixes>=3){
+
+      L.sixes=0;
+      L.dice=null;
+
+      L.message=
+        pl.name+
+        ": teen 6, turn gaya";
+
+      updateLudo();
+      nxSendState();
+
+      return setTimeout(
+        nxAdvanceTurn,
+        500
+      );
+    }
+
+
+    const mv=
+      getMovable();
+
+
+    if(!mv.length){
+
+      L.dice=null;
+
+      updateLudo();
+      nxSendState();
+
+
+      return setTimeout(
+        ()=>d===6
+          ?nxAgain(pl)
+          :nxAdvanceTurn(),
+        450
+      );
+    }
+
+
+    /*
+      Only one possible move:
+      automatically move it.
+    */
+
+    if(mv.length===1){
+
+      return setTimeout(
+        ()=>nxHostMove(mv[0]),
+        350
+      );
+    }
+
+
+    /*
+      Bot chooses automatically.
+    */
+
+    if(pl.bot){
+
+      return setTimeout(
+        ()=>nxHostMove(
+          robotPick(pl,mv,d)
+        ),
+        450
+      );
+    }
+  }
+
+
+  /* =========================================================
+     HOST MOVE
+     ========================================================= */
+
+  async function nxHostMove(i){
+
+    const L=LUDO;
+
+
+    if(
+      !nxIsHost() ||
+      !L ||
+      L.winner ||
+      L.busy ||
+      L.rolling ||
+      !L.dice
+    )return;
+
+
+    const pl=
+      L.players[L.turn];
+
+
+    const d=
+      L.dice;
+
+
+    if(
+      !pl ||
+      !canMove(
+        pl.tokens[i],
+        d
+      )
+    )return;
+
+
+    L.busy=true;
+
+    updateLudo();
+
+    nxSendState();
+
+
+    const old=
+      pl.tokens[i];
+
+
+    if(old===-1){
+
+      pl.tokens[i]=0;
+
+      updateLudo();
+
+      await sleep(260);
+
+    }else{
+
+      for(
+        let p=old+1;
+        p<=old+d;
+        p++
+      ){
+
+        pl.tokens[i]=p;
+
+        updateLudo();
+
+        await sleep(120);
+
+        if(LUDO!==L)return;
+      }
+    }
+
+
+    /* Capture */
+    let cut=false;
+
+    const pos=
+      pl.tokens[i];
+
+
+    if(
+      pos>=0 &&
+      pos<=50
+    ){
+
+      const a=
+        (
+          LUDO_COLORS[pl.color].start+
+          pos
+        )%52;
+
+
+      if(!SAFE.has(a)){
+
+        L.players.forEach(
+          (o,oi)=>{
+
+            if(o===pl)return;
+
+
+            o.tokens=
+              o.tokens.map(
+                (q,qi)=>{
+
+                  if(
+                    q>=0 &&
+                    q<=50 &&
+                    (
+                      LUDO_COLORS[o.color].start+
+                      q
+                    )%52===a
+                  ){
+
+                    cut=true;
+
+                    return -1;
+                  }
+
+
+                  return q;
+                }
+              );
+          }
+        );
+      }
+    }
+
+
+    L.dice=null;
+    L.busy=false;
+
+
+    /* Winner */
+    if(
+      pl.tokens.every(
+        x=>x===FINISH
+      )
+    ){
+
+      L.winner=
+        pl.name;
+
+      L.message=
+        pl.name+
+        " jeet gaya! 🏆";
+
+
+      updateLudo();
+
+      nxSendState();
+
+      nxFinishButtons();
+
+      return;
+    }
+
+
+    updateLudo();
+
+    nxSendState();
+
+
+    /*
+      6 / capture / finish =
+      same player gets another turn.
+    */
+
+    if(
+      d===6 ||
+      cut ||
+      pos===FINISH
+    ){
+
+      nxAgain(pl);
+
+    }else{
+
+      nxAdvanceTurn();
+    }
+  }
+
+
+  /* =========================================================
+     PLAYER DICE
+     ========================================================= */
+
+  window.rollLudoDice=function(){
+
+    if(nxIsActive()){
+
+      const L=LUDO;
+
+
+      if(
+        L.winner ||
+        L.rolling ||
+        L.busy ||
+        L.dice
+      )return;
+
+
+      if(
+        L.turn!==L.me
+      )return;
+
+
+      /*
+        Host rolls locally.
+      */
+
+      if(nxIsHost()){
+
+        return nxHostRoll();
+      }
+
+
+      /*
+        Other human asks host.
+      */
+
+      return nxSend(
+        LROOM,
+        {
+          t:"nx-roll"
+        }
+      );
+    }
+
+
+    return oldRollLudoDice();
+  };
+
+
+  /* =========================================================
+     PLAYER MOVE
+     ========================================================= */
+
+  window.playMove=function(i){
+
+    if(nxIsActive()){
+
+      const L=LUDO;
+
+
+      if(
+        L.winner ||
+        L.busy ||
+        L.rolling ||
+        !L.dice ||
+        L.turn!==L.me
+      )return;
+
+
+      if(
+        !canMove(
+          L.players[L.turn].tokens[i],
+          L.dice
+        )
+      )return;
+
+
+      if(nxIsHost()){
+
+        return nxHostMove(i);
+      }
+
+
+      return nxSend(
+        LROOM,
+        {
+          t:"nx-move",
+          i
+        }
+      );
+    }
+
+
+    return oldPlayMove(i);
+  };
+
+
+  /* =========================================================
+     BOT TURN
+     ========================================================= */
+
+  window.botTurn=function(){
+
+    if(nxIsActive()){
+
+      if(
+        nxIsHost() &&
+        LUDO.turn>=0 &&
+        LUDO.players[LUDO.turn]?.bot &&
+        !NXLM.botBusy
+      ){
+
+        NXLM.botBusy=true;
+
+
+        setTimeout(()=>{
+
+          NXLM.botBusy=false;
+
+
+          if(
+            nxIsHost() &&
+            !LUDO.winner
+          ){
+
+            nxHostRoll();
+
+          }
+
+        },550);
+      }
+
+
+      return;
+    }
+
+
+    return oldBotTurn();
+  };
+
+
+  /* =========================================================
+     LUDO REALTIME MESSAGES
+     ========================================================= */
+
+  window.onLudoMsg=async function(m){
+
+    if(
+      m.from===NEXORA.user.id
+    )return;
+
+
+    /* New authoritative start */
+    if(m.t==="nx-start"){
+
+      NXLM.players=
+        m.players;
+
+      NXLM.hostId=
+        m.hostId;
+
+      NXLM.active=true;
+
+      NXLM.lastState=-1;
+
+
+      if(!LUDO?.nxActive){
+
+        nxStartLocal(
+          m.players,
+          m.hostId,
+          false
+        );
+      }
+
+
+      return;
+    }
+
+
+    /* Authoritative snapshot */
+    if(m.t==="nx-state"){
+
+      NXLM.hostId=
+        NXLM.hostId ||
+        LUDO?.nxHostId;
+
+
+      NXLM.players=
+        NXLM.players.length
+        ?NXLM.players
+        :(LUDO?.nxPlayers||[]);
+
+
+      nxApplyState(
+        m.state
+      );
+
+      return;
+    }
+
+
+    /* Client asks host for current state */
+    if(m.t==="nx-need"){
+
+      if(nxIsHost()){
+
+        nxSendState();
+
+      }
+
+      return;
+    }
+
+
+    /* Human asks host to roll */
+    if(m.t==="nx-roll"){
+
+      if(
+        nxIsHost() &&
+        LUDO.turn===
+        LUDO.nxPlayers.findIndex(
+          p=>p.id===m.from
+        ) &&
+        !LUDO.players[LUDO.turn]?.bot
+      ){
+
+        nxHostRoll();
+      }
+
+      return;
+    }
+
+
+    /* Human asks host to move */
+    if(m.t==="nx-move"){
+
+      if(
+        nxIsHost() &&
+        LUDO.turn===
+        LUDO.nxPlayers.findIndex(
+          p=>p.id===m.from
+        ) &&
+        !LUDO.players[LUDO.turn]?.bot
+      ){
+
+        nxHostMove(
+          m.i
+        );
+      }
+
+      return;
+    }
+
+
+    /* Rematch */
+    if(m.t==="nx-rematch"){
+
+      if(nxIsHost()){
+
+        nxRestartHost();
+
+      }
+
+      return;
+    }
+
+
+    /* Legacy room join */
+    if(
+      m.t==="join" &&
+      LROOM?.host &&
+      !LUDO?.nxActive
+    ){
+
+      if(
+        !LB.some(
+          x=>x.id===m.from
+        ) &&
+        LB.length<4
+      ){
+
+        LB.push({
+          id:m.from,
+          name:m.name
+        });
+      }
+
+
+      return showLobby();
+    }
+
+
+    /* Legacy leave */
+    if(
+      m.t==="leave" &&
+      LROOM?.host &&
+      !LUDO?.nxActive
+    ){
+
+      LB=
+        LB.filter(
+          x=>x.id!==m.from
+        );
+
+
+      return showLobby();
+    }
+
+
+    /* Legacy lobby update */
+    if(
+      m.t==="lobby" &&
+      !LROOM?.host &&
+      !LUDO?.nxActive
+    ){
+
+      LB=
+        m.list||LB;
+
+
+      return showWaiting();
+    }
+
+
+    /* Legacy start */
+    if(
+      m.t==="start" &&
+      !LROOM?.host &&
+      !LUDO?.nxActive
+    ){
+
+      const list=
+        (m.list||LB)
+          .map(
+            p=>({
+              id:p.id,
+              name:p.name,
+              bot:false
+            })
+          );
+
+
+      NXLM.hostId=
+        m.from;
+
+      NXLM.players=
+        list;
+
+      NXLM.active=true;
+
+
+      nxStartLocal(
+        list,
+        m.from,
+        false
+      );
+
+
+      return;
+    }
+
+
+    return oldOnLudoMsg(m);
+  };
+
+
+  /* Host start hook */
+  window.beginOnline=function(){
+
+    return nxStartLudo(0);
+
+  };
+
+
+  /* =========================================================
+     RECOVERY
+     ========================================================= */
+
+  setInterval(()=>{
+
+    if(!nxIsActive())return;
+
+
+    if(
+      !nxIsHost() &&
+      LROOM?.state==="joined"
+    ){
+
+      nxSend(
+        LROOM,
+        {
+          t:"nx-need"
+        }
+      );
+    }
+
+
+    if(
+      nxIsHost() &&
+      LUDO.winner
+    ){
+
+      nxFinishButtons();
+    }
+
+  },4500);
+
+
+  document.addEventListener(
+    "visibilitychange",
+    ()=>{
+
+      if(
+        document.visibilityState==="visible" &&
+        nxIsActive()
+      ){
+
+        if(nxIsHost()){
+
+          nxSendState();
+
+        }else{
+
+          nxSend(
+            LROOM,
+            {
+              t:"nx-need"
+            }
+          );
+        }
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     LEAVE
+     ========================================================= */
+
+  window.leaveLudo=function(){
+
+    if(nxIsActive()){
+
+      try{
+
+        nxSend(
+          LROOM,
+          {
+            t:"leave"
+          }
+        );
+
+      }catch(_){}
+
+
+      NXLM.active=false;
+      NXLM.players=[];
+      NXLM.hostId=null;
+    }
+
+
+    return oldLeaveLudo();
+  };
+
+
+  /* =========================================================
+     ROOM HOST / JOIN
+     ========================================================= */
+
+  const _hostLudo=
+    window.hostLudo;
+
+
+  window.hostLudo=async function(code){
+
+    const r=
+      await _hostLudo(code);
+
+
+    if(LROOM){
+
+      LROOM._nxHostId=
+        NEXORA.user.id;
+    }
+
+
+    return r;
+  };
+
+
+  const _joinLudo=
+    window.joinLudo;
+
+
+  window.joinLudo=async function(code){
+
+    const r=
+      await _joinLudo(code);
+
+    return r;
+  };
+
+
+  /* =========================================================
+     LUDO MENU
+     ========================================================= */
+
+  window.openLudoMenu=function(){
+
+    openModal(`
+
+      <div class="modal-title">
+        🎲 Ludo
+      </div>
+
+      <div class="modal-sub">
+        Kaise khelna hai?
+      </div>
+
+
+      <div
+        style="
+          color:var(--muted);
+          font-size:12px;
+          margin:14px 0 6px 4px
+        "
+      >
+        🌐 Random online players
+      </div>
+
+
+      <div
+        class="grid"
+        style="
+          grid-template-columns:
+          repeat(3,1fr)
+        "
+      >
+
+        <button
+          class="btn primary-btn"
+          onclick="
+            findMatch('ludo',2)
+          "
+        >
+          ⚡ 2 log
+        </button>
+
+
+        <button
+          class="btn primary-btn"
+          onclick="
+            findMatch('ludo',3)
+          "
+        >
+          ⚡ 3 log
+        </button>
+
+
+        <button
+          class="btn primary-btn"
+          onclick="
+            findMatch('ludo',4)
+          "
+        >
+          ⚡ 4 log
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          color:var(--muted);
+          font-size:12px;
+          margin:14px 0 6px 4px
+        "
+      >
+        👥 Dost ke saath
+      </div>
+
+
+      <button
+        class="btn"
+        style="width:100%"
+        onclick="hostLudo()"
+      >
+        Room banao
+      </button>
+
+
+      <div
+        style="
+          display:flex;
+          gap:8px;
+          margin-top:8px
+        "
+      >
+
+        <input
+          id="roomCode"
+          class="pf-input"
+          style="
+            margin:0;
+            flex:1;
+            min-width:0;
+            text-transform:uppercase
+          "
+          maxlength="6"
+          placeholder="Room code"
+        >
+
+
+        <button
+          class="btn"
+          onclick="
+            joinLudo(
+              $('roomCode')
+              .value
+              .trim()
+              .toUpperCase()
+            )
+          "
+        >
+          Join
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          color:var(--muted);
+          font-size:12px;
+          margin:14px 0 6px 4px
+        "
+      >
+        🤖 Sirf bots
+      </div>
+
+
+      <div
+        class="grid"
+        style="
+          grid-template-columns:
+          repeat(3,1fr)
+        "
+      >
+
+        ${
+          [1,2,3]
+            .map(
+              n=>`
+
+                <button
+                  class="btn"
+                  onclick="
+                    startLudo(
+                      'robot',
+                      null,
+                      null,
+                      ${n+1}
+                    )
+                  "
+                >
+                  🤖 ×${n}
+                </button>
+
+              `
+            )
+            .join("")
+        }
+
+      </div>
+
+    `);
+  };
+
+
+  console.log(
+    "NEXORA: final Ludo lobby/host/bot fix loaded"
+  );
+
+})();
+</script>
 
 
 /* =========================================================
