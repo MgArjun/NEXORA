@@ -939,3 +939,955 @@ boot();
 
 </body>
 </html>
+<style>
+.ludo-frame{padding:14px;border-radius:28px;background:linear-gradient(145deg,#7a4d28,#4a2c15 55%,#2f1b0d);border:1px solid #9a6a3c;box-shadow:0 28px 70px rgba(0,0,0,.65),inset 0 2px 0 rgba(255,220,170,.28),inset 0 -3px 6px rgba(0,0,0,.5)}
+.ludo-frame::before{content:"";position:absolute}
+#ludoBoard{border-radius:10px;box-shadow:0 0 0 2px #d8a94a,0 0 0 5px #3a2312,0 6px 18px rgba(0,0,0,.55);background:#f3ecdc}
+#ludoBoard>.c{border:1px solid rgba(60,40,20,.14);color:#d9a21b;text-shadow:0 1px 0 rgba(255,255,255,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -2px 3px rgba(80,50,20,.12);background:linear-gradient(160deg,#fffdf7,#efe6d2)}
+#ludoBoard>.c[class*="q-"]{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#ludoBoard>.q-red{background:linear-gradient(160deg,#ff7487,#d93a52)}
+#ludoBoard>.q-green{background:linear-gradient(160deg,#5ee3a0,#26a566)}
+#ludoBoard>.q-yellow{background:linear-gradient(160deg,#ffdc6a,#e5a90f)}
+#ludoBoard>.q-blue{background:linear-gradient(160deg,#6db4ff,#2f7fe0)}
+#ludoBoard>.c.qd{border-color:transparent;box-shadow:none}
+.yard{background:linear-gradient(160deg,#fffdf8,#ece3cf)!important;box-shadow:inset 0 5px 16px rgba(60,40,20,.28),0 0 0 3px rgba(255,255,255,.55)!important}
+.yard i{background:radial-gradient(circle at 50% 40%,rgba(0,0,0,.28),rgba(0,0,0,.08))!important;box-shadow:inset 0 3px 6px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.8)!important}
+#ludoBoard>div[style*="grid-area"]{position:relative;box-shadow:inset 0 0 26px rgba(0,0,0,.4);border:0!important}
+#ludoBoard>div[style*="grid-area"]::after{content:"";position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#e9dcc0 60%,#b89a5a);box-shadow:0 3px 8px rgba(0,0,0,.5),0 0 0 2px #d8a94a}
+
+/* pawn */
+.tk b{inset:-42% 14% 6% 14%;border:0;background:none;box-shadow:none;border-radius:0;transition:transform .2s}
+.tk b::before{content:"";position:absolute;left:21%;right:21%;top:0;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 34% 28%,#fff 0,rgba(255,255,255,.35) 22%,transparent 40%),radial-gradient(circle at 50% 55%,var(--tc),color-mix(in srgb,var(--tc) 55%,#000));box-shadow:0 2px 3px rgba(0,0,0,.35)}
+.tk b::after{content:"";position:absolute;left:0;right:0;top:34%;bottom:0;clip-path:polygon(38% 0,62% 0,70% 38%,100% 86%,100% 100%,0 100%,0 86%,30% 38%);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 55%,#000),var(--tc) 38%,#fff3 50%,var(--tc) 62%,color-mix(in srgb,var(--tc) 50%,#000))}
+.tk::after{left:10%;right:10%;bottom:4%;height:16%;background:rgba(0,0,0,.45);filter:blur(2.5px)}
+.tk::before{content:"";position:absolute;left:-8%;right:-8%;bottom:-6%;height:34%;border-radius:50%;border:2.5px solid transparent;opacity:0;transition:opacity .2s}
+.tk.can::before{opacity:1;border-color:#fff;box-shadow:0 0 14px 2px var(--tc);animation:ringp .9s ease-in-out infinite alternate}
+@keyframes ringp{to{transform:scale(1.25);opacity:.45}}
+.tk.can b{animation:lift .9s ease-in-out infinite alternate}
+@keyframes lift{to{transform:translateY(-12%)}}
+@keyframes hop{50%{transform:translateY(-34%)}}
+.tk.hop b{animation:hop .19s ease-out}
+
+/* hud */
+#turnBanner{margin-bottom:12px;padding:11px 16px;border-radius:16px;font-weight:850;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,color-mix(in srgb,var(--tb) 28%,#101722),#101722);border:1px solid color-mix(in srgb,var(--tb) 55%,transparent);box-shadow:0 10px 30px -12px var(--tb)}
+#turnBanner.swap{animation:swap .45s var(--ease)}
+@keyframes swap{from{opacity:0;transform:translateX(-26px)}}
+#turnBanner i{width:12px;height:12px;border-radius:50%;background:var(--tb);box-shadow:0 0 12px var(--tb)}
+.hdots{display:flex;gap:5px;margin-top:5px}
+.hdots s{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);text-decoration:none}
+.hdots s.on{background:var(--gc);border-color:#fff;box-shadow:0 0 8px var(--gc)}
+.cubewrap{filter:drop-shadow(0 12px 10px rgba(0,0,0,.55))}
+.face{background:linear-gradient(145deg,#fffdf6,#e3dac4)}
+.pips i.on{background:radial-gradient(circle at 35% 30%,#7a2a2a,#2b0a0a)}
+.pt{position:absolute;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:8;animation:pt .7s ease-out forwards}
+@keyframes pt{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.cf{position:absolute;top:-10px;width:8px;height:14px;z-index:10;pointer-events:none;animation:cf 2.6s linear forwards}
+@keyframes cf{to{transform:translateY(520px) rotate(720deg);opacity:.2}}
+</style>
+
+<script>
+(function(){
+  /* haptics: kat-ne / jeet par halka vibration */
+  const _s=sfx;sfx=function(f,d,t,v){_s(f,d,t,v);if(navigator.vibrate&&(f===120||f===1047))navigator.vibrate(f===120?[40,30,60]:[60,40,60,40,120])};
+
+  const burst=(el,color)=>{
+    const b=$("ludoBoard");if(!b||!el)return;const br=b.getBoundingClientRect(),r=el.getBoundingClientRect();
+    const x=r.left-br.left+r.width/2,y=r.top-br.top+r.height/2;
+    for(let i=0;i<16;i++){const p=document.createElement("i");p.className="pt";const a=Math.random()*6.28,d=24+Math.random()*34;
+      p.style.cssText=`left:${x}px;top:${y}px;background:${color};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;b.appendChild(p);setTimeout(()=>p.remove(),750)}
+  };
+  const confetti=()=>{
+    const b=$("ludoBoard");if(!b)return;const cols=["#ef5368","#3fc984","#ffc93c","#4a9dff","#fff"];
+    for(let i=0;i<46;i++){const c=document.createElement("i");c.className="cf";
+      c.style.cssText=`left:${Math.random()*100}%;background:${cols[i%5]};animation-delay:${Math.random()*.9}s;border-radius:${i%3?"2px":"50%"}`;b.appendChild(c)}
+  };
+
+  function decorate(){
+    const board=$("ludoBoard");if(!board)return;
+    board.querySelectorAll(":scope>.c").forEach(c=>{
+      const r=+c.style.gridRow-1,k=+c.style.gridColumn-1;
+      if((r<6||r>8)&&(k<6||k>8))c.classList.add("qd");
+    });
+    if(!$("turnBanner"))board.parentElement.insertAdjacentHTML("beforebegin",`<div id="turnBanner"><i></i><span></span></div>`);
+    new MutationObserver(ms=>ms.forEach(m=>{
+      if(m.type==="attributes"&&m.target.classList?.contains("cut")&&m.target.classList.contains("tk")){
+        burst(m.target,getComputedStyle(m.target).getPropertyValue("--tc"))}
+      m.addedNodes?.forEach(n=>{if(n.classList?.contains("confetti"))confetti()});
+    })).observe(board,{subtree:true,attributes:true,attributeFilter:["class"],childList:true});
+  }
+
+  const _rl=renderLudo;renderLudo=function(){_rl();decorate()};
+
+  let lastTurn=null;
+  const _ul=updateLudo;updateLudo=function(){
+    _ul();if(!LUDO||!$("turnBanner"))return;
+    const pl=cur(),tb=$("turnBanner"),key=LUDO.winner?"w":LUDO.turn;
+    tb.style.setProperty("--tb",LUDO_COLORS[pl.color].color);
+    tb.querySelector("span").textContent=LUDO.winner?"🏆 "+LUDO.winner+" jeet gaya!":(isHuman()&&LUDO.mode!=="local"?"Aapki baari — ":"")+pl.name+(isHuman()&&LUDO.mode!=="local"?"":" ki baari");
+    if(key!==lastTurn){lastTurn=key;tb.classList.remove("swap");void tb.offsetWidth;tb.classList.add("swap")}
+    LUDO.players.forEach((p,i)=>{const n=p.tokens.filter(x=>x===FINISH).length,e=$("pcs-"+i);
+      if(e)e.innerHTML=`<div class="hdots">${[0,1,2,3].map(k=>`<s class="${k<n?"on":""}"></s>`).join("")}</div>`});
+  };
+})();
+</script>
+<style>
+.mini .call-name{display:none}
+.mini .btn{min-width:38px;padding:0 8px;font-size:16px}
+.mini #callEnd{font-size:0}.mini #callEnd::after{content:"✕";font-size:16px}
+.arc-wrap{position:fixed;inset:0;z-index:7000;pointer-events:none}
+.arc-back{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);opacity:0;transition:opacity .35s}
+.arc{position:absolute;top:0;left:50%;width:330px;max-width:100vw;height:176px;margin-left:-165px;border-radius:0 0 165px 165px;background:radial-gradient(circle at 50% 0,rgba(124,140,255,.35),transparent 70%),linear-gradient(180deg,#1a2234,#0e1420);border:1px solid rgba(255,255,255,.12);border-top:0;box-shadow:0 24px 60px rgba(0,0,0,.6);transform:translateY(-104%);transition:transform .55s cubic-bezier(.2,1.15,.3,1)}
+.arc-wrap.open{pointer-events:auto}.arc-wrap.open .arc-back{opacity:1}.arc-wrap.open .arc{transform:none}
+.arc-t{position:absolute;top:12px;width:100%;text-align:center;font-size:12px;color:var(--muted);font-weight:700}
+.arc-g{position:absolute;width:62px;height:62px;border-radius:50%;background:linear-gradient(145deg,#2a3550,#161d2e);border:1px solid rgba(255,255,255,.14);color:#fff;font-size:26px;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.5);transform:scale(0);transition:transform .45s cubic-bezier(.2,1.5,.4,1) var(--d)}
+.arc-g small{position:absolute;bottom:-17px;font-size:11px;color:#c3cbe0;font-weight:700;white-space:nowrap}
+.arc-wrap.open .arc-g{transform:scale(1)}.arc-g.soon{opacity:.55}
+.arc-grab{position:absolute;bottom:10px;left:50%;width:44px;height:5px;margin-left:-22px;border-radius:5px;background:rgba(255,255,255,.28)}
+.grab{flex:0 0 auto;height:18px;display:grid;place-items:center;cursor:pointer;touch-action:none}
+.grab i{width:46px;height:5px;border-radius:5px;background:rgba(255,255,255,.22)}
+.pr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.pr .nm{flex:1;min-width:0;font-weight:800}.pr small{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.pb{width:40px;height:40px;border-radius:12px;background:#171f2d;border:1px solid var(--line);color:#fff;font-size:17px}
+.pb.on{background:rgba(124,140,255,.25);border-color:#7c8cff}
+</style>
+
+<script>
+/* ============ PART A: group call + game arc ============ */
+const IDLE2=()=>({...IDLE_CALL(),peers:{},solo:null,deaf:false,members:[]});
+const CC=()=>NEXORA.call;
+NEXORA.call=IDLE2();
+let SHEET=false,RING=null,ARC=null,PENDING=null,INREQ=null,PICK=[],TCH=null;
+const GN={ludo:"🎲 Ludo",ttt:"❌ Tic-Tac-Toe"};
+$("callMute").textContent="🎙";
+$("callMute").insertAdjacentHTML("afterend",`<button id="callPeople" class="btn hidden">👥</button><button id="callChat" class="btn hidden">💬</button><button id="callGame" class="btn hidden">🎮</button>`);
+const _cuA=callUI;callUI=function(a,d,m,e){_cuA(a,d,m,e);["callPeople","callChat","callGame"].forEach(i=>$(i)?.classList.toggle("hidden",!(m&&e)))};
+const _cmA=closeModal;closeModal=function(){SHEET=false;_cmA()};
+
+/* ---- ringtone ---- */
+function startRing(){stopRing();RING=setInterval(()=>{sfx(520,.18,"sine",.08);setTimeout(()=>sfx(660,.18,"sine",.08),220);navigator.vibrate?.(200)},1700)}
+function stopRing(){if(RING){clearInterval(RING);RING=null}}
+
+/* ---- mesh peers ---- */
+const callTitle=()=>{const n=Object.values(CC().peers);return n.length>1?"Group · "+(n.length+1):(n[0]?.name||CC().targetName||"Call")};
+function applyAudio(){const c=CC();Object.entries(c.peers).forEach(([u,P])=>{if(P.audio)P.audio.muted=c.deaf||P.muted||(!!c.solo&&c.solo!==u)})}
+function refreshCall(){const c=CC();if(c.state==="idle")return;applyAudio();if(c.state==="connected")$("callName").textContent=callTitle();if(SHEET)renderPeople()}
+async function setRemote(P,d){await P.pc.setRemoteDescription(new RTCSessionDescription(d));while(P.queue.length)P.pc.addIceCandidate(P.queue.shift()).catch(()=>{})}
+function mkPeer(uid,name){
+  const c=CC();if(c.peers[uid])return c.peers[uid];
+  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
+  const P={pc,name,muted:false,state:"connecting",audio:null,queue:[]};c.peers[uid]=P;
+  c.stream.getTracks().forEach(t=>pc.addTrack(t,c.stream));
+  pc.onicecandidate=e=>{if(e.candidate)sendSignal({type:"call-ice",to:uid,callId:c.id,candidate:e.candidate}).catch(()=>{})};
+  pc.ontrack=e=>{if(!P.audio){const a=document.createElement("audio");a.autoplay=true;a.playsInline=true;document.body.appendChild(a);P.audio=a}P.audio.srcObject=e.streams[0];P.audio.play().catch(()=>{});applyAudio()};
+  pc.onconnectionstatechange=()=>{const s=pc.connectionState;
+    if(s==="connected"){P.state="connected";if(c.state!=="connected"&&CC()===c){c.state="connected";callSet(callTitle(),"Connected");callUI(0,0,1,1);startCallTimer()}refreshCall()}
+    if(s==="failed"||s==="closed")dropPeer(uid)};
+  return P;
+}
+function dropPeer(uid){
+  const c=CC(),P=c.peers[uid];if(!P)return;
+  try{P.pc.close()}catch(_){}if(P.audio){try{P.audio.srcObject=null}catch(_){}P.audio.remove()}
+  delete c.peers[uid];if(c.solo===uid)c.solo=null;
+  if(!Object.keys(c.peers).length&&c.state!=="ringing")endCall("ended",true);else refreshCall();
+}
+async function dial(uid,name){
+  const c=CC(),P=mkPeer(uid,name);
+  await P.pc.setLocalDescription(await P.pc.createOffer());
+  await sendSignal({type:"call-offer",to:uid,callId:c.id,fromName:myName(),members:Object.keys(c.peers).filter(k=>k!==uid).map(k=>({id:k,name:c.peers[k].name})),offer:P.pc.localDescription});
+}
+async function inviteToCall(uid,name){
+  const c=CC();
+  if(c.state!=="connected")return toast("Pehle call connect hone do.");
+  if(c.peers[uid])return toast("Ye pehle se call me hai.");
+  if(Object.keys(c.peers).length>=3)return toast("Ek call me max 4 log.");
+  try{await dial(uid,name);toast(name+" ko ring ja rahi hai…");refreshCall();
+    setTimeout(()=>{const P=CC().peers[uid];if(P&&P.state!=="connected"&&CC().id===c.id){sendSignal({type:"call-ended",to:uid,callId:c.id}).catch(()=>{});dropPeer(uid);toast(name+" ne uthaya nahi")}},30000)}
+  catch(e){toast(e.message||"Add nahi hua","error")}
+}
+
+/* ---- call lifecycle (overrides) ---- */
+async function startCallByUser(tid,tname){
+  if(!NEXORA.user)return toast("Please log in first.","error");
+  if(CC().state!=="idle")return inviteToCall(tid,tname||"User");
+  try{
+    const stream=await getMic();
+    NEXORA.call={...IDLE2(),id:crypto.randomUUID(),mode:"outgoing",state:"calling",stream,targetId:tid,targetName:tname||"User"};
+    $("callAvatar").textContent=initials(tname);callShow();callSet(tname,"Calling…");callUI(0,0,0,1);
+    try{const{data,error}=await sb.rpc("nexora_start_call",{target_username:tname,call_kind:"voice"});if(!error&&data?.call_id)NEXORA.call.id=data.call_id}catch(_){}
+    await dial(tid,tname||"User");
+    stopCallTimeout();
+    NEXORA.call.timeout=setTimeout(()=>{if(CC().state==="calling")endCall("missed")},30000);
+  }catch(e){console.error(e);toast(e.message||"Could not start call.","error");await endCall("cancelled",true)}
+}
+async function gcOffer(p){
+  const c=CC();
+  if(c.state!=="idle"&&p.callId===c.id){
+    if(c.state==="ringing")return;
+    try{const P=mkPeer(p.from,p.fromName||"User");await setRemote(P,p.offer);await P.pc.setLocalDescription(await P.pc.createAnswer());
+      await sendSignal({type:"call-answer",to:p.from,callId:c.id,answer:P.pc.localDescription});refreshCall()}catch(e){console.warn(e)}
+    return;
+  }
+  if(c.state!=="idle"){try{await sendSignal({type:"call-busy",to:p.from,callId:p.callId})}catch(_){}return}
+  NEXORA.call={...IDLE2(),id:p.callId,mode:"incoming",state:"ringing",targetId:p.from,targetName:p.fromName||"Incoming call",pendingOffer:p.offer,members:p.members||[]};
+  callShow();callSet(NEXORA.call.targetName,(p.members?.length?"Group call · ":"")+"Incoming voice call");
+  $("callAvatar").textContent=initials(NEXORA.call.targetName);callUI(1,1,0,0);startRing();
+  NEXORA.call.timeout=setTimeout(async()=>{if(CC().state==="ringing"){try{await sendSignal({type:"call-missed",to:CC().targetId,callId:CC().id})}catch(_){}await endCall("missed",true)}},30000);
+}
+async function acceptCall(){
+  const c=CC();if(c.mode!=="incoming"||c.state!=="ringing")return;
+  stopRing();stopCallTimeout();
+  try{
+    c.stream=await getMic();c.state="connecting";callSet(c.targetName,"Connecting…");callUI(0,0,1,1);
+    const P=mkPeer(c.targetId,c.targetName);await setRemote(P,c.pendingOffer);
+    await P.pc.setLocalDescription(await P.pc.createAnswer());
+    await sendSignal({type:"call-answer",to:c.targetId,callId:c.id,answer:P.pc.localDescription});
+    for(const m of c.members)await dial(m.id,m.name);
+    try{await sb.from("calls").update({status:"accepted",started_at:new Date().toISOString()}).eq("id",c.id)}catch(_){}
+  }catch(e){toast(e.message||"Microphone permission failed.","error");await endCall("cancelled",true)}
+}
+async function declineCall(){
+  const c=CC();stopRing();
+  if(c.targetId){try{await sendSignal({type:"call-declined",to:c.targetId,callId:c.id})}catch(_){}
+    try{await sb.from("calls").update({status:"declined",ended_at:new Date().toISOString()}).eq("id",c.id)}catch(_){}}
+  await cleanupCall();
+}
+async function endCall(status="ended",silent=false){
+  const c=CC();if(c.state==="idle"){callHide();return}
+  stopCallTimeout();
+  if(!silent){for(const u of Object.keys(c.peers)){try{await sendSignal({type:"call-ended",to:u,callId:c.id})}catch(_){}}
+    if(c.state==="ringing"&&c.targetId){try{await sendSignal({type:"call-declined",to:c.targetId,callId:c.id})}catch(_){}}}
+  if(c.id){try{await sb.from("calls").update({status,ended_at:new Date().toISOString()}).eq("id",c.id)}catch(_){}}
+  await cleanupCall();
+}
+async function cleanupCall(){
+  const c=CC();stopRing();stopCallTimer();stopCallTimeout();
+  try{c.stream?.getTracks().forEach(t=>t.stop())}catch(_){}
+  Object.values(c.peers||{}).forEach(P=>{try{P.pc.close()}catch(_){}if(P.audio){try{P.audio.srcObject=null}catch(_){}P.audio.remove()}});
+  NEXORA.call=IDLE2();callHide();callUI(1,1,0,0);
+  $("callMute").textContent="🎙";$("callMute").classList.remove("danger");
+  if(SHEET)closeModal();
+}
+async function toggleMute(){
+  const c=CC();if(!c.stream)return;c.muted=!c.muted;
+  c.stream.getAudioTracks().forEach(t=>t.enabled=!c.muted);
+  $("callMute").textContent=c.muted?"🔇":"🎙";$("callMute").classList.toggle("danger",c.muted);
+  navigator.vibrate?.(20);refreshCall();
+}
+function gcGone(p){
+  const c=CC();if(p.callId!==c.id)return;
+  const P=c.peers[p.from];
+  if(P){const n=P.name;dropPeer(p.from);toast(p.type==="call-busy"?n+" busy hai":p.type==="call-declined"?n+" ne call cut kar di":n+" call se chala gaya")}
+  else if(c.state==="ringing"&&p.from===c.targetId){cleanupCall();toast("Missed call")}
+}
+$("callAccept").onclick=acceptCall;$("callDecline").onclick=declineCall;
+$("callEnd").onclick=()=>endCall(CC().state==="calling"?"cancelled":"ended");
+$("callMute").onclick=toggleMute;$("callPeople").onclick=()=>{SHEET=true;renderPeople()};
+$("callChat").onclick=chatWithPeer;$("callGame").onclick=gameFromCall;
+
+/* ---- participants sheet ---- */
+function renderPeople(){
+  const c=CC();if(c.state==="idle")return;
+  const keep=$("addU")?.value||"",ids=Object.keys(c.peers);
+  const row=(id,P)=>`<div class="pr"><div class="avatar">${escapeHtml(initials(P.name))}</div><div class="nm">${escapeHtml(P.name)}<small>${P.state==="connected"?"Connected":"Connecting…"}${P.muted?" · muted":""}${c.solo===id?" · sirf yehi sunai de raha":""}</small></div>
+    <button class="pb ${P.muted?"on":""}" onclick="peerMute('${escapeAttr(id)}')">${P.muted?"🔇":"🔊"}</button><button class="pb ${c.solo===id?"on":""}" onclick="peerSolo('${escapeAttr(id)}')">🎧</button></div>`;
+  openModal(`<div class="modal-title">Call · <span id="shTime">${c.startedAt?formatTime((Date.now()-c.startedAt)/1000):"00:00"}</span></div><div class="modal-sub">${ids.length+1} log call me</div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+    <button class="btn ${c.muted?"danger":""}" onclick="toggleMute()">${c.muted?"🔇 Mic band":"🎙 Mic on"}</button>
+    <button class="btn ${c.deaf?"danger":""}" onclick="muteAll()">${c.deaf?"🔈 Sabko sunao":"🔇 Sabko mute"}</button></div>
+   <div class="pr"><div class="avatar">${escapeHtml(initials(myName()))}</div><div class="nm">Aap<small>${c.muted?"mic band":"mic on"}</small></div></div>
+   ${ids.map(i=>row(i,c.peers[i])).join("")}
+   <div style="display:flex;gap:8px;margin:14px 0 10px"><input id="addU" class="pf-input" style="margin:0;flex:1;min-width:0" placeholder="@username jodo" value="${escapeHtml(keep)}" autocapitalize="off" autocomplete="off"><button class="btn primary-btn" onclick="addToCall()">➕ Add</button></div>
+   <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn danger" onclick="endCall()">End call</button></div>`);
+  SHEET=true;
+}
+setInterval(()=>{if(SHEET&&CC().startedAt){const e=$("shTime");if(e)e.textContent=formatTime((Date.now()-CC().startedAt)/1000)}},1000);
+function peerMute(id){const P=CC().peers[id];if(!P)return;P.muted=!P.muted;if(P.muted&&CC().solo===id)CC().solo=null;refreshCall()}
+function peerSolo(id){const c=CC(),P=c.peers[id];if(!P)return;c.solo=c.solo===id?null:id;if(c.solo)P.muted=false;refreshCall()}
+function muteAll(){CC().deaf=!CC().deaf;refreshCall()}
+async function addToCall(){
+  const u=$("addU").value.trim().replace(/^@/,"").toLowerCase();if(u.length<3)return toast("Username daalo.","error");
+  const{data}=await sb.from("profiles").select("id,username,display_name").ilike("username",u).limit(1).maybeSingle();
+  if(!data)return toast("User nahi mila.","error");
+  if(data.id===NEXORA.user.id)return toast("Khud ko add nahi kar sakte.");
+  $("addU").value="";inviteToCall(data.id,data.display_name||data.username);
+}
+async function chatWithPeer(){
+  const ids=Object.keys(CC().peers);if(ids.length!==1)return toast("Chat ke liye 👥 se ek insaan chuno.");
+  const{data}=await sb.from("profiles").select("username,display_name").eq("id",ids[0]).maybeSingle();
+  if(!data)return toast("User nahi mila.","error");
+  openChat("",ids[0],data.username,data.display_name||data.username);
+}
+function gameFromCall(){
+  const ids=Object.keys(CC().peers);if(!ids.length)return toast("Pehle call connect hone do.");
+  if(ids.length===1)return openArc({uid:ids[0],name:CC().peers[ids[0]].name});
+  PICK=ids.map(i=>({uid:i,name:CC().peers[i].name}));
+  openModal(`<div class="modal-title">Kisse khelna hai?</div><div class="modal-sub">Ek insaan chuno</div>${PICK.map((p,i)=>`<button class="btn" style="width:100%;margin-bottom:8px" onclick="closeModal();openArc(PICK[${i}])">${escapeHtml(p.name)}</button>`).join("")}`);
+}
+
+/* ---- game arc ---- */
+function buildArc(){
+  if($("arcWrap"))return;
+  const G=[["ludo","🎲","Ludo",1],["ttt","❌","Tic-Tac-Toe",1],["uno","🃏","UNO",0]],ang=[140,90,40];
+  document.body.insertAdjacentHTML("beforeend",`<div id="arcWrap" class="arc-wrap"><div class="arc-back"></div><div class="arc"><div class="arc-t">Kaunsa game khelna hai?</div>
+   ${G.map(([k,i,n,on],j)=>{const a=ang[j]*Math.PI/180;return `<button class="arc-g ${on?"":"soon"}" data-g="${k}" style="left:${165+112*Math.cos(a)-31}px;top:${112*Math.sin(a)-31}px;--d:${.08+j*.07}s">${i}<small>${n}</small></button>`}).join("")}
+   <div class="arc-grab"></div></div></div>`);
+  const w=$("arcWrap"),arc=w.querySelector(".arc");let y0=null;
+  w.querySelector(".arc-back").onclick=closeArc;
+  w.querySelectorAll(".arc-g").forEach(b=>b.onclick=()=>{const c=ARC;closeArc();if(c)requestGame(c.uid,c.name,b.dataset.g)});
+  arc.addEventListener("pointerdown",e=>y0=e.clientY);arc.addEventListener("pointerup",e=>{if(y0!==null&&y0-e.clientY>30)closeArc();y0=null});
+}
+function openArc(ctx){buildArc();ARC=ctx;navigator.vibrate?.(15);requestAnimationFrame(()=>$("arcWrap").classList.add("open"))}
+function closeArc(){$("arcWrap")?.classList.remove("open")}
+function sendGameInvite(tid){openArc({uid:tid,name:"Dost"})}
+
+const _rcA=renderChat;renderChat=function(){
+  _rcA();const c=ACTIVE_CHAT,h=document.querySelector(".chat-head");if(!h)return;
+  const g=h.querySelector(".icon-btn[title]");if(g){g.textContent="🎮";g.onclick=()=>openArc({uid:c.otherId,name:c.displayName})}
+  h.insertAdjacentHTML("afterend",`<div class="grab" id="chatGrab"><i></i></div>`);
+  const gr=$("chatGrab");let y0=null;
+  gr.addEventListener("pointerdown",e=>{y0=e.clientY});
+  gr.addEventListener("pointermove",e=>{if(y0!==null&&e.clientY-y0>18){y0=null;openArc({uid:c.otherId,name:c.displayName})}});
+  gr.addEventListener("pointerup",()=>{if(y0!==null)openArc({uid:c.otherId,name:c.displayName});y0=null});
+};
+
+/* ---- game request -> accept -> both enter ---- */
+async function requestGame(uid,name,game){
+  if(game==="uno")return toast("UNO jaldi aa raha hai 🃏");
+  if(uid===NEXORA.user.id)return;
+  const code=Math.random().toString(36).slice(2,8).toUpperCase();
+  try{
+    if(game==="ludo")await openRoom(code,true);else await openTTTRoom(code,true);
+    PENDING={code,game,uid,name};
+    await sendSignal({type:"game-req",to:uid,game,code,fromName:myName()});
+    openModal(`<div class="modal-title">Request bhej di 🎮</div><div class="modal-sub">${escapeHtml(name)} ke accept karne ka wait…</div><div class="card" style="padding:18px;text-align:center;font-weight:850;margin-bottom:14px">${GN[game]}</div><button class="btn danger" style="width:100%" onclick="cancelGame()">Cancel</button>`);
+    setTimeout(()=>{if(PENDING?.code===code)cancelGame(true)},45000);
+  }catch(e){toast(e.message||"Request nahi gayi","error")}
+}
+function cancelGame(timeout){
+  const p=PENDING;PENDING=null;
+  if(p){closeRoom();closeTTT();sendSignal({type:"game-cancel",to:p.uid,code:p.code}).catch(()=>{})}
+  closeModal();if(timeout)toast("Koi jawab nahi aaya");
+}
+async function acceptGame(){
+  const r=INREQ;INREQ=null;if(!r)return;closeModal();
+  try{await sendSignal({type:"game-accept",to:r.from,code:r.code})}catch(_){}
+  if(r.game==="ludo")joinLudo(r.code);else openTTTRoom(r.code,false);
+}
+function declineGame(){const r=INREQ;INREQ=null;closeModal();if(r)sendSignal({type:"game-declined",to:r.from,code:r.code}).catch(()=>{})}
+const _hsA=handleSignal;
+handleSignal=async function(p){
+  if(!p||p.from===NEXORA.user?.id)return;
+  switch(p.type){
+    case"call-offer":return gcOffer(p);
+    case"call-answer":{const P=CC().peers[p.from];if(P&&p.callId===CC().id){try{await setRemote(P,p.answer);if(CC().state==="calling")CC().state="connecting";callSet(callTitle(),"Connecting…")}catch(_){dropPeer(p.from)}}return}
+    case"call-ice":{const P=CC().peers[p.from];if(P&&p.callId===CC().id&&p.candidate){if(P.pc.remoteDescription)P.pc.addIceCandidate(p.candidate).catch(()=>{});else P.queue.push(p.candidate)}return}
+    case"call-declined":case"call-ended":case"call-timeout":case"call-missed":case"call-busy":return gcGone(p);
+    case"game-req":
+      INREQ={from:p.from,code:p.code,game:p.game};sfx(660,.25);navigator.vibrate?.([80,40,80]);
+      openModal(`<div class="modal-title">${GN[p.game]||"Game"} invite</div><div class="modal-sub">${escapeHtml(p.fromName||"Dost")} aapke saath khelna chahta hai</div><div class="modal-actions"><button class="btn" onclick="declineGame()">Mana karo</button><button class="btn primary-btn" onclick="acceptGame()">Accept ✓</button></div>`);return;
+    case"game-accept":if(PENDING&&PENDING.code===p.code){PENDING=null;closeModal();toast("Accept ho gaya, game shuru…")}return;
+    case"game-declined":if(PENDING&&PENDING.code===p.code){PENDING=null;closeRoom();closeTTT();closeModal();toast("Dost ne game se mana kiya")}return;
+    case"game-cancel":if(INREQ&&INREQ.code===p.code){INREQ=null;closeModal();toast("Request cancel ho gayi")}return;
+  }
+  return _hsA(p);
+};
+
+/* ---- Tic-Tac-Toe online ---- */
+function closeTTT(){if(TCH){try{sb.removeChannel(TCH)}catch(_){}TCH=null}}
+async function openTTTRoom(code,host){
+  closeTTT();const ch=sb.channel("ttt-"+code);TCH=ch;
+  const tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:NEXORA.user.id}});ch.tx=tx;
+  ch.on("broadcast",{event:"g"},({payload:m})=>{
+    if(m.from===NEXORA.user.id)return;
+    if(m.t==="join"&&host&&!TTT?.online){tx({t:"start"});startTTT("X")}
+    if(m.t==="start"&&!host)startTTT("O");
+    if(m.t==="mv"&&TTT?.online&&!TTT.over&&TTT.t!==TTT.mine&&!TTT.b[m.i])applyTTT(m.i);
+    if(m.t==="leave")toast("Dost ne game chhod diya");
+  });
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+  if(!host){let n=0;const iv=setInterval(()=>{if(TTT?.online||++n>8)return clearInterval(iv);tx({t:"join"})},1200);tx({t:"join"})}
+}
+function startTTT(me){closeModal();TTT={b:Array(25).fill(""),t:"X",over:false,online:true,mine:me,msg:me==="X"?"Aapki baari (X)":"Dost ki baari (X)"};NEXORA.page="games";renderTTT()}
+function applyTTT(i){
+  TTT.b[i]=TTT.t;sfx(520,.07);const w=lineWin(TTT.b,5,5,4),me=TTT.mine;
+  if(w){TTT.over=true;TTT.msg=TTT.online?(w===me?"Aap jeet gaye! 🏆":"Dost jeet gaya"):w+" jeet gaya! 🏆";sfx(880,.4)}
+  else if(TTT.b.every(Boolean)){TTT.over=true;TTT.msg="Draw"}
+  else{TTT.t=TTT.t==="X"?"O":"X";TTT.msg=TTT.online?(TTT.t===me?"Aapki baari ("+me+")":"Dost ki baari"):TTT.t+" ki baari"}
+  renderTTT();
+}
+function tttMove(i){if(TTT.over||TTT.b[i])return;if(TTT.online&&TTT.t!==TTT.mine)return;applyTTT(i);if(TTT.online)TCH?.tx({t:"mv",i})}
+const _spA=setPage;setPage=function(p){if(TTT?.online&&p==="games"){TCH?.tx({t:"leave"});closeTTT();TTT.online=false}return _spA(p)};
+
+/* ---- games page (Four in a Row hata diya) ---- */
+function renderGames(){
+  const q=(i,n,d,a)=>`<button class="card quick-card" onclick="${a}"><div class="quick-icon">${i}</div><div><div class="quick-name">${n}</div><div class="quick-desc">${d}</div></div></button>`;
+  $("main").innerHTML=`<section class="page"><h1 class="section-title">Games</h1><div class="section-sub">Dost ke saath khelo.</div>
+   <div class="grid grid2">${q("🎲","Ludo","Online ya robot","openLudoMenu()")}${q("❌","Tic-Tac-Toe","5×5 · 4 in a row","openTicTacToe()")}${q("🃏","UNO","Coming soon","toast('UNO jaldi aa raha hai 🃏')")}</div>
+   <div class="card" style="padding:16px;margin-top:14px;color:var(--muted);font-size:13px;line-height:1.5">💡 Chat ya call me upar ki pattee neeche kheencho (ya 🎮 dabao), dost ko game ki request bhejo. Accept karte hi dono game me pahunch jaoge.</div></section>`;
+}
+</script>
+<style>
+#turnBanner{margin-bottom:12px;padding:11px 16px;border-radius:16px;font-weight:850;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,color-mix(in srgb,var(--tb) 28%,#101722),#101722);border:1px solid color-mix(in srgb,var(--tb) 55%,transparent);box-shadow:0 10px 30px -12px var(--tb)}
+#turnBanner i{width:12px;height:12px;border-radius:50%;background:var(--tb);box-shadow:0 0 12px var(--tb)}
+#turnBanner.swap{animation:swap .45s cubic-bezier(.22,1,.36,1)}
+@keyframes swap{from{opacity:0;transform:translateX(-26px)}}
+.hdots{display:flex;gap:5px;margin-top:5px}
+.hdots s{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);text-decoration:none}
+.hdots s.on{background:var(--gc);border-color:#fff;box-shadow:0 0 8px var(--gc)}
+#ludoCv{width:100%;aspect-ratio:1;display:block;border-radius:10px;touch-action:manipulation;box-shadow:0 0 0 2px #d8a94a,0 0 0 5px #3a2312,0 8px 22px rgba(0,0,0,.55)}
+</style>
+
+<script>
+/* ============ PART B: LUDO v2 (canvas, 2-4 players) ============ */
+CanvasRenderingContext2D.prototype.roundRect||(CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h){this.rect(x,y,w,h)});
+const SEATS={2:["red","yellow"],3:["red","green","yellow"],4:["red","green","yellow","blue"]};
+const OFF=[[0,0],[-.22,-.18],[.22,-.18],[-.22,.2],[.22,.2]];
+let CV=null,CTX=null,BG=null,RAF=0,DPR=1,LB=[];
+const shade=(hex,t)=>{const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const f=t<0?0:255,a=Math.abs(t);return`rgb(${Math.round(r+(f-r)*a)},${Math.round(g+(f-g)*a)},${Math.round(b+(f-b)*a)})`};
+const xyAt=(pl,i,p)=>{const c=LUDO_COLORS[pl.color];return p<0?BASE2[pl.color][i]:p<=50?TRACK2[(c.start+p)%52]:p<FINISH?c.homeCells[p-51]:FIN[pl.color]};
+const isBot=()=>LUDO.mode==="robot"&&LUDO.turn>0;
+
+/* ---------- static board ---------- */
+function paintBoard(W){
+  BG=document.createElement("canvas");BG.width=BG.height=Math.round(W*DPR);
+  const g=BG.getContext("2d");g.scale(DPR,DPR);const S=W/15;
+  g.fillStyle="#f4ecd8";g.fillRect(0,0,W,W);
+  for(const[k,[r,c]]of Object.entries(YARD)){
+    const col=LUDO_COLORS[k].color,x=c*S,y=r*S;
+    let gr=g.createLinearGradient(x,y,x+6*S,y+6*S);gr.addColorStop(0,shade(col,.28));gr.addColorStop(1,shade(col,-.25));
+    g.fillStyle=gr;g.fillRect(x,y,6*S,6*S);
+    g.save();g.shadowColor="rgba(0,0,0,.45)";g.shadowBlur=S*.5;g.shadowOffsetY=S*.12;g.fillStyle="#fbf6ea";g.beginPath();g.roundRect(x+S,y+S,4*S,4*S,S*.7);g.fill();g.restore();
+    BASE2[k].forEach(([wr,wc])=>{const cx=(wc+.5)*S,cy=(wr+.5)*S,rg=g.createRadialGradient(cx,cy-S*.1,S*.05,cx,cy,S*.5);
+      rg.addColorStop(0,"rgba(0,0,0,.06)");rg.addColorStop(1,"rgba(0,0,0,.38)");g.fillStyle=rg;g.beginPath();g.arc(cx,cy,S*.5,0,7);g.fill();
+      g.strokeStyle=shade(col,.15);g.lineWidth=S*.07;g.stroke()});
+  }
+  const tile=(r,c,a,b)=>{const x=c*S+.5,y=r*S+.5,w=S-1,gr=g.createLinearGradient(x,y,x,y+w);gr.addColorStop(0,a);gr.addColorStop(1,b);
+    g.fillStyle=gr;g.fillRect(x,y,w,w);g.strokeStyle="rgba(70,45,20,.28)";g.lineWidth=1;g.strokeRect(x,y,w,w);g.fillStyle="rgba(255,255,255,.55)";g.fillRect(x,y,w,1.5)};
+  const star=(cx,cy,R,f)=>{g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,d=k%2?R*.45:R;g.lineTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d)}g.closePath();g.fillStyle=f;g.fill()};
+  const startOf={};Object.entries(LUDO_COLORS).forEach(([k,v])=>startOf[v.start]=k);
+  TRACK2.forEach(([r,c],i)=>{const k=startOf[i];
+    if(k){const col=LUDO_COLORS[k].color;tile(r,c,shade(col,.25),shade(col,-.12))}else tile(r,c,"#fffdf6","#ebe0c8");
+    if(SAFE.has(i))star((c+.5)*S,(r+.5)*S,S*.3,k?"rgba(255,255,255,.9)":"#d9a21b")});
+  Object.values(LUDO_COLORS).forEach(v=>v.homeCells.forEach(([r,c])=>tile(r,c,shade(v.color,.25),shade(v.color,-.12))));
+  const P=(a,b,col)=>{const gr=g.createLinearGradient(6*S,6*S,9*S,9*S);gr.addColorStop(0,shade(col,.3));gr.addColorStop(1,shade(col,-.2));g.fillStyle=gr;g.beginPath();g.moveTo(a[0]*S,a[1]*S);g.lineTo(b[0]*S,b[1]*S);g.lineTo(7.5*S,7.5*S);g.closePath();g.fill();g.strokeStyle="rgba(0,0,0,.25)";g.lineWidth=1;g.stroke()};
+  P([6,6],[6,9],LUDO_COLORS.green.color);P([9,6],[9,9],LUDO_COLORS.blue.color);P([6,6],[6,9],LUDO_COLORS.green.color);
+  P([6,9],[9,9],LUDO_COLORS.yellow.color);P([6,6],[6,9],LUDO_COLORS.green.color);P([6,6],[9,6],LUDO_COLORS.red.color);
+  const hub=g.createRadialGradient(7.4*S,7.4*S,S*.05,7.5*S,7.5*S,S*.5);hub.addColorStop(0,"#fff");hub.addColorStop(.6,"#e9dcc0");hub.addColorStop(1,"#b89a5a");
+  g.fillStyle=hub;g.beginPath();g.arc(7.5*S,7.5*S,S*.42,0,7);g.fill();g.strokeStyle="#d8a94a";g.lineWidth=S*.08;g.stroke();
+  const v=g.createRadialGradient(W/2,W/2,W*.35,W/2,W/2,W*.72);v.addColorStop(0,"rgba(0,0,0,0)");v.addColorStop(1,"rgba(60,30,0,.3)");g.fillStyle=v;g.fillRect(0,0,W,W);
+  const gl=g.createLinearGradient(0,0,W,W);gl.addColorStop(0,"rgba(255,255,255,.25)");gl.addColorStop(.45,"rgba(255,255,255,0)");g.fillStyle=gl;g.fillRect(0,0,W,W);
+}
+/* ---------- pawn ---------- */
+function pawn(g,x,y,z,col,S,sc){
+  const r=S*.3*sc;
+  g.fillStyle=`rgba(0,0,0,${Math.max(.12,.36-z*.4)})`;g.beginPath();g.ellipse(x,y+r*.55,r*(1.1-z*.5),r*.42,0,0,7);g.fill();
+  y-=z*S;const bh=r*2.1,b=y+r*.4;
+  const gr=g.createLinearGradient(x-r,0,x+r,0);gr.addColorStop(0,shade(col,-.45));gr.addColorStop(.35,col);gr.addColorStop(.5,shade(col,.45));gr.addColorStop(.7,col);gr.addColorStop(1,shade(col,-.5));
+  g.fillStyle=gr;g.beginPath();g.moveTo(x-r,b);g.quadraticCurveTo(x-r*.5,b-bh*.3,x-r*.3,b-bh*.72);g.lineTo(x+r*.3,b-bh*.72);g.quadraticCurveTo(x+r*.5,b-bh*.3,x+r,b);g.ellipse(x,b,r,r*.36,0,0,Math.PI);g.closePath();g.fill();
+  g.strokeStyle="rgba(255,255,255,.55)";g.lineWidth=S*.045;g.beginPath();g.ellipse(x,b-bh*.72,r*.3,r*.1,0,0,7);g.stroke();
+  const hy=b-bh*.72-r*.42,hr=r*.52,hg=g.createRadialGradient(x-hr*.35,hy-hr*.4,hr*.1,x,hy,hr);
+  hg.addColorStop(0,"#fff");hg.addColorStop(.25,shade(col,.5));hg.addColorStop(1,shade(col,-.4));g.fillStyle=hg;g.beginPath();g.arc(x,hy,hr,0,7);g.fill();
+}
+const puff=(x,y,col)=>{for(let k=0;k<20;k++){const a=Math.random()*6.28,s=.04+Math.random()*.1;LUDO.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-.03,g:.008,life:1,r:3+Math.random()*2.5,col,rot:0})}};
+const confetti=()=>{const cs=["#ef5368","#3fc984","#ffc93c","#4a9dff","#fff"];for(let k=0;k<110;k++)LUDO.parts.push({x:Math.random()*15,y:-Math.random()*3,vx:(Math.random()-.5)*.05,vy:.03+Math.random()*.06,g:.0015,life:4,col:cs[k%5],sq:1,rot:Math.random()*6})};
+
+/* ---------- render loop ---------- */
+function frame(){
+  const L=LUDO;if(!L||!CV||!CV.isConnected){RAF=0;return}
+  const W=CV.clientWidth,S=W/15,g=CTX,t=performance.now()/1000,pl=cur();
+  g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,W,W);
+  if(L.shake>0){g.translate((Math.random()-.5)*L.shake*.5,(Math.random()-.5)*L.shake*.5);L.shake--}
+  g.drawImage(BG,0,0,W,W);
+  if(!L.winner){const[r,c]=YARD[pl.color],cc=LUDO_COLORS[pl.color].color;g.save();g.strokeStyle=cc;g.globalAlpha=.5+.4*Math.sin(t*4);g.lineWidth=S*.16;g.shadowColor=cc;g.shadowBlur=S;g.strokeRect(c*S+S*.08,r*S+S*.08,6*S-S*.16,6*S-S*.16);g.restore()}
+  const can=!L.busy&&!L.rolling&&!!L.dice&&isHuman();
+  const groups={};L.players.forEach((p,pi)=>p.tokens.forEach((q,i)=>{const xy=xyAt(p,i,q),k=xy.join("_");(groups[k]=groups[k]||[]).push([pi,i,xy])}));
+  const list=[];
+  Object.values(groups).forEach(gr=>gr.forEach(([pi,i,xy],n)=>{
+    const o=gr.length>1?OFF[Math.min(n+1,4)]:OFF[0],sc=gr.length>1?.8:1,s=L.spr[pi][i],tx=xy[1]+.5+o[0],ty=xy[0]+.5+o[1];
+    s.x+=(tx-s.x)*(s.slow?.14:.34);s.y+=(ty-s.y)*(s.slow?.14:.34);
+    if(s.slow&&Math.abs(tx-s.x)+Math.abs(ty-s.y)<.05)s.slow=false;
+    if(s.vz||s.z){s.z+=s.vz;s.vz-=.036;if(s.z<=0){s.z=0;s.vz=0}}
+    list.push({pi,i,s,sc,mov:can&&L.turn===pi&&canMove(L.players[pi].tokens[i],L.dice)})}));
+  list.forEach(a=>{if(!a.mov)return;const q=xyAt(pl,a.i,pl.tokens[a.i]===-1?0:pl.tokens[a.i]+L.dice),col=LUDO_COLORS[pl.color].color;
+    g.save();g.setLineDash([4,3]);g.strokeStyle=col;g.fillStyle=col+"44";g.lineWidth=2;g.globalAlpha=.6+.4*Math.sin(t*6);g.beginPath();g.arc((q[1]+.5)*S,(q[0]+.5)*S,S*.34,0,7);g.fill();g.stroke();g.restore()});
+  list.sort((a,b)=>a.s.y-b.s.y).forEach(a=>{
+    const col=LUDO_COLORS[L.players[a.pi].color].color,x=a.s.x*S,y=a.s.y*S;
+    if(a.mov){g.save();g.strokeStyle="#fff";g.shadowColor=col;g.shadowBlur=12;g.globalAlpha=.65+.35*Math.sin(t*7);g.lineWidth=2.5;g.beginPath();g.ellipse(x,y+S*.2,S*.38,S*.15,0,0,7);g.stroke();g.restore()}
+    pawn(g,x,y,a.s.z+(a.mov&&!a.s.z?.05+.07*Math.abs(Math.sin(t*6)):0),col,S,a.sc)});
+  L.parts=L.parts.filter(q=>(q.life-=.02)>0);
+  L.parts.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=q.g;q.rot+=.2;g.globalAlpha=Math.min(1,q.life*1.5);g.fillStyle=q.col;
+    if(q.sq){g.save();g.translate(q.x*S,q.y*S);g.rotate(q.rot);g.fillRect(-3,-5,6,10);g.restore()}else{g.beginPath();g.arc(q.x*S,q.y*S,q.r,0,7);g.fill()}});
+  g.globalAlpha=1;RAF=requestAnimationFrame(frame);
+}
+function setupCanvas(){
+  CV=$("ludoCv");CTX=CV.getContext("2d");
+  const fit=()=>{if(!CV.isConnected)return;DPR=Math.min(devicePixelRatio||1,2.5);const W=CV.clientWidth;CV.width=CV.height=Math.round(W*DPR);paintBoard(W)};
+  fit();new ResizeObserver(fit).observe(CV);
+  CV.addEventListener("pointerdown",e=>{
+    const L=LUDO;if(!L||L.winner||L.busy||L.rolling||!L.dice||!isHuman())return;
+    const r=CV.getBoundingClientRect(),S=r.width/15,x=(e.clientX-r.left)/S,y=(e.clientY-r.top)/S,pl=cur();let best=null,bd=.8;
+    pl.tokens.forEach((p,i)=>{if(!canMove(p,L.dice))return;const s=L.spr[L.turn][i],d=Math.hypot(s.x-x,s.y-.3-y);if(d<bd){bd=d;best=i}});
+    if(best!==null)selectLudoToken(pl.color,best)});
+  if(!RAF)RAF=requestAnimationFrame(frame);
+}
+
+/* ---------- game setup / UI ---------- */
+function openLudoMenu(){
+  openModal(`<div class="modal-title">Ludo</div><div class="modal-sub">Dost ke saath online khelo</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="hostLudo()">🌐 Online room (2-4 log)</button>
+   <div style="display:flex;gap:8px;margin-bottom:12px"><input id="roomCode" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code" autocapitalize="characters"><button class="btn" onclick="joinLudo($('roomCode').value.trim().toUpperCase())">Join</button></div>
+   <div style="color:var(--muted);font-size:12px;margin:0 0 6px 4px">Robot ke saath</div>
+   <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">${[1,2,3].map(n=>`<button class="btn" onclick="startLudo('robot',null,null,${n+1})">🤖 ×${n}</button>`).join("")}</div>
+   <button class="btn" style="width:100%" onclick="startLudo('local')">👥 Ek phone par 2 players</button>`);
+}
+function startLudo(mode="robot",names,me=null,n){
+  closeModal();const cnt=names?names.length:(mode==="robot"?(n||2):2);
+  const nm=names||(mode==="robot"?["You","Robot","Robot 2","Robot 3"].slice(0,cnt):["Player 1","Player 2"]);
+  LUDO={mode,me,n:cnt,players:SEATS[cnt].map((c,i)=>({name:nm[i],color:c,tokens:[-1,-1,-1,-1]})),turn:0,dice:null,rolling:false,busy:false,winner:null,sixes:0,message:"Game shuru!",cubeN:0,parts:[],shake:0};
+  LUDO.spr=LUDO.players.map(p=>p.tokens.map((_,i)=>{const xy=xyAt(p,i,-1);return{x:xy[1]+.5,y:xy[0]+.5,z:0,vz:0}}));
+  NEXORA.page="games";renderLudo();
+}
+function renderLudo(){
+  const L=LUDO;
+  $("main").innerHTML=`<section class="page" style="padding-bottom:20px"><div class="ludo-wrap">
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveLudo()">‹ Games</button>
+    ${L.mode==="online"?`<div class="btn" style="display:grid;place-items:center">🌐 ${LROOM?.code||""}</div>`:`<button class="btn" onclick="startLudo(LUDO.mode,null,null,LUDO.n)">↻ Restart</button>`}</div>
+   <div id="turnBanner"><i></i><span></span></div>
+   <div class="ludo-frame" style="position:relative"><canvas id="ludoCv"></canvas>
+    <div class="ludo-bar"><div style="min-width:0"><div id="lMsg" style="font-weight:850"></div><div id="lHint" style="color:var(--muted);font-size:12px;margin-top:3px"></div></div>
+     <button id="ludoDice" class="cubewrap" onclick="rollLudoDice()"><div class="cube" id="cube">${[1,2,3,4,5,6].map(n=>`<div class="face f${n}">${pipsHtml(n)}</div>`).join("")}</div></button></div>
+    <div class="pcards">${L.players.map((p,i)=>`<div class="pcard" id="pc-${i}" style="--gc:${LUDO_COLORS[p.color].color}"><em></em><div style="min-width:0"><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}${L.me===i?" (You)":""}</div><div id="pcs-${i}"></div></div></div>`).join("")}</div>
+   </div></div></section>`;
+  setupCanvas();updateLudo();
+}
+let lastKey=null;
+function updateLudo(){
+  const L=LUDO;if(!L||!$("turnBanner"))return;
+  const pl=cur(),tb=$("turnBanner"),key=L.winner?"w":L.turn;
+  tb.style.setProperty("--tb",LUDO_COLORS[pl.color].color);
+  tb.querySelector("span").textContent=L.winner?"🏆 "+L.winner+" jeet gaya!":(L.mode!=="local"&&isHuman()?"Aapki baari":pl.name+" ki baari");
+  if(key!==lastKey){lastKey=key;tb.classList.remove("swap");void tb.offsetWidth;tb.classList.add("swap")}
+  L.players.forEach((p,i)=>{$("pc-"+i).classList.toggle("on",i===L.turn&&!L.winner);const n=p.tokens.filter(x=>x===FINISH).length;$("pcs-"+i).innerHTML=`<div class="hdots">${[0,1,2,3].map(k=>`<s class="${k<n?"on":""}"></s>`).join("")}</div>`});
+  const rd=!L.rolling&&!L.busy&&!L.dice&&!L.winner&&isHuman(),d=$("ludoDice");
+  d.classList.toggle("ready",rd);d.classList.toggle("off",!rd&&!L.rolling);
+  $("lMsg").textContent=L.message;
+  $("lHint").textContent=L.winner?"Game khatam":L.rolling?"Rolling…":!isHuman()?pl.name+" ki baari…":L.dice?"Chamakti gotti chuno":"Dice par tap karo";
+}
+
+/* ---------- rules / turns ---------- */
+function rollLudoDice(){
+  if(!LUDO||LUDO.winner||LUDO.rolling||LUDO.busy||LUDO.dice||!isHuman())return;
+  const d=rnd6();lsend({t:"roll",d});animateRoll(d);
+}
+async function animateRoll(d){
+  const L=LUDO;L.rolling=true;L.dice=null;updateLudo();spinCube(d);sfx(180,.8,"triangle",.04);navigator.vibrate?.(25);
+  await sleep(950);if(LUDO!==L)return;
+  L.rolling=false;L.dice=d;const pl=cur();
+  L.sixes=d===6?L.sixes+1:0;L.message=`${pl.name} ne ${d} roll kiya`;sfx(d===6?760:420,.12);
+  if(L.sixes>=3){L.sixes=0;L.dice=null;L.message=pl.name+": teen 6, turn gaya";updateLudo();await sleep(900);return endTurn()}
+  const mv=getMovable();updateLudo();
+  if(!mv.length){await sleep(800);L.dice=null;return d===6?again(pl):endTurn()}
+  if(isBot()){await sleep(650);return commit(pl,robotPick(pl,mv,d))}
+  if(isHuman()&&mv.length===1){await sleep(450);playMove(mv[0])}
+}
+function robotPick(pl,mv,d){
+  const foes=LUDO.players.filter(p=>p!==pl);let best=mv[0],bs=-1;
+  mv.forEach(i=>{const p=pl.tokens[i],n=p===-1?0:p+d;let s=n;
+    if(p===-1)s+=60;if(n===FINISH)s+=90;
+    if(n<=50){const a=(LUDO_COLORS[pl.color].start+n)%52;
+      if(SAFE.has(a))s+=25;else if(foes.some(f=>f.tokens.some(q=>q>=0&&q<=50&&(LUDO_COLORS[f.color].start+q)%52===a)))s+=120}
+    if(s>bs){bs=s;best=i}});
+  return best;
+}
+function selectLudoToken(color,i){
+  const L=LUDO;if(!L||L.winner||L.busy||L.rolling||!L.dice||!isHuman())return;
+  const pl=cur();if(pl.color!==color||!canMove(pl.tokens[i],L.dice))return;playMove(i);
+}
+function playMove(i){lsend({t:"mv",i});return commit(cur(),i)}
+async function commit(pl,i){
+  const L=LUDO;L.busy=true;const d=L.dice,old=pl.tokens[i],s=L.spr[L.players.indexOf(pl)][i];
+  const hop=()=>{s.vz=.18;sfx(300+Math.random()*80,.05,"square",.03)};
+  if(old===-1){pl.tokens[i]=0;hop();await sleep(300)}
+  else for(let p=old+1;p<=old+d;p++){pl.tokens[i]=p;hop();await sleep(190);if(LUDO!==L)return}
+  let cut=false;const p=pl.tokens[i];
+  if(p>=0&&p<=50){const a=(LUDO_COLORS[pl.color].start+p)%52;
+    if(!SAFE.has(a))L.players.forEach((o,oi)=>{if(o===pl)return;o.tokens=o.tokens.map((q,qi)=>{
+      if(q>=0&&q<=50&&(LUDO_COLORS[o.color].start+q)%52===a){cut=true;const t=L.spr[oi][qi];puff(t.x,t.y,LUDO_COLORS[o.color].color);t.slow=true;t.vz=.3;return -1}return q})})}
+  if(cut){toast("Gotti kat gayi! 💥");sfx(120,.4,"sawtooth",.07);L.shake=14;await sleep(480)}
+  L.dice=null;L.busy=false;
+  if(pl.tokens.every(x=>x===FINISH)){
+    L.winner=pl.name;L.message=pl.name+" jeet gaya! 🏆";confetti();[523,659,784,1047].forEach((f,k)=>setTimeout(()=>sfx(f,.3),k*140));updateLudo();
+    $("ludoCv")?.parentElement.insertAdjacentHTML("beforeend",`<div class="confetti" style="border-radius:26px"><div>🏆<br>${escapeHtml(pl.name)} won!<br><button class="btn primary-btn" style="margin-top:16px" onclick="leaveLudo()">Games</button></div></div>`);return;
+  }
+  updateLudo();(d===6||cut||p===FINISH)?again(pl):endTurn();
+}
+function botTurn(){const L=LUDO;if(L&&L.mode==="robot"&&L.turn>0&&!L.winner)setTimeout(()=>{if(LUDO===L&&!L.winner&&L.turn>0)animateRoll(rnd6())},850)}
+function again(pl){LUDO.dice=null;LUDO.message=pl.name+" ko dobara chance";updateLudo();botTurn()}
+function endTurn(){const L=LUDO;L.sixes=0;L.dice=null;let k=0;do{L.turn=(L.turn+1)%L.players.length}while(L.players[L.turn].gone&&++k<8);L.message=cur().name+" ki baari";updateLudo();botTurn()}
+
+/* ---------- online lobby ---------- */
+function lsend(m){LROOM?.send({type:"broadcast",event:"g",payload:{...m,from:NEXORA.user.id}})}
+async function openRoom(code,host){
+  closeRoom();LB=host?[{id:NEXORA.user.id,name:myName()}]:[];
+  const ch=sb.channel("ludo-"+code);LROOM=ch;ch.code=code;ch.host=host;
+  ch.on("broadcast",{event:"g"},({payload:m})=>onLudoMsg(m));
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+}
+function beginOnline(){if(LB.length<2)return;lsend({t:"start",list:LB});startLudo("online",LB.map(x=>x.name),0)}
+function showLobby(){
+  const code=LROOM?.code||"",n=Math.max(2,LB.length);
+  openModal(`<div class="modal-title">Ludo room 🎲</div><div class="modal-sub">2 se 4 log · code dost ko bhejo</div>
+   <div class="card" style="padding:16px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:12px">${code}</div>
+   ${LB.map((p,i)=>`<div class="pr"><div class="avatar" style="background:${LUDO_COLORS[SEATS[n][i]||"red"].color}">${escapeHtml(initials(p.name))}</div><div class="nm">${escapeHtml(p.name)}${i===0?" (Host)":""}</div></div>`).join("")}
+   <div class="modal-actions" style="margin-top:14px"><button class="btn danger" onclick="closeRoom();closeModal()">Cancel</button><button class="btn primary-btn" ${LB.length<2?'disabled style="opacity:.5"':""} onclick="beginOnline()">Start (${LB.length})</button></div>`);
+}
+function showWaiting(){
+  openModal(`<div class="modal-title">Lobby 🎲</div><div class="modal-sub">Host game shuru karega…</div>${LB.map(p=>`<div class="pr"><div class="avatar">${escapeHtml(initials(p.name))}</div><div class="nm">${escapeHtml(p.name)}</div></div>`).join("")}<button class="btn danger" style="width:100%;margin-top:14px" onclick="closeRoom();closeModal()">Leave</button>`);
+}
+async function hostLudo(code){code=code||Math.random().toString(36).slice(2,8).toUpperCase();await openRoom(code,true);showLobby()}
+async function joinLudo(code){
+  if(!code||code.length<4)return toast("Room code daalo.","error");
+  await openRoom(code,false);showWaiting();
+  let n=0;const iv=setInterval(()=>{if(LUDO?.mode==="online"||++n>12||!LROOM)return clearInterval(iv);lsend({t:"join",name:myName()})},1500);
+  lsend({t:"join",name:myName()});
+}
+function onLudoMsg(m){
+  if(m.from===NEXORA.user.id)return;
+  const host=LROOM?.host;
+  if(m.t==="join"&&host){
+    if(LUDO?.mode==="online"){lsend({t:"start",list:LB});return}
+    if(!LB.some(x=>x.id===m.from)&&LB.length<4)LB.push({id:m.from,name:m.name});
+    lsend({t:"lobby",list:LB});
+    if(typeof PENDING!=="undefined"&&PENDING&&PENDING.code===LROOM.code&&LB.length===2)return beginOnline();
+    return showLobby();
+  }
+  if(m.t==="lobby"&&!host&&!LUDO){LB=m.list;return showWaiting()}
+  if(m.t==="start"&&!host&&!LUDO){LB=m.list;const me=LB.findIndex(x=>x.id===NEXORA.user.id);if(me>=0)startLudo("online",LB.map(x=>x.name),me);return}
+  if(m.t==="leave"&&!LUDO&&host){LB=LB.filter(x=>x.id!==m.from);return showLobby()}
+  if(!LUDO||LUDO.mode!=="online")return;
+  const seat=LB.findIndex(x=>x.id===m.from);if(seat<0)return;
+  if(m.t==="roll"&&seat===LUDO.turn&&!LUDO.rolling&&!LUDO.dice&&!LUDO.busy)animateRoll(m.d);
+  if(m.t==="mv"&&seat===LUDO.turn)(async()=>{while(LUDO&&LUDO.rolling)await sleep(50);if(LUDO&&LUDO.dice&&!LUDO.busy)commit(cur(),m.i)})();
+  if(m.t==="leave"){
+    const L=LUDO;L.players[seat].gone=true;toast(L.players[seat].name+" ne game chhod diya");
+    const alive=L.players.filter(p=>!p.gone);
+    if(alive.length<2&&!L.winner){L.winner=alive[0]?.name||"—";L.message="Baaki sab chale gaye";updateLudo()}
+    else if(L.turn===seat&&!L.busy&&!L.rolling)endTurn();
+  }
+}
+</script>
+<style>
+.arc-g.soon{opacity:1}
+.u-page{padding:0!important;display:flex;flex-direction:column;overflow:hidden!important;position:relative;background:radial-gradient(circle at 50% 38%,#1d5a45,#0b2219 72%)}
+.u-top{display:flex;gap:8px;align-items:center;padding:10px 12px}
+.u-msg{flex:1;min-width:0;font-size:13px;font-weight:700;color:#cfe8dc;text-align:center}
+.u-opps{display:flex;justify-content:center;gap:10px;padding:2px 10px;flex-wrap:wrap}
+.u-op{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:78px;padding:8px 8px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);transition:.3s}
+.u-op.on{border-color:#fff;box-shadow:0 0 24px rgba(255,255,255,.35);transform:translateY(3px)}
+.u-fan{display:flex;height:22px}
+.u-fan s{width:14px;height:20px;border-radius:3px;background:linear-gradient(145deg,#2a2a38,#0a0a10);border:1px solid rgba(255,255,255,.55);margin-left:-8px;text-decoration:none}
+.u-fan s:first-child{margin-left:0}
+.u-n{font-size:11px;color:#a9c9bb}.u-n.red{color:#ff6377;font-weight:900;font-size:12px}
+.u-mid{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:30px;position:relative}
+.u-deck{background:none;padding:0;position:relative;color:#fff}
+.u-deck small{position:absolute;bottom:-18px;left:0;right:0;text-align:center;color:#cfe8dc;font-size:11px}
+.u-deck:not([disabled]) .uc{animation:ready 1s ease-in-out infinite alternate}
+.u-disc{position:relative;isolation:isolate}
+.u-disc::after{content:"";position:absolute;inset:-14px;border-radius:50%;box-shadow:0 0 40px 10px var(--rc);opacity:.55;z-index:-1;transition:box-shadow .4s}
+.u-dir{position:absolute;right:16px;top:10px;font-size:26px;opacity:.45;animation:uspin 3s linear infinite}
+@keyframes uspin{to{transform:rotate(360deg)}}
+.u-turn{text-align:center;font-weight:900;font-size:15px;padding:8px 0 4px}
+.u-act{display:flex;justify-content:center;gap:10px;min-height:46px;padding:0 12px;align-items:center}
+.u-hand{display:flex;align-items:flex-end;overflow-x:auto;padding:30px 16px calc(14px + env(safe-area-inset-bottom,0px));min-height:158px;border-top:1px solid rgba(255,255,255,.08);background:linear-gradient(0deg,rgba(0,0,0,.4),transparent)}
+.u-hand.mine{box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+.u-hand .uc{margin-left:-22px;transition:transform .25s var(--ease),filter .25s}
+.u-hand .uc:first-child{margin-left:0}
+.uc{--cc:#e5384f;position:relative;flex:0 0 auto;width:60px;height:90px;border-radius:10px;background:var(--cc);border:3px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.45);overflow:hidden;color:#fff;font-weight:900;user-select:none;cursor:pointer}
+.uc::before{content:"";position:absolute;inset:12% -6%;background:#fff;border-radius:50%;transform:rotate(-26deg);opacity:.95}
+.uc b{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;color:var(--cc);text-shadow:0 2px 0 rgba(0,0,0,.18);z-index:1}
+.uc i{position:absolute;left:5px;top:3px;font-size:13px;font-style:normal;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.uc i.br{left:auto;right:5px;top:auto;bottom:3px;transform:rotate(180deg)}
+.uw::before{background:conic-gradient(#e5384f 0 25%,#f3b92b 0 50%,#2fb36a 0 75%,#2f7fe0 0)}
+.uw b{color:#fff;-webkit-text-stroke:1px rgba(0,0,0,.5)}
+.ub{background:linear-gradient(145deg,#1d1d28,#07070c);cursor:default}
+.ub::before{background:#e5384f;inset:26% -10%}.ub b{color:#ffd84d;font-size:17px;transform:rotate(-26deg)}
+.uc.ok{transform:translateY(-18px);box-shadow:0 0 0 2px #fff,0 12px 22px rgba(0,0,0,.55)}
+.uc.no{filter:brightness(.55) saturate(.7)}
+.uc.land{animation:uland .4s cubic-bezier(.2,1.3,.4,1)}
+@keyframes uland{from{transform:translateY(130px) rotate(-40deg) scale(1.25);opacity:.2}}
+.uno-btn{width:84px;height:46px;border-radius:23px;background:linear-gradient(145deg,#ff5468,#c21f35);color:#fff;font-weight:900;box-shadow:0 8px 22px rgba(229,56,79,.55);animation:ready .6s ease-in-out infinite alternate}
+.cpick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cpick button{height:84px;border-radius:20px;color:#fff;font-weight:900;font-size:16px;box-shadow:inset 0 -6px 12px rgba(0,0,0,.25)}
+</style>
+
+<script>
+/* ============ PART C: UNO ============ */
+const UCOL={r:"#e5384f",y:"#f3b92b",g:"#2fb36a",b:"#2f7fe0"},UN={r:"Red",y:"Yellow",g:"Green",b:"Blue"};
+let UG=null,UI=null,UCH=null,UB=[],UHOST=false,UVER=0,UAUTO=null;
+GN.uno="🃏 UNO";
+
+/* ---------- engine (host par chalta hai) ---------- */
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function uDeck(){let id=0;const d=[];
+  for(const c of"rygb"){d.push({id:id++,c,v:"0"});for(let n=1;n<=9;n++)d.push({id:id++,c,v:""+n},{id:id++,c,v:""+n});["s","r","d"].forEach(v=>d.push({id:id++,c,v},{id:id++,c,v}))}
+  for(let k=0;k<4;k++)d.push({id:id++,c:"w",v:"w"},{id:id++,c:"w",v:"f"});return shuf(d)}
+const uTop=()=>UG.disc[UG.disc.length-1];
+function uDraw(){if(!UG.deck.length&&UG.disc.length>1){const t=UG.disc.pop();UG.deck=shuf(UG.disc.splice(0));UG.disc=[t]}return UG.deck.pop()||null}
+function uOk(c,hand){if(c.c==="w")return c.v==="w"||!hand.some(x=>x.c===UG.color);return c.c===UG.color||c.v===uTop().v}
+const uNext=(f,k=1)=>{const n=UG.seats.length;return((f+UG.dir*k)%n+n)%n};
+function uStart(seats){
+  const deck=uDeck();seats.forEach(s=>{s.hand=[];s.said=false;for(let i=0;i<7;i++)s.hand.push(deck.pop())});
+  let c=deck.pop();while(c.v==="f"){deck.unshift(c);c=deck.pop()}
+  UG={seats,deck,disc:[c],color:c.c==="w"?"rygb"[Math.floor(Math.random()*4)]:c.c,dir:1,turn:0,drew:false,drewId:null,winner:null,catch:null,msg:"Game shuru! 🃏"};
+  const n=seats.length;
+  if(c.v==="s")UG.turn=1%n;
+  else if(c.v==="r"){UG.dir=-1;UG.turn=n===2?1:n-1}
+  else if(c.v==="d"){for(let i=0;i<2;i++){const x=uDraw();if(x)seats[0].hand.push(x)}UG.turn=1%n}
+}
+function uPlay(seat,idx,color){
+  if(!UG||UG.winner||UG.turn!==seat)return false;
+  const me=UG.seats[seat],card=me.hand[idx];if(!card||!uOk(card,me.hand))return false;
+  if(UG.drew&&card.id!==UG.drewId)return false;
+  me.hand.splice(idx,1);UG.disc.push(card);UG.color=card.c==="w"?(color||"r"):card.c;UG.catch=null;UG.drew=false;UG.drewId=null;
+  const nm=card.c==="w"?(card.v==="f"?"Wild +4":"Wild")+" → "+UN[UG.color]:UN[card.c]+" "+({s:"Skip",r:"Reverse",d:"+2"}[card.v]||card.v);
+  UG.msg=`${me.name} ne ${nm} khela`;
+  if(!me.hand.length){UG.winner=me.name;return uSync()}
+  const n=UG.seats.length;let step=1;
+  if(card.v==="s")step=2;
+  else if(card.v==="r"){UG.dir*=-1;step=n===2?2:1}
+  else if(card.v==="d"||card.v==="f"){const v=uNext(seat),k=card.v==="d"?2:4;for(let i=0;i<k;i++){const x=uDraw();if(x)UG.seats[v].hand.push(x)}UG.seats[v].said=false;step=2;UG.msg+=` · ${UG.seats[v].name} +${k}`}
+  if(me.hand.length===1&&!me.said)UG.catch={seat,until:Date.now()+4500};
+  if(me.hand.length>1)me.said=false;
+  UG.turn=uNext(seat,step);return uSync();
+}
+function uDrawAct(seat){
+  if(!UG||UG.winner||UG.turn!==seat||UG.drew)return;
+  const me=UG.seats[seat],c=uDraw();UG.catch=null;
+  if(!c){UG.msg=me.name+": deck khaali, pass";UG.turn=uNext(seat);return uSync()}
+  me.hand.push(c);me.said=false;UG.msg=me.name+" ne card uthaya";
+  if(uOk(c,me.hand)){UG.drew=true;UG.drewId=c.id}else{UG.drew=false;UG.drewId=null;UG.turn=uNext(seat);UG.msg+=" · pass"}
+  uSync();
+}
+function uPass(seat){if(UG&&!UG.winner&&UG.turn===seat&&UG.drew){UG.drew=false;UG.drewId=null;UG.msg=UG.seats[seat].name+" ne pass kiya";UG.turn=uNext(seat);uSync()}}
+function uSay(seat){const s=UG?.seats[seat];if(!s||UG.winner)return;s.said=true;if(UG.catch&&UG.catch.seat===seat)UG.catch=null;UG.msg=s.name+": UNO! 🔔";uSync()}
+function uCatch(by){
+  if(!UG||!UG.catch||UG.catch.seat===by||Date.now()>UG.catch.until+800)return;
+  const t=UG.seats[UG.catch.seat];for(let i=0;i<2;i++){const x=uDraw();if(x)t.hand.push(x)}
+  UG.msg=`${UG.seats[by].name} ne pakad liya! ${t.name} +2 😈`;UG.catch=null;uSync();
+}
+function uBot(){
+  if(!UG||UG.winner)return;const g=UG,s=g.seats[g.turn];if(!s.bot)return;
+  setTimeout(()=>{if(UG!==g||g.winner||g.seats[g.turn]!==s)return;
+    const seat=g.turn,hand=s.hand,ok=hand.map((c,i)=>[c,i]).filter(([c])=>(!g.drew||c.id===g.drewId)&&uOk(c,hand));
+    if(!ok.length)return g.drew?uPass(seat):uDrawAct(seat);
+    const cnt={r:0,y:0,g:0,b:0};hand.forEach(c=>{if(c.c!=="w")cnt[c.c]++});
+    const nxt=g.seats[uNext(seat)].hand.length;
+    ok.sort((a,b)=>sc(b[0])-sc(a[0]));function sc(c){return(c.c==="w"?-5:0)+(["s","r","d"].includes(c.v)?(nxt<=2?6:2):0)+(cnt[c.c]||0)}
+    const[c,i]=ok[0],rest=hand.filter(x=>x!==c),col=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][1]?Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]:"rygb"[Math.floor(Math.random()*4)];
+    if(hand.length===2&&Math.random()<.9)s.said=true;
+    uPlay(seat,i,col);
+  },1100+Math.random()*600);
+}
+function uPub(){return{seats:UG.seats.map(s=>({id:s.id,name:s.name,n:s.hand.length,said:s.said})),top:uTop(),color:UG.color,dir:UG.dir,turn:UG.turn,deck:UG.deck.length,msg:UG.msg,winner:UG.winner,catchSeat:UG.catch?UG.catch.seat:-1,drew:UG.drew,drewId:UG.drewId,ver:++UVER}}
+function uSync(){
+  const p=uPub();UI.pub=p;UI.hand=UG.seats[UI.me].hand.slice();
+  if(UCH){UCH.tx({t:"S",pub:p});UG.seats.forEach((s,i)=>{if(i!==UI.me&&!s.bot)UCH.tx({t:"H",to:s.id,hand:s.hand})})}
+  uRender();uBot();
+}
+
+/* ---------- UI ---------- */
+const ucard=(c,cls="",ex="")=>{const sy={s:"⊘",r:"⇄",d:"+2",w:"★",f:"+4"}[c.v]||c.v;
+  return `<div class="uc ${c.c==="w"?"uw":""} ${cls}" style="--cc:${c.c==="w"?"#1b1b25":UCOL[c.c]}" ${ex}><i>${sy}</i><b>${sy}</b><i class="br">${sy}</i></div>`};
+const uback=()=>`<div class="uc ub"><b>UNO</b></div>`;
+function uRender(){
+  if(!UI||NEXORA.page!=="games")return;
+  const P=UI.pub,main=$("main");
+  if(!P){main.innerHTML=`<section class="page u-page"><div class="chat-empty" style="margin:auto;color:#cfe8dc">🃏<br>Cards bant rahe hain…</div></section>`;return}
+  const old=$("uHand")?.scrollLeft||0,me=UI.me,n=P.seats.length,my=P.turn===me&&!P.winner;
+  let land=false;if(UI.lastTop!==P.top.id){if(UI.lastTop!==undefined){sfx(P.top.c==="w"?700:420,.1,"square",.04);navigator.vibrate?.(12)}land=true;UI.lastTop=P.top.id}
+  if(P.winner&&!UI.won){UI.won=1;[523,659,784,1047].forEach((f,k)=>setTimeout(()=>sfx(f,.3),k*140))}
+  if(P.catchSeat>=0&&UI.cv!==P.ver){UI.cv=P.ver;setTimeout(()=>{if(UI&&UI.pub&&UI.pub.ver===UI.cv){UI.pub.catchSeat=-1;uRender()}},4600)}
+  const okc=c=>my&&(!P.drew||c.id===P.drewId)&&(c.c==="w"?(c.v==="w"||!UI.hand.some(x=>x.c===P.color)):(c.c===P.color||c.v===P.top.v));
+  const opps=[];for(let k=1;k<n;k++)opps.push((me+k)%n);
+  const canUno=UI.hand.length>0&&UI.hand.length<=2&&!P.seats[me].said&&!P.winner,showCatch=P.catchSeat>=0&&P.catchSeat!==me;
+  main.innerHTML=`<section class="page u-page">
+   <div class="u-top"><button class="btn" onclick="leaveUno()">‹ Games</button><div class="u-msg">${escapeHtml(P.msg||"")}</div>${UCH?`<div class="btn" style="display:grid;place-items:center">🌐 ${UCH.code}</div>`:""}</div>
+   <div class="u-opps">${opps.map(i=>{const s=P.seats[i];return `<div class="u-op ${P.turn===i&&!P.winner?"on":""}"><div class="avatar" style="width:38px;height:38px">${escapeHtml(initials(s.name))}</div><div style="font-size:12px;font-weight:800;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(s.name)}</div><div class="u-fan">${Array.from({length:Math.min(s.n,8)},()=>"<s></s>").join("")}</div><div class="u-n ${s.n===1?"red":""}">${s.n===1?"UNO!":s.n+" cards"}</div></div>`}).join("")}</div>
+   <div class="u-mid"><button class="u-deck" onclick="uAct('draw')" ${my&&!P.drew?"":"disabled"}>${uback()}<small>${P.deck} bache</small></button>
+    <div class="u-disc" style="--rc:${UCOL[P.color]}">${ucard(P.top,land?"land":"")}</div><div class="u-dir" style="animation-direction:${P.dir>0?"normal":"reverse"}">⟳</div></div>
+   <div class="u-turn" style="color:${UCOL[P.color]}">${P.winner?"":(my?"Aapki baari":escapeHtml(P.seats[P.turn].name)+" ki baari")+" · "+UN[P.color]}</div>
+   <div class="u-act">${canUno?`<button class="uno-btn" onclick="uAct('say')">UNO!</button>`:""}${my&&P.drew?`<button class="btn" onclick="uAct('pass')">Pass ➜</button>`:""}${showCatch?`<button class="btn danger" onclick="uAct('catch')">Pakdo! 🫵 ${escapeHtml(P.seats[P.catchSeat].name)}</button>`:""}</div>
+   <div id="uHand" class="u-hand ${my?"mine":""}">${UI.hand.map((c,i)=>ucard(c,okc(c)?"ok":(my?"no":""),`onclick="uTap(${i})"`)).join("")}</div>
+   ${P.winner?`<div class="confetti" style="z-index:20"><div>🏆<br>${escapeHtml(P.winner)} jeet gaya!<br><button class="btn primary-btn" style="margin-top:16px" onclick="leaveUno()">Games</button></div></div>`:""}
+  </section>`;
+  $("uHand").scrollLeft=old;
+}
+function uTap(i){
+  const P=UI?.pub;if(!P||P.turn!==UI.me||P.winner)return;const c=UI.hand[i];
+  const ok=(!P.drew||c.id===P.drewId)&&(c.c==="w"?(c.v==="w"||!UI.hand.some(x=>x.c===P.color)):(c.c===P.color||c.v===P.top.v));
+  if(!ok){navigator.vibrate?.(30);return toast(c.v==="f"?"Wild +4 tab chalta hai jab current rang ka card na ho":P.drew?"Sirf wahi card khelo jo uthaya":"Ye card nahi chalega")}
+  if(c.c!=="w")return uSubmit(i,null);
+  openModal(`<div class="modal-title">Rang chuno 🎨</div><div class="modal-sub">Agla rang kaunsa?</div><div class="cpick">${Object.entries(UCOL).map(([k,v])=>`<button style="background:${v}" onclick="closeModal();uSubmit(${i},'${k}')">${UN[k]}</button>`).join("")}</div>`);
+}
+function uSubmit(i,col){if(UI.host)uPlay(UI.me,i,col);else UCH?.tx({t:"A",a:"play",i,col})}
+function uAct(a){
+  if(!UI)return;
+  if(UI.host){({draw:uDrawAct,pass:uPass,say:uSay,catch:uCatch})[a](UI.me)}else UCH?.tx({t:"A",a});
+}
+
+/* ---------- start / rooms ---------- */
+function startUno(nb){
+  closeModal();closeUnoRoom();
+  const names=["Robot","Robot 2","Robot 3"];
+  uStart([{id:NEXORA.user.id,name:myName()},...Array.from({length:nb},(_,i)=>({id:"bot"+i,name:names[i],bot:true}))]);
+  UI={me:0,host:true,pub:null,hand:[]};NEXORA.page="games";uSync();
+}
+function openUnoMenu(){
+  openModal(`<div class="modal-title">UNO 🃏</div><div class="modal-sub">Dost ke saath online khelo</div>
+   <button class="btn primary-btn" style="width:100%;margin-bottom:10px" onclick="hostUno()">🌐 Online room (2-4 log)</button>
+   <div style="display:flex;gap:8px;margin-bottom:12px"><input id="unoCode" class="pf-input" style="margin:0;flex:1;min-width:0;text-transform:uppercase" maxlength="6" placeholder="Room code" autocapitalize="characters"><button class="btn" onclick="joinUno($('unoCode').value.trim().toUpperCase())">Join</button></div>
+   <div style="color:var(--muted);font-size:12px;margin:0 0 6px 4px">Robot ke saath</div>
+   <div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="startUno(${n})">🤖 ×${n}</button>`).join("")}</div>`);
+}
+async function openUnoRoom(code,host){
+  closeUnoRoom();UHOST=host;UB=host?[{id:NEXORA.user.id,name:myName()}]:[];UG=null;UI=null;
+  const ch=sb.channel("uno-"+code);UCH=ch;ch.code=code;
+  ch.tx=m=>ch.send({type:"broadcast",event:"u",payload:{...m,from:NEXORA.user.id}});
+  ch.on("broadcast",{event:"u"},({payload:m})=>onUnoMsg(m));
+  await new Promise(r=>ch.subscribe(s=>{if(s==="SUBSCRIBED")r()}));
+}
+function closeUnoRoom(){if(UCH){try{sb.removeChannel(UCH)}catch(_){}UCH=null}}
+function showUnoLobby(){
+  openModal(`<div class="modal-title">UNO room 🃏</div><div class="modal-sub">2 se 4 log · code dost ko bhejo</div>
+   <div class="card" style="padding:16px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:12px">${UCH?.code||""}</div>
+   ${UB.map((p,i)=>`<div class="pr"><div class="avatar">${escapeHtml(initials(p.name))}</div><div class="nm">${escapeHtml(p.name)}${i===0?" (Host)":""}</div></div>`).join("")}
+   <div class="modal-actions" style="margin-top:14px"><button class="btn danger" onclick="closeUnoRoom();closeModal()">Cancel</button><button class="btn primary-btn" ${UB.length<2?'disabled style="opacity:.5"':""} onclick="beginUno()">Start (${UB.length})</button></div>`);
+}
+function showUnoWait(){openModal(`<div class="modal-title">UNO lobby 🃏</div><div class="modal-sub">Host game shuru karega…</div>${UB.map(p=>`<div class="pr"><div class="avatar">${escapeHtml(initials(p.name))}</div><div class="nm">${escapeHtml(p.name)}</div></div>`).join("")}<button class="btn danger" style="width:100%;margin-top:14px" onclick="closeUnoRoom();closeModal()">Leave</button>`)}
+async function hostUno(code){code=code||Math.random().toString(36).slice(2,8).toUpperCase();await openUnoRoom(code,true);showUnoLobby()}
+async function joinUno(code){
+  if(!code||code.length<4)return toast("Room code daalo.","error");
+  await openUnoRoom(code,false);showUnoWait();
+  let k=0;const iv=setInterval(()=>{if(UI||++k>12||!UCH)return clearInterval(iv);UCH.tx({t:"join",name:myName()})},1500);
+  UCH.tx({t:"join",name:myName()});
+}
+function beginUno(){
+  if(UB.length<2||!UCH)return;
+  UCH.tx({t:"start",list:UB});
+  uStart(UB.map(p=>({id:p.id,name:p.name})));
+  closeModal();UI={me:0,host:true,pub:null,hand:[]};NEXORA.page="games";uSync();
+}
+function onUnoMsg(m){
+  if(m.from===NEXORA.user.id)return;
+  if(UHOST){
+    if(m.t==="join"){
+      if(UG)return;
+      if(!UB.some(x=>x.id===m.from)&&UB.length<4)UB.push({id:m.from,name:m.name});
+      UCH.tx({t:"lobby",list:UB});
+      if(UAUTO&&UAUTO===UCH.code&&UB.length===2)return beginUno();
+      return showUnoLobby();
+    }
+    if(!UG){if(m.t==="leave"){UB=UB.filter(x=>x.id!==m.from);showUnoLobby()}return}
+    const s=UG.seats.findIndex(x=>x.id===m.from);if(s<0)return;
+    if(m.t==="A")({play:()=>uPlay(s,m.i,m.col),draw:()=>uDrawAct(s),pass:()=>uPass(s),say:()=>uSay(s),catch:()=>uCatch(s)})[m.a]?.();
+    if(m.t==="leave"){const x=UG.seats[s];x.bot=true;x.name+=" (bot)";UG.msg=x.name+" chala gaya, ab bot khelega";uSync()}
+  }else{
+    if(m.t==="lobby"&&!UI){UB=m.list;showUnoWait()}
+    if(m.t==="start"&&!UI){UB=m.list;const me=UB.findIndex(x=>x.id===NEXORA.user.id);if(me>=0){closeModal();UI={me,host:false,pub:null,hand:[]};NEXORA.page="games";uRender()}}
+    if(m.t==="S"&&UI){if(UI.pub&&m.pub.ver<UI.pub.ver)return;UI.pub=m.pub;uRender()}
+    if(m.t==="H"&&UI&&m.to===NEXORA.user.id){UI.hand=m.hand;uRender()}
+    if(m.t==="end"){toast("Host ne game band kar diya");UI=null;closeUnoRoom();setPage("games")}
+  }
+}
+function leaveUno(){
+  if(UCH)UCH.tx({t:UHOST?"end":"leave"});
+  closeUnoRoom();UG=null;UI=null;UAUTO=null;setPage("games");
+}
+const _spC=setPage;setPage=function(p){
+  if(UI&&NEXORA.page==="games"){if(UCH)UCH.tx({t:UHOST?"end":"leave"});closeUnoRoom();UG=null;UI=null;UAUTO=null}
+  return _spC(p);
+};
+
+/* ---------- game request flow (chat/call arc se) ---------- */
+const _rgC=requestGame;
+requestGame=async function(uid,name,game){
+  if(game!=="uno")return _rgC(uid,name,game);
+  if(uid===NEXORA.user.id)return;
+  const code=Math.random().toString(36).slice(2,8).toUpperCase();
+  try{
+    await openUnoRoom(code,true);UAUTO=code;PENDING={code,game:"uno",uid,name};
+    await sendSignal({type:"game-req",to:uid,game:"uno",code,fromName:myName()});
+    openModal(`<div class="modal-title">Request bhej di 🎮</div><div class="modal-sub">${escapeHtml(name)} ke accept karne ka wait…</div><div class="card" style="padding:18px;text-align:center;font-weight:850;margin-bottom:14px">🃏 UNO</div><button class="btn danger" style="width:100%" onclick="cancelGame()">Cancel</button>`);
+    setTimeout(()=>{if(PENDING?.code===code)cancelGame(true)},45000);
+  }catch(e){toast(e.message||"Request nahi gayi","error")}
+};
+const _cgC=cancelGame;cancelGame=function(t){if(PENDING?.game==="uno"){closeUnoRoom();UAUTO=null}_cgC(t)};
+const _agC=acceptGame;
+acceptGame=function(){
+  if(INREQ?.game==="uno"){const r=INREQ;INREQ=null;closeModal();sendSignal({type:"game-accept",to:r.from,code:r.code}).catch(()=>{});joinUno(r.code);return}
+  _agC();
+};
+const _hsC=handleSignal;
+handleSignal=async function(p){
+  if(p&&p.type==="game-declined"&&PENDING?.game==="uno"&&PENDING.code===p.code){closeUnoRoom();UAUTO=null}
+  return _hsC(p);
+};
+
+/* ---------- games page ---------- */
+function renderGames(){
+  const q=(i,n,d,a)=>`<button class="card quick-card" onclick="${a}"><div class="quick-icon">${i}</div><div><div class="quick-name">${n}</div><div class="quick-desc">${d}</div></div></button>`;
+  $("main").innerHTML=`<section class="page"><h1 class="section-title">Games</h1><div class="section-sub">Dost ke saath khelo.</div>
+   <div class="grid grid2">${q("🎲","Ludo","Online 2-4 ya robot","openLudoMenu()")}${q("🃏","UNO","Online 2-4 ya robot","openUnoMenu()")}${q("❌","Tic-Tac-Toe","5×5 · 4 in a row","openTicTacToe()")}</div>
+   <div class="card" style="padding:16px;margin-top:14px;color:var(--muted);font-size:13px;line-height:1.5">💡 Chat ya call me upar ki pattee neeche kheencho (ya 🎮 dabao), dost ko game ki request bhejo. Accept karte hi dono game me pahunch jaoge.</div></section>`;
+}
+</script>
+<style>
+#splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1a2140,#070a10 70%);transition:opacity .7s,visibility .7s}
+#splash.out{opacity:0;visibility:hidden}
+#splash .lg{font-size:46px;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,#fff,#8e9cff,#c18cff);-webkit-background-clip:text;color:transparent;animation:spl 1.1s var(--ease) both}
+#splash .tg{color:var(--muted);margin-top:8px;font-size:14px;letter-spacing:3px;animation:spl 1.1s .2s var(--ease) both}
+#splash .by{position:absolute;bottom:calc(34px + env(safe-area-inset-bottom,0px));animation:spl 1.1s .5s var(--ease) both}
+@keyframes spl{from{opacity:0;transform:translateY(18px) scale(.94);filter:blur(6px)}}
+.pw{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.5px;padding:18px 0 4px}
+.pw b{background:linear-gradient(135deg,#fff,#8e9cff,#c18cff);-webkit-background-clip:text;color:transparent;font-weight:900}
+#offline{position:fixed;top:0;left:0;right:0;z-index:99998;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;text-align:center;font-size:13px;font-weight:800;background:#ff4d63;color:#fff;transform:translateY(-110%);transition:transform .35s var(--ease)}
+#offline.show{transform:none}
+</style>
+
+<script>
+/* ============ PART D: branding + splash + offline ============ */
+(function(){
+  const BY=`<div class="pw">Powered by <b>Suraj Kumar</b></div>`;
+
+  /* splash + offline banner */
+  document.body.insertAdjacentHTML("beforeend",
+    `<div id="splash"><div class="lg">NEXORA</div><div class="tg">CHAT · CALL · PLAY</div><div class="pw by">Powered by <b>Suraj Kumar</b></div></div>
+     <div id="offline">📡 Internet nahi hai — reconnect ho raha hai…</div>`);
+  setTimeout(()=>{const s=$("splash");s.classList.add("out");setTimeout(()=>s.remove(),800)},1700);
+
+  /* login card */
+  document.querySelector(".auth-card")?.insertAdjacentHTML("beforeend",BY);
+
+  /* home footer */
+  const _rh=renderHome;
+  renderHome=function(){_rh();document.querySelector("#main .page")?.insertAdjacentHTML("beforeend",BY)};
+  if(NEXORA.user&&NEXORA.page==="home")renderHome();
+
+  /* profile popup footer */
+  const _pb=$("profileBtn").onclick;
+  $("profileBtn").onclick=async function(e){await _pb.call(this,e);$("modalContent").insertAdjacentHTML("beforeend",BY)};
+
+  /* offline / online */
+  const off=$("offline");
+  addEventListener("offline",()=>off.classList.add("show"));
+  addEventListener("online",()=>{off.classList.remove("show");toast("Wapas online ✓");if(NEXORA.user)startRealtime()});
+  if(!navigator.onLine)off.classList.add("show");
+
+  /* app-like feel + credit meta */
+  document.title="NEXORA";
+  [["author","Suraj Kumar"],["description","NEXORA — chat, call and play with friends. Powered by Suraj Kumar."],
+   ["mobile-web-app-capable","yes"],["apple-mobile-web-app-capable","yes"],["apple-mobile-web-app-status-bar-style","black-translucent"],["apple-mobile-web-app-title","NEXORA"]]
+   .forEach(([n,c])=>{const m=document.createElement("meta");m.name=n;m.content=c;document.head.appendChild(m)});
+  console.log("%cNEXORA%c  Powered by Suraj Kumar","font:900 20px sans-serif;color:#8e9cff","color:#8e9cff");
+})();
+</script>
