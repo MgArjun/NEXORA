@@ -4374,5 +4374,1712 @@ setInterval(paintFS,1200);
       transform: translateY(-3px) scale(1.01);
       filter: brightness(1.1);
       border-color:
+      <script>
+(function NX_CLEAN_PART3_RECENT() {
+  "use strict";
+
+  const NX_KEY = "nexora_recent_local_names_v2";
+
+  function nxGet() {
+    try {
+      return JSON.parse(
+        localStorage.getItem(NX_KEY) || "{}"
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  function nxPut(data) {
+    try {
+      localStorage.setItem(
+        NX_KEY,
+        JSON.stringify(data)
+      );
+    } catch {}
+  }
+
+  function nxEsc(value) {
+    if (typeof escapeHtml === "function") {
+      return escapeHtml(value);
+    }
+
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function nxName(id, fallback) {
+    const data = nxGet();
+    return data[id]?.name || fallback || "User";
+  }
+
+  function nxRemoved(id) {
+    return !!nxGet()[id]?.removed;
+  }
+
+  function nxOpenOptions(id, name) {
+    openModal(`
+      <div class="modal-title">Contact Options</div>
+      <div class="modal-sub">${nxEsc(name)}</div>
+
+      <button
+        class="btn primary-btn"
+        type="button"
+        onclick="NX_RENAME_RECENT_USER('${nxEsc(id)}','${nxEsc(name)}')">
+        Rename Contact
+      </button>
+
+      <button
+        class="btn danger"
+        type="button"
+        onclick="NX_REMOVE_RECENT_USER('${nxEsc(id)}')">
+        Remove from Recent
+      </button>
+
+      <button
+        class="btn"
+        type="button"
+        onclick="closeModal()">
+        Cancel
+      </button>
+    `);
+  }
+
+  function nxRename(id, oldName) {
+    openModal(`
+      <div class="modal-title">Rename Contact</div>
+      <div class="modal-sub">
+        This nickname is private to your device.
+      </div>
+
+      <input
+        id="nxRecentNameInput"
+        class="pf-input"
+        maxlength="40"
+        value="${nxEsc(oldName)}"
+        placeholder="Enter nickname"
+      />
+
+      <div class="modal-actions">
+        <button
+          class="btn"
+          type="button"
+          onclick="closeModal()">
+          Cancel
+        </button>
+
+        <button
+          class="btn primary-btn"
+          type="button"
+          onclick="NX_SAVE_RECENT_USER('${nxEsc(id)}')">
+          Save
+        </button>
+      </div>
+    `);
+  }
+
+  function nxSaveName(id) {
+    const input = document.getElementById(
+      "nxRecentNameInput"
+    );
+
+    const value = input?.value?.trim();
+
+    if (!value || value.length < 2) {
+      toast("Nickname must have at least 2 characters.", true);
+      return;
+    }
+
+    const data = nxGet();
+
+    data[id] = {
+      ...(data[id] || {}),
+      name: value,
+      removed: false
+    };
+
+    nxPut(data);
+    closeModal();
+
+    if (window.NEXORA?.page === "recent") {
+      NX_RENDER_RECENT_CLEAN();
+    }
+
+    toast("Contact renamed.");
+  }
+
+  function nxRemove(id) {
+    const data = nxGet();
+
+    data[id] = {
+      ...(data[id] || {}),
+      removed: true
+    };
+
+    nxPut(data);
+    closeModal();
+
+    if (window.NEXORA?.page === "recent") {
+      NX_RENDER_RECENT_CLEAN();
+    }
+
+    toast("Removed from Recent.");
+  }
+
+  function nxCallUserId(call) {
+    if (call.receiverid === NEXORA.user.id) {
+      return call.callerid;
+    }
+
+    return call.receiverid;
+  }
+
+  function nxCallText(call) {
+    const status = String(
+      call.status || ""
+    ).toLowerCase();
+
+    if (status === "missed") return "Missed call";
+    if (status === "accepted") return "Connected call";
+    if (status === "declined") return "Declined call";
+
+    return call.receiverid === NEXORA.user.id
+      ? "Incoming call"
+      : "Outgoing call";
+  }
+
+  async function nxRenderRecent() {
+    if (!window.NEXORA || NEXORA.page !== "recent") {
+      return;
+    }
+
+    main.innerHTML = `
+      <section class="page nx-clean-recent">
+        <h1 class="section-title">Recent</h1>
+
+        <div class="section-sub">
+          Your messages, calls and notifications.
+        </div>
+
+        <div id="recentContent">
+          <div class="card nx-recent-loading">
+            Loading your history...
+          </div>
+        </div>
+      </section>
+    `;
+
+    try {
+      const [calls, notifications, conversations] =
+        await Promise.all([
+          typeof loadCalls === "function"
+            ? loadCalls()
+            : Promise.resolve([]),
+
+          typeof loadNotifications === "function"
+            ? loadNotifications()
+            : Promise.resolve([]),
+
+          typeof loadConversations === "function"
+            ? loadConversations()
+            : Promise.resolve([])
+        ]);
+
+      if (NEXORA.page !== "recent") return;
+
+      const groups = new Map();
+
+      function getGroup(id, originalName) {
+        if (!id || nxRemoved(id)) return null;
+
+        if (!groups.has(id)) {
+          groups.set(id, {
+            id,
+            originalName: originalName || "User",
+            events: [],
+            latest: 0
+          });
+        }
+
+        return groups.get(id);
+      }
+
+      if (Array.isArray(conversations)) {
+        conversations.forEach(function (conversation) {
+          const id =
+            conversation.otherid ||
+            conversation.otherId ||
+            conversation.userid;
+
+          const original =
+            conversation.otherdisplayname ||
+            conversation.otherusername ||
+            conversation.displayname ||
+            conversation.username ||
+            "User";
+
+          const group = getGroup(id, original);
+          if (!group) return;
+
+          const date = new Date(
+            conversation.lastmessageat ||
+            conversation.createdat ||
+            Date.now()
+          );
+
+          group.latest = Math.max(
+            group.latest,
+            date.getTime()
+          );
+
+          group.events.push({
+            icon: "💬",
+            text:
+              conversation.lastmessage ||
+              "Conversation",
+            date,
+            action: function () {
+              if (typeof openChat !== "function") {
+                return;
+              }
+
+              openChat(
+                conversation.conversationid ||
+                  conversation.conversationId,
+                id,
+                conversation.otherusername || "",
+                original
+              );
+            }
+          });
+        });
+      }
+
+      if (Array.isArray(calls)) {
+        calls.forEach(function (call) {
+          const id = nxCallUserId(call);
+
+          const original =
+            call.otherdisplayname ||
+            call.othername ||
+            call.displayname ||
+            "User";
+
+          const group = getGroup(id, original);
+          if (!group) return;
+
+          const date = new Date(
+            call.createdat ||
+            call.startedat ||
+            Date.now()
+          );
+
+          group.latest = Math.max(
+            group.latest,
+            date.getTime()
+          );
+
+          group.events.push({
+            icon:
+              String(call.status).toLowerCase() === "missed"
+                ? "📵"
+                : "📞",
+            text: nxCallText(call),
+            date,
+            action: function () {
+              if (
+                typeof callbackUser === "function" &&
+                id
+              ) {
+                callbackUser(id);
+              }
+            }
+          });
+        });
+      }
+
+      if (Array.isArray(notifications)) {
+        notifications.forEach(function (notification) {
+          const id =
+            notification.from ||
+            notification.fromid ||
+            notification.senderid;
+
+          if (!id) return;
+
+          const original =
+            notification.fromname ||
+            notification.sendername ||
+            "User";
+
+          const group = getGroup(id, original);
+          if (!group) return;
+
+          const date = new Date(
+            notification.createdat || Date.now()
+          );
+
+          group.latest = Math.max(
+            group.latest,
+            date.getTime()
+          );
+
+          group.events.push({
+            icon: "🔔",
+            text:
+              notification.title ||
+              notification.body ||
+              "Notification",
+            date,
+            action: function () {
+              if (
+                typeof openNotificationItem === "function" &&
+                notification.id
+              ) {
+                openNotificationItem(notification.id);
+              }
+            }
+          });
+        });
+      }
+
+      const list = Array.from(groups.values())
+        .sort(function (a, b) {
+          return b.latest - a.latest;
+        });
+
+      const content = document.getElementById(
+        "recentContent"
+      );
+
+      if (!content) return;
+
+      if (!list.length) {
+        content.innerHTML = `
+          <div class="card nx-recent-empty">
+            <div class="nx-recent-empty-icon">🕘</div>
+            <strong>No recent activity yet</strong>
+            <span>
+              Start a chat or call to create history.
+            </span>
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = list.map(function (person) {
+        const displayName = nxName(
+          person.id,
+          person.originalName
+        );
+
+        const events = person.events
+          .sort(function (a, b) {
+            return b.date - a.date;
+          })
+          .slice(0, 8);
+
+        return `
+          <article class="card nx-recent-user-card">
+            <div class="nx-recent-user-header">
+              <button
+                class="nx-recent-user-button"
+                type="button"
+                data-user-id="${nxEsc(person.id)}">
+                <div class="avatar nx-recent-user-avatar">
+                  ${nxEsc(
+                    displayName
+                      .trim()
+                      .slice(0, 2)
+                      .toUpperCase()
+                  )}
+                </div>
+
+                <span>
+                  <strong>${nxEsc(displayName)}</strong>
+                  <small>
+                    ${events.length}
+                    activity item${events.length === 1 ? "" : "s"}
+                  </small>
+                </span>
+              </button>
+
+              <button
+                class="nx-recent-dots"
+                type="button"
+                data-options-id="${nxEsc(person.id)}"
+                data-options-name="${nxEsc(displayName)}"
+                aria-label="Contact options">
+                ⋮
+              </button>
+            </div>
+
+            <div class="nx-recent-event-list">
+              ${events.map(function (event, index) {
+                return `
+                  <button
+                    class="nx-recent-event"
+                    type="button"
+                    data-event-user="${nxEsc(person.id)}"
+                    data-event-index="${index}">
+                    <span>${event.icon}</span>
+                    <strong>${nxEsc(event.text)}</strong>
+                    <small>
+                      ${typeof timeAgo === "function"
+                        ? timeAgo(event.date.toISOString())
+                        : ""}
+                    </small>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      content.querySelectorAll(
+        "[data-options-id]"
+      ).forEach(function (button) {
+        button.addEventListener("click", function () {
+          nxOpenOptions(
+            button.dataset.optionsId,
+            button.dataset.optionsName
+          );
+        });
+      });
+
+      content.querySelectorAll(
+        ".nx-recent-user-button"
+      ).forEach(function (button) {
+        button.addEventListener("click", function () {
+          const id = button.dataset.userId;
+          const group = groups.get(id);
+
+          if (!group || !group.events.length) return;
+
+          const event = group.events
+            .sort(function (a, b) {
+              return b.date - a.date;
+            })[0];
+
+          event.action?.();
+        });
+      });
+
+      content.querySelectorAll(
+        ".nx-recent-event"
+      ).forEach(function (button) {
+        button.addEventListener("click", function () {
+          const id = button.dataset.eventUser;
+          const index = Number(
+            button.dataset.eventIndex
+          );
+
+          const group = groups.get(id);
+          if (!group) return;
+
+          const events = group.events
+            .sort(function (a, b) {
+              return b.date - a.date;
+            })
+            .slice(0, 8);
+
+          events[index]?.action?.();
+        });
+      });
+    } catch (error) {
+      console.error("Recent history error:", error);
+
+      const content = document.getElementById(
+        "recentContent"
+      );
+
+      if (content) {
+        content.innerHTML = `
+          <div class="card nx-recent-empty">
+            Could not load recent history.
+            <button
+              class="btn"
+              type="button"
+              onclick="NX_RENDER_RECENT_CLEAN()">
+              Retry
+            </button>
+          </div>
+        `;
+      }
+    }
+  }
+
+  window.NX_RENDER_RECENT_CLEAN = nxRenderRecent;
+  window.renderRecent = nxRenderRecent;
+
+  window.NX_RECENT_OPTIONS = nxOpenOptions;
+  window.NX_RENAME_RECENT_USER = nxRename;
+  window.NX_SAVE_RECENT_USER = nxSaveName;
+  window.NX_REMOVE_RECENT_USER = nxRemove;
+
+  const style = document.createElement("style");
+  style.id = "nx-clean-part3-recent-style";
+
+  style.textContent = `
+    .nx-clean-recent {
+      padding-top: 18px;
+    }
+
+    .nx-recent-user-card {
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      margin-bottom: 12px;
+      background:
+        radial-gradient(
+          circle at 95% 0%,
+          rgba(124,140,255,.16),
+          transparent 35%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(22,30,47,.98),
+          rgba(11,16,25,.98)
+        );
+      box-shadow:
+        0 14px 35px rgba(0,0,0,.24),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .nx-recent-user-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px;
+    }
+
+    .nx-recent-user-button {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: #fff;
+      background: transparent;
+      text-align: left;
+    }
+
+    .nx-recent-user-button > span {
+      min-width: 0;
+    }
+
+    .nx-recent-user-button strong,
+    .nx-recent-user-button small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nx-recent-user-button strong {
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .nx-recent-user-button small {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nx-recent-user-avatar {
+      flex: 0 0 auto;
+      box-shadow:
+        0 8px 20px rgba(96,113,255,.28),
+        inset 0 2px 3px rgba(255,255,255,.2);
+    }
+
+    .nx-recent-dots {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.1);
+      font-size: 22px;
+    }
+
+    .nx-recent-event-list {
+      display: grid;
+      gap: 7px;
+      padding: 0 13px 13px;
+    }
+
+    .nx-recent-event {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: #e8ecf8;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.06);
+      text-align: left;
+    }
+
+    .nx-recent-event span {
+      flex: 0 0 auto;
+      font-size: 16px;
+    }
+
+    .nx-recent-event strong {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .nx-recent-event small {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .nx-recent-empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .nx-recent-empty strong,
+    .nx-recent-empty span {
+      display: block;
+    }
+
+    .nx-recent-empty strong {
+      margin-top: 8px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .nx-recent-empty span {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .nx-recent-empty-icon {
+      font-size: 30px;
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  setTimeout(function () {
+    if (window.NEXORA?.page === "recent") {
+      nxRenderRecent();
+    }
+  }, 100);
+})();
+</script>
+<script>
+(function NX_CLEAN_PART4_CONNECT_NOTIFICATIONS() {
+  "use strict";
+
+  function nxUnreadBadge() {
+    let badge = document.getElementById(
+      "nxNotificationBadge"
+    );
+
+    if (!badge) {
+      const button = document.getElementById(
+        "notificationBtn"
+      );
+
+      if (!button) return;
+
+      badge = document.createElement("span");
+      badge.id = "nxNotificationBadge";
+      badge.className = "nx-notification-badge";
+      badge.textContent = "!";
+      button.style.position = "relative";
+      button.appendChild(badge);
+    }
+
+    if (
+      window.recentDot &&
+      !recentDot.classList.contains("hidden")
+    ) {
+      badge.classList.add("show");
+    } else {
+      badge.classList.remove("show");
+    }
+  }
+
+  function nxPolishConnect() {
+    const cards = document.querySelectorAll(
+      "#main .quick-card"
+    );
+
+    cards.forEach(function (card) {
+      const name = card.querySelector(
+        ".quick-name"
+      );
+
+      const icon = card.querySelector(
+        ".quick-icon"
+      );
+
+      if (!name || !icon) return;
+
+      const label = name.textContent
+        .trim()
+        .toLowerCase();
+
+      if (label === "random chat") {
+        icon.textContent = "💬";
+        icon.setAttribute(
+          "aria-label",
+          "Random Chat"
+        );
+        card.classList.add(
+          "nx-connect-premium-card"
+        );
+      }
+
+      if (label === "random call") {
+        icon.textContent = "📞";
+        icon.setAttribute(
+          "aria-label",
+          "Random Call"
+        );
+        card.classList.add(
+          "nx-connect-premium-card"
+        );
+      }
+    });
+  }
+
+  function nxRefreshUI() {
+    nxUnreadBadge();
+    nxPolishConnect();
+  }
+
+  const oldRenderConnect = window.renderConnect;
+
+  if (
+    typeof oldRenderConnect === "function" &&
+    !oldRenderConnect.__nxCleanPart4
+  ) {
+    function wrappedRenderConnect() {
+      const result = oldRenderConnect.apply(
+        this,
+        arguments
+      );
+
+      setTimeout(nxRefreshUI, 50);
+      return result;
+    }
+
+    wrappedRenderConnect.__nxCleanPart4 = true;
+    window.renderConnect = wrappedRenderConnect;
+  }
+
+  const oldLoadNotifications =
+    window.loadNotifications;
+
+  if (
+    typeof oldLoadNotifications === "function" &&
+    !oldLoadNotifications.__nxCleanPart4
+  ) {
+    async function wrappedLoadNotifications() {
+      const result = await oldLoadNotifications.apply(
+        this,
+        arguments
+      );
+
+      setTimeout(nxRefreshUI, 50);
+      return result;
+    }
+
+    wrappedLoadNotifications.__nxCleanPart4 = true;
+    window.loadNotifications =
+      wrappedLoadNotifications;
+  }
+
+  setInterval(nxRefreshUI, 900);
+
+  const style = document.createElement("style");
+  style.id = "nx-clean-part4-connect-style";
+
+  style.textContent = `
+    .nx-notification-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 10px;
+      height: 10px;
+      display: none;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: #ff4f69;
+      border: 2px solid #080b12;
+      box-shadow:
+        0 0 0 2px rgba(255,79,105,.15),
+        0 0 14px rgba(255,79,105,.9);
+      font-size: 0;
+    }
+
+    .nx-notification-badge.show {
+      display: grid;
+      animation: nxBadgePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes nxBadgePulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.22);
+        opacity: .68;
+      }
+    }
+
+    .nx-connect-premium-card {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(
+          circle at 85% 10%,
+          rgba(124,140,255,.2),
+          transparent 36%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(25,34,52,.98),
+          rgba(11,16,25,.98)
+        );
+      border-color: rgba(160,170,255,.22);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.05),
+        0 14px 30px rgba(0,0,0,.23);
+    }
+
+    .nx-connect-premium-card::after {
+      content: "";
+      position: absol
+<script>
+(function NX_CLEAN_PART5_VOICE_UI() {
+  "use strict";
+
+  function nxGameType() {
+    const page = document.getElementById("main");
+    if (!page) return null;
+
+    if (
+      page.querySelector(".ludo-wrap") ||
+      page.querySelector("#ludoCv") ||
+      page.querySelector("#ludoBoard")
+    ) return "ludo";
+
+    if (page.querySelector(".cell")) return "ttt";
+    if (page.querySelector(".u-page")) return "uno";
+
+    return null;
+  }
+
+  function nxOnlineGame() {
+    const type = nxGameType();
+    if (!type) return false;
+
+    if (type === "ludo") {
+      return window.LUDO?.mode === "online";
+    }
+
+    if (type === "ttt") {
+      return window.TTT?.online === true;
+    }
+
+    if (type === "uno") {
+      return !!window.UCH;
+    }
+
+    return false;
+  }
+
+  function nxVoiceStatus() {
+    const voice = window.GV;
+
+    if (!voice) {
+      return {
+        text: "Voice ready",
+        state: "ready"
+      };
+    }
+
+    const peers = voice.peers
+      ? Object.values(voice.peers)
+      : [];
+
+    if (!peers.length) {
+      return {
+        text: "Voice waiting",
+        state: "waiting"
+      };
+    }
+
+    if (peers.some(function (peer) {
+      return peer.state === "bad";
+    })) {
+      return {
+        text: "Voice reconnecting",
+        state: "warning"
+      };
+    }
+
+    if (peers.every(function (peer) {
+      return peer.state === "ok";
+    })) {
+      return {
+        text: voice.muted
+          ? "Voice connected · Mic off"
+          : "Voice connected · Mic on",
+        state: "connected"
+      };
+    }
+
+    return {
+      text: "Voice connecting",
+      state: "waiting"
+    };
+  }
+
+  function nxEnsureVoicePanel() {
+    const online = nxOnlineGame();
+
+    let panel = document.getElementById(
+      "nxCleanVoicePanel"
+    );
+
+    if (!online) {
+      if (panel) panel.remove();
+      return;
+    }
+
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "nxCleanVoicePanel";
+      panel.className = "nx-clean-voice-panel";
+
+      panel.innerHTML = `
+        <div class="nx-clean-voice-status">
+          <span class="nx-clean-voice-dot"></span>
+          <span id="nxCleanVoiceText">
+            Voice ready
+          </span>
+        </div>
+
+        <div class="nx-clean-voice-actions">
+          <button
+            id="nxCleanVoiceStart"
+            class="btn nx-clean-voice-start"
+            type="button">
+            🔊 Connect Voice
+          </button>
+
+          <button
+            id="nxCleanMicButton"
+            class="btn"
+            type="button">
+            🎙️ Mic Off
+          </button>
+
+          <button
+            id="nxCleanSpeakerButton"
+            class="btn"
+            type="button">
+            🔈 Speaker On
+          </button>
+        </div>
+      `;
+
+      const page = document.querySelector(
+        "#main .page"
+      );
+
+      if (page) {
+        page.insertBefore(panel, page.firstChild);
+      }
+
+      const start = document.getElementById(
+        "nxCleanVoiceStart"
+      );
+
+      const mic = document.getElementById(
+        "nxCleanMicButton"
+      );
+
+      const speaker = document.getElementById(
+        "nxCleanSpeakerButton"
+      );
+
+      start.onclick = function () {
+        if (typeof gvJoin === "function") {
+          gvJoin();
+        } else if (
+          typeof gvJoinVoice === "function"
+        ) {
+          gvJoinVoice();
+        } else {
+          toast(
+            "Voice connection is unavailable.",
+            true
+          );
+        }
+      };
+
+      mic.onclick = function () {
+        if (typeof gvMic === "function") {
+          gvMic();
+        } else if (
+          typeof NX_TOGGLE_GAME_MIC === "function"
+        ) {
+          NX_TOGGLE_GAME_MIC();
+        } else {
+          toast(
+            "Microphone control is unavailable.",
+            true
+          );
+        }
+      };
+
+      speaker.onclick = function () {
+        if (typeof gvSpk === "function") {
+          gvSpk();
+        } else {
+          toast(
+            "Speaker control is unavailable.",
+            true
+          );
+        }
+      };
+    }
+
+    const status = nxVoiceStatus();
+    const text = document.getElementById(
+      "nxCleanVoiceText"
+    );
+
+    const dot = panel.querySelector(
+      ".nx-clean-voice-dot"
+    );
+
+    const start = document.getElementById(
+      "nxCleanVoiceStart"
+    );
+
+    const mic = document.getElementById(
+      "nxCleanMicButton"
+    );
+
+    if (text) {
+      text.textContent = status.text;
+    }
+
+    if (dot) {
+      dot.dataset.state = status.state;
+    }
+
+    if (start) {
+      start.textContent =
+        status.state === "connected"
+          ? "✅ Voice Connected"
+          : status.state === "waiting"
+            ? "🔄 Connecting Voice"
+            : "🔊 Connect Voice";
+
+      start.disabled =
+        status.state === "connected";
+    }
+
+    if (mic) {
+      mic.textContent =
+        window.GV?.muted === false
+          ? "🎙️ Mic On"
+          : "🎙️ Mic Off";
+    }
+
+    const speaker = document.getElementById(
+      "nxCleanSpeakerButton"
+    );
+
+    if (speaker) {
+      speaker.textContent =
+        window.GV?.spk === false
+          ? "🔇 Speaker Off"
+          : "🔈 Speaker On";
+    }
+  }
+
+  function nxHideOldVoiceButtons() {
+    const online = nxOnlineGame();
+
+    [
+      "gvBtn",
+      "gvPanel",
+      "nxReceiveFirstVoice",
+      "nxPolishedGameActions"
+    ].forEach(function (id) {
+      const element = document.getElementById(id);
+      if (!element) return;
+
+      if (!online) {
+        element.style.display = "none";
+      }
+    });
+  }
+
+  function nxRunVoiceUI() {
+    nxEnsureVoicePanel();
+    nxHideOldVoiceButtons();
+  }
+
+  const observer = new MutationObserver(function () {
+    setTimeout(nxRunVoiceUI, 60);
+  });
+
+  const mainEl = document.getElementById("main");
+
+  if (mainEl) {
+    observer.observe(mainEl, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  setInterval(nxRunVoiceUI, 900);
+
+  const style = document.createElement("style");
+  style.id = "nx-clean-part5-voice-style";
+
+  style.textContent = `
+    .nx-clean-voice-panel {
+      position: relative;
+      z-index: 4;
+      display: grid;
+      gap: 9px;
+      margin-bottom: 12px;
+      padding: 11px;
+      border-radius: 18px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(25,55,52,.95),
+          rgba(10,25,27,.95)
+        );
+      border: 1px solid rgba(65,211,146,.23);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.06),
+        0 14px 30px rgba(0,0,0,.22);
+    }
+
+    .nx-clean-voice-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #caffea;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .nx-clean-voice-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #8d98aa;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .nx-clean-voice-dot[data-state="connected"] {
+      background: #42d392;
+      animation: nxVoicePulse 1.5s ease-in-out infinite;
+    }
+
+    .nx-clean-voice-dot[data-state="waiting"] {
+      background: #ffc857;
+    }
+
+    .nx-clean-voice-dot[data-state="warning"] {
+      background: #ff6377;
+      animation: nxVoicePulse 1s ease-in-out infinite;
+    }
+
+    @keyframes nxVoicePulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.35);
+        opacity: .65;
+      }
+    }
+
+    .nx-clean-voice-actions {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 7px;
+    }
+
+    .nx-clean-voice-actions .btn {
+      min-height: 40px;
+      padding: 0 8px;
+      font-size: 11px;
+    }
+
+    .nx-clean-voice-start {
+      color: #caffea !important;
+      background:
+        linear-gradient(
+          145deg,
+          #246e59,
+          #123b34
+        ) !important;
+      border-color: rgba(65,211,146,.32) !important;
+    }
+
+    @media (max-width: 390px) {
+      .nx-clean-voice-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .nx-clean-voice-start {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nx-clean-voice-dot {
+        animation: none !important;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  setTimeout(nxRunVoiceUI, 300);
+})();
+</script>
+<script>
+(function NX_CLEAN_PART6_BADGES() {
+  "use strict";
+
+  const NX_SEARCH_KEY = "nexora_recent_searched_users_v1";
+
+  function nxGetSearched() {
+    try {
+      return JSON.parse(
+        localStorage.getItem(NX_SEARCH_KEY) || "[]"
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  function nxSaveSearched(list) {
+    try {
+      localStorage.setItem(
+        NX_SEARCH_KEY,
+        JSON.stringify(list)
+      );
+    } catch {}
+  }
+
+  function nxSafe(value) {
+    if (typeof escapeHtml === "function") {
+      return escapeHtml(value);
+    }
+
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function nxNotificationBadge(show) {
+    const button = document.getElementById(
+      "notificationBtn"
+    );
+
+    if (!button) return;
+
+    let badge = document.getElementById(
+      "nxCleanNotificationBadge"
+    );
+
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.id = "nxCleanNotificationBadge";
+      badge.className = "nx-clean-notification-badge";
+      badge.textContent = "!";
+      button.style.position = "relative";
+      button.appendChild(badge);
+    }
+
+    badge.classList.toggle("show", !!show);
+  }
+
+  function nxUpdateBadges() {
+    const recentUnread =
+      window.recentDot &&
+      !recentDot.classList.contains("hidden");
+
+    nxNotificationBadge(recentUnread);
+
+    const recentTab = document.querySelector(
+      ".nav-item[data-page='recent']"
+    );
+
+    if (recentTab) {
+      recentTab.classList.toggle(
+        "nx-recent-unread",
+        !!recentUnread
+      );
+    }
+  }
+
+  function nxAddSearchedUser(user) {
+    if (!user?.id) return;
+
+    const list = nxGetSearched()
+      .filter(function (item) {
+        return item?.id !== user.id;
+      });
+
+    list.unshift({
+      id: user.id,
+      username: user.username || "",
+      displayname:
+        user.displayname ||
+        user.username ||
+        "User",
+      lastseen: Date.now()
+    });
+
+    nxSaveSearched(list.slice(0, 30));
+  }
+
+  function nxAddSearchButtonHook() {
+    const oldSearch = window.searchUser;
+
+    if (
+      typeof oldSearch !== "function" ||
+      oldSearch.__nxCleanPart6
+    ) {
+      return;
+    }
+
+    async function wrappedSearch() {
+      const result = await oldSearch.apply(
+        this,
+        arguments
+      );
+
+      setTimeout(function () {
+        const resultBox = document.getElementById(
+          "searchResult"
+        );
+
+        if (!resultBox) return;
+
+        const callButton =
+          resultBox.querySelector(
+            "[onclick*='openChat']"
+          );
+
+        if (!callButton) return;
+
+        callButton.classList.add(
+          "nx-search-result-active"
+        );
+      }, 100);
+
+      return result;
+    }
+
+    wrappedSearch.__nxCleanPart6 = true;
+    window.searchUser = wrappedSearch;
+  }
+
+  function nxRenderSearchedUsers() {
+    if (
+      !window.NEXORA ||
+      NEXORA.page !== "recent"
+    ) {
+      return;
+    }
+
+    const list = nxGetSearched();
+    if (!list.length) return;
+
+    const content = document.getElementById(
+      "recentContent"
+    );
+
+    if (!content) return;
+
+    const existing = new Set(
+      Array.from(
+        content.querySelectorAll(
+          "[data-recent-user-id]"
+        )
+      ).map(function (element) {
+        return element.dataset.recentUserId;
+      })
+    );
+
+    const missing = list.filter(function (user) {
+      return !existing.has(user.id);
+    });
+
+    if (!missing.length) return;
+
+    const html = missing.map(function (user) {
+      return `
+        <article
+          class="card nx-searched-recent-card"
+          data-recent-user-id="${nxSafe(user.id)}">
+          <div class="avatar">
+            ${nxSafe(
+              (user.displayname || "U")
+                .slice(0, 2)
+                .toUpperCase()
+            )}
+          </div>
+
+          <div class="nx-searched-recent-info">
+            <strong>${nxSafe(
+              user.displayname || user.username
+            )}</strong>
+
+            <small>
+              @${nxSafe(user.username || "")}
+              · Found in Connect
+            </small>
+          </div>
+
+          <button
+            class="btn nx-searched-chat"
+            type="button"
+            data-user-id="${nxSafe(user.id)}"
+            data-user-name="${nxSafe(
+              user.displayname || user.username
+            )}"
+            data-user-username="${nxSafe(
+              user.username || ""
+            )}">
+            Chat
+          </button>
+        </article>
+      `;
+    }).join("");
+
+    content.insertAdjacentHTML(
+      "afterbegin",
+      html
+    );
+
+    content.querySelectorAll(
+      ".nx-searched-chat"
+    ).forEach(function (button) {
+      button.addEventListener("click", function () {
+        if (typeof openChat !== "function") return;
+
+        openChat(
+          null,
+          button.dataset.userId,
+          button.dataset.userUsername,
+          button.dataset.userName
+        );
+      });
+    });
+  }
+
+  function nxNotificationOpenWrapper() {
+    const oldOpen = window.openNotifications;
+
+    if (
+      typeof oldOpen !== "function" ||
+      oldOpen.__nxCleanPart6
+    ) {
+      return;
+    }
+
+    async function wrappedOpen() {
+      const result = await oldOpen.apply(
+        this,
+        arguments
+      );
+
+      nxNotificationBadge(false);
+
+      if (
+        window.recentDot &&
+        !recentDot.classList.contains("hidden")
+      ) {
+        recentDot.classList.add("hidden");
+      }
+
+      return result;
+    }
+
+    wrappedOpen.__nxCleanPart6 = true;
+    window.openNotifications = wrappedOpen;
+  }
+
+  nxAddSearchButtonHook();
+  nxNotificationOpenWrapper();
+
+  const observer = new MutationObserver(function () {
+    nxUpdateBadges();
+    nxRenderSearchedUsers();
+    nxAddSearchButtonHook();
+    nxNotificationOpenWrapper();
+  });
+
+  const mainEl = document.getElementById("main");
+
+  if (mainEl) {
+    observer.observe(mainEl, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  setInterval(function () {
+    nxUpdateBadges();
+    nxRenderSearchedUsers();
+    nxAddSearchButtonHook();
+    nxNotificationOpenWrapper();
+  }, 1000);
+
+  window.NX_RECENT_ADD_SEARCHED_USER =
+    nxAddSearchedUser;
+
+  const style = document.createElement("style");
+  style.id = "nx-clean-part6-badge-style";
+
+  style.textContent = `
+    .nx-clean-notification-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 10px;
+      height: 10px;
+      display: none;
+      border-radius: 50%;
+      background: #ff4f69;
+      border: 2px solid #080b12;
+      box-shadow:
+        0 0 0 2px rgba(255,79,105,.16),
+        0 0 14px rgba(255,79,105,.9);
+      font-size: 0;
+    }
+
+    .nx-clean-notification-badge.show {
+      display: block;
+      animation: nxCleanBadgePulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes nxCleanBadgePulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.25);
+        opacity: .65;
+      }
+    }
+
+    .nx-recent-unread::after {
+      content: "";
+      position: absolute;
+      top: 11px;
+      margin-left: 9px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff4f69;
+      box-shadow: 0 0 10px #ff4f69;
+    }
+
+    .nx-searched-recent-card {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 10px;
+      padding: 13px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(26,36,58,.96),
+          rgba(11,16,25,.96)
+        );
+    }
+
+    .nx-searched-recent-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .nx-searched-recent-info strong,
+    .nx-searched-recent-info small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nx-searched-recent-info strong {
+      font-size: 14px;
+    }
+
+    .nx-searched-recent-info small {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .nx-searched-chat {
+      min-height: 38px;
+      padding: 0 11px;
+      font-size: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nx-clean-notification-badge.show {
+        animation: none !important;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+})();
+</script>
+
 
 
