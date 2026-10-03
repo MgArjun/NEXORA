@@ -156,7 +156,7 @@ h2{font-size:27px;margin:2px 0 6px;letter-spacing:-.8px}.sub{color:var(--mu);mar
 <div id="toast"></div><div id="ov" class="ov h"><div id="md" class="md"></div></div>
 <script>
 /* TURN: set your own TURN in CFG.metered (app + key) below. The free shared relay here is only a fallback. */
-const CFG={metered:{app:"",key:""},turn:[{urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}]};
+const CFG={metered:{app:"",key:""},turn:[{urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp","turns:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}]};
 const sb=supabase.createClient("https://ktwluvpmzisonmootdqc.supabase.co","sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm",{auth:{persistSession:true,autoRefreshToken:true}});
 const $=i=>document.getElementById(i),sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const S={user:null,me:null,page:"home",live:1,chat:null,g:null,room:null,convs:[]};
@@ -234,14 +234,14 @@ let ICE_C=null,ICE_T=0;
 async function mic(){if(!navigator.mediaDevices?.getUserMedia)throw new Error("Open the site over HTTPS in Chrome or Safari to use the microphone.");
  try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})}
  catch(e){throw new Error(e.name==="NotAllowedError"?"Allow the microphone in your browser settings.":e.name==="NotFoundError"?"No microphone found.":e.name==="NotReadableError"?"The microphone is in use by another app.":"The microphone could not start.")}}
-async function wake(on){try{if(on&&!WL&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");if(!on&&WL){await WL.release();WL=null}}catch(_){}}
+async function wake(on){try{if(on&&!WL&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");WL.addEventListener("release",()=>{WL=null});if(!on&&WL){await WL.release();WL=null}}catch(_){}}
 function startRing(){stopRing();RING=setInterval(()=>{if(!C)return stopRing();if(C.st==="ringing"){sfx("ring");vib(200)}else if(C.st==="calling")tone(440,.4,"sine",.04)},1800)}
 const stopRing=()=>{clearInterval(RING);RING=null};
 const flush=c=>{while(c.q.length)c.pc.addIceCandidate(c.q.shift()).catch(()=>{})};
 const okIce=c=>["connected","completed"].includes(c.pc.iceConnectionState);
 function recover(c){if(C!==c||c.rec)return;c.net="reconnecting";paintCall();kick(c);
  c.rec=setInterval(()=>{if(C!==c||okIce(c)){clearInterval(c.rec);c.rec=0;return}kick(c)},5000);
- c.dead=setTimeout(()=>{if(C===c&&!okIce(c)){toast("The call dropped");endCall()}},45000)}
+ c.dead=setTimeout(()=>{if(C===c&&!okIce(c)){toast("The call dropped");endCall()}},120000)}
 function kick(c){if(C!==c||navigator.onLine===false)return;c.init?restartIce(c):sig({type:"nudge",to:c.uid,id:c.id})}
 async function restartIce(c){const pc=c.pc;if(!pc||c.rs||pc.signalingState!=="stable")return;c.rs=1;try{pc.restartIce?.();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await sig({type:"reoffer",to:c.uid,id:c.id,sdp:pc.localDescription})}catch(_){}c.rs=0}
 async function onReoffer(p){const c=C;try{await c.pc.setRemoteDescription(p.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){}}
@@ -288,7 +288,7 @@ $("cAcc").onclick=()=>accept();$("cEnd").onclick=()=>endCall();$("cMin").onclick
 function toggleMute(){const c=C;if(!c?.stream)return;c.muted=!c.muted;c.stream.getAudioTracks().forEach(t=>t.enabled=!c.muted);$("cMute").innerHTML=c.muted?I.micoff:I.mic;$("cMute").classList.toggle("on",c.muted);vib(20);updMic()}
 $("cMute").onclick=toggleMute;
 setInterval(()=>{if(C?.st==="on"){const s=Math.floor((Date.now()-C.t0)/1000);$("cTm").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}},500);
-addEventListener("pagehide",()=>{if(C)sig({type:"end",to:C.uid,id:C.id})});
+
 document.addEventListener("visibilitychange",()=>{if(document.hidden||!S.user)return;if(SIG?.state!=="joined")ensureSig();if(C?.pc&&!okIce(C)&&C.st==="on")recover(C);if(S.page==="chat")fetchNew()});
 navigator.connection?.addEventListener?.("change",()=>{const c=C;if(c?.st==="on")setTimeout(()=>kick(c),900)});
 function voiceBtn(uid,name){if(C)minCall(false);else startCall(uid,name)}
@@ -615,7 +615,7 @@ async function mkPc(c){const pc=c.pc=new RTCPeerConnection({iceServers:await ice
  pc.ontrack=e=>{let a=$("ra");if(!a){a=document.createElement("audio");a.id="ra";a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play().catch(()=>{})};
  pc.oniceconnectionstatechange=()=>{if(C!==c)return;const s=pc.iceConnectionState;
   if(s==="connected"||s==="completed"){if(c.st!=="on"){c.st="on";c.t0=Date.now();clearTimeout(c.ct);sfx("up");wake(true)}c.net=null;clearInterval(c.rec);c.rec=0;clearTimeout(c.dead);paintCall()}
-  else if(s==="disconnected"||s==="failed")recover(c)}}
+  else if(s==="failed")recover(c);else if(s==="disconnected")setTimeout(()=>{if(C===c&&c.pc.iceConnectionState==="disconnected")recover(c)},4000)}}
 
 /* Ludo board + pawn + HUD + 3D dice */
 function paintBoard(W){BGc=document.createElement("canvas");BGc.width=BGc.height=Math.round(W*DPR);const g=BGc.getContext("2d"),s=W/15;g.scale(DPR,DPR);
@@ -1172,12 +1172,12 @@ go=function(p){if(CG){closeRoom(true);CG=null}return _go(p)};
 const VER="build 10";
 /* NX-VIDEO-PATCH v3 */
 const VQ={"720":{w:1280,h:720,f:30,b:4e6,s:6e6},"1080":{w:1920,h:1080,f:60,b:8e6,s:16e6},"1440":{w:2560,h:1440,f:60,b:12e6,s:25e6},"2160":{w:3840,h:2160,f:60,b:18e6,s:40e6}};
-let hq="720",sm="motion",ns=true,face="user",deaf=false,VA=null,RV=1;
+let hq="1080",sm="motion",ns=false,face="user",deaf=false,VA=null,RV=1;
 /* high quality stereo Opus (voice + screen audio) */
 const OSLD=RTCPeerConnection.prototype.setLocalDescription;
 RTCPeerConnection.prototype.setLocalDescription=function(d){try{if(d&&d.sdp&&(d.type==="offer"||d.type==="answer")){let s=d.sdp;const m=/a=rtpmap:(\d+) opus\/48000/.exec(s);
- if(m)s=s.replace(new RegExp("a=fmtp:"+m[1]+" (.*)","g"),(_,x)=>"a=fmtp:"+m[1]+" "+x.replace(/;?(stereo|sprop-stereo|maxaveragebitrate)=\d+/g,"").replace(/^;/,"")+";stereo=1;sprop-stereo=1;maxaveragebitrate=192000");
- const vb="x-google-start-bitrate=4000;x-google-min-bitrate=400;x-google-max-bitrate=40000",vp=[];s.replace(/a=rtpmap:(\d+) (VP8|VP9|AV1|H264)\//g,(_,q)=>{vp.push(q);return _});
+ if(m)s=s.replace(new RegExp("a=fmtp:"+m[1]+" (.*)","g"),(_,x)=>"a=fmtp:"+m[1]+" "+x.replace(/;?(stereo|sprop-stereo|maxaveragebitrate)=\d+/g,"").replace(/^;/,"")+";stereo=1;sprop-stereo=1;maxaveragebitrate=192000;useinbandfec=1;usedtx=0");
+ const vb="x-google-start-bitrate=1500;x-google-min-bitrate=300;x-google-max-bitrate=25000",vp=[];s.replace(/a=rtpmap:(\d+) (VP8|VP9|AV1|H264)\//g,(_,q)=>{vp.push(q);return _});
  vp.forEach(q=>{const re=new RegExp("a=fmtp:"+q+" (.*)");s=re.test(s)?s.replace(re,(_,x)=>"a=fmtp:"+q+" "+x.replace(/;?x-google-[a-z-]+=\d+/g,"").replace(/^;/,"")+";"+vb):s.replace(new RegExp("(a=rtpmap:"+q+" [^\\r\\n]*)"),"$1\r\na=fmtp:"+q+" "+vb)});
  d={type:d.type,sdp:s}}}catch(_){}return OSLD.call(this,d)};
 /* UI */
@@ -1200,8 +1200,8 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia)$("xScr").classList.add("h")})();
 /* sender tuning + renegotiation */
 const tune=async(s,b,f,d,np)=>{if(!s)return;try{const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];const e=p.encodings[0];if(b)e.maxBitrate=b;if(f)e.maxFramerate=f;if(d)p.degradationPreference=d;if(np){e.networkPriority=np;e.priority=np}await s.setParameters(p)}catch(_){}};
-const tuneAll=c=>{const q=VQ[hq],k=VQ[hq==="2160"?"1440":hq];tune(c.camS,k.b,k.f,"maintain-framerate","low");tune(c.scrS,q.s,q.f,sm==="detail"?"maintain-resolution":"maintain-framerate","medium");c.pc.getSenders().forEach(x=>{if(x.track&&x.track.kind==="audio")tune(x,x===c.scrAS?192e3:64e3,0,"","high")})};
-const vcons=scr=>{const q=VQ[!scr&&hq==="2160"?"1440":hq];return{width:{ideal:q.w},height:{ideal:q.h},frameRate:{ideal:q.f}}};
+const tuneAll=c=>{const q=VQ[hq],k=VQ[hq==="2160"?"1440":hq];tune(c.camS,k.b,k.f,"maintain-framerate","low");tune(c.scrS,q.s,q.f,sm==="detail"?"maintain-resolution":"maintain-framerate","medium");c.pc.getSenders().forEach(x=>{if(x.track&&x.track.kind==="audio")tune(x,x===c.scrAS?192e3:96e3,0,"","high")})};
+const vcons=scr=>{const q=VQ[!scr&&hq==="2160"?"1440":hq];return{width:{ideal:q.w},height:{ideal:q.h},frameRate:{ideal:scr?q.f:Math.min(q.f,30)}}};
 const meta=c=>sig({type:"vmeta",to:c.uid,id:c.id,cam:!!c.cam,scr:!!c.scr});
 async function renego(c){const pc=c.pc;if(!pc||C!==c)return;if(pc.signalingState!=="stable"||c.rg){c.again=1;return}c.rg=1;c.again=0;try{await pc.setLocalDescription(await pc.createOffer());await sig({type:"reoffer",to:c.uid,id:c.id,sdp:pc.localDescription})}catch(_){}c.rg=0}
 const _mk9=mkPc;
@@ -1211,7 +1211,7 @@ mkPc=async function(c){await _mk9(c);const pc=c.pc,o=pc.ontrack;
   if(st&&st.id===c.mid)c.rcam=new MediaStream([t]);else c.rscr=st;vsPaint()};
  pc.onsignalingstatechange=()=>{if(pc.signalingState==="stable"){tuneAll(c);if(c.again)renego(c)}}};
 const _or9=onReoffer;
-onReoffer=function(p){const c=C;if(c&&c.init&&c.pc&&c.pc.signalingState==="have-local-offer")return;return _or9(p)};
+onReoffer=async function(p){const c=C;if(!c||!c.pc)return;if(c.pc.signalingState==="have-local-offer"){if(c.init)return;try{await c.pc.setLocalDescription({type:"rollback"});c.again=1}catch(_){return}}return _or9(p)};
 const _os9=onSig;
 onSig=function(p){if(p.type==="vmeta"){const c=C;if(c&&p.id===c.id){c.rm={cam:!!p.cam,scr:!!p.scr};if(!p.cam)c.rcam=null;if(!p.scr)c.rscr=null;vsPaint()}return}return _os9(p)};
 /* camera */
@@ -1330,6 +1330,155 @@ openChat=function(a,b,c,d){const pv=S.chat&&S.chat.uid;if(pv&&pv!==b)cleanMedia(
  p.insertAdjacentHTML("afterbegin",'<button class="ib xat" aria-label="Send photo, GIF or video" style="width:46px;height:46px;align-self:center">📎</button><input type="file" class="xfi" accept="image/*,video/*" style="display:none">');
  const bt=p.querySelector(".xat"),fi=p.querySelector(".xfi");bt.onclick=()=>fi.click();fi.onchange=()=>{const f=fi.files[0];fi.value="";if(f)sendMedia(f)}};
 
+
+/* NX-V1 */
+/* NX-VIDEO-FIX v1 */
+const ic2=d=>`<svg class="ic" viewBox="0 0 24 24">${d}</svg>`;
+Object.assign(I,{
+ cam:ic2('<rect x="2" y="6" width="14" height="12" rx="3"/><path d="M22 8l-6 4 6 4z"/>'),
+ flip:ic2('<path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/><path d="M3 21v-5h5"/>'),
+ scr:ic2('<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M9.5 10.5L12 8l2.5 2.5M12 8v6"/>'),
+ more:ic2('<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>'),
+ expand:ic2('<path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/>'),
+ shrink:ic2('<path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5"/>'),
+ hp:ic2('<path d="M4 15v-3a8 8 0 0116 0v3"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/>')});
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+#call .cbs{flex-wrap:wrap;gap:12px;max-width:100%}
+#cGame{display:none!important}
+@media(max-width:400px){#call .cb2{width:46px;height:46px}#call .cbs{gap:6px}}
+#call .cb2{width:56px;height:56px}
+#call .cb2.on{background:#fff;color:#000}
+#call.vid{background:#000}
+#call.mn .cbs>.cb2:not(#cMute):not(#cEnd){display:none}
+#lv.nolv{display:none!important}
+#lv.pip,#rv.pip{touch-action:none;cursor:grab}
+#vs.swp #lv{position:absolute;inset:0;width:100%;height:100%;border-radius:0;border:0;object-fit:cover;z-index:0;aspect-ratio:auto}
+#vs.swp #rv{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 76px);width:104px;height:140px;border-radius:16px;border:2px solid rgba(255,255,255,.3);object-fit:cover;z-index:2}
+#call.mn #vs.swp #lv{display:none}
+#call.mn #vs.swp #rv{position:static;width:100%;height:100%;border:0;border-radius:12px}`}));
+/* move buttons into ONE bottom bar: cam, flip, screen, mic, more, end */
+(()=>{const bar=document.querySelector("#call .cbs"),mu=$("cMute"),cx=$("cx");
+ $("xCam").innerHTML=I.cam;$("xFlip").innerHTML=I.flip;$("xScr").innerHTML=I.scr;$("xSt").innerHTML=I.more;$("xSt").setAttribute("aria-label","More");
+ ["xCam","xFlip","xScr"].forEach(i=>bar.insertBefore($(i),mu));bar.insertBefore($("xSt"),$("cEnd"));
+ ["xCam","xFlip","xScr","xSt"].forEach(i=>$(i).classList.add("h"));
+ cx.style.setProperty("display","none","important");
+ const ct=document.querySelector("#call .ctop"),fsb=document.createElement("button");
+ fsb.id="xFs";fsb.className="ib";fsb.setAttribute("aria-label","Full screen");fsb.innerHTML=I.expand;fsb.onclick=fsToggle;ct.replaceChild(fsb,ct.lastElementChild);
+ document.addEventListener("fullscreenchange",()=>fsb.innerHTML=fsEl()?I.shrink:I.expand);
+ document.addEventListener("webkitfullscreenchange",()=>fsb.innerHTML=fsEl()?I.shrink:I.expand);
+ $("lv").classList.add("pip");dragPip($("lv"),vSwap);dragPip($("rv"),vSwap)})();
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function fsToggle(){if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
+ const e=$("call"),f=e.requestFullscreen||e.webkitRequestFullscreen;
+ if(f){const r=f.call(e);r&&r.catch&&r.catch(()=>{})}else{const v=$("rv");v.webkitEnterFullscreen?v.webkitEnterFullscreen():toast("Call already full screen hai")}}
+function dragPip(el,onTap){let d=null;
+ el.addEventListener("pointerdown",e=>{if(!el.classList.contains("pip"))return;const r=el.getBoundingClientRect();d={x:e.clientX,y:e.clientY,l:r.left,t:r.top,m:0};try{el.setPointerCapture(e.pointerId)}catch(_){}e.stopPropagation()});
+ el.addEventListener("pointermove",e=>{if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)<6)return;d.m=1;
+  el.style.right="auto";el.style.left=Math.max(4,Math.min(innerWidth-el.offsetWidth-4,d.l+dx))+"px";el.style.top=Math.max(4,Math.min(innerHeight-el.offsetHeight-4,d.t+dy))+"px"});
+ el.addEventListener("pointerup",()=>{if(!d)return;const t=!d.m;d=null;if(t)onTap()});
+ el.addEventListener("pointercancel",()=>{d=null});
+ el.addEventListener("click",e=>{if(el.classList.contains("pip"))e.stopPropagation()})}
+function vSwap(){const c=C,v=$("vs");if(!c||!c.cam||!v.classList.contains("rem"))return;const s=v.classList.toggle("swp");
+ [$("lv"),$("rv")].forEach(e=>{e.style.left=e.style.top=e.style.right=""});$("lv").classList.toggle("pip",!s);$("rv").classList.toggle("pip",s)}
+function selfHide(){$("lv").classList.toggle("nolv")}
+/* show buttons only while the call is connected; screen share always visible */
+const _pc2=paintCall;
+paintCall=function(){_pc2();const on=!!C&&C.st==="on";["xCam","xScr","xSt"].forEach(i=>$(i).classList.toggle("h",!on));if(!on)$("xFlip").classList.add("h")};
+const _st2=scrToggle;
+scrToggle=function(){if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia)return toast("Ye browser screen share allow nahi karta (Android). Laptop ya iPad se karo");return _st2()};
+const _vs2=vset;
+vset=async function(){await _vs2();const m=$("md");if(!m)return;
+ m.insertAdjacentHTML("afterbegin",`<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px"><button class="btn" onclick="deafen();closeModal()">${I.hp}<br><small>${deaf?"Undeafen":"Deafen"}</small></button><button class="btn" onclick="closeModal();hideUI(1)">Hide call<br><small>screen</small></button><button class="btn" onclick="selfHide();closeModal()">${I.cam}<br><small>My video</small></button><button class="btn" onclick="closeModal();C&&gamePick(C.uid,C.name)">${I.game}<br><small>Game</small></button><button class="btn" onclick="closeModal();typeof wtCallInv==='function'?wtCallInv():toast('Watch Together patch lagao')">${I.watch||I.cam}<br><small>Watch</small></button></div>`)};
+const _e2=endCall;
+endCall=function(s){$("vs").classList.remove("swp");$("lv").classList.add("pip");$("rv").classList.remove("pip");$("lv").classList.remove("nolv");if(fsEl())try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(_){}return _e2(s)};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&C&&C.st==="on")wake(true)});
+/* NX-V2 */
+/* NX-WATCH v1 */
+I.watch=ic2('<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M10 9l5 3-5 3z"/>');
+let WT=null,ytP=null;
+const ytId=u=>{const m=String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);return m?m[1]:null};
+const ytLoad=()=>ytP||(ytP=new Promise(r=>{if(window.YT&&YT.Player)return r();window.onYouTubeIframeAPIReady=r;const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s);setTimeout(r,8000)}));
+async function wtOpen(code,host,opp){wtClose();const ch=sb.channel("wt-"+code),W=WT={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",pl:null,src:null,ap:0,lt:null,ls:Date.now(),chat:[],joined:false,pend:null,ctl:"both"};
+ W.tx=m=>ch.send({type:"broadcast",event:"w",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"w"},({payload:m})=>wtMsg(W,m));
+ await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});if(WT!==W)return;
+ if(!host){let n=0;const iv=setInterval(()=>{if(WT!==W||W.joined||++n>15)return clearInterval(iv);W.tx({t:"join",name:myName()})},1200);W.tx({t:"join",name:myName()})}
+ W.hb=setInterval(()=>{if(WT!==W)return;if(W.ch.state!=="joined"){W.dc=1;return}if(W.dc){W.dc=0;W.host?(W.tx({t:"ctl",m:W.ctl}),W.pl&&wtSend(W)):W.tx({t:"need"})}if(W.host&&W.joined&&W.pl)wtSend(W)},4000);W.pp=setInterval(()=>wtPoll(W),700);wtView(W)}
+function wtClose(){const W=WT;if(!W)return;WT=null;clearInterval(W.hb);clearInterval(W.pp);if(W.joined)W.tx({t:"bye"});try{W.pl&&W.pl.kill()}catch(_){}try{sb.removeChannel(W.ch)}catch(_){}}
+function wtMsg(W,m){if(WT!==W||m.from===S.user.id)return;
+ if(m.t==="join"&&W.host){const first=!W.joined;W.joined=true;W.oppId=m.from;W.oppName=m.name||"Friend";W.tx({t:"hi",name:myName()});W.tx({t:"ctl",m:W.ctl});if(W.src){W.tx({t:"load",u:W.src});setTimeout(()=>W.pl&&wtSend(W),1800)}if(first){closeModal();toast((m.name||"Friend")+" joined")}}
+ else if(m.t==="hi"&&!W.host){W.joined=true;W.oppName=m.name||"Friend";closeModal()}
+ else if(m.t==="need"&&W.host){W.tx({t:"ctl",m:W.ctl});if(W.src)W.tx({t:"load",u:W.src});setTimeout(()=>W.pl&&wtSend(W),1200)}
+ else if(m.t==="ctl"){W.ctl=m.m;wtCtlUI(W)}
+ else if(m.t==="load"){if(W.host&&W.ctl==="host")return;if(W.src!==m.u||!W.pl)wtLoad(m.u,0)}
+ else if(m.t==="st"){if(!(W.host&&W.ctl==="host"))wtApply(W,m)}
+ else if(m.t==="wc"){W.chat.push({n:m.n,x:String(m.x||"").slice(0,300),me:false});sfx("recv");wtPaintChat(W)}
+ else if(m.t==="bye"){W.joined=false;toast("Dost ne Watch Together band kiya")}}
+async function wtLoad(url,send){url=String(url||"").trim();const W=WT;if(!W)return;if(send&&wtLock(W))return toast("Sirf host link badal sakta hai");if(!/^https?:\/\//i.test(url))return toast("Poora link daalo (https://...)");
+ W.src=url;if(send)W.tx({t:"load",u:url});const box=$("wtV");if(!box)return;W.pl&&W.pl.kill();W.pl=null;W.lt=null;box.innerHTML="";const id=ytId(url);
+ if(id){await ytLoad();if(WT!==W||!$("wtV"))return;if(!(window.YT&&YT.Player))return toast("YouTube load nahi hua");
+  const d=document.createElement("div");box.appendChild(d);
+  const yp=new YT.Player(d,{width:"100%",height:"100%",videoId:id,playerVars:{playsinline:1,rel:0,fs:1},events:{onReady:()=>{W.rdy=1;W.pend&&wtApply(W,W.pend)},onStateChange:e=>{if(!W.ap&&(e.data===1||e.data===2))wtSend(W)}}});
+  W.pl={play:()=>yp.playVideo(),pause:()=>yp.pauseVideo(),seek:t=>yp.seekTo(t,true),time:()=>yp.getCurrentTime?yp.getCurrentTime():0,playing:()=>!!yp.getPlayerState&&yp.getPlayerState()===1,kill:()=>{try{yp.destroy()}catch(_){}}}}
+ else if(!/\.(mp4|webm|ogg|mov|m3u8)(\?|#|$)/i.test(url)){const f=document.createElement("iframe");f.src=url;f.allow="autoplay; fullscreen; picture-in-picture";f.allowFullscreen=true;if(W.host&&W.ctl!=="host"){W.ctl="host";W.tx({t:"ctl",m:"host"});wtCtlUI(W)}f.style.cssText="width:100%;height:100%;border:0;background:#fff";box.appendChild(f);const n=$("wtN");if(n)n.innerHTML=`Ye page dono ko dikhega, par page ke andar ka play/pause sync nahi hota. Khali dikhe to site embed allow nahi karti. <button class="btn" style="min-height:36px;margin-left:6px" onclick="window.open(WT.src,'_blank')">New tab me kholo</button>`}
+ else{const n0=$("wtN");if(n0)n0.textContent="";const v=document.createElement("video");v.src=url;v.controls=true;v.playsInline=true;v.style.cssText="width:100%;height:100%;background:#000";box.appendChild(v);
+  ["play","pause","seeked"].forEach(k=>v.addEventListener(k,()=>{if(!W.ap)wtSend(W)}));
+  v.addEventListener("loadedmetadata",()=>W.pend&&wtApply(W,W.pend));
+  v.addEventListener("error",()=>toast("Ye link video ki tarah nahi khula. YouTube ya .mp4 link try karo"));
+  W.pl={play:()=>{const p=v.play();p&&p.catch&&p.catch(()=>toast("Video ka play button dabao"))},pause:()=>v.pause(),seek:t=>{v.currentTime=t},time:()=>v.currentTime||0,playing:()=>!v.paused,kill:()=>{v.pause();v.removeAttribute("src");v.load()}}}}
+const wtLock=W=>!W.host&&W.ctl==="host";
+const wtSend=W=>{if(W.pl&&!wtLock(W))W.tx({t:"st",p:W.pl.playing()?1:0,time:W.pl.time()})};
+function wtApply(W,m){if(!W.pl){W.pend=m;return}W.pend=null;const tg=m.time+(m.p?.2:0);W.ap=1;
+ try{if(Math.abs(W.pl.time()-tg)>1.2)W.pl.seek(tg);if(m.p&&!W.pl.playing())W.pl.play();else if(!m.p&&W.pl.playing())W.pl.pause()}catch(_){}
+ setTimeout(()=>{if(WT===W)W.ap=0},900)}
+function wtPoll(W){if(WT!==W||!W.pl)return;let t;try{t=W.pl.time()}catch(_){return}const n=Date.now(),dt=(n-W.ls)/1000;W.ls=n;
+ if(W.lt!=null&&!W.ap&&Math.abs(t-(W.lt+(W.pl.playing()?dt:0)))>1.5)wtSend(W);W.lt=t}
+function wtPaintChat(W){const l=$("wtL");if(!l)return;l.innerHTML=W.chat.map(m=>`<div class="m ${m.me?"me":"th"}">${m.me?"":`<b style="display:block;font-size:12px;color:#c9d0ff">${esc(m.n)}</b>`}${esc(m.x)}</div>`).join("");l.scrollTop=l.scrollHeight}
+function wtSay(){const W=WT,i=$("wtC");if(!W||!i)return;const x=i.value.trim();if(!x)return;i.value="";W.tx({t:"wc",n:myName(),x});W.chat.push({n:myName(),x,me:true});sfx("send");wtPaintChat(W)}
+function wtView(W){S.page="watch";minCall(true);
+ $("main").innerHTML=`<section class="pg st"><div style="max-width:720px;margin:auto"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="go('connect')">‹ Back</button><span style="flex:1"></span><span class="pw">Room <b>${W.code}</b></span><button class="ib" onclick="wtAddUI()" aria-label="Add friend">${I.plus}</button></div><h2>Watch Together</h2>
+ <div style="position:relative"><div id="wtV" class="card" style="aspect-ratio:16/9;overflow:hidden;background:#000;padding:0;display:grid;place-items:center"><span class="pw">Neeche link paste karo aur Play dabao</span></div><div id="wtB" style="position:absolute;inset:0;z-index:3;display:none"></div></div><div id="wtN" class="pw" style="text-align:left;margin-top:8px"></div><div id="wtS" style="margin-top:12px"></div>
+ <div style="display:flex;gap:8px;margin:12px 0"><input id="wtU" style="margin:0;flex:1" placeholder="YouTube ya video link" autocapitalize="off" autocomplete="off"><button class="btn pri" onclick="wtLoad($('wtU').value,1)">Play</button></div>
+ <div class="card" style="padding:10px"><div id="wtL" class="cb" style="max-height:180px;min-height:60px"></div><div style="display:flex;gap:8px;margin-top:8px"><input id="wtC" style="margin:0;flex:1" placeholder="Message" autocomplete="off" maxlength="300"><button class="snd" onclick="wtSay()" aria-label="Send">${I.send}</button></div></div></div></section>`;
+ $("wtC").addEventListener("keydown",e=>{if(e.key==="Enter")wtSay()});$("wtU").addEventListener("keydown",e=>{if(e.key==="Enter")wtLoad($("wtU").value,1)});wtPaintChat(W);wtCtlUI(W);if(W.src)wtLoad(W.src,0)}
+function wtCtl(m){const W=WT;if(!W||!W.host)return;W.ctl=m;W.tx({t:"ctl",m});wtCtlUI(W)}
+function wtCtlUI(W){const b=$("wtB"),x=$("wtS");if(b)b.style.display=wtLock(W)?"block":"none";if(x)x.innerHTML=W.host?`<div class="seg"><button class="${W.ctl==="both"?"on":""}" onclick="wtCtl('both')">Dono control</button><button class="${W.ctl==="host"?"on":""}" onclick="wtCtl('host')">Sirf host</button></div>`:`<div class="pw" style="text-align:left">${W.ctl==="host"?"Sirf host play/pause kar sakta hai":"Dono play/pause kar sakte ho"}</div>`}
+function wtInvite(uid,name){if(!uid||uid===S.user.id)return;const code=Math.random().toString(36).slice(2,8).toUpperCase();closeModal();sig({type:"wreq",to:uid,code,name:myName()});wtOpen(code,true,{id:uid,name});
+ openModal(`<h3>Invite bheja 🎬</h3><p class="sub">${esc(name)} ke join karne ka wait…</p><div class="card" style="padding:16px;text-align:center;font-size:28px;font-weight:900;letter-spacing:5px;margin-bottom:12px">${code}</div><button class="btn red wide" onclick="closeModal();wtClose();go('connect')">Cancel</button>`)}
+const wtCallInv=()=>{if(C)wtInvite(C.uid,C.name)};
+function wtHost(){const code=Math.random().toString(36).slice(2,8).toUpperCase();closeModal();wtOpen(code,true);
+ openModal(`<h3>Room ready 🎬</h3><p class="sub">Ye code dost ko do.</p><div class="card" style="padding:16px;text-align:center;font-size:28px;font-weight:900;letter-spacing:5px;margin-bottom:12px">${code}</div><button class="btn pri wide" style="margin-bottom:10px" onclick="wtAddUI()">Add friend</button><button class="btn wide" onclick="closeModal()">Ok</button>`)}
+function wtJoin(code){if(!code||code.length<4)return toast("Room code daalo.");closeModal();wtOpen(code,false);openModal(`<h3>Joining…</h3><p class="sub">Host ka wait</p><button class="btn red wide" onclick="closeModal();wtClose();go('connect')">Cancel</button>`)}
+function wtAccept(){const p=S.wi;S.wi=null;closeModal();if(p)wtOpen(p.code,false,{id:p.from,name:p.name})}
+function wtMenu(){const c=C&&C.st==="on";openModal(`<h3>🎬 Watch Together</h3><p class="sub">YouTube ya seedha video link saath dekho.</p>${c?`<button class="btn pri wide" style="margin-bottom:10px" onclick="wtCallInv()">Invite ${esc(C.name)} (call me)</button>`:""}<button class="btn wide" style="margin-bottom:10px" onclick="wtHost()">Create room (code share)</button><div style="display:flex;gap:8px"><input id="wjc" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="wtJoin($('wjc').value.trim().toUpperCase())">Join</button></div>`)}
+const _os3=onSig;
+onSig=function(p){if(p.type==="wreq"){if(!PR.inv||WT)return;minCall(true);sfx("ring");vib([80,40,80]);S.wi=p;openModal(`<h3>🎬 Watch Together</h3><p class="sub">${esc(p.name||"Dost")} saath me video dekhna chahta hai.</p><div class="grid"><button class="btn" onclick="closeModal()">Decline</button><button class="btn pri" onclick="wtAccept()">Join</button></div>`);return}return _os3(p)};
+const _rc3=renderConnect;
+PG.connect=renderConnect=function(){_rc3();const g=document.querySelector("#main .grid");if(g)g.insertAdjacentHTML("afterend",`<button class="card hc" onclick="wtMenu()">${gi(I.watch,"#ff5b8a","#ff8a5b")}<span class="t"><b>Watch Together</b><small>YouTube ya video link saath dekho</small></span></button>`)};
+const _oc3=openChat;
+openChat=function(a,b,c,d){_oc3(a,b,c,d);const h=document.querySelector(".ch");if(!h||!S.chat||S.chat.uid!==b||h.querySelector(".xwt"))return;
+ const x=Object.assign(document.createElement("button"),{className:"ib xwt",innerHTML:I.watch,onclick:()=>{const q=P[b];wtInvite(b,q?nm(q):d)}});x.setAttribute("aria-label","Watch together");h.insertBefore(x,h.lastElementChild)};
+const _go3=go;
+go=function(p){if(WT&&p!=="watch")wtClose();return _go3(p)};
+
+/* add friend to the room: username search, friends list, request */
+const wtRow=p=>{reg(p);return`<div class="card row"><div class="av">${esc(ini(nm(p)))}</div><div class="t"><b>${esc(nm(p))}</b><small>@${esc(p.username)}</small></div><button class="btn pri" style="min-height:40px" onclick="wtReq('${p.id}')">Invite</button></div>`};
+function wtAddUI(){const W=WT;if(!W)return;openModal(`<h3>Dost ko bulao</h3><p class="sub">Username likho ya friend chuno.</p><div style="display:flex;gap:8px"><input id="wau" style="margin:0;flex:1" placeholder="@username" autocapitalize="off" autocomplete="off"><button class="btn pri" onclick="wtFind()">Search</button></div><div id="war" style="margin-top:10px"></div><div class="lbl">Friends</div><div id="waf"><div class="pw">Loading…</div></div><div class="lbl">Room code</div><div class="card" style="padding:12px;text-align:center;font-weight:900;letter-spacing:5px;font-size:22px">${W.code}</div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>`);wtFriends()}
+async function wtFind(){const q=($("wau").value||"").trim().replace(/^@/,"").toLowerCase();if(q.length<2)return toast("Kam se kam 2 letters likho");const{data}=await sb.from("profiles").select("*").ilike("username","%"+q+"%").neq("id",S.user.id).limit(8);if($("war"))$("war").innerHTML=(data||[]).length?data.map(wtRow).join(""):`<div class="pw">Koi nahi mila</div>`}
+async function wtFriends(){try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or(`requester_id.eq.${S.user.id},addressee_id.eq.${S.user.id}`);const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);if(!$("waf"))return;if(!ids.length)return $("waf").innerHTML=`<div class="pw">Abhi koi friend nahi</div>`;const{data:ps}=await sb.from("profiles").select("*").in("id",ids);if($("waf"))$("waf").innerHTML=(ps||[]).map(wtRow).join("")}catch(_){if($("waf"))$("waf").innerHTML=`<div class="pw">Friends load nahi hue</div>`}}
+function wtReq(id){const W=WT;if(!W)return;if(W.joined)return toast("Room me dost pehle se hai (abhi 2 log)");closeModal();sig({type:"wreq",to:id,code:W.code,name:myName()});toast("Request bhej di")}
+
+/* NX-V3 */
+/* NX-HOME v1 */
+PG.home=renderHome=function(){const w=wins(),hr=new Date().getHours(),l=LS(K("nx_rc"),[]);l.forEach(x=>reg({id:x.id,username:x.un,display_name:x.name}));
+ const row=x=>{const n=dn(x.id,x.name);return`<button class="card row" onclick="chatWith('${x.id}')"><div class="av">${esc(ini(n))}</div><div class="t"><b>${esc(n)}</b><small>${esc(x.last||"Say hi")}</small></div></button>`};
+ const tile=(i,t,f,a,b)=>`<button class="card" style="padding:12px 6px;display:grid;justify-items:center;gap:6px;min-height:0" onclick="${f}">${gi(i,a,b)}<b style="font-size:13px">${t}</b></button>`;
+ page(`<h2>${hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"}, <span class="grad">${esc(myName())}</span></h2>
+ <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px"><span class="live"><i></i><span id="liveN">${S.live} ${S.live===1?"person":"people"} online</span></span><span class="pw">Powered by <b>Suraj Kumar</b></span></div>
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="lbl" style="margin:0">Recent chats</div>${l.length>6?`<button style="color:#a8b0ff;font-weight:700;font-size:13px" onclick="go('recent')">See all</button>`:""}</div>
+ ${l.length?l.slice(0,6).map(row).join(""):`<div class="card empty">No chats yet.<br><button class="btn pri" style="margin-top:12px" onclick="go('connect')">Find people</button></div>`}
+ <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px">${tile(I.connect,"Connect","go('connect')","#9a6bff","#d26bff")}${tile(I.game,"Games","go('games')","#2fd6a0","#2f9fd6")}${tile(I.watch||I.cam,"Watch","typeof wtMenu==='function'?wtMenu():go('connect')","#ff5b8a","#ff8a5b")}</div>
+ <div class="pw" style="margin-top:14px">Wins · Ludo ${w.ludo||0} · Tic-Tac-Toe ${w.ttt||0} · UNO ${w.uno||0}</div>`)};
+if(S.user&&S.page==="home")renderHome();
 
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
