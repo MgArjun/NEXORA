@@ -1727,7 +1727,7 @@ crShot=function(p,x,vx,vy,send){if(send){const m=Math.hypot(vx,vy)||1,k=Math.min
 
 /* NX-PATCH-V7 FULLSCREEN-UNO-POPUP */
 document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
-#nxfs{position:fixed;left:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:8300;width:42px;height:42px;display:none}
+#splash{transition:opacity .6s ease,transform .6s ease,visibility .6s;will-change:opacity,transform}#splash.out{transform:scale(1.05)}.cube{will-change:transform}#auth:not(.h),#shell:not(.h){animation:nxapp .6s cubic-bezier(.22,1,.36,1) both}@keyframes nxapp{from{opacity:0;transform:translateY(10px)}}#nxfs{position:fixed;left:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:8300;width:42px;height:42px;display:none}
 body .felt .uc.back,body .felt .uc.pile{width:62px!important;height:93px!important}
 body .felt .uc.pile .cov b{font-size:30px!important}
 body .felt .uc.back .cov b{font-size:14px!important}
@@ -1796,7 +1796,7 @@ body .felt>.grid>.lp:last-child:nth-child(2) .ofan{transform:rotate(-90deg)}
 body .felt>.btn.wide{width:200px!important;border-radius:999px}
 `}));
 /* pop-ups for the other games */
-const nxK={};const nxOnce=(k,v,f)=>{const first=nxK[k]===undefined;if(nxK[k]===v)return;nxK[k]=v;if(!first)f()};
+const nxKk={};const nxOnce=(k,v,f)=>{const first=nxKk[k]===undefined;if(nxKk[k]===v)return;nxKk[k]=v;if(!first)f()};
 setInterval(()=>{try{
  if(S.page==="ludo"&&L){
   nxOnce("ldw",L.winner||"",()=>{if(L.winner)nxPop("🏆 "+L.winner+" won!","",LC[cur().color].c)});
@@ -1814,4 +1814,4 @@ setInterval(()=>{try{
   else if(/Pehle queen/.test(m))nxPop("👑 PEHLE QUEEN","pocket karo","#ff8797")})
 }catch(_){}},300);
 const _nt8=toast;toast=function(m){if(S.page==="ludo"&&L&&/captured/i.test(m)){nxPop("💥 CAPTURED!",cur().name,"#ff8797");return}return _nt8(m)};
-</script></body></html>
+</script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
