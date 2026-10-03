@@ -215,7 +215,7 @@ let NS="ok";setInterval(()=>{if(!S.user)return;const on=navigator.onLine,ok=SIG?
  if(st==="off")net("📡 No internet connection","#ff4d63");else if(st==="rec")net("🔄 Reconnecting…","#e0a000");else if(was!=="ok"){net("✓ Back online","#1fae6a");setTimeout(()=>NS==="ok"&&net(),2000)}},2000);
 addEventListener("online",()=>{if(S.user){ensureSig();setOnline(true);document.querySelectorAll(".m.fail u").forEach(u=>u.click())}});
 const PRE={};
-function onSig(p){const t=p.type;
+function onSig(p){const t=p.type;if(t==="msg"||t==="seen")return gMsgSig(p);
  if(t==="offer")return onOffer(p);
  if(t==="greq")return gotReq(p);
  if(t==="gacc"){if(S.pend?.code===p.code)toast("Accepted, starting the game…");return}
@@ -373,7 +373,7 @@ async function openRoom(code,host,opp){closeRoom(true);const ch=sb.channel("ttt-
 async function hostTTT(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await openRoom(code,true,opp);
  openModal(`<h3>Room ready ❌</h3><p class="sub">Waiting for your friend…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
 function joinTTT(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();openRoom(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
-function roomMsg(R,m){if(S.room!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();R.slow=false;
+function roomMsg(R,m){if(m.t==="ct")return gChatIn(R,m);if(S.room!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();R.slow=false;
  if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";closeModal();minCall(true);R.tx({t:"start",name:myName()});round(R,1,"X")}else R.tx({t:"start",name:myName()})}
  else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";closeModal();minCall(true);S.page="ttt";R.G=fresh(1,"X");view(R)}
  else if(m.t==="mv"&&R.host)hostMove(R,m.i,m.s,R.G?.hm==="X"?"O":"X");
@@ -498,7 +498,7 @@ async function openLR(code,host,opp,target){closeLR(true);const ch=sb.channel("l
 async function hostLudo(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await openLR(code,true,opp,opp?2:HS.p);
  openModal(`<h3>Room ready 🎲</h3><p class="sub">Share this code with your friends.</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:12px">${code}</div><div id="lbN" class="pw" style="margin-bottom:4px">1/${LR?.target||2} joined</div><div id="lbL" class="pw" style="margin-bottom:12px"></div><button id="lbS" class="btn pri wide h" style="margin-bottom:10px" onclick="lStart(LR)">▶ Start now</button><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
 function joinLudo(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();openLR(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><div id="lbN" class="pw" style="margin-bottom:6px"></div><div id="lbL" class="pw" style="margin-bottom:12px"></div><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
-function lMsg(R,m){if(LR!==R||m.from===S.user.id)return;if(R.started&&!R.ids.includes(m.from))return;R.seen=Date.now();
+function lMsg(R,m){if(m.t==="ct")return gChatIn(R,m);if(LR!==R||m.from===S.user.id)return;if(R.started&&!R.ids.includes(m.from))return;R.seen=Date.now();
  if(m.t==="join"&&R.host)hostJoin(R,m,(R,full)=>{if(full)setTimeout(()=>lStart(R),600)})
  else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.ids=m.ids;R.names=m.names;R.oppId=m.ids[0];R.oppName=m.names[0];R.nb=m.nb||0;closeModal();startLudo("online",[...m.names,...bn(R.nb)],m.ids.indexOf(S.user.id),null,m.ids)}
  else if(m.t==="lobby"&&!R.host){R.ps=m.ps;R.target=m.target;lobbyUI(R)}
@@ -707,7 +707,7 @@ async function uOpen(code,host,opp,target){closeUR(true);const ch=sb.channel("un
 async function hostUno(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await uOpen(code,true,opp,opp?2:HS.p);if(UR&&opp)UR.auto=true;
  openModal(`<h3>Room ready 🃏</h3><p class="sub">Share this code with your friends.</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:12px">${code}</div><div id="lbN" class="pw" style="margin-bottom:12px">1/${UR?.target||2} joined</div><button class="btn red wide" onclick="closeModal();closeUR(true)">Cancel</button>`)}
 function joinUno(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();uOpen(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><button class="btn red wide" onclick="closeModal();closeUR(true)">Cancel</button>`)}
-function uMsg(R,m){if(UR!==R||m.from===S.user.id)return;if(R.started&&!R.ids.includes(m.from))return;R.seen=Date.now();
+function uMsg(R,m){if(m.t==="ct")return gChatIn(R,m);if(UR!==R||m.from===S.user.id)return;if(R.started&&!R.ids.includes(m.from))return;R.seen=Date.now();
  if(m.t==="join"&&R.host)hostJoin(R,m,()=>{closeModal();uLobby(R)})
  else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.ids=m.ids;R.names=m.names;R.oppId=m.ids[0];R.oppName=m.names[0];R.nb=m.nb||0;closeModal();minCall(true);uLobby(R)}
  else if(m.t==="lobby"&&!R.host&&!R.started){const ch=!R.ps||R.ps.length!==m.ps.length;R.ps=m.ps;R.target=m.target;if(ch){closeModal();minCall(true);uLobby(R)}}
@@ -889,6 +889,76 @@ input{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.09)}
 .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b97ab;margin:20px 4px 8px;font-weight:800}
 .fi{animation:fi .45s var(--e) both}@keyframes fi{from{opacity:0;transform:translateY(12px) scale(.98)}}
 .gmic.mon{color:#8ff0bd}.gmic.mmu{color:#ff8797}`}));
+/* ---- in-game text chat ---- */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+#gcb{position:fixed;right:14px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:8400;width:52px;height:52px;border-radius:50%;display:none;place-items:center;color:#fff;background:linear-gradient(135deg,#6a7bff,#b36bff);box-shadow:0 14px 28px -8px rgba(140,110,255,.8),inset 0 1px 0 rgba(255,255,255,.3)}
+#gcb.show{display:grid}
+#gcb svg{width:24px;height:24px}
+#gcn{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--r);font-size:12px;font-weight:800;display:none;place-items:center}
+#gcp{position:fixed;left:0;right:0;bottom:0;z-index:8700;height:min(70dvh,520px);display:none;flex-direction:column;background:linear-gradient(160deg,#182238,#0c121e);border:1px solid var(--ln);border-radius:26px 26px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.6)}
+#gcp.show{display:flex}
+#gcp .gh{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--ln);font-weight:800}`}));
+document.body.insertAdjacentHTML("beforeend",`<button id="gcb" aria-label="Game chat">${I.chat}<span id="gcn"></span></button><div id="gcp"><div class="gh"><span>💬 Game chat</span><button class="ib" id="gcx" aria-label="Close">${I.down}</button></div><div class="cb" id="gcl"></div><div class="cp"><input id="gci" placeholder="Message" autocomplete="off" maxlength="300"><button class="snd" id="gcs" aria-label="Send">${I.send}</button></div></div>`);
+const GC={msgs:[],code:null,open:false,unread:0};
+function gcPaint(){const l=$("gcl");if(!l)return;l.innerHTML=GC.msgs.map(m=>`<div class="m ${m.me?"me":"th"}">${m.me?"":`<b style="display:block;font-size:12px;color:#c9d0ff">${esc(m.n)}</b>`}${esc(m.x)}</div>`).join("");l.scrollTop=l.scrollHeight}
+function gcAdd(n,x,me){GC.msgs.push({n,x,me});if(GC.msgs.length>100)GC.msgs.shift();if(GC.open)gcPaint()}
+function gcOpen(){GC.open=true;GC.unread=0;$("gcp").classList.add("show");gcPaint();gcSync()}
+function gcClose(){GC.open=false;$("gcp").classList.remove("show")}
+function gcSend(){const R=gRoom(),i=$("gci"),x=i.value.trim();if(!R||!x)return;i.value="";R.tx({t:"ct",n:myName(),x});gcAdd(myName(),x,true);sfx("send")}
+function gChatIn(R,m){if(m.from===S.user.id||!R.started||![S.room,LR,UR].includes(R))return;gcSync();const n=m.n||"Friend",x=String(m.x||"").slice(0,300);if(!x)return;gcAdd(n,x,false);sfx("recv");vib(15);if(!GC.open){GC.unread++;toast("💬 "+n+": "+x.slice(0,40))}gcSync()}
+function gcSync(){const R=gRoom(),b=$("gcb");
+ if(R&&R.code!==GC.code){GC.code=R.code;GC.msgs=[];GC.unread=0;gcPaint()}
+ if(!R&&GC.code){GC.code=null;GC.msgs=[];GC.unread=0;gcClose()}
+ b.classList.toggle("show",!!R&&["ttt","ludo","uno"].includes(S.page));
+ const n=$("gcn");n.style.display=GC.unread?"grid":"none";n.textContent=GC.unread}
+$("gcb").onclick=gcOpen;$("gcx").onclick=gcClose;$("gcs").onclick=gcSend;
+$("gci").addEventListener("keydown",e=>{if(e.key==="Enter")gcSend()});
+setInterval(gcSync,600);
+
+/* ---- soft & soothing sounds ---- */
+function tone(f,d,t="sine",v=.05,dl=0){if(!PR.snd)return;try{
+ AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
+ if(!AC.mst){const m=AC.mst=AC.createGain(),lp=AC.createBiquadFilter(),dly=AC.createDelay(),fb=AC.createGain(),wet=AC.createGain();
+  lp.type="lowpass";lp.frequency.value=2200;dly.delayTime.value=.17;fb.gain.value=.28;wet.gain.value=.22;
+  m.connect(lp);lp.connect(AC.destination);lp.connect(dly);dly.connect(fb);fb.connect(dly);dly.connect(wet);wet.connect(AC.destination)}
+ const s=AC.currentTime+dl,dd=Math.max(d,.22)*1.6,pk=Math.min(.2,v*1.3);
+ [[f,1],[f*2,.18]].forEach(([fr,k])=>{const o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=fr;
+  g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(pk*k,s+.03);g.gain.exponentialRampToValueAtTime(.0001,s+dd);
+  o.connect(g);g.connect(AC.mst);o.start(s);o.stop(s+dd+.05)})}catch(_){}}
+Object.assign(SFX,{
+ tap:()=>tone(660,.05,"sine",.02),
+ send:()=>{tone(784,.08,"sine",.03);tone(1047,.1,"sine",.025,.07)},
+ recv:()=>{tone(880,.1,"sine",.04);tone(1175,.14,"sine",.035,.1)},
+ move:()=>tone(523,.08,"sine",.05),
+ win:()=>{[523,659,784,1047,1319,1568].forEach((f,k)=>tone(f,.25,"sine",.06,k*.11));[1047,1319,1568].forEach(f=>tone(f,.5,"sine",.04,.75))},
+ lose:()=>[392,349,311,262].forEach((f,k)=>tone(f,.3,"sine",.05,k*.24)),
+ ring:()=>{tone(784,.25,"sine",.07);tone(988,.3,"sine",.07,.28)},
+ up:()=>{tone(659,.12,"sine",.05);tone(988,.2,"sine",.05,.12)},
+ down:()=>{tone(494,.18,"sine",.05);tone(370,.3,"sine",.05,.17)},
+ match:()=>{tone(784,.12,"sine",.05);tone(1047,.12,"sine",.05,.12);tone(1319,.22,"sine",.05,.24)}
+});
+
+/* ---- chat: notification, seen ticks, local history ---- */
+const hk=c=>K("nx_h_"+c),cidOf=u=>{const a=[S.user.id,u].sort();return a[0].slice(0,19)+a[1].slice(19)};
+function cacheMsg(c,m){try{const t=m.content??m.body??m.text??"",ts=new Date(m.created_at||Date.now()).getTime(),o=LS(hk(c),[]);
+ if(o.some(x=>x.s===m.sender_id&&x.x===t&&Math.abs(x.t-ts)<30000))return;o.push({s:m.sender_id,x:t,t:ts});localStorage[hk(c)]=JSON.stringify(o.slice(-200))}catch(_){}}
+let seenT=0;const sendSeen=u=>{if(Date.now()-seenT>1500){seenT=Date.now();sig({type:"seen",to:u})}};
+const _am=addMsg;addMsg=function(m,f,l){_am(m,f,l);if(S.chat){cacheMsg(S.chat.cid,m);if(m.sender_id!==S.user.id&&S.page==="chat")sendSeen(S.chat.uid)}};
+const _oc=openChat;openChat=function(cid,uid,un,name){_oc(cid,uid,un,name);if(!S.chat||S.chat.uid!==uid)return;
+ LS(hk(S.chat.cid),[]).forEach(x=>_am({id:"",sender_id:x.s,content:x.x,created_at:x.t},true));sendSeen(uid)};
+function gMsgSig(p){
+ if(p.type==="seen"){if(S.chat&&S.chat.uid===p.from)document.querySelectorAll(".m.me .tk").forEach(e=>{e.textContent="✓✓ Seen";e.style.color="#7fd3ff"});return}
+ const x=String(p.text||"").slice(0,300),n=dn(p.from,p.name||"Friend");
+ cacheMsg(cidOf(p.from),{sender_id:p.from,content:x,created_at:Date.now()});rec(p.from,p.un||"",p.name||"Friend",x);
+ if(S.chat&&S.chat.uid===p.from)return;
+ sfx("recv");vib([30,30]);toast("💬 "+n+": "+x.slice(0,50));const d=$("bdot");d&&d.classList.remove("h");if(S.page==="recent")renderRecent()}
+sendMsg=async function(){const i=$("ci"),c=S.chat;if(!c||!i)return;const text=i.value.trim();if(!text)return;i.value="";const id=crypto.randomUUID(),at=new Date().toISOString();
+ addMsg({id,sender_id:S.user.id,content:text,created_at:at},true,true);sfx("send");rec(c.uid,c.un,c.name,text);
+ S.cch?.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});
+ sig({type:"msg",to:c.uid,text,name:myName(),un:S.me?.username||""});
+ if(!Object.keys(LV?.presenceState?.()||{}).includes(c.uid))sb.from("notifications").insert({user_id:c.uid,type:"message",title:myName()+" sent a message",body:text.slice(0,80),data:{from:S.user.id}}).then(()=>{},()=>{});
+ try{const r=await sb.from("messages").insert({conversation_id:c.cid,sender_id:S.user.id,content:text});if(r.error)console.warn(r.error.message)}catch(_){}};
+
 const VER="build 10";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
