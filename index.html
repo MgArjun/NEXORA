@@ -1041,6 +1041,13 @@ setInterval(()=>{if(S.user&&!document.hidden)pullInbox()},20000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullInbox()});
 addEventListener("online",()=>pullInbox());
 
+/* ---- v6: instant inbox ---- */
+let NCH=null;
+function subNotes(){if(!S.user)return;try{NCH&&sb.removeChannel(NCH)}catch(_){}
+ NCH=sb.channel("nx-notes-"+S.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+S.user.id},()=>pullInbox()).subscribe()}
+const _en2=enter;enter=async function(u){const r=await _en2(u);subNotes();pullInbox();return r};
+setInterval(()=>{if(S.user&&!document.hidden)pullInbox()},4000);
+
 const VER="build 10";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
