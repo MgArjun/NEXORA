@@ -1598,6 +1598,112 @@ SFX.recv=()=>{note(523,.045,.7,0,.2);note(659,.04,.8,.1,.2)};
 SFX.move=()=>wood(190,.07);
 SFX.match=()=>{[0,4,7].forEach((s,k)=>note(sc(523,s),.04,.9,k*.1))};
 })()}catch(e){console.warn("NX-FIX2",e)}
+/* NX-FIX3 v3: compact luxury look, slim nav, dark gradient icons, whole-page jelly */
+try{(()=>{
+const st=document.createElement("style");
+st.textContent=`
+:root{--a:#7f8be6;--b:#a07ae6}
+body{color:#e3e7f3}
+h2{font-size:25px!important;letter-spacing:-.7px!important;margin:0 0 4px!important}
+.sub{font-size:13px!important;margin:0 0 12px!important}
+.grad{background-image:linear-gradient(135deg,#dde2ff,#9aa6f0 55%,#b595ee)!important}
+.pg{padding:14px 14px 18px!important}
+.top{height:calc(50px + env(safe-area-inset-top,0px))!important}
+.top b{font-size:17px!important}.top .pw{font-size:9.5px!important}
+.av{width:36px!important;height:36px!important;font-size:13px!important}
+.ib{width:36px!important;height:36px!important;border-radius:12px!important}
+.btn{min-height:42px!important;font-size:15px!important;border-radius:13px!important;padding:0 14px!important;border-color:rgba(255,255,255,.08)!important}
+.pri{background:linear-gradient(135deg,#6470d8,#8a62d0)!important;color:#fff!important;box-shadow:0 10px 22px -12px rgba(120,110,230,.8),inset 0 1px 0 rgba(255,255,255,.18)!important}
+.pri::after{background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.14) 50%,transparent 65%)!important}
+.seg button.on{background:linear-gradient(135deg,#6470d8,#8a62d0)!important;color:#fff!important}
+.card,.md{border-color:rgba(255,255,255,.07)!important}
+.card{border-radius:20px!important}
+.card::after{background:linear-gradient(160deg,rgba(255,255,255,.05),transparent 30%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)!important}
+.qc{min-height:92px!important;padding:14px!important;border-radius:20px!important}
+.qc b{font-size:15px}.qc small{font-size:12px}
+.hc{padding:12px!important;border-radius:20px!important}.hc b{font-size:15px!important}
+.row{padding:10px!important}
+input{height:46px!important;border-radius:13px!important}
+.cp input{height:44px!important}.snd{width:44px!important;height:44px!important}
+.md{width:min(400px,100%)!important;padding:18px!important;border-radius:24px!important}
+.md h3{font-size:18px!important}
+.ov{background:rgba(4,6,12,.55)!important}
+body:has(#ov:not(.h)) #app{filter:blur(2.5px) saturate(.9);transform:scale(.985);transition:filter .3s,transform .3s}
+#app{transition:filter .3s,transform .3s}
+
+/* slim nav */
+.nav{height:56px!important;margin:0 16px calc(10px + env(safe-area-inset-bottom,0px))!important;border-radius:20px!important;background:rgba(14,18,32,.85)!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 14px 30px -14px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.06)!important}
+.wd{display:none!important}
+.nav button{font-size:10px!important;gap:1px!important;color:#6d788f!important}
+.nav button svg{width:21px!important;height:21px!important}
+.nav .on{color:#c6cdfc!important}
+.nav .on svg{transform:translateY(-1px) scale(1.06)!important}
+.ind{position:absolute;z-index:0;top:6px;bottom:6px;left:0;width:20%;transform:translateX(calc(var(--i,0)*100%));transition:transform .5s cubic-bezier(.34,1.35,.64,1);pointer-events:none}
+.ind b{position:absolute;inset:0 7px;border-radius:15px;background:linear-gradient(180deg,rgba(139,151,232,.24),rgba(139,151,232,.07));border:1px solid rgba(139,151,232,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 14px -8px rgba(120,130,230,.8)}
+
+/* luxury icons: dark glass tile, coloured glyph, slow shimmer */
+.gi{width:40px!important;height:40px!important;border-radius:13px!important;overflow:hidden;color:color-mix(in srgb,var(--g1) 82%,#fff)!important;background:linear-gradient(155deg,#1b2236,#0d121f 72%)!important;border:1px solid color-mix(in srgb,var(--g1) 36%,transparent)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -9px 14px -9px color-mix(in srgb,var(--g1) 45%,transparent),0 8px 16px -8px color-mix(in srgb,var(--g1) 60%,transparent)!important}
+.gi::after{background:linear-gradient(160deg,rgba(255,255,255,.09),transparent 45%)!important}
+.gi::before{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.16) 50%,transparent 62%);transform:translateX(-130%);animation:gsh 7s ease-in-out infinite}
+@keyframes gsh{0%,65%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+.gi svg{width:22px!important;height:22px!important;transform:none!important;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--g1) 55%,transparent))!important}
+.gi svg.ic{width:20px!important;height:20px!important}
+.gi svg [fill="#fff"]{fill:var(--g1)!important}
+.gi svg [stroke="#fff"]{stroke:var(--g1)!important}
+.gi svg [style*="--g2"]{fill:#0d121f!important}
+
+/* call screen: less white */
+.cb2{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.14)!important;box-shadow:0 8px 16px -8px #000!important;width:60px!important;height:60px!important}
+.cb2.r{background:linear-gradient(145deg,#e0475b,#b3213a)!important;border-color:transparent!important}
+.cb2.gn{background:linear-gradient(145deg,#2fc783,#16915a)!important;border-color:transparent!important}
+.cb2.on{background:#dfe3f6!important;color:#10141c!important}
+.cav{width:108px!important;height:108px!important;font-size:38px!important;box-shadow:0 14px 40px -10px rgba(104,124,255,.5)!important}
+#call.mn{background:rgba(18,24,42,.92)!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 12px 26px -12px #000!important}
+
+/* UNO cards smaller */
+.uc{width:62px;height:92px}.uc.pile,.uc.back{width:74px;height:110px}
+.uc .cov b{font-size:30px}.uc.back .cov b{font-size:15px}.uc .cn{font-size:12px}
+.uh .uc{margin-left:-34px}.uh .uc:first-child{margin-left:0}
+`;
+document.head.appendChild(st);
+
+/* nav slider pill */
+const nv=$("nav");
+if(nv&&!nv.querySelector(".ind")){
+ nv.insertAdjacentHTML("afterbegin",'<i class="ind"><b></b></i>');
+ const setI=p=>{const i=PGS.indexOf(p);if(i>=0)nv.style.setProperty("--i",i)};
+ setI(S.page);
+ const g1=window.go;
+ window.go=function(p){const r=g1.apply(this,arguments);try{setI(p)}catch(e){}return r};
+}
+
+/* whole-page jelly: edge pull + scroll lag */
+const mn=$("main");
+let off=0,vel=0,drag=0,act=0,cur=null,run=0,t0=0,base=0,ty=0;
+const loop=t=>{
+ const dt=Math.min(.033,(t-t0)/1000||.016);t0=t;
+ if(!drag){for(let k=0;k<3;k++){vel+=(-off*170-vel*13)*dt/3;off+=vel*dt/3}}
+ if(!cur||!cur.isConnected){run=0;off=0;vel=0;return}
+ if(!drag&&Math.abs(off)<.04&&Math.abs(vel)<.3){off=0;vel=0;cur.style.transform="";cur.style.transformOrigin="";run=0;return}
+ const o=Math.max(-16,Math.min(16,off));
+ cur.style.transformOrigin=o>0?"50% 0":"50% 100%";
+ cur.style.transform="translateY("+o+"px) scaleY("+(1+Math.abs(o)*.0007)+")";
+ requestAnimationFrame(loop)};
+const kick=()=>{if(!run){run=1;t0=performance.now();requestAnimationFrame(loop)}};
+mn.addEventListener("scroll",ev=>{const el=ev.target;if(!el||!el.classList||!el.classList.contains("pg"))return;
+ const d=el.scrollTop-(el._s||0);el._s=el.scrollTop;if(!d||drag)return;cur=el;vel+=-d*6;kick()},true);
+mn.addEventListener("touchstart",ev=>{act=0;drag=0;const t=ev.target;
+ if(!t.closest||t.closest("canvas,input,.uh,.cb,.eb,.md"))return;
+ const el=t.closest(".pg");if(!el)return;
+ ev.stopImmediatePropagation();act=1;cur=el;el._s=el.scrollTop;ty=ev.touches[0].clientY},{capture:true,passive:true});
+mn.addEventListener("touchmove",ev=>{if(!act||!cur||!cur.isConnected)return;const y=ev.touches[0].clientY;
+ if(!drag){const dy=y-ty;if(Math.abs(dy)<6)return;
+  const top=cur.scrollTop<=0,bot=cur.scrollTop+cur.clientHeight>=cur.scrollHeight-1;
+  if((dy>0&&top)||(dy<0&&bot)){drag=1;base=y;vel=0}else{ty=y;return}}
+ const d=y-base;off=d*.55/(1+Math.abs(d)/240);vel=0;if(ev.cancelable)ev.preventDefault();kick()},{passive:false});
+const fin=()=>{act=0;if(drag){drag=0;vel=0;kick()}};
+mn.addEventListener("touchend",fin);mn.addEventListener("touchcancel",fin);
+})()}catch(e){console.warn("NX-FIX3",e)}
 /* boot */
 /* NX-FIX-LOGIN-SOUND v1 */
 SFX.tap=()=>{};
