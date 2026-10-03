@@ -1725,4 +1725,93 @@ crShot=function(p,x,vx,vy,send){if(send){const m=Math.hypot(vx,vy)||1,k=Math.min
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
 
+/* NX-PATCH-V7 FULLSCREEN-UNO-POPUP */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+#nxfs{position:fixed;left:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:8300;width:42px;height:42px;display:none}
+body .felt .uc.back,body .felt .uc.pile{width:62px!important;height:93px!important}
+body .felt .uc.pile .cov b{font-size:30px!important}
+body .felt .uc.back .cov b{font-size:14px!important}
+body .felt .uc.back .cn,body .felt .uc.pile .cn{font-size:11px!important}
+body .felt>div[style*="justify-content:center"]{gap:30px!important;justify-content:center!important;align-items:center!important;margin:auto 0!important}
+body .felt{gap:10px}
+body .felt .grid{width:100%}
+body .uh{width:100%;margin:0 auto}
+body .felt>.btn.wide{max-width:260px;margin:6px auto 0!important}
+#nxpop{position:fixed;left:50%;top:38%;z-index:9350;transform:translate(-50%,-50%) scale(.6);font-size:clamp(34px,11vw,56px);font-weight:900;letter-spacing:-1px;line-height:1.1;padding:14px 26px;border-radius:26px;background:rgba(10,14,28,.9);border:3px solid var(--pc,#fff);color:#fff;box-shadow:0 0 40px -4px var(--pc,#fff),0 20px 50px #000;text-align:center;opacity:0;pointer-events:none;white-space:normal;max-width:90vw}
+#nxpop small{display:block;font-size:16px;font-weight:700;opacity:.85;margin-top:4px;letter-spacing:0}
+#nxpop.show{animation:nxpp 1.3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes nxpp{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
+@media(prefers-reduced-motion:reduce){#nxpop.show{opacity:1!important;transform:translate(-50%,-50%)!important}}
+`}));
+/* wider UNO hand */
+nxArc=function(){const h=document.querySelector("#main .uh");if(!h)return;const c=[...h.children],n=c.length,st=Math.min(14,110/Math.max(1,n-1));
+ c.forEach((e,i)=>e.style.setProperty("--a",((i-(n-1)/2)*st).toFixed(1)+"deg"))};
+/* full screen button for every game */
+document.body.insertAdjacentHTML("beforeend",'<button id="nxfs" class="ib" aria-label="Full screen"></button>');
+const pfs=()=>document.fullscreenElement||document.webkitFullscreenElement;let pfsOwn=false;
+const pfsExit=()=>{try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(_){}try{screen.orientation.unlock()}catch(_){}pfsOwn=false};
+async function nxfsTog(){if(pfs())return pfsExit();
+ const e=document.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;if(!r)return toast("Is browser me full screen nahi chalta");
+ try{await r.call(e,{navigationUI:"hide"})}catch(_){return toast("Full screen nahi khula")}
+ pfsOwn=true;try{await screen.orientation.lock("landscape")}catch(_){toast("Phone ko tirchha karo, landscape ho jayega")}}
+$("nxfs").onclick=nxfsTog;
+setInterval(()=>{const b=$("nxfs"),show=!!S.user&&["ttt","ludo","uno"].includes(S.page);b.style.display=show?"grid":"none";
+ const h=pfs()?I.shrink:I.expand;if(b.dataset.i!==(pfs()?"s":"e")){b.dataset.i=pfs()?"s":"e";b.innerHTML=h}
+ if(!show&&pfsOwn&&pfs())pfsExit()},400);
+document.addEventListener("fullscreenchange",()=>{if(!pfs()){try{screen.orientation.unlock()}catch(_){}pfsOwn=false}});
+/* UNO pop-ups */
+const nxN=["Red","Green","Yellow","Blue"];let nxPT,nxW=null,nxFg=0;
+function nxPop(t,sub,col){let e=$("nxpop");if(!e){e=document.createElement("div");e.id="nxpop";document.body.appendChild(e)}
+ e.style.fontSize=String(t).length>14?"clamp(24px,7vw,36px)":"";e.innerHTML=esc(t)+(sub?"<small>"+esc(sub)+"</small>":"");e.style.setProperty("--pc",col||"#fff");e.classList.remove("show");void e.offsetWidth;e.classList.add("show");
+ clearTimeout(nxPT);nxPT=setTimeout(()=>e.classList.remove("show"),1400)}
+function nxUno(){const u=U;if(!u||S.page!=="uno"){nxW=null;return}
+ const t=u.pl[u.pl.length-1],tk=t.c+"_"+t.v,cnt=u.h.map(h=>h.length),pv=nxW;nxW={seq:u.seq,tk,cnt,t:u.t,n:u.n,over:u.over};
+ if(!pv||u.fresh||pv.n!==u.n||u.seq<pv.seq)return;
+ if(u.over&&!pv.over){if(u.win>=0)nxPop("🏆 "+u.names[u.win]+" won!","",UC[u.col]);return}
+ const who=u.names[pv.t],played=tk!==pv.tk||cnt.some((c,i)=>c<pv.cnt[i]),dl=Date.now()-nxFg<500?1300:0,v=t.v,c=UC[u.col];let m=null;
+ if(played){if(v==="S")m=["⦸ SKIP",who];else if(v==="R")m=["⇄ REVERSE",who];else if(v==="+2"||v==="+4")m=[v,who+" · "+nxN[u.col]];else if(v==="W")m=["COLOUR "+nxN[u.col].toUpperCase(),who];
+  if(m)setTimeout(()=>nxPop(m[0],m[1],c),dl);
+  const k=cnt.findIndex((x,i)=>x===1&&pv.cnt[i]>1);if(k>=0)setTimeout(()=>nxPop("UNO!",u.names[k],"#ffe27a"),dl+(m?1300:0))}
+ else cnt.forEach((x,i)=>{if(x-pv.cnt[i]>=2)nxPop("+"+(x-pv.cnt[i])+" CARDS",u.names[i],"#ff8797")})}
+const _nx7=drawU;drawU=function(){const r=_nx7.apply(this,arguments);try{nxUno()}catch(_){}return r};
+const _nt7=toast;toast=function(m){if(S.page==="uno"){m=String(m);
+ if(/forgot UNO/i.test(m)){nxFg=Date.now();nxPop("FORGOT UNO! +2",m.replace(/ forgot.*/i,""),"#ff8797");return}
+ if(m==="UNO!"){nxPop("UNO!","","#ffe27a");return}
+ if(/^UNO! /.test(m)||/ draws /.test(m))return}
+ return _nt7(m)};
+/* table seats: opponents around the table, me at the bottom */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+body .felt{position:relative}
+body .felt>.grid{display:contents}
+body .felt>.grid>.lp{position:absolute;z-index:2;width:128px}
+body .felt>.grid>.lp:only-child{left:50%;top:10px;transform:translateX(-50%)}
+body .felt>.grid>.lp:first-child:nth-last-child(2),body .felt>.grid>.lp:first-child:nth-last-child(3){left:12px;top:42%;transform:translateY(-50%)}
+body .felt>.grid>.lp:last-child:nth-child(2),body .felt>.grid>.lp:last-child:nth-child(3){right:12px;top:42%;transform:translateY(-50%)}
+body .felt>.grid>.lp:nth-child(2):nth-last-child(2){left:50%;top:10px;right:auto;transform:translateX(-50%)}
+body .felt>.grid>.lp:first-child:nth-last-child(2)~.lp:last-child{right:12px;left:auto;top:42%;transform:translateY(-50%)}
+body .felt>.grid>.lp:first-child:nth-last-child(3) .ofan{transform:rotate(90deg)}
+body .felt>.grid>.lp:last-child:nth-child(3) .ofan{transform:rotate(-90deg)}
+body .felt>.grid>.lp:first-child:nth-last-child(2) .ofan{transform:rotate(90deg)}
+body .felt>.grid>.lp:last-child:nth-child(2) .ofan{transform:rotate(-90deg)}
+body .felt>.btn.wide{width:200px!important;border-radius:999px}
+`}));
+/* pop-ups for the other games */
+const nxK={};const nxOnce=(k,v,f)=>{const first=nxK[k]===undefined;if(nxK[k]===v)return;nxK[k]=v;if(!first)f()};
+setInterval(()=>{try{
+ if(S.page==="ludo"&&L){
+  nxOnce("ldw",L.winner||"",()=>{if(L.winner)nxPop("🏆 "+L.winner+" won!","",LC[cur().color].c)});
+  nxOnce("ld6",L.seq+"_"+L.dice,()=>{if(L.dice===6)nxPop("🎲 SIX!",cur().name,LC[cur().color].c)});
+  nxOnce("ld3",L.msg,()=>{if(/three sixes/.test(L.msg))nxPop("3 SIXES!","Turn lost","#ff8797")})}
+ if(CH&&S.page==="ttt")nxOnce("ch",CH.hist.length+"_"+CH.msg,()=>{const m=CH.msg||"";
+  if(/Checkmate/.test(m))nxPop("♚ CHECKMATE!",m.replace("Checkmate! ",""),"#ffe27a");
+  else if(/^Check!/.test(m))nxPop("♚ CHECK!","","#ff8797");
+  else if(/Stalemate|Draw/.test(m))nxPop("🤝 DRAW","","#8e9cff");
+  else if(/resign/.test(m))nxPop("🏳 RESIGN",m,"#ffe27a")});
+ if(S.g&&!CH&&!CG&&S.page==="ttt")nxOnce("tt",S.g.over?S.g.msg:"",()=>{const m=S.g.msg;if(S.g.over&&m){const d=/Draw/i.test(m);nxPop(d?"🤝 DRAW":m,"",d?"#8e9cff":"#ffe27a")}});
+ if(CG&&S.page==="ttt")nxOnce("cr",CG.n+"_"+CG.msg,()=>{const m=CG.msg||"";
+  if(/won/.test(m))nxPop(m,"","#ffe27a");else if(/Foul/.test(m))nxPop("⚠️ FOUL!","Striker pocket ho gaya","#ff8797");
+  else if(/Queen covered/.test(m))nxPop("👑 QUEEN!","covered","#ffe27a");else if(/Queen down/.test(m))nxPop("👑 QUEEN DOWN","Ab cover karo","#ffe27a");
+  else if(/Pehle queen/.test(m))nxPop("👑 PEHLE QUEEN","pocket karo","#ff8797")})
+}catch(_){}},300);
+const _nt8=toast;toast=function(m){if(S.page==="ludo"&&L&&/captured/i.test(m)){nxPop("💥 CAPTURED!",cur().name,"#ff8797");return}return _nt8(m)};
 </script></body></html>
