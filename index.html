@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070a10"><meta name="author" content="Suraj Kumar">
+<meta name="theme-color" content="#070a10"><meta name="author" content="Suraj Kumar"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="NEXORA">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><title>NEXORA</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1481,6 +1481,70 @@ PG.home=renderHome=function(){const w=wins(),hr=new Date().getHours(),l=LS(K("nx
  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px">${tile(I.connect,"Connect","go('connect')","#9a6bff","#d26bff")}${tile(I.game,"Games","go('games')","#2fd6a0","#2f9fd6")}${tile(I.watch||I.cam,"Watch","typeof wtMenu==='function'?wtMenu():go('connect')","#ff5b8a","#ff8a5b")}</div>
  <div class="pw" style="margin-top:14px">Wins · Ludo ${w.ludo||0} · Tic-Tac-Toe ${w.ttt||0} · UNO ${w.uno||0}</div>`)};
 if(S.user&&S.page==="home")renderHome();
+
+/* NX-PATCH-V4 LAND-FS-UNO-SMOOTH */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.top{height:calc(64px + env(safe-area-inset-top,0px))}
+.ib.on{color:#fff;background:linear-gradient(135deg,#6a7bff,#b36bff)}
+.ov:not(.h){animation:nxfade .25s ease both}
+.md{animation:nxpop .4s cubic-bezier(.34,1.3,.5,1) both}
+.pg.st.nxin{animation:nxin .42s cubic-bezier(.22,1,.36,1) both!important}
+@keyframes nxfade{from{opacity:0}}
+@keyframes nxpop{from{opacity:0;transform:translateY(24px) scale(.94)}}
+@keyframes nxin{from{opacity:0;transform:translateY(14px) scale(.985)}}
+::view-transition-old(root){animation:nxo .16s ease both}
+::view-transition-new(root){animation:nxn .34s cubic-bezier(.22,1,.36,1) both}
+@keyframes nxo{to{opacity:0}}
+@keyframes nxn{from{opacity:0;transform:translateY(10px)}}
+.uc{width:54px!important;height:80px!important;border-width:3px!important;border-radius:9px!important}
+.uc .cov b{font-size:24px!important}
+.uc.back .cov b{font-size:13px!important}
+.uc .cn{font-size:10px!important}
+body .uh{position:relative;display:block!important;height:172px;padding:0!important;overflow:visible!important}
+body .uh .uc{position:absolute;top:24px;left:50%;margin:0 0 0 -27px!important;transform-origin:50% 170px;transform:rotate(var(--a,0deg));transition:transform .35s cubic-bezier(.22,1,.36,1),filter .25s}
+body .uh .uc.ok{transform:rotate(var(--a,0deg)) translateY(-20px);z-index:3}
+@keyframes deal{from{opacity:0;transform:rotate(var(--a,0deg)) translateY(-170px) scale(.6)}}
+@media(orientation:landscape) and (max-height:600px){
+body.nx-ludo .top,body.nx-ludo .nav{display:none!important}
+body.nx-ludo .pg{overflow:hidden;padding:8px calc(10px + env(safe-area-inset-right,0px)) 8px calc(10px + env(safe-area-inset-left,0px))}
+body.nx-ludo .pg>div{max-width:none!important;position:relative;height:100%}
+body.nx-ludo .pg>div>div:first-child{position:absolute;top:0;right:0;z-index:3;margin:0!important;gap:6px}
+body.nx-ludo #ldBan{display:none}
+body.nx-ludo #ldCard{display:grid;grid-template-columns:auto minmax(190px,1fr);gap:14px;align-items:center;padding:6px;height:100%}
+body.nx-ludo #ldCv{width:calc(100dvh - 38px)!important;max-width:none;margin:0}
+body.nx-ludo #ldCard .lctl{padding-top:44px}
+body.nx-ludo #ldCard .lctl>div:first-child{flex-direction:column;align-items:flex-start;margin-top:0;gap:10px}
+body.nx-ludo #ldP{grid-template-columns:1fr!important}}
+`}));
+/* full screen (first touch, Android/Chrome) */
+const nxFsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function nxFs(){if(nxFsEl()||navigator.standalone||matchMedia("(display-mode:fullscreen)").matches||matchMedia("(display-mode:standalone)").matches)return Promise.resolve();
+ const e=document.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;if(!r)return Promise.resolve();
+ try{const p=r.call(e,{navigationUI:"hide"});return p&&p.catch?p.catch(()=>{}):Promise.resolve()}catch(_){return Promise.resolve()}}
+if(matchMedia("(pointer:coarse)").matches)document.addEventListener("pointerup",nxFs,{once:true});
+/* Ludo landscape */
+let nxLk=false;
+async function nxLand(){const b=$("nxLb");
+ if(nxLk){try{screen.orientation.unlock()}catch(_){}nxLk=false;b&&b.classList.remove("on");return toast("Landscape lock off")}
+ await nxFs();
+ try{await screen.orientation.lock("landscape");nxLk=true;b&&b.classList.add("on");toast("Landscape on")}catch(_){toast("Phone ko tirchha (rotate) karo, landscape auto ho jayega")}}
+const _nxRL=renderL;
+renderL=function(){_nxRL();nxFs();const h=document.querySelector("#main .pg>div>div");
+ if(h&&!$("nxLb")){const b=document.createElement("button");b.id="nxLb";b.className="ib"+(nxLk?" on":"");b.setAttribute("aria-label","Landscape");b.innerHTML=IC('<rect x="2" y="7" width="20" height="10" rx="2"/><path d="M18 12h.01"/>');b.onclick=nxLand;h.appendChild(b)}};
+/* UNO circular hand */
+function nxArc(){const h=document.querySelector("#main .uh");if(!h)return;const c=[...h.children],n=c.length,st=Math.min(11,100/Math.max(1,n-1));
+ c.forEach((e,i)=>e.style.setProperty("--a",((i-(n-1)/2)*st).toFixed(1)+"deg"))}
+const _nxDU=drawU;
+drawU=function(){const r=_nxDU.apply(this,arguments);nxArc();return r};
+/* smooth transitions */
+const _nxGo=go;
+go=function(p){if(!document.startViewTransition||!S.user||matchMedia("(prefers-reduced-motion:reduce)").matches)return _nxGo(p);
+ try{document.startViewTransition(()=>{_nxGo(p)})}catch(_){_nxGo(p)}};
+let nxK="";
+new MutationObserver(()=>{document.body.classList.toggle("nx-ludo",S.page==="ludo");
+ if(S.page!=="ludo"&&nxLk){try{screen.orientation.unlock()}catch(_){}nxLk=false}
+ const k=S.page+(S.page==="hub"&&S.hub?S.hub.k+(S.hub.m||""):"");if(k===nxK)return;nxK=k;
+ const p=document.querySelector("#main>.pg.st");if(p){p.classList.add("nxin");setTimeout(()=>p.classList.remove("nxin"),460)}}).observe($("main"),{childList:true});
 
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
