@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070a10"><meta name="author" content="Suraj Kumar">
-<title>NEXORA</title>
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><title>NEXORA</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{color-scheme:dark;--bg:#070a10;--ln:rgba(255,255,255,.09);--mu:#8b97ab;--a:#7c8cff;--b:#b07cff;--g:#3fd68f;--r:#ff6377;--e:cubic-bezier(.22,1,.36,1)}
@@ -396,7 +396,7 @@ function renderSettings(){const p=S.me||{};
  page(`<h2>Settings</h2><p class="sub">${S.user?.is_anonymous?"Guest account":esc(S.user?.email||"")}</p>
  <div class="card" style="padding:18px;margin-bottom:14px"><b>Profile</b><input id="pn" style="margin-top:12px" maxlength="30" placeholder="Display name" value="${esc(p.display_name||"")}"><input id="pu" maxlength="20" placeholder="Username" autocapitalize="off" value="${esc(p.username||"")}"><div id="pm" class="pw" style="text-align:left;min-height:18px;margin:-4px 0 10px 4px">3–20 characters: a–z, 0–9, _</div><button class="btn pri wide" onclick="saveProfile()">Save changes</button></div>
  <div class="card" style="padding:6px 16px;margin-bottom:14px">${[["hide","Hide my online status","Friends see you as offline",PR.hide],["calls","Allow incoming calls","Off = every call is declined",PR.calls],["inv","Allow game invites","Off = invites are declined",PR.inv],["snd","Sound and vibration","Chat, call and game effects",PR.snd]].map(([k,t,d,on])=>`<div class="pr"><div class="t"><b>${t}</b><small>${d}</small></div><button class="tg2 ${on?"on":""}" onclick="tog('${k}',this)" aria-label="${t}"><i></i></button></div>`).join("")}</div>
- <button class="btn red wide" onclick="logout()">Log out</button><div class="pw" style="padding:22px 0 4px">Powered by <b>Suraj Kumar</b></div>`)}
+ <button class="btn red wide" onclick="logout()">Log out</button><div class="pw" style="padding:22px 0 4px">Powered by <b>Suraj Kumar</b> · ${VER}</div>`)}
 function tog(k,b){PR[k]=!PR[k];savePr();b.classList.toggle("on",PR[k]);if(k==="hide")setOnline(true);if(k==="snd")sfx("up")}
 async function saveProfile(){const m=$("pm"),name=$("pn").value.trim(),un=$("pu").value.trim().toLowerCase(),bad=t=>{m.style.color="#ff8190";m.textContent=t};
  if(name.length<2)return bad("Name needs at least 2 letters.");if(!/^[a-z0-9_]{3,20}$/.test(un))return bad("Username can use a–z, 0–9 and _ (3–20).");m.style.color="";m.textContent="Saving…";
@@ -443,8 +443,8 @@ function startLudo(mode="robot",names,me=null,n){closeModal();const cnt=names?na
  L.spr=L.players.map(p=>p.tokens.map((_,i)=>{const xy=xyAt(p,i,-1);return{x:xy[1]+.5,y:xy[0]+.5,z:0,vz:0}}));renderL()}
 function renderL(){S.page="ludo";minCall(true);
  $("main").innerHTML=`<section class="pg"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveL()">‹ Games</button><span style="flex:1"></span>${L.mode==="online"?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${L.mode==="online"?(LR?.oppId?`<button class="ib" style="color:#8ff0bd" onclick="voiceBtn('${LR.oppId}','${esc(LR.oppName).replace(/'/g,"")}')" aria-label="Voice">${I.mic}</button>`:""):`<button class="btn" onclick="startLudo(L.mode,null,null,L.n)">↻ Restart</button>`}</div>
- <div id="ldBan"><i></i><span></span></div><div class="card" id="ldCard" style="padding:10px;position:relative"><canvas id="ldCv" style="width:100%;aspect-ratio:1;display:block;border-radius:12px"></canvas>
- <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:12px"><div style="min-width:0"><div id="ldM" style="font-weight:850"></div><div id="ldH" class="pw" style="text-align:left;margin-top:3px"></div></div><button id="ldDice" class="dice" onclick="rollL()" aria-label="Roll dice">⚀</button></div><div id="ldP" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"></div></div></div></section>`;setupCv();updL()}
+ <div id="ldBan"><i></i><span></span></div><div class="card lw" id="ldCard" style="padding:10px;position:relative"><canvas id="ldCv" style="width:100%;aspect-ratio:1;display:block;border-radius:12px"></canvas>
+ <div class="lctl"><div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:12px"><div style="min-width:0"><div id="ldM" style="font-weight:850"></div><div id="ldH" class="pw" style="text-align:left;margin-top:3px"></div></div><button id="ldDice" class="dice" onclick="rollL()" aria-label="Roll dice">⚀</button></div><div id="ldP" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"></div></div></div></div></section>`;setupCv();updL()}
 function rollL(){if(!L||L.winner||L.rolling||L.busy||L.dice||!isH())return;const d=rnd6();lsend({t:"roll",d});animRoll(d)}
 async function animRoll(d){const l=L;l.rolling=true;l.dice=null;updL();tone(180,.8,"triangle",.04);vib(25);await sleep(850);if(L!==l)return;l.rolling=false;l.dice=d;l.last=d;const pl=cur();l.sixes=d===6?l.sixes+1:0;l.msg=`${pl.name} rolled ${d}`;tone(d===6?760:420,.12);
  if(l.sixes>=3){l.sixes=0;l.dice=null;l.msg=pl.name+": three sixes, turn lost";updL();await sleep(900);return endT()}
@@ -698,13 +698,13 @@ function uSnap(s){const o=U;if(o&&s.seq<o.seq)return;const me=1,h=s.cnt.map((c,i
  if(S.page==="uno")drawU()}
 function uVoice(){UR&&voiceBtn(UR.oppId,UR.oppName)}
 function drawU(){if(!U)return;uSend();if(S.page!=="uno")return;const me=U.me,t=topU(),mine=U.h[me],on=U.online,opp=U.h.map((h,i)=>[h,i]).filter(x=>x[1]!==me),
- sym=v=>v==="S"?"⦸":v==="R"?"⇄":v==="W"?"★":v,cd=(c,cls,oc,st)=>{const v=sym(c.v);return`<button class="uc ${c.c===4?"w ":""}${cls}" style="--c:${UC[c.c]};${st||""}" ${oc||""}><i class="cn tl">${v}</i><span class="ov"><b>${v}</b></span><i class="cn br">${v}</i></button>`},fly=U.fly?" fly":"";U.fly=0;
+ sym=v=>v==="S"?"⦸":v==="R"?"⇄":v==="W"?"★":v,cd=(c,cls,oc,st)=>{const v=sym(c.v);return`<button class="uc ${c.c===4?"w ":""}${cls}" style="--c:${UC[c.c]};${st||""}" ${oc||""}><i class="cn tl">${v}</i><span class="cov"><b>${v}</b></span><i class="cn br">${v}</i></button>`},fly=U.fly?" fly":"";U.fly=0;
  const wn=U.win===me?"You won! 🏆":U.win>=0?U.names[U.win]+" won":"Your friend left",
  msg=U.over?wn:U.fresh?"Dealing cards…":U.t===me?(U.drew?"Play it, or tap the deck to pass":U.pen?`Stack a ${U.pt} or draw ${U.pen}`:"Your turn"):U.names[U.t]+"'s turn";
  $("main").innerHTML=`<section class="pg"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;margin-bottom:12px;align-items:center"><button class="btn" onclick="go('games')">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>${UR?.oppId?`<button class="ib ok" onclick="uVoice()" aria-label="Voice">${I.mic}</button>`:""}`:""}${!on||U.host?`<button class="btn" onclick="restartUno()">↻ Restart</button>`:""}</div>
  <div id="ldBan" style="--tb:${UC[U.col]}"><i></i><span>${esc(msg)}</span></div><div class="card felt" style="padding:14px;position:relative">${U.fresh?`<div class="go"><b>Let's play!</b></div>`:""}
  <div class="grid" style="grid-template-columns:repeat(${opp.length},1fr)">${opp.map(([h,i])=>`<div class="lp ${U.t===i?"on":""}" style="--gc:#8e9cff"><em></em><div><b>${esc(U.names[i])}</b><div class="pw" style="text-align:left">${h.length} cards</div></div></div>`).join("")}</div>
- <div style="display:flex;justify-content:center;gap:22px;align-items:center;margin:22px 0 10px"><button class="uc back" onclick="takeU()"><span class="ov"><b>UNO</b></span></button>${cd(t,"pile"+fly,"",`--pr:${(U.seq*37)%17-8}deg`)}</div>
+ <div style="display:flex;justify-content:center;gap:22px;align-items:center;margin:22px 0 10px"><button class="uc back" onclick="takeU()"><span class="cov"><b>UNO</b></span></button>${cd(t,"pile"+fly,"",`--pr:${(U.seq*37)%17-8}deg`)}</div>
  <div class="uh">${mine.map((c,i)=>cd(c,U.t===me&&!U.busy&&!U.over&&okc(c)?"ok":"",`onclick="playU(${me},${i})"`,fan(i,mine.length)+(U.fresh?`;animation:deal .5s ${(i*.09).toFixed(2)}s backwards`:""))).join("")}</div>
  ${mine.length<=2&&!U.over?`<button class="btn pri wide" style="margin-top:6px" onclick="sayUno()">UNO!</button>`:""}
  ${U.over?`<div class="wo"><div>🏆<br>${esc(wn)}<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:220px">${!on||U.host?`<button class="btn pri" onclick="restartUno()">🔁 Play again</button>`:`<div class="pw">Waiting for the host…</div>`}<button class="btn" onclick="go('games')">Games</button></div></div></div>`:""}</div></div></section>`}
@@ -758,16 +758,16 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
  background:linear-gradient(150deg,color-mix(in srgb,var(--c) 85%,#fff),var(--c) 45%,color-mix(in srgb,var(--c) 70%,#000));
  box-shadow:0 1px 0 #ddd,0 6px 10px -2px rgba(0,0,0,.55),0 14px 18px -8px rgba(0,0,0,.5),inset 0 0 0 1px rgba(0,0,0,.25)}
 .uc::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.35),transparent 40%);pointer-events:none}
-.uc .ov{position:absolute;left:50%;top:50%;width:88%;height:62%;border-radius:50%;background:#fafafa;transform:translate(-50%,-50%) rotate(-26deg);display:grid;place-items:center;box-shadow:inset 0 0 6px rgba(0,0,0,.25)}
-.uc .ov b{transform:rotate(26deg);font-size:29px;font-weight:900;font-style:italic;color:var(--c);text-shadow:1.5px 1.5px 0 rgba(0,0,0,.28);letter-spacing:-1px;line-height:1}
+.uc .cov{position:absolute;left:50%;top:50%;width:88%;height:62%;border-radius:50%;background:#fafafa;transform:translate(-50%,-50%) rotate(-26deg);display:grid;place-items:center;box-shadow:inset 0 0 6px rgba(0,0,0,.25)}
+.uc .cov b{transform:rotate(26deg);font-size:29px;font-weight:900;font-style:italic;color:var(--c);text-shadow:1.5px 1.5px 0 rgba(0,0,0,.28);letter-spacing:-1px;line-height:1}
 .uc .cn{position:absolute;font-style:normal;font-size:11px;font-weight:900;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.35);line-height:1;z-index:1}
 .uc .tl{left:4px;top:3px}.uc .br{right:4px;bottom:3px;transform:rotate(180deg)}
 .uc.w{--c:#15151c}
-.uc.w .ov{background:conic-gradient(#ef5368 0 25%,#4a9dff 0 50%,#3fc984 0 75%,#ffc93c 0)}
-.uc.w .ov b{color:#fff;text-shadow:0 2px 3px rgba(0,0,0,.6)}
+.uc.w .cov{background:conic-gradient(#ef5368 0 25%,#4a9dff 0 50%,#3fc984 0 75%,#ffc93c 0)}
+.uc.w .cov b{color:#fff;text-shadow:0 2px 3px rgba(0,0,0,.6)}
 .uc.back{background:linear-gradient(150deg,#2a2a36,#0c0c12);box-shadow:0 2px 0 #333,0 4px 0 #222,0 6px 0 #1a1a1a,0 8px 0 #111,0 16px 20px -6px rgba(0,0,0,.6)}
-.uc.back .ov{background:radial-gradient(circle at 35% 30%,#ff6a5a,#d4261a 70%);box-shadow:inset 0 0 6px rgba(0,0,0,.4)}
-.uc.back .ov b{color:#ffe14a;font-size:20px;text-shadow:2px 2px 0 #000}
+.uc.back .cov{background:radial-gradient(circle at 35% 30%,#ff6a5a,#d4261a 70%);box-shadow:inset 0 0 6px rgba(0,0,0,.4)}
+.uc.back .cov b{color:#ffe14a;font-size:20px;text-shadow:2px 2px 0 #000}
 .uc.pile{transform:rotate(var(--pr,0deg))}
 .uc:not(.ok):not(.pile):not(.back){opacity:.66}
 .uh{display:flex;justify-content:safe center;gap:0;padding:26px 14px 18px}
@@ -784,11 +784,19 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
 
 document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
 .uc:not(.ok):not(.pile):not(.back){opacity:1;filter:brightness(.72) saturate(.85)}
-.uc.back .ov b{font-size:15px;letter-spacing:0}
+.uc.back .cov b{font-size:15px;letter-spacing:0}
 @keyframes deal{from{opacity:0;transform:translate(0,-170px) rotate(40deg) scale(.5)}}
 .go{position:absolute;inset:0;display:grid;place-items:center;z-index:5;pointer-events:none;font-size:34px;font-weight:900;animation:gop 1.4s var(--e) both;text-shadow:0 4px 18px rgba(0,0,0,.6)}
 @keyframes gop{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.1)}80%{opacity:1}100%{opacity:0;transform:scale(1.2)}}`}));
 
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+#ldCv{width:min(100%,calc(100dvh - 290px))!important;margin:0 auto}
+@media (min-width:720px) and (orientation:landscape){
+.pg>div[style*="max-width:560px"]{max-width:920px!important}
+#ldCard.lw{display:grid;grid-template-columns:auto minmax(230px,1fr);gap:18px;align-items:center}
+#ldCard .lctl>div:first-child{flex-direction:column;align-items:flex-start;margin-top:0;gap:14px}
+#ldP{grid-template-columns:1fr!important}}`}));
+const VER="build 8";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
 
