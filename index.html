@@ -1048,7 +1048,7 @@ function subNotes(){if(!S.user)return;try{NCH&&sb.removeChannel(NCH)}catch(_){}
 const _en2=enter;enter=async function(u){const r=await _en2(u);subNotes();pullInbox();return r};
 setInterval(()=>{if(S.user&&!document.hidden)pullInbox()},4000);
 
-/* NX-ALL-PATCH v1 */
+/* NX-CARROM-PATCH v1 */
 let CG=null,CV2=null,CBG=null,CRAF=0,CRD=1,crT=0,CLV=1,CARF=0;
 const CP=[[62,62],[938,62],[62,938],[938,938]],CBY=[770,230];
 const crH=()=>CG&&CG.ph==="aim"&&CG.win<0&&(CG.mode==="local"||(CG.mode==="bot"&&CG.t===0)||(CG.mode==="online"&&CG.t===CG.me));
@@ -1143,12 +1143,11 @@ function carromMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:
  ${s("🌐 Random online")}<button class="btn pri wide" onclick="closeModal();matchmake('carrom')">Find player</button>
  ${s("👥 Friend (room code)")}<button class="btn wide" onclick="carHost()">Create room</button><div style="display:flex;gap:8px;margin-top:8px"><input id="cc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="carJoin($('cc2').value.trim().toUpperCase())">Join</button></div>
  ${s("📱 One phone")}<button class="btn wide" onclick="carNew('local',1,['Player 1','Player 2'],0)">2 players</button>`)}
-async function xOpen(pf,fn,code,host,opp){closeRoom(true);const ch=sb.channel(pf+code),R=S.room={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now()};
- R.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"g"},({payload:m})=>fn(R,m));
+async function carOpen(code,host,opp){closeRoom(true);const ch=sb.channel("car-"+code),R=S.room={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now()};
+ R.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"g"},({payload:m})=>carMsg(R,m));
  await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});if(S.room!==R)return;
  if(!host){let n=0;const iv=setInterval(()=>{if(S.room!==R||R.started||++n>15)return clearInterval(iv);R.tx({t:"join",name:myName()})},1200);R.tx({t:"join",name:myName()})}
- R.hb=setInterval(()=>fn===chMsg?chTick(R):carTick(R),3000)}
-const carOpen=(c,h,o)=>xOpen("car-",carMsg,c,h,o),chOpen=(c,h,o)=>xOpen("chs-",chMsg,c,h,o);
+ R.hb=setInterval(()=>carTick(R),3000)}
 async function carHost(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await carOpen(code,true,opp);
  if(!opp&&S.room&&!S.room.started)openModal(`<h3>Room ready 🎯</h3><p class="sub">Dost ka wait...</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
 function carJoin(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();carOpen(code,false);openModal(`<h3>Joining…</h3><p class="sub">Host ke start ka wait</p><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
@@ -1162,178 +1161,15 @@ function carMsg(R,m){if(m.t==="ct")return gChatIn(R,m);if(S.room!==R||m.from===S
  else if(m.t==="emo")floatEmo(m.e)
  else if(m.t==="bye"){R.left=1;toast("Dost game chhod gaya");if(CG.win<0){CG.win=CG.me;CG.msg="Your friend left";CG.ph="over";crUI()}}}
 function carTick(R){if(S.room!==R||!R.started)return;R.tx({t:"hb"});if(Date.now()-R.seen>60000&&!R.left){R.left=1;toast("Dost wapas nahi aaya")}else if(R.host&&CG?.ph==="aim")crSnap(1)}
-/* ===== CHESS ===== */
-let CH=null,CHV=null,CHBG=null,CHRAF=0,CHL=1;
-const CHG={K:"♚",Q:"♛",R:"♜",B:"♝",N:"♞",P:"♟"},CHPV={P:100,N:320,B:330,R:500,Q:900,K:0},CHF=34,CHS=116.5;
-const chSt0=()=>{const b=Array(64).fill(null),bk="RNBQKBNR";for(let i=0;i<8;i++){b[i]="b"+bk[i];b[8+i]="bP";b[48+i]="wP";b[56+i]="w"+bk[i]}return{b,t:"w",c:"KQkq",ep:-1,hm:0}};
-function chAtt(b,sq,by){const r=sq>>3,c=sq&7,at=(R,C,p)=>R>=0&&R<8&&C>=0&&C<8&&b[R*8+C]===by+p,pr=by==="w"?r+1:r-1;
- if(at(pr,c-1,"P")||at(pr,c+1,"P"))return 1;
- for(const[a,d]of[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]])if(at(r+a,c+d,"N"))return 1;
- for(let a=-1;a<2;a++)for(let d=-1;d<2;d++){if(!a&&!d)continue;if(at(r+a,c+d,"K"))return 1;let R=r+a,C=c+d;
-  while(R>=0&&R<8&&C>=0&&C<8){const p=b[R*8+C];if(p){if(p[0]===by&&(p[1]==="Q"||p[1]===(a&&d?"B":"R")))return 1;break}R+=a;C+=d}}
- return 0}
-function chGen(s){const b=s.b,t=s.t,o=t==="w"?"b":"w",out=[];
- for(let i=0;i<64;i++){const p=b[i];if(!p||p[0]!==t)continue;const r=i>>3,c=i&7,k=p[1],add=(to,f)=>out.push([i,to,f||""]),
-  ad=(to)=>{if(to>>3===0||to>>3===7)["Q","R","B","N"].forEach(q=>add(to,q));else add(to)};
-  if(k==="P"){const d=t==="w"?-1:1,f=i+d*8;if(!b[f]){ad(f);if(r===(t==="w"?6:1)&&!b[f+d*8])add(f+d*8)}
-   for(const dc of[-1,1]){if(c+dc<0||c+dc>7)continue;const to=f+dc;if(b[to]&&b[to][0]===o)ad(to);else if(to===s.ep)add(to,"e")}}
-  else if(k==="N"||k==="K"){const L=k==="N"?[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]]:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
-   for(const[a,d]of L){const R=r+a,C=c+d;if(R<0||R>7||C<0||C>7)continue;const q=b[R*8+C];if(!q||q[0]===o)add(R*8+C)}
-   if(k==="K"&&i===(t==="w"?60:4)&&!chAtt(b,i,o)){const h=t==="w"?"K":"k",qn=t==="w"?"Q":"q";
-    if(s.c.includes(h)&&!b[i+1]&&!b[i+2]&&!chAtt(b,i+1,o)&&!chAtt(b,i+2,o))add(i+2,"c");
-    if(s.c.includes(qn)&&!b[i-1]&&!b[i-2]&&!b[i-3]&&!chAtt(b,i-1,o)&&!chAtt(b,i-2,o))add(i-2,"c")}}
-  else{const D=k==="B"?[[1,1],[1,-1],[-1,1],[-1,-1]]:k==="R"?[[1,0],[-1,0],[0,1],[0,-1]]:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
-   for(const[a,d]of D){let R=r+a,C=c+d;while(R>=0&&R<8&&C>=0&&C<8){const q=b[R*8+C];if(!q)add(R*8+C);else{if(q[0]===o)add(R*8+C);break}R+=a;C+=d}}}}
- return out}
-function chApply(s,m){const b=s.b.slice(),[f,to,fl]=m,p=b[f],t=s.t,cap=b[to]||fl==="e";let c=s.c,ep=-1;b[to]=p;b[f]=null;
- if(fl==="e")b[to+(t==="w"?8:-8)]=null;
- if(fl==="c"){if(to>f){b[to-1]=b[to+1];b[to+1]=null}else{b[to+1]=b[to-2];b[to-2]=null}}
- if(fl&&"QRBN".includes(fl))b[to]=t+fl;
- if(p[1]==="P"&&Math.abs(to-f)===16)ep=(f+to)/2;
- if(p[1]==="K")c=c.replace(t==="w"?/[KQ]/g:/[kq]/g,"");
- const rm={0:"q",7:"k",56:"Q",63:"K"};[f,to].forEach(x=>{if(rm[x])c=c.replace(rm[x],"")});
- return{b,t:t==="w"?"b":"w",c,ep,hm:p[1]==="P"||cap?0:s.hm+1}}
-const chChk=(s,t)=>chAtt(s.b,s.b.indexOf(t+"K"),t==="w"?"b":"w");
-const chLegal=s=>chGen(s).filter(m=>!chChk(chApply(s,m),s.t));
-function chStat(s){const ms=chLegal(s),ck=chChk(s,s.t);if(!ms.length)return ck?"mate":"stale";if(s.hm>=100)return"50";
- const pc=s.b.filter(p=>p&&p[1]!=="K");if(!pc.length||(pc.length===1&&"BN".includes(pc[0][1])))return"insuf";return ck?"check":""}
-function chEval(s){let v=0;for(let i=0;i<64;i++){const p=s.b[i];if(!p)continue;const r=i>>3,c=i&7,k=p[1],x=CHPV[k]+("PNB".includes(k)?(7-Math.abs(c-3.5)-Math.abs(r-3.5))*5:0)+(k==="P"?(p[0]==="w"?6-r:r-1)*6:0);v+=p[0]==="w"?x:-x}return s.t==="w"?v:-v}
-function chSearch(s,d,a,b){const ms=chLegal(s);if(!ms.length)return chChk(s,s.t)?-99999-d:0;if(!d)return chEval(s);
- ms.sort((x,y)=>(s.b[y[1]]?1:0)-(s.b[x[1]]?1:0));
- for(const m of ms){const v=-chSearch(chApply(s,m),d-1,-b,-a);if(v>=b)return b;if(v>a)a=v}return a}
-function chBot(){const g=CH,s=g.s,d=[1,2,3][g.lv],nz=[90,12,0][g.lv];let best=null,bv=-1e9;
- chLegal(s).forEach(m=>{const v=-chSearch(chApply(s,m),d-1,-1e9,1e9)+Math.random()*nz+(m[2]==="Q"?50:0);if(v>bv){bv=v;best=m}});if(best)chDo(best,0)}
-const chTurnH=()=>CH&&!CH.over&&!CH.an&&(CH.mode==="local"||CH.s.t===CH.me);
-function chNew(mode,lv,nm2,me){closeModal();minCall(true);S.page="ttt";S.g=null;
- CH={mode,lv:lv??1,me:me||"w",nm:nm2,s:chSt0(),sel:-1,lg:[],last:[-1,-1],n:0,over:0,win:"",msg:"",st:"",an:null,cp:{w:[],b:[]}};chView();chNext()}
-const chAgain=()=>CH&&chNew(CH.mode,CH.lv,CH.nm,CH.me);
-function chView(){const g=CH,on=g.mode==="online";
- $("main").innerHTML=`<section class="pg st"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveG()">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>${S.room?.oppId?`<button class="ib gmic ${micCls()}" onclick="gameMic()" aria-label="Voice">${micI()}</button>`:""}`:`<button class="btn" onclick="chAgain()">↻ Restart</button>`}</div>
- <div id="ldBan"><i></i><span></span></div><div class="card" id="chCard" style="padding:10px;position:relative"><canvas id="chCv" style="width:100%;aspect-ratio:1;display:block;border-radius:12px;touch-action:manipulation"></canvas><div id="chM" style="font-weight:850;margin-top:10px"></div><div id="chP" class="pw" style="text-align:left;margin-top:4px;font-size:15px"></div><button class="btn wide" style="margin-top:10px" onclick="chResign()">🏳 Resign</button></div></div></section>`;
- chSetup();chUI()}
-function chSetup(){CHV=$("chCv");const fit=()=>{if(!CHV.isConnected)return;const d=Math.min(devicePixelRatio||1,2.5),W=CHV.clientWidth;CHV.width=CHV.height=Math.round(W*d);chBg()};fit();new ResizeObserver(fit).observe(CHV);
- CHV.addEventListener("pointerdown",e=>{const g=CH;if(!g||!chTurnH())return;const r=CHV.getBoundingClientRect();let c=Math.floor(((e.clientX-r.left)/r.width*1000-CHF)/CHS),y=Math.floor(((e.clientY-r.top)/r.height*1000-CHF)/CHS);if(c<0||c>7||y<0||y>7)return;if(g.mode==="online"&&g.me==="b"){c=7-c;y=7-y}chTap(y*8+c)});
- if(!CHRAF)CHRAF=requestAnimationFrame(chFrame)}
-function chTap(i){const g=CH,s=g.s,ms=g.lg.filter(m=>m[1]===i);
- if(g.sel>=0&&ms.length){if(ms.length>1)return chPromo(ms);return chDo(ms[0],1)}
- const p=s.b[i];if(p&&p[0]===s.t&&(g.mode==="local"||p[0]===g.me)){g.sel=i;g.lg=chLegal(s).filter(m=>m[0]===i);sfx("tap")}else{g.sel=-1;g.lg=[]}}
-function chPromo(ms){openModal(`<h3>Promote to</h3><div class="ep" style="grid-template-columns:repeat(4,1fr);margin-top:12px">${ms.map((m,k)=>`<button onclick="closeModal();chDo(CH.lg.filter(x=>x[1]===${m[1]})[${k}],1)">${CHG[m[2]]}</button>`).join("")}</div>`)}
-function chDo(m,send){const g=CH,s=g.s,mv=s.t,cp=s.b[m[1]]||(m[2]==="e"?(mv==="w"?"b":"w")+"P":null);
- g.an={f:m[0],t:m[1],p:s.b[m[0]],t0:performance.now()};g.s=chApply(s,m);g.n++;g.last=[m[0],m[1]];g.sel=-1;g.lg=[];if(cp)g.cp[mv].push(cp);
- const st=g.st=chStat(g.s);if(send&&g.mode==="online")S.room?.tx({t:"cm",m,n:g.n});
- tone(cp?330:520,.08,"sine",.07);if(cp)tone(220,.12,"sine",.06,.05);if(st==="check")tone(880,.25,"sine",.06,.14);
- if(st==="mate")chEnd(mv,"Checkmate! "+g.nm[mv==="w"?0:1]+" won 🏆");else if(["stale","50","insuf"].includes(st))chEnd("d","Draw"+(st==="stale"?" (stalemate)":st==="50"?" (50 moves)":" (not enough pieces)"));
- chUI();setTimeout(chNext,380)}
-function chEnd(win,msg){const g=CH;if(!g||g.over)return;g.over=1;g.win=win;g.msg=msg;if(win!=="d"){const mine=g.mode==="local"||win===g.me;if(mine)incWin("chess");sfx(mine?"win":"lose");vib(mine?[60,40,60]:30)}chUI()}
-function chResign(){const g=CH;if(!g||g.over)return;const lose=g.mode==="local"?g.s.t:g.me,win=lose==="w"?"b":"w";if(g.mode==="online")S.room?.tx({t:"rs"});chEnd(win,(g.mode==="online"?"You resigned":g.nm[win==="w"?0:1]+" won — resigned"))}
-function chNext(){const g=CH;if(g&&g.mode==="bot"&&!g.over&&g.s.t!==g.me)setTimeout(()=>{if(CH===g&&!g.over&&g.s.t!==g.me&&!g.an)chBot()},500)}
-function chUI(){const g=CH;if(!g||!$("ldBan"))return;const t=g.s.t,nmx=g.nm[t==="w"?0:1];$("ldBan").style.setProperty("--tb",t==="w"?"#f4f1e6":"#6b6b7a");
- $("ldBan").lastElementChild.textContent=g.over?g.msg:nmx+"'s turn"+(g.st==="check"?" · Check!":"")+(g.mode==="online"&&t===g.me?" (you)":"");
- $("chM").textContent=g.over?g.msg:g.st==="check"?"Check! King ko bachao":(chTurnH()?"Piece chuno, phir jagah":"Wait karo…");
- $("chP").textContent="⚪ "+g.cp.w.map(p=>CHG[p[1]]).join("")+"   ⚫ "+g.cp.b.map(p=>CHG[p[1]]).join("");
- const c=$("chCard");c.querySelector(".wo")?.remove();
- if(g.over)c.insertAdjacentHTML("beforeend",`<div class="wo"><div>${g.win==="d"?"🤝":"🏆"}<br>${esc(g.msg)}<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:220px">${g.mode==="online"?`<button class="btn pri" onclick="leaveG();matchmake('chess')">⚡ Find new match</button>`:`<button class="btn pri" onclick="chAgain()">🔁 Play again</button>`}<button class="btn" onclick="leaveG()">Games</button></div></div></div>`)}
-function chBg(){const W=CHV.width,k=W/1000;CHBG=document.createElement("canvas");CHBG.width=CHBG.height=W;const x=CHBG.getContext("2d");x.scale(k,k);
- let g=x.createLinearGradient(0,0,1000,1000);g.addColorStop(0,"#8a5a2e");g.addColorStop(.5,"#4e2f14");g.addColorStop(1,"#2e1a09");x.fillStyle=g;x.fillRect(0,0,1000,1000);
- x.strokeStyle="rgba(255,220,170,.35)";x.lineWidth=3;x.strokeRect(3,3,994,994);
- x.save();x.shadowColor="rgba(0,0,0,.6)";x.shadowBlur=14;x.fillStyle="#000";x.fillRect(CHF,CHF,8*CHS,8*CHS);x.restore();
- for(let i=0;i<64;i++){const r=i>>3,c=i&7,px=CHF+c*CHS,py=CHF+r*CHS,q=x.createLinearGradient(px,py,px+CHS,py+CHS);
-  if((r+c)&1){q.addColorStop(0,"#b98b5f");q.addColorStop(1,"#946a42")}else{q.addColorStop(0,"#f4e2bd");q.addColorStop(1,"#dcc193")}
-  x.fillStyle=q;x.fillRect(px,py,CHS,CHS);x.fillStyle="rgba(255,255,255,.14)";x.fillRect(px,py,CHS,2);x.fillStyle="rgba(0,0,0,.1)";x.fillRect(px,py+CHS-2,CHS,2)}
- x.strokeStyle="rgba(0,0,0,.5)";x.lineWidth=2;x.strokeRect(CHF,CHF,8*CHS,8*CHS)}
-function chPiece(x,cx,cy,p,S2,z){const w=p[0]==="w",sz=S2*.92;x.save();
- x.fillStyle=`rgba(0,0,0,${.32-z*.12})`;x.beginPath();x.ellipse(cx+S2*.03,cy+S2*.3+z*S2*.12,S2*(.3-z*.05),S2*.09,0,0,7);x.fill();
- x.font=`${sz}px "Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif`;x.textAlign="center";x.textBaseline="middle";const ty=cy+S2*.04-z*S2*.14,t=CHG[p[1]]+"\uFE0E";
- x.shadowColor="rgba(0,0,0,.5)";x.shadowBlur=S2*.08;x.shadowOffsetY=S2*.04;
- const q=x.createLinearGradient(cx,ty-sz*.4,cx,ty+sz*.4);if(w){q.addColorStop(0,"#ffffff");q.addColorStop(1,"#d3c8ad")}else{q.addColorStop(0,"#5b5b66");q.addColorStop(1,"#0c0c12")}
- x.strokeStyle=w?"rgba(40,25,5,.85)":"rgba(255,255,255,.4)";x.lineWidth=S2*.03;x.strokeText(t,cx,ty);x.fillStyle=q;x.fillText(t,cx,ty);x.restore()}
-function chFrame(){const g=CH;if(!g||!CHV||!CHV.isConnected){CHRAF=0;return}chDraw();CHRAF=requestAnimationFrame(chFrame)}
-function chDraw(){const g=CH,cv=CHV,x=cv.getContext("2d"),k=cv.width/1000,fl=g.mode==="online"&&g.me==="b",now=performance.now();
- x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);if(CHBG)x.drawImage(CHBG,0,0);x.setTransform(k,0,0,k,0,0);
- const P2=i=>{let c=i&7,r=i>>3;if(fl){c=7-c;r=7-r}return[CHF+c*CHS,CHF+r*CHS]},H=CHS/2;
- x.fillStyle="rgba(255,235,190,.75)";x.font="22px sans-serif";x.textAlign="center";x.textBaseline="middle";
- for(let i=0;i<8;i++){x.fillText("abcdefgh"[fl?7-i:i],CHF+i*CHS+H,1000-CHF/2);x.fillText(""+(fl?i+1:8-i),CHF/2,CHF+i*CHS+H)}
- const hl=(i,col)=>{const[px,py]=P2(i);x.fillStyle=col;x.fillRect(px,py,CHS,CHS)};
- g.last.forEach(i=>i>=0&&hl(i,"rgba(255,214,70,.38)"));if(g.sel>=0)hl(g.sel,"rgba(90,200,140,.5)");
- const kp=g.s.b.indexOf(g.s.t+"K");if((g.st==="check"||g.st==="mate")&&kp>=0){const[px,py]=P2(kp),q=x.createRadialGradient(px+H,py+H,5,px+H,py+H,CHS*.7);q.addColorStop(0,"rgba(255,50,70,.85)");q.addColorStop(1,"rgba(255,50,70,0)");x.fillStyle=q;x.fillRect(px,py,CHS,CHS)}
- g.lg.forEach(m=>{const[px,py]=P2(m[1]);if(g.s.b[m[1]]||m[2]==="e"){x.strokeStyle="rgba(255,80,90,.7)";x.lineWidth=CHS*.1;x.beginPath();x.arc(px+H,py+H,CHS*.42,0,7);x.stroke()}else{x.fillStyle="rgba(40,160,110,.6)";x.beginPath();x.arc(px+H,py+H,CHS*.14,0,7);x.fill()}});
- const an=g.an;let ap=1;if(an){ap=Math.min(1,(now-an.t0)/260);if(ap>=1){g.an=null;chUI()}}
- const list=[];g.s.b.forEach((p,i)=>{if(p&&!(g.an&&i===an.t))list.push([P2(i),p,0])});
- if(g.an){const a=P2(an.f),b2=P2(an.t),e=ap<.5?2*ap*ap:1-Math.pow(-2*ap+2,2)/2;list.push([[a[0]+(b2[0]-a[0])*e,a[1]+(b2[1]-a[1])*e],an.p,Math.sin(ap*Math.PI)])}
- list.sort((a,b)=>a[0][1]-b[0][1]||a[2]-b[2]).forEach(([[px,py],p,z])=>chPiece(x,px+H,py+H,p,CHS,z))}
-function chessMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
- openModal(`<h3>♟ Chess</h3><p class="sub">Classic rules: castling, en passant, promotion.</p>${s("🤖 Vs robot")}<div class="seg">${["Easy","Medium","Hard"].map((n,i)=>`<button class="${i===CHL?"on":""}" onclick="CHL=${i};chessMenu()">${n}</button>`).join("")}</div><button class="btn pri wide" style="margin-top:10px" onclick="chNew('bot',CHL,[myName(),'Robot'],'w')">Start vs robot</button>
- ${s("🌐 Random online")}<button class="btn pri wide" onclick="closeModal();matchmake('chess')">Find player</button>
- ${s("👥 Friend (room code)")}<button class="btn wide" onclick="chHost()">Create room</button><div style="display:flex;gap:8px;margin-top:8px"><input id="cc3" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="chJoin($('cc3').value.trim().toUpperCase())">Join</button></div>
- ${s("📱 One phone")}<button class="btn wide" onclick="chNew('local',1,['White','Black'],'w')">2 players</button>`)}
-async function chHost(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await chOpen(code,true,opp);
- if(!opp&&S.room&&!S.room.started)openModal(`<h3>Room ready ♟</h3><p class="sub">Dost ka wait...</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
-function chJoin(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();chOpen(code,false);openModal(`<h3>Joining…</h3><p class="sub">Host ke start ka wait</p><button class="btn red wide" onclick="closeModal();closeRoom(true)">Cancel</button>`)}
-function chGo(R){closeModal();chNew("online",1,R.host?[myName(),R.oppName]:[R.oppName,myName()],R.host?"w":"b")}
-function chMsg(R,m){if(m.t==="ct")return gChatIn(R,m);if(S.room!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();
- if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";R.tx({t:"start",name:myName()});chGo(R)}else R.tx({t:"start",name:myName()})}
- else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";chGo(R)}
- else if(!CH||CH.mode!=="online")return;
- else if(m.t==="cm"){const g=CH;if(g.over||g.s.t===g.me||m.n<=g.n)return;const mv=chLegal(g.s).find(x=>x[0]===m.m[0]&&x[1]===m.m[1]&&x[2]===m.m[2]);if(mv)chDo(mv,0)}
- else if(m.t==="cs"&&!R.host){const g=CH;if(m.n>g.n&&!g.over){g.s={b:m.b,t:m.tt,c:m.c,ep:m.ep,hm:m.hm};g.n=m.n;g.an=null;g.sel=-1;g.lg=[];g.st=chStat(g.s);chUI()}}
- else if(m.t==="rs"){chEnd(CH.me,"Dost ne resign kiya 🏆")}
- else if(m.t==="emo")floatEmo(m.e)
- else if(m.t==="bye"){R.left=1;toast("Dost game chhod gaya");chEnd(CH.me,"Your friend left")}}
-function chTick(R){if(S.room!==R||!R.started)return;R.tx({t:"hb"});if(Date.now()-R.seen>60000&&!R.left){R.left=1;toast("Dost wapas nahi aaya")}else if(R.host&&CH&&!CH.an&&!CH.over)R.tx({t:"cs",n:CH.n,b:CH.s.b,tt:CH.s.t,c:CH.s.c,ep:CH.s.ep,hm:CH.s.hm})}
-
-/* ===== hooks: games hub, invites, typing, offline summary ===== */
-let MMK=null,CARX="";
-const KO={carrom:[carHost,carOpen],chess:[chHost,chOpen]};
-const _mm=matchmake,_ht=hostTTT,_or=openRoom,_rg=renderGames,_go=go,_gp=gamePick,_ig=inviteGame,_rr=replyReq;
-TTL.carrom="Carrom";TTL.chess="Chess";GN.carrom="🎯 Carrom";GN.chess="♟ Chess";
-matchmake=function(k){MMK=KO[k]?{k,t:Date.now()}:null;return _mm(k)};
-hostTTT=function(c,o){if(MMK&&Date.now()-MMK.t<90000&&o){const k=MMK.k;MMK=null;return KO[k][0](c,o)}return _ht(c,o)};
-openRoom=function(c,h,o){if(MMK&&Date.now()-MMK.t<90000&&!h&&o){const k=MMK.k;MMK=null;return KO[k][1](c,false,o)}
- if(CARX&&o){const k=CARX;CARX="";return KO[k][1](c,h,o)}return _or(c,h,o)};
-gamePick=function(u,n){_gp(u,n);if(S.gp&&S.gp.uid===u){const d=document.querySelector("#md div[style*='display:grid']");if(d)d.insertAdjacentHTML("beforeend",'<button class="btn wide" onclick="gInv(\'carrom\')">🎯 Carrom</button><button class="btn wide" onclick="gInv(\'chess\')">♟ Chess</button>')}};
-inviteGame=function(u,n,g){if(KO[g])CARX=g;return _ig(u,n,g)};
-replyReq=function(ok){if(ok&&S.inreq&&KO[S.inreq.game])CARX=S.inreq.game;return _rr(ok)};
-renderGames=PG.games=function(){_rg();const gr=document.querySelector("#main .grid");if(!gr)return;
- gr.querySelectorAll(".qc").forEach(b=>{const t=b.querySelector("b")?.textContent,s=b.querySelector("small");if(t==="Carrom"){b.setAttribute("onclick","carromMenu()");s.textContent="2 players · online · robot"}if(t==="Chess"){b.setAttribute("onclick","chessMenu()");s.textContent="Classic · online · robot"}});
- [["Snakes &amp; Ladders",I.dice],["8 Ball Pool",I.carrom],["Word Duel",I.chat]].forEach(([n,i])=>gr.insertAdjacentHTML("beforeend",`<button class="card qc soon" onclick="toast('Coming soon')">${gi(i,"#3a4668","#56628a")}<span><b>${n}</b><small>Coming soon</small></span></button>`))};
-go=function(p){if(CG||CH){closeRoom(true);CG=null;CH=null}return _go(p)};
-/* typing shown in the Chats list */
-const _os=onSig;onSig=function(p){if(p.type==="typ"){chTyp(p.from);return}return _os(p)};
-function chTyp(f){if(S.page!=="recent")return;const s=document.querySelector(`#main .t[onclick*="${f}"] small`);if(!s)return;if(!s.dataset.o)s.dataset.o=s.textContent;s.textContent="typing…";s.style.color="#7ce3ae";clearTimeout(chTyp[f]);chTyp[f]=setTimeout(()=>{s.textContent=s.dataset.o;s.style.color=""},2500)}
-const _oc2=openChat;openChat=function(cid,uid,un,name){_oc2(cid,uid,un,name);const i=$("ci");if(i&&S.chat&&S.chat.uid===uid){let l=0;i.addEventListener("input",()=>{const n=Date.now();if(n-l>1800){l=n;sig({type:"typ",to:uid})}})}};
-/* summary of what you missed while offline */
-let MISS=0;const _pi=pullInbox,_e3=enter;
-enter=async function(u){MISS=0;return _e3(u)};
-pullInbox=async function(){if(S.user&&!MISS){MISS=1;try{const r=await sb.from("notifications").select("data").eq("user_id",S.user.id).eq("type","message").eq("is_read",false).limit(100),ms=LS(K("nx_mids"),[]),g={};
- (r.data||[]).forEach(n=>{const d=n.data||{};if(!d.from||(d.mid&&ms.includes(d.mid)))return;const e=g[d.from]=g[d.from]||{n:d.name||"Friend",m:0,c:0};/Missed voice call/.test(d.text||"")?e.c++:e.m++});
- const l=Object.entries(g);if(l.length)setTimeout(()=>openModal(`<h3>Aapki absence me 👋</h3><p class="sub">Jab aap offline the.</p>${l.map(([id,e])=>`<div class="card row"><div class="av">${esc(ini(dn(id,e.n)))}</div><div class="t"><b>${esc(dn(id,e.n))}</b><small>${[e.m?e.m+" message"+(e.m>1?"s":""):"",e.c?e.c+" missed call"+(e.c>1?"s":""):""].filter(Boolean).join(" · ")}</small></div><button class="ib" onclick="dbOpen('${esc(id)}')" aria-label="Chat">${I.chat}</button></div>`).join("")}<button class="btn wide" onclick="closeModal()">Close</button>`),1800)}catch(_){}}
- return _pi()};
-document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`.qc{position:relative;overflow:hidden}.qc::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(120deg,rgba(255,255,255,.12),transparent 45%);pointer-events:none}`}));
-/* ===== v1.2: liquid glass bar + polish ===== */
-document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
-.nav{touch-action:none;position:relative;overflow:hidden;border-radius:34px!important;border:1px solid rgba(255,255,255,.22)!important;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.03)),rgba(20,24,44,.4)!important;backdrop-filter:blur(26px) saturate(2)!important;-webkit-backdrop-filter:blur(26px) saturate(2)!important;box-shadow:0 22px 44px -14px rgba(0,0,0,.85),inset 0 1px 1px rgba(255,255,255,.4),inset 0 -1px 1px rgba(255,255,255,.08)!important}
-.nav button{position:relative;z-index:1;transition:color .3s}.nav button::before{display:none!important}
-.nav .on{color:#fff}.nav .on svg{transform:translateY(-2px) scale(1.2)}
-.nav .lens{position:absolute;z-index:0;top:5px;bottom:5px;left:4px;width:calc(20% - 8px);border-radius:28px;transform:translateX(calc(var(--i,0)*(100% + 8px)));background:linear-gradient(160deg,rgba(255,255,255,.34),rgba(255,255,255,.08) 55%,rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.4);box-shadow:inset 0 1px 2px rgba(255,255,255,.6),inset 0 -6px 12px rgba(124,140,255,.25),0 8px 20px -6px rgba(0,0,0,.6);backdrop-filter:blur(6px) brightness(1.25);-webkit-backdrop-filter:blur(6px) brightness(1.25);transition:transform .5s cubic-bezier(.34,1.35,.64,1),scale .25s}
-.nav.drag .lens{scale:1.14}
-.top{background:rgba(14,18,34,.42)!important;backdrop-filter:blur(26px) saturate(2)!important;-webkit-backdrop-filter:blur(26px) saturate(2)!important;box-shadow:inset 0 -1px 0 rgba(255,255,255,.1)}
-.card,.md{border-color:rgba(255,255,255,.15)!important;backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7)}
-.card{box-shadow:0 24px 50px -22px rgba(0,0,0,.85),inset 0 1px 1px rgba(255,255,255,.22),inset 0 -1px 1px rgba(255,255,255,.05)!important}
-.btn,.ib{border:1px solid rgba(255,255,255,.14)}
-.qc.soon{opacity:.78;filter:saturate(.7)}
-html{scroll-behavior:smooth}`}));
-const NV=$("nav"),PGS=["home","recent","connect","games","settings"];
-NV.insertAdjacentHTML("afterbegin",'<i class="lens"></i>');
-const LN=NV.querySelector(".lens"),setL=(i,d)=>{LN.style.transition=d?"none":"";LN.style.setProperty("--i",i)};
-const _go3=go;go=function(p){const r=_go3(p),i=PGS.indexOf(p);if(i>=0)setL(i);return r};
-let nd=null;
-NV.addEventListener("pointerdown",e=>{nd={x:e.clientX,m:0}});
-NV.addEventListener("pointermove",e=>{if(!nd)return;const r=NV.getBoundingClientRect();if(!nd.m){if(Math.abs(e.clientX-nd.x)<10)return;nd.m=1;NV.classList.add("drag");try{NV.setPointerCapture(e.pointerId)}catch(_){}}
- const f=(e.clientX-r.left)/r.width*5-.5;setL(Math.max(0,Math.min(4,f)),1);const k=Math.max(0,Math.min(4,Math.round(f)));if(k!==nd.k){nd.k=k;vib(8);sfx("tap")}});
-const nEnd=()=>{if(!nd)return;const d=nd;nd=null;NV.classList.remove("drag");if(!d.m)return;const i=d.k??Math.max(0,PGS.indexOf(S.page));setL(i);if(PGS[i]&&PGS[i]!==S.page)go(PGS[i])};
-NV.addEventListener("pointerup",nEnd);NV.addEventListener("pointercancel",nEnd);setL(0);
-const _rs=renderSettings;renderSettings=PG.settings=function(){_rs();const b=document.querySelector("#main .pg button.red");b&&b.insertAdjacentHTML("beforebegin",`<div class="card" style="padding:16px;margin-bottom:14px"><b>What's new in ${VER}</b><div class="pw" style="text-align:left;margin-top:8px;line-height:1.8">🎯 Carrom · ♟ Chess<br>✍️ Typing shown in Chats<br>👋 Missed messages and calls summary<br>🫧 Liquid glass bar: swipe left and right<br>🔜 More games coming soon</div></div>`)};
-const VER="v1.2";
+/* hooks */
+const _mm=matchmake,_ht=hostTTT,_or=openRoom,_rg=renderGames,_go=go;
+TTL.carrom="Carrom";
+matchmake=function(k){CARF=k==="carrom"?Date.now():0;return _mm(k)};
+hostTTT=function(c,o){if(CARF&&Date.now()-CARF<90000&&o){CARF=0;return carHost(c,o)}return _ht(c,o)};
+openRoom=function(c,h,o){if(CARF&&Date.now()-CARF<90000&&!h&&o){CARF=0;return carOpen(c,false,o)}return _or(c,h,o)};
+renderGames=PG.games=function(){_rg();document.querySelectorAll("#main .qc").forEach(b=>{if(b.textContent.includes("Carrom")){b.setAttribute("onclick","carromMenu()");const s=b.querySelector("small");if(s)s.textContent="2 players · online · robot"}})};
+go=function(p){if(CG){closeRoom(true);CG=null}return _go(p)};
+const VER="build 10";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
 
