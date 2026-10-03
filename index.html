@@ -2107,4 +2107,65 @@ body.nx-game .pg,body.nx-game .pg *{-webkit-user-select:none;user-select:none}
 #call.vid .cmid{top:calc(env(safe-area-inset-top,0px) + 56px)}#call.vid #vqs{top:calc(env(safe-area-inset-top,0px) + 92px)}}
 `}));
 
+
+
+/* NX-PATCH-V12 NATURE-JELLY */
+function nnAC(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
+ if(!AC.mst){const m=AC.mst=AC.createGain(),lp=AC.createBiquadFilter(),dl=AC.createDelay(),fb=AC.createGain(),wt=AC.createGain();lp.type="lowpass";lp.frequency.value=3200;dl.delayTime.value=.19;fb.gain.value=.25;wt.gain.value=.2;m.connect(lp);lp.connect(AC.destination);lp.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wt);wt.connect(AC.destination)}return AC}
+function nnDrop(f,dl=0,v=.13,dur=.24,up=1.45){if(!PR.snd)return;try{nnAC();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+dl;o.type="sine";o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(Math.max(80,f*up),t+dur*.4);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(AC.mst);o.start(t);o.stop(t+dur+.03)}catch(_){}}
+function nnTick(dl=0,v=.2,fq=2200){if(!PR.snd)return;try{nnAC();const n=Math.floor(AC.sampleRate*.03),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
+ const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain(),t=AC.currentTime+dl;s.buffer=b;f.type="bandpass";f.frequency.value=fq;f.Q.value=1.1;g.gain.value=v;s.connect(f);f.connect(g);g.connect(AC.destination);s.start(t)}catch(_){}}
+let nnL=0;const nnT=ms=>{const n=Date.now();if(n-nnL<ms)return 1;nnL=n;return 0};
+tone=function(f,d,t,v,dl){nnDrop(Math.max(260,Math.min(f,1100)),dl||0,Math.min(.16,(v||.05)*2.2+.05),Math.min(.35,Math.max(.16,(d||.1)*1.4)))};
+Object.assign(SFX,{
+ tap:()=>nnTick(0,.07,3200),
+ send:()=>nnDrop(760,0,.11,.2),
+ recv:()=>{if(nnT(450))return;nnDrop(620,0,.12,.22);nnDrop(840,.13,.11,.24)},
+ notif:()=>{if(nnT(450))return;nnDrop(540,0,.12,.22);nnDrop(780,.15,.11,.26)},
+ move:()=>{nnTick(0,.22,1900);nnDrop(520,.01,.07,.14)},
+ roll:()=>{[0,.06,.13,.21,.3,.41,.54,.7].forEach((t,k)=>nnTick(t,.2+k*.012,1500+Math.random()*1400))},
+ land:()=>{nnTick(0,.3,900);nnDrop(380,0,.1,.22,1.3)},
+ ring:()=>{[620,780,930].forEach((f,k)=>nnDrop(f,k*.2,.13,.3))},
+ rb:()=>nnDrop(560,0,.09,.34,1.4),
+ win:()=>{[520,620,740,880,1040].forEach((f,k)=>nnDrop(f,k*.12,.13,.3));nnDrop(1040,.7,.1,.6,1.2)},
+ lose:()=>{nnDrop(560,0,.12,.45,.6);nnDrop(440,.32,.11,.55,.6)},
+ up:()=>{nnDrop(600,0,.11,.2);nnDrop(820,.12,.11,.24)},
+ down:()=>{nnDrop(700,0,.1,.26,.7);nnDrop(520,.14,.09,.3,.7)},
+ match:()=>{[560,700,880].forEach((f,k)=>nnDrop(f,k*.12,.12,.25))}});
+/* login: retry on bad network, clear messages, safe enter */
+async function nnAuth(fn){let e;for(let i=0;i<3;i++){try{const r=await Promise.race([fn(),new Promise((_,j)=>setTimeout(()=>j(new Error("timeout")),12000))]);if(r&&r.error&&/fetch|network|timeout|failed/i.test(r.error.message)){e=r.error;await sleep(700*(i+1));continue}return r}catch(x){e=x;await sleep(700*(i+1))}}throw e}
+const nnErr=m=>/invalid login/i.test(m)?"Email ya password galat hai.":/not confirmed/i.test(m)?"Pehle email confirm karo, phir login karo.":/fetch|network|timeout|failed/i.test(m)?"Internet slow hai, dobara try karo.":/rate|too many/i.test(m)?"Thoda ruko, bahut try ho gaye.":m;
+const _nnE=enter;enter=async function(u){try{return await _nnE(u)}catch(e){S.user=null;$("shell").classList.add("h");$("auth").classList.remove("h");amsg("Login me dikkat aayi, dobara try karo.","e")}};
+$("bL").onclick=async()=>{const email=$("em").value.trim().toLowerCase(),password=$("pw").value;if(!email||!password)return amsg("Enter your email and password.","e");busy(1);amsg("Signing in…");try{const{data,error}=await nnAuth(()=>sb.auth.signInWithPassword({email,password}));if(error)throw error;await enter(data.user)}catch(e){amsg(nnErr(e.message||""),"e")}busy(0)};
+$("bG").onclick=async()=>{busy(1);amsg("Opening guest mode…");try{const{data,error}=await nnAuth(()=>sb.auth.signInAnonymously());if(error)throw error;amsg("");await enter(data.user)}catch(e){amsg(/anonymous/i.test(e.message||"")?"Guest mode is turned off in Supabase Auth.":nnErr(e.message||""),"e")}busy(0)};
+sb.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&S.user){S.user=S.me=null;$("shell").classList.add("h");$("auth").classList.remove("h");authMode(false)}});
+/* smaller "Powered by" */
+let nnQ=0;const nnMark=()=>{if(nnQ)return;nnQ=1;requestAnimationFrame(()=>{nnQ=0;document.querySelectorAll(".pw:not(.nxpb)").forEach(e=>{if(/^Powered by/.test(e.textContent))e.classList.add("nxpb")})})};
+["main","auth","splash"].forEach(i=>new MutationObserver(nnMark).observe($(i),{childList:true,subtree:true}));nnMark();
+/* faint full screen toggle (every screen) */
+document.body.insertAdjacentHTML("beforeend",'<button id="nxf2" aria-label="Full screen"></button>');
+const nnF=$("nxf2"),nnPf=()=>document.fullscreenElement||document.webkitFullscreenElement,nnIc=()=>nnF.innerHTML=(nnPf()||document.body.classList.contains("nx-pfs"))?I.shrink:I.expand;nnIc();
+nnF.onclick=async e=>{e.stopPropagation();const b=document.body.classList;
+ if(nnPf()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(_){}b.remove("nx-pfs")}
+ else if(b.contains("nx-pfs"))b.remove("nx-pfs");
+ else{const d=document.documentElement,r=d.requestFullscreen||d.webkitRequestFullscreen;if(!r)b.add("nx-pfs");else{try{await r.call(d,{navigationUI:"hide"})}catch(_){b.add("nx-pfs")}}}nnIc()};
+document.addEventListener("fullscreenchange",nnIc);document.addEventListener("webkitfullscreenchange",nnIc);
+let nnPk;document.addEventListener("pointerdown",()=>{nnF.classList.add("peek");clearTimeout(nnPk);nnPk=setTimeout(()=>nnF.classList.remove("peek"),2200)},true);
+/* minimal jelly stretch (off in games, calls, inputs) */
+(()=>{const app=$("app");let st=null,raf=0,cx=0,cy=0;
+ const off=()=>document.body.classList.contains("nx-game")||S.page==="watch"||(!$("call").classList.contains("h")&&!$("call").classList.contains("mn"))||matchMedia("(prefers-reduced-motion:reduce)").matches;
+ const cl=(v,m)=>Math.max(-m,Math.min(m,v));
+ const paint=()=>{raf=0;if(!st)return;const sx=1+Math.min(.012,Math.abs(cx)/4000),sy=1+Math.min(.016,Math.abs(cy)/3000);app.style.transition="none";app.style.transform="translate3d("+cl(cx*.02,5)+"px,"+cl(cy*.025,6)+"px,0) scale("+sx+","+sy+")"};
+ const end=()=>{if(!st)return;st=null;app.style.transition="transform .75s cubic-bezier(.3,1.9,.45,1)";app.style.transform=""};
+ addEventListener("touchstart",e=>{if(e.touches.length!==1||off()||e.target.closest("input,textarea,canvas,video,#call,.ov,#gcp,.nu-hand")){st=null;return}const t=e.touches[0];st={x:t.clientX,y:t.clientY};cx=cy=0},{passive:true});
+ addEventListener("touchmove",e=>{if(!st)return;const t=e.touches[0];cx=t.clientX-st.x;cy=t.clientY-st.y;if(!raf)raf=requestAnimationFrame(paint)},{passive:true});
+ addEventListener("touchend",end,{passive:true});addEventListener("touchcancel",end,{passive:true})})();
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.nxpb{font-size:9px!important;opacity:.5;letter-spacing:.2px}.nxpb b{font-weight:700}
+#nxfs{display:none!important}
+#nxf2{position:fixed;left:calc(env(safe-area-inset-left,0px) + 3px);bottom:calc(env(safe-area-inset-bottom,0px) + 3px);z-index:8450;width:26px;height:26px;padding:0;border-radius:50%;display:grid;place-items:center;color:#cfd6ff;opacity:.1;transition:opacity .45s ease,transform .3s var(--e)}
+#nxf2.peek{opacity:.65}#nxf2:active{transform:scale(.85)}#nxf2 svg{width:15px;height:15px}
+#app{will-change:auto}`}));
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
