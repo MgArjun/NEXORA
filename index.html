@@ -245,46 +245,48 @@ function recover(c){if(C!==c||c.rec)return;c.net="reconnecting";paintCall();kick
 function kick(c){if(C!==c||navigator.onLine===false)return;c.init?restartIce(c):sig({type:"nudge",to:c.uid,id:c.id})}
 async function restartIce(c){const pc=c.pc;if(!pc||c.rs||pc.signalingState!=="stable")return;c.rs=1;try{pc.restartIce?.();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await sig({type:"reoffer",to:c.uid,id:c.id,sdp:pc.localDescription})}catch(_){}c.rs=0}
 async function onReoffer(p){const c=C;try{await c.pc.setRemoteDescription(p.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){}}
-async function startCall(uid,name,random){
+async function startCall(uid,name,random,auto){
  if(uid===S.user.id)return;if(C)return toast("You are already on a call");
  let stream;try{stream=await mic()}catch(e){return toast(e.message)}
  if(C){stream.getTracks().forEach(t=>t.stop());return}
- const c=C={id:crypto.randomUUID(),uid,name,init:1,st:"calling",stream,q:[],random};paintCall();startRing();
+ const c=C={id:crypto.randomUUID(),uid,name,init:1,st:"calling",stream,q:[],random,auto};paintCall();if(auto)minCall(true);else startRing();
  try{await mkPc(c);await c.pc.setLocalDescription(await c.pc.createOffer())}catch(_){toast("The call could not start");return endCall(1)}
- const m={type:"offer",to:uid,id:c.id,name:myName(),random:!!random,sdp:c.pc.localDescription};
+ const m={type:"offer",to:uid,id:c.id,name:myName(),random:!!random,auto:!!auto,sdp:c.pc.localDescription};
  if(!await sig(m)){toast("Check your internet");return endCall(1)}
  let n=0;c.rs2=setInterval(()=>{if(C!==c||c.ringing||c.st!=="calling"||++n>10)return clearInterval(c.rs2);sig(m)},2500);
- c.to=setTimeout(()=>{if(C===c&&c.st==="calling"){toast("No answer");endCall()}},40000)}
+ c.to=setTimeout(()=>{if(C===c&&c.st==="calling"){toast("No answer");endCall()}},auto?120000:40000)}
 function onOffer(p){
  if(isEnded(p.id))return;
  if(C&&C.id===p.id){sig({type:"ring",to:p.from,id:C.id});return}
  if(C&&C.init&&C.uid===p.from&&C.st==="calling"){if(S.user.id<p.from)return;endCall(1)}
  if(C||!PR.calls){sig({type:C?"busy":"decl",to:p.from,id:p.id});return}
  const c=C={id:p.id,uid:p.from,name:p.name||"Caller",st:"ringing",sdp:p.sdp,q:PRE[p.id]||[]};delete PRE[p.id];sig({type:"ring",to:p.from,id:c.id});
+ if(p.auto&&[S.room,LR,UR].some(r=>r?.started&&(r.ids?r.ids.includes(p.from):r.oppId===p.from))){c.auto=true;c.to=setTimeout(()=>{if(C===c&&c.st==="ringing"){sig({type:"end",to:c.uid,id:c.id});endCall(1)}},120000);autoJoin(c);return}
  if(p.random&&RM?.kind==="call"){stopRM();closeModal();return accept()}
  paintCall();startRing();c.to=setTimeout(()=>{if(C===c&&c.st==="ringing"){sig({type:"end",to:c.uid,id:c.id});endCall(1)}},40000)}
-async function accept(){const c=C;if(!c||c.st!=="ringing")return;stopRing();clearTimeout(c.to);
+async function accept(muted){const c=C;if(!c||c.st!=="ringing")return;stopRing();clearTimeout(c.to);
  let stream;try{stream=await mic()}catch(e){toast(e.message);sig({type:"decl",to:c.uid,id:c.id});return endCall(1)}
  if(C!==c){stream.getTracks().forEach(t=>t.stop());return}
- c.stream=stream;c.st="connecting";paintCall();c.ct=setTimeout(()=>{if(C===c&&c.st!=="on"){toast("The call could not connect");endCall()}},45000);
+ c.stream=stream;c.st="connecting";if(muted===true){c.muted=true;stream.getAudioTracks().forEach(t=>t.enabled=false);$("cMute").innerHTML=I.micoff;$("cMute").classList.add("on")}paintCall();if(c.auto)minCall(true);c.ct=setTimeout(()=>{if(C===c&&c.st!=="on"){toast("The call could not connect");endCall()}},45000);
  try{await mkPc(c);await c.pc.setRemoteDescription(c.sdp);flush(c);await c.pc.setLocalDescription(await c.pc.createAnswer());await sig({type:"answer",to:c.uid,id:c.id,sdp:c.pc.localDescription})}catch(_){toast("The call could not connect");endCall()}}
 function endCall(silent){const c=C;if(!c)return;C=null;ENDED.set(c.id,Date.now());stopRing();[c.to,c.t1,c.dead,c.ct,c.rt].forEach(clearTimeout);[c.rs2,c.rec].forEach(clearInterval);
  if(!silent)sig({type:c.st==="ringing"?"decl":"end",to:c.uid,id:c.id});
  try{c.stream?.getTracks().forEach(t=>t.stop())}catch(_){}try{c.pc?.close()}catch(_){}
- $("ra")?.remove();wake(false);const el=$("call");el.className="h";el.style.left=el.style.top=el.style.transform="";$("cMute").classList.remove("on");$("cMute").innerHTML=I.mic;sfx("down")}
-function paintCall(){const c=C,el=$("call");if(!c)return;if(el.classList.contains("h"))el.classList.remove("h");el.classList.toggle("on",c.st==="on");
+ $("ra")?.remove();wake(false);const el=$("call");el.className="h";el.style.left=el.style.top=el.style.transform="";$("cMute").classList.remove("on");$("cMute").innerHTML=I.mic;sfx("down");updMic()}
+function paintCall(){const c=C,el=$("call");if(!c)return;if(c.auto&&c.st==="ringing")return;if(el.classList.contains("h"))el.classList.remove("h");el.classList.toggle("on",c.st==="on");
  $("cAv").textContent=ini(c.name);$("cNm").textContent=c.name;
  $("cSt").textContent=c.st==="ringing"?"Incoming voice call":c.st==="calling"?(c.ringing?"Ringing…":"Calling…"):c.st==="connecting"?"Connecting…":c.net==="reconnecting"?"Reconnecting…":c.net==="unstable"?"Connection unstable":"Connected";
- $("cAcc").classList.toggle("h",c.st!=="ringing");$("cMute").classList.toggle("h",c.st==="ringing");$("cGame").classList.toggle("h",c.st!=="on")}
+ $("cAcc").classList.toggle("h",c.st!=="ringing");$("cMute").classList.toggle("h",c.st==="ringing");$("cGame").classList.toggle("h",c.st!=="on");updMic()}
 /* minimize: iPhone-style pill, drag anywhere, tap to expand */
 const minCall=m=>{const el=$("call");if(!C)return;el.classList.toggle("mn",m);if(!m){el.style.left=el.style.top=el.style.transform=""}};
-$("cAcc").onclick=accept;$("cEnd").onclick=()=>endCall();$("cMin").onclick=()=>minCall(true);
+$("cAcc").onclick=()=>accept();$("cEnd").onclick=()=>endCall();$("cMin").onclick=()=>minCall(true);
 (()=>{const el=$("call");let d=null;
  el.addEventListener("pointerdown",e=>{if(!el.classList.contains("mn")||e.target.closest("#cEnd,#cMute"))return;const r=el.getBoundingClientRect();d={x:e.clientX,y:e.clientY,l:r.left,t:r.top,m:false};try{el.setPointerCapture(e.pointerId)}catch(_){}});
  el.addEventListener("pointermove",e=>{if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)<6)return;d.m=true;const w=el.offsetWidth,h=el.offsetHeight;el.style.transform="none";el.style.left=Math.max(4,Math.min(innerWidth-w-4,d.l+dx))+"px";el.style.top=Math.max(4,Math.min(innerHeight-h-4,d.t+dy))+"px"});
  el.addEventListener("pointerup",()=>{if(!d)return;const tap=!d.m;d=null;if(tap)minCall(false)});
  el.addEventListener("pointercancel",()=>{d=null})})();
-$("cMute").onclick=()=>{const c=C;if(!c?.stream)return;c.muted=!c.muted;c.stream.getAudioTracks().forEach(t=>t.enabled=!c.muted);$("cMute").innerHTML=c.muted?I.micoff:I.mic;$("cMute").classList.toggle("on",c.muted);vib(20)};
+function toggleMute(){const c=C;if(!c?.stream)return;c.muted=!c.muted;c.stream.getAudioTracks().forEach(t=>t.enabled=!c.muted);$("cMute").innerHTML=c.muted?I.micoff:I.mic;$("cMute").classList.toggle("on",c.muted);vib(20);updMic()}
+$("cMute").onclick=toggleMute;
 setInterval(()=>{if(C?.st==="on"){const s=Math.floor((Date.now()-C.t0)/1000);$("cTm").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}},500);
 addEventListener("pagehide",()=>{if(C)sig({type:"end",to:C.uid,id:C.id})});
 document.addEventListener("visibilitychange",()=>{if(document.hidden||!S.user)return;if(SIG?.state!=="joined")ensureSig();if(C?.pc&&!okIce(C)&&C.st==="on")recover(C);if(S.page==="chat")fetchNew()});
@@ -296,7 +298,7 @@ const PG={home:renderHome,recent:renderRecent,connect:renderConnect,games:render
 $("nav").onclick=e=>{const b=e.target.closest("button");if(b)go(b.dataset.p)};
 const page=h=>$("main").innerHTML=`<section class="pg">${h}</section>`;
 const SUB=()=>["chat","ttt"].includes(S.page);
-history.pushState({n:1},"");addEventListener("popstate",()=>{history.pushState({n:1},"");if(!$("ov").classList.contains("h"))return closeModal();if(S.page==="ludo")return leaveL();if(S.page==="ttt")return leaveG();if(S.page==="chat")return go("recent");if(S.page!=="home"&&S.user)go("home")});
+history.pushState({n:1},"");addEventListener("popstate",()=>{history.pushState({n:1},"");if(!$("ov").classList.contains("h"))return closeModal();if(S.page==="hub")return hubBack();if(S.page==="ludo")return leaveL();if(S.page==="ttt")return leaveG();if(S.page==="chat")return go("recent");if(S.page!=="home"&&S.user)go("home")});
 const P={};const reg=p=>(P[p.id]=p);
 
 /* ---------- chat: realtime history sync ---------- */
@@ -339,7 +341,7 @@ async function matchmake(kind){stopRM();if(S.room)closeRoom(true);
 const strangerGone=()=>openModal(`<h3>Stranger disconnected</h3><p class="sub">The call has ended.</p><button class="btn pri wide" style="margin-bottom:10px" onclick="closeModal();matchmake('call')">🔄 Find another</button><button class="btn wide" onclick="closeModal()">Close</button>`);
 
 /* ---------- games: Tic-Tac-Toe ---------- */
-function tttMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
+function _tttMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
  openModal(`<h3>❌ Tic-Tac-Toe</h3><p class="sub">5×5 board. Line up four to win.</p>${s("🌐 Random online")}<button class="btn pri wide" onclick="closeModal();matchmake('ttt')">Find player</button>
  ${s("👥 With a friend (room code)")}<button class="btn wide" onclick="hostTTT()">Create room</button><div style="display:flex;gap:8px;margin-top:8px"><input id="rc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinTTT($('rc2').value.trim().toUpperCase())">Join</button></div>
  ${s("🤖 Robot / 📱 one phone")}<div class="grid"><button class="btn" onclick="startG('bot')">Robot</button><button class="btn" onclick="startG('local')">2 players</button></div>`)}
@@ -347,7 +349,7 @@ function lineWin(b,L=4,N=5){for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=b[r
 function startG(mode){closeModal();minCall(true);S.page="ttt";S.g={mode,b:Array(25).fill(""),t:"X",over:false,last:-1,msg:mode==="bot"?"Your turn (X)":"X's turn"};draw()}
 function draw(){const g=S.g;if(!g||S.page!=="ttt")return;const on=g.mode==="online",w=lineWin(g.b);
  const foot=on?(g.over?`<div class="grid" style="max-width:420px;margin:18px auto 0"><button class="btn pri" ${S.room?.left?"disabled":""} onclick="rematch()">${g.rem?"⏳ Waiting…":"🔁 Rematch"}</button><button class="btn" onclick="leaveG();matchmake('ttt')">⚡ New match</button></div>`:""):`<button class="btn pri wide" style="margin:18px auto 0;display:block;max-width:420px" onclick="startG('${g.mode}')">Restart</button>`;
- $("main").innerHTML=`<section class="pg st"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveG()">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${on&&S.room?.oppId?`<button class="ib" style="color:#8ff0bd" onclick="voiceBtn('${S.room.oppId}','${esc(S.room.oppName).replace(/'/g,"")}')" aria-label="Voice">${I.mic}</button>`:""}</div><h2>Tic-Tac-Toe</h2><p class="sub">${esc(g.msg)}</p>
+ $("main").innerHTML=`<section class="pg st"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveG()">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${on&&S.room?.oppId?`<button class="ib gmic ${micCls()}" onclick="gameMic()" aria-label="Voice">${micI()}</button>`:""}</div><h2>Tic-Tac-Toe</h2><p class="sub">${esc(g.msg)}</p>
  <div class="bd">${g.b.map((v,i)=>`<button class="cell ${v}${i===g.last?" n":""}${w?.cells.includes(i)?" w":""}" onclick="tap(${i})" aria-label="Cell ${i+1}">${v}</button>`).join("")}</div>${foot}</section>`}
 function leaveG(){closeRoom(true);S.g=null;go("games")}
 function place(i){const g=S.g;g.b[i]=g.t;g.last=i;sfx("move");const w=lineWin(g.b);
@@ -455,15 +457,15 @@ function frame(){const l=L;if(!l||!CV||!CV.isConnected){RAF=0;return}const W=CV.
 function setupCv(){CV=$("ldCv");const fit=()=>{if(!CV.isConnected)return;DPR=Math.min(devicePixelRatio||1,2.5);const W=CV.clientWidth;CV.width=CV.height=Math.round(W*DPR);paintBoard(W)};fit();new ResizeObserver(fit).observe(CV);
  CV.addEventListener("pointerdown",e=>{if(!L||L.winner||L.busy||L.rolling||!L.dice||!isH())return;const r=CV.getBoundingClientRect(),s=r.width/15,x=(e.clientX-r.left)/s,y=(e.clientY-r.top)/s,pl=cur();let best=null,bd=.9;
   pl.tokens.forEach((p,i)=>{if(!canMv(p,L.dice))return;const sp=L.spr[L.turn][i],d=Math.hypot(sp.x-x,sp.y-.3-y);if(d<bd){bd=d;best=i}});if(best!==null)playMv(best)});if(!RAF)RAF=requestAnimationFrame(frame)}
-function ludoMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
+function _ludoMenu(){const s=t=>`<div class="pw" style="text-align:left;margin:14px 0 6px 4px">${t}</div>`;
  openModal(`<h3>🎲 Ludo</h3><p class="sub">How do you want to play?</p>${s("🤖 Robots added to online games")}<div class="grid" style="grid-template-columns:repeat(3,1fr)">${[0,1,2].map(n=>`<button class="btn ${n===LNb?"pri":""}" onclick="LNb=${n};ludoMenu()">${n?"+"+n+" 🤖":"None"}</button>`).join("")}</div>${s("🌐 Random online (2 players"+(LNb?" + "+LNb+" robot"+(LNb>1?"s":""):"")+")")}<button class="btn pri wide" onclick="closeModal();matchmake('ludo')">Find player</button>
  ${s("👥 With a friend (room code)")}<button class="btn wide" onclick="hostLudo()">Create room</button><div style="display:flex;gap:8px;margin-top:8px"><input id="lc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinLudo($('lc2').value.trim().toUpperCase())">Join</button></div>
  ${s("🤖 Against robots")}<div class="grid" style="grid-template-columns:repeat(3,1fr)">${[1,2,3].map(n=>`<button class="btn" onclick="startLudo('robot',null,null,${n+1})">🤖 ×${n}</button>`).join("")}</div>${s("📱 One phone")}<button class="btn wide" onclick="startLudo('local')">2 players</button>`)}
-function startLudo(mode="robot",names,me=null,n){closeModal();const cnt=names?names.length:(mode==="robot"?(n||2):2),nms=names||(mode==="robot"?["You","Robot","Robot 2","Robot 3"].slice(0,cnt):["Player 1","Player 2"]),hum=mode==="robot"?1:2;
- L={mode,me,n:cnt,players:SEAT[cnt].map((c,i)=>({name:nms[i],color:c,bot:i>=hum,tokens:[-1,-1,-1,-1]})),turn:0,dice:null,rolling:false,busy:false,winner:null,sixes:0,seq:0,msg:"Game on!",parts:[]};
+function startLudo(mode="robot",names,me=null,n,ids){closeModal();const cnt=names?names.length:(mode==="robot"?(n||2):2),nms=names||(mode==="robot"?["You","Robot","Robot 2","Robot 3"].slice(0,cnt):["Player 1","Player 2"]),hum=mode==="robot"?1:(ids?ids.length:2);
+ L={mode,me,n:cnt,players:SEAT[cnt].map((c,i)=>({name:nms[i],color:c,bot:i>=hum,uid:ids?.[i],tokens:[-1,-1,-1,-1]})),turn:0,dice:null,rolling:false,busy:false,winner:null,sixes:0,seq:0,msg:"Game on!",parts:[]};
  L.spr=L.players.map(p=>p.tokens.map((_,i)=>{const xy=xyAt(p,i,-1);return{x:xy[1]+.5,y:xy[0]+.5,z:0,vz:0}}));renderL()}
 function renderL(){S.page="ludo";minCall(true);
- $("main").innerHTML=`<section class="pg st"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveL()">‹ Games</button><span style="flex:1"></span>${L.mode==="online"?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${L.mode==="online"?(LR?.oppId?`<button class="ib" style="color:#8ff0bd" onclick="voiceBtn('${LR.oppId}','${esc(LR.oppName).replace(/'/g,"")}')" aria-label="Voice">${I.mic}</button>`:""):`<button class="btn" onclick="startLudo(L.mode,null,null,L.n)">↻ Restart</button>`}</div>
+ $("main").innerHTML=`<section class="pg st"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><button class="btn" onclick="leaveL()">‹ Games</button><span style="flex:1"></span>${L.mode==="online"?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>`:""}${L.mode==="online"?(LR?.oppId?`<button class="ib gmic ${micCls()}" onclick="gameMic()" aria-label="Voice">${micI()}</button>`:""):`<button class="btn" onclick="startLudo(L.mode,null,null,L.n)">↻ Restart</button>`}</div>
  <div id="ldBan"><i></i><span></span></div><div class="card lw" id="ldCard" style="padding:10px;position:relative"><canvas id="ldCv" style="width:100%;aspect-ratio:1;display:block;border-radius:12px"></canvas>
  <div class="lctl"><div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:12px"><div style="min-width:0"><div id="ldM" style="font-weight:850"></div><div id="ldH" class="pw" style="text-align:left;margin-top:3px"></div></div><button id="ldDice" class="dice" onclick="rollL()" aria-label="Roll dice">⚀</button></div><div id="ldP" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"></div></div></div></div></section>`;setupCv();updL()}
 function rollL(){if(!L||L.winner||L.rolling||L.busy||L.dice||!isH())return;const d=rnd6();lsend({t:"roll",d});animRoll(d)}
@@ -489,22 +491,23 @@ function leaveL(){closeLR(true);L=null;go("games")}
 /* online room */
 const lsend=m=>LR?.started&&LR.tx(m);
 function closeLR(notify){const R=LR;if(!R)return;LR=null;clearInterval(R.hb);if(notify&&R.started)R.tx({t:"bye"});try{sb.removeChannel(R.ch)}catch(_){}}
-async function openLR(code,host,opp){closeLR(true);const ch=sb.channel("ludo-"+code),R=LR={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now()};
+async function openLR(code,host,opp,target){closeLR(true);const ch=sb.channel("ludo-"+code),R=LR={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now(),target:target||2};
  R.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"g"},({payload:m})=>lMsg(R,m));
  await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});if(LR!==R)return;
  if(!host){let n=0;const iv=setInterval(()=>{if(LR!==R||R.started||++n>15)return clearInterval(iv);R.tx({t:"join",name:myName()})},1200);R.tx({t:"join",name:myName()})}R.hb=setInterval(()=>lTick(R),3000)}
-async function hostLudo(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await openLR(code,true,opp);
- openModal(`<h3>Room ready 🎲</h3><p class="sub">Waiting for your friend…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
-function joinLudo(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();openLR(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
-function lMsg(R,m){if(LR!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();
- if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";R.nb=LNb;closeModal();R.tx({t:"start",name:myName(),nb:R.nb});startLudo("online",[myName(),R.oppName,...bn(R.nb)],0)}else R.tx({t:"start",name:myName(),nb:R.nb})}
- else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";R.nb=m.nb||0;closeModal();startLudo("online",[R.oppName,myName(),...bn(R.nb)],1)}
+async function hostLudo(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await openLR(code,true,opp,opp?2:HS.p);
+ openModal(`<h3>Room ready 🎲</h3><p class="sub">Share this code with your friends.</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:12px">${code}</div><div id="lbN" class="pw" style="margin-bottom:4px">1/${LR?.target||2} joined</div><div id="lbL" class="pw" style="margin-bottom:12px"></div><button id="lbS" class="btn pri wide h" style="margin-bottom:10px" onclick="lStart(LR)">▶ Start now</button><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
+function joinLudo(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();openLR(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><div id="lbN" class="pw" style="margin-bottom:6px"></div><div id="lbL" class="pw" style="margin-bottom:12px"></div><button class="btn red wide" onclick="closeModal();closeLR(true)">Cancel</button>`)}
+function lMsg(R,m){if(LR!==R||m.from===S.user.id)return;if(R.started&&!R.ids.includes(m.from))return;R.seen=Date.now();
+ if(m.t==="join"&&R.host)hostJoin(R,m,(R,full)=>{if(full)setTimeout(()=>lStart(R),600)})
+ else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.ids=m.ids;R.names=m.names;R.oppId=m.ids[0];R.oppName=m.names[0];R.nb=m.nb||0;closeModal();startLudo("online",[...m.names,...bn(R.nb)],m.ids.indexOf(S.user.id),null,m.ids)}
+ else if(m.t==="lobby"&&!R.host){R.ps=m.ps;R.target=m.target;lobbyUI(R)}
  else if(m.t==="emo")floatEmo(m.e,1)
  else if(!L||L.mode!=="online")return;
- else if(m.t==="roll"){if(L.turn!==L.me&&!L.rolling&&!L.dice&&!L.busy)animRoll(m.d)}
- else if(m.t==="mv"){if(L.turn!==L.me)(async()=>{while(L&&L.rolling)await sleep(50);if(L&&L.dice&&!L.busy)commit(cur(),m.i)})()}
+ else if(m.t==="roll"){if(own(R,m)&&L.turn!==L.me&&!L.rolling&&!L.dice&&!L.busy)animRoll(m.d)}
+ else if(m.t==="mv"){if(own(R,m)&&L.turn!==L.me)(async()=>{while(L&&L.rolling)await sleep(50);if(L&&L.dice&&!L.busy)commit(cur(),m.i)})()}
  else if(m.t==="snap"&&!L.busy&&!L.rolling&&!L.dice&&m.s.seq>L.seq){L.players.forEach((p,i)=>p.tokens=m.s.t[i].slice());L.turn=m.s.turn;L.sixes=m.s.sx;L.seq=m.s.seq;L.spr.forEach(r=>r.forEach(s=>s.slow=false));updL()}
- else if(m.t==="bye"&&!L.winner){toast("Your friend left the game");L.winner=L.players[L.me].name;L.msg="Your friend left";updL();winUI(L.winner)}}
+ else if(m.t==="bye"&&!L.winner){const s=R.ids.indexOf(m.from),hl=L.players.filter(p=>!p.bot).length;if(s>0&&hl>2){const p=L.players[s];toast(p.name+" left, a robot takes over");p.bot=true;p.name+=" 🤖";if(R.host&&L.turn===s&&!L.busy&&!L.rolling&&!L.dice)botT();updL()}else{toast("Your friend left the game");L.winner=L.players[L.me].name;L.msg="Your friend left";updL();winUI(L.winner)}}}
 function lTick(R){if(LR!==R||!R.started)return;R.tx({t:"hb"});if(R.ch.state!=="joined"){if(L)L.msg="Reconnecting game…",updL();R.dc=1;return}
  if(R.dc){R.dc=0;toast("Game reconnected ✓")}if(Date.now()-R.seen>60000&&L&&!L.winner){toast("Your friend did not come back");lMsg(R,{t:"bye",from:R.oppId})}
  if(R.host&&L&&!L.busy&&!L.rolling&&!L.dice&&!L.winner)R.tx({t:"snap",s:{seq:L.seq,turn:L.turn,sx:L.sixes,t:L.players.map(p=>p.tokens.slice())}})}
@@ -563,7 +566,7 @@ function renderHome(){const w=wins(),h=new Date().getHours();
  <div class="card" style="padding:16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><span class="live"><i></i><span id="liveN">${S.live} ${S.live===1?"person":"people"} online</span></span><span class="pw">Powered by <b>Suraj Kumar</b></span></div>
  <div class="grid">${[[I.chat,"Chats","Your conversations","recent","#5b8cff","#7a6bff"],[I.connect,"Connect","Friends and random","connect","#9a6bff","#d26bff"],[I.game,"Games","Ludo, UNO, Tic-Tac-Toe","games","#2fd6a0","#2f9fd6"],[I.gear,"Settings","Profile and privacy","settings","#ff8a5b","#ff5b8a"]].map(([i,t,s,p,a,b])=>`<button class="card qc" onclick="go('${p}')">${gi(i,a,b)}<span><b>${t}</b><small>${s}</small></span></button>`).join("")}</div>
  <div class="card" style="padding:16px;margin-top:14px"><b>Your wins</b><div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:12px">${[[I.dice,"ludo","#ef5368","#ff8a5b"],[I.ttt,"ttt","#7889ff","#a077ff"],[I.cards,"uno","#ffc93c","#ff8a5b"]].map(([i,k,a,b])=>`<div class="card" style="padding:12px;text-align:center;display:grid;justify-items:center;gap:6px">${gi(i,a,b)}<b style="font-size:22px">${w[k]||0}</b></div>`).join("")}</div></div>`)}
-function renderGames(){page(`<h2>Games</h2><p class="sub">Voice stays on while you play. Use the mic button inside a game.</p><div class="grid">${[[I.dice,"Ludo","2–4 players","ludoMenu()","#ef5368","#ff8a5b"],[I.ttt,"Tic-Tac-Toe","5×5, four to win","tttMenu()","#7889ff","#a077ff"],[I.cards,"UNO","Online or robots","unoMenu()","#ffc93c","#ff8a5b"],[I.carrom,"Carrom","Coming soon","toast('Coming soon')","#3a4668","#56628a"],[I.chess,"Chess","Coming soon","toast('Coming soon')","#3a4668","#56628a"]].map(([i,t,s,f,a,b])=>`<button class="card qc" onclick="${f}">${gi(i,a,b)}<span><b>${t}</b><small>${s}</small></span></button>`).join("")}</div>`)}
+function renderGames(){page(`<h2>Games</h2><p class="sub">Pick a game, then choose how to play. Tap the mic inside a game to talk.</p><div class="grid">${[[I.dice,"Ludo","2–4 players","ludoMenu()","#ef5368","#ff8a5b"],[I.ttt,"Tic-Tac-Toe","5×5, four to win","tttMenu()","#7889ff","#a077ff"],[I.cards,"UNO","Online or robots","unoMenu()","#ffc93c","#ff8a5b"],[I.carrom,"Carrom","Coming soon","toast('Coming soon')","#3a4668","#56628a"],[I.chess,"Chess","Coming soon","toast('Coming soon')","#3a4668","#56628a"]].map(([i,t,s,f,a,b])=>`<button class="card qc" onclick="${f}">${gi(i,a,b)}<span><b>${t}</b><small>${s}</small></span></button>`).join("")}</div>`)}
 
 /* reactions */
 function floatEmo(e){const d=document.createElement("div");d.className="fe";d.textContent=e;d.style.left=(10+Math.random()*75)+"%";d.style.bottom="18%";document.body.appendChild(d);setTimeout(()=>d.remove(),2300)}
@@ -659,20 +662,20 @@ function updL(){if(!L||!$("ldBan"))return;const pl=cur(),ban=$("ldBan");ban.styl
 /* UNO: robots or online 2 players (+ robots); +2/+4 stack; UNO button with penalty */
 let U=null,UR=null;const UC=["#ef5368","#3fc984","#ffc93c","#4a9dff","#2b3350"];
 let UNn=1;
-function unoMenu(){S.page="unolobby";page(`<button class="btn" onclick="go('games')">‹ Games</button><h2 style="margin-top:14px">UNO</h2><p class="sub">Stack +2 and +4. Press UNO on your second-last card.</p>
+function _unoMenu(){S.page="unolobby";page(`<button class="btn" onclick="go('games')">‹ Games</button><h2 style="margin-top:14px">UNO</h2><p class="sub">Stack +2 and +4. Press UNO on your second-last card.</p>
  <div class="card" style="padding:18px;margin-bottom:14px"><b>Play online</b><div class="pw" style="text-align:left;margin:10px 0 6px">Robots added to the game</div><div class="grid" style="grid-template-columns:repeat(3,1fr)">${[0,1,2].map(n=>`<button class="btn ${n===UNb?"pri":""}" onclick="UNb=${n};unoMenu()">${n?"+"+n+" 🤖":"None"}</button>`).join("")}</div><div class="grid" style="margin-top:12px"><button class="btn pri" onclick="matchmake('uno')">Find player</button><button class="btn" onclick="hostUno()">Create room</button></div><div style="display:flex;gap:8px;margin-top:10px"><input id="uc2" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="joinUno($('uc2').value.trim().toUpperCase())">Join</button></div></div>
  <div class="card" style="padding:18px"><b>Play with robots</b><div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:12px">${[1,2,3].map(n=>`<button class="btn ${n===UNn?"pri":""}" onclick="UNn=${n};unoMenu()">${n} robot${n>1?"s":""}</button>`).join("")}</div><button class="btn pri wide" style="margin-top:12px" onclick="startUno(UNn)">▶ Start game</button></div>`)}
-function uLobby(R){S.page="uno";U=null;const names=(R.host?[myName(),R.oppName]:[R.oppName,myName()]).concat(bn(R.nb||0));
- page(`<div style="max-width:560px;margin:auto"><button class="btn" onclick="go('games')">‹ Leave</button><h2 style="margin-top:14px">UNO lobby</h2><p class="sub">${R.host?(R.auto?"Match found. Starting…":"Your friend joined. Start when ready."):"Waiting for the host to start…"}</p>
+function uLobby(R){S.page="uno";U=null;const hum=R.started&&R.names?R.names:(R.ps||[]).map(p=>p.name),names=hum.concat(bn(R.host&&!R.started?Math.min(UNb,4-hum.length):(R.nb||0)));
+ page(`<div style="max-width:560px;margin:auto"><button class="btn" onclick="go('games')">‹ Leave</button><h2 style="margin-top:14px">UNO lobby</h2><p class="sub">${R.host?(hum.length>=2?"Start when everyone is in.":"Waiting for players…"):(R.started?"Starting…":"Waiting for the host to start…")}</p>
  <div class="card felt" style="padding:20px"><div class="grid">${names.map(n=>`<div class="card" style="padding:14px;text-align:center;display:grid;justify-items:center;gap:8px"><div class="av">${esc(ini(n))}</div><b>${esc(n)}</b><span class="live"><i></i>Ready</span></div>`).join("")}</div>
- ${R.host&&!R.auto?`<button class="btn pri wide" style="margin-top:16px" onclick="startOnline()">▶ Start game</button>`:`<div class="pw" style="margin-top:16px">${R.host?"Dealing cards…":"The host will start the game"}</div>`}</div></div>`);
- if(R.host&&R.auto)setTimeout(()=>{if(UR===R&&!U)startOnline()},1500)}
-function startOnline(){const R=UR;if(!R?.started||!R.host)return;newUno(2+(R.nb||0),[myName(),R.oppName,...bn(R.nb||0)],1)}
+ ${R.host&&!R.started&&hum.length>=2?`<button class="btn pri wide" style="margin-top:16px" onclick="startOnline()">▶ Start game</button>`:`<div class="pw" style="margin-top:16px">${R.host?(R.started?"Dealing cards…":"Waiting for players…"):"The host will start the game"}</div>`}</div></div>`);
+ if(R.host&&!R.started&&(R.auto||hum.length>=R.target))setTimeout(()=>{if(UR===R&&!R.started&&!U)startOnline()},1500)}
+function startOnline(){const R=UR;if(!R||!R.host||R.started||!R.ps||R.ps.length<2)return;R.started=true;R.ids=R.ps.map(p=>p.id);R.names=R.ps.map(p=>p.name);R.nb=Math.min(UNb,4-R.ps.length);R.tx({t:"start",ids:R.ids,names:R.names,nb:R.nb});newUno(R.ids.length+R.nb,[...R.names,...bn(R.nb)],1,R.ids.length)}
 function mkDeck(){const d=[];for(let c=0;c<4;c++){for(let v=0;v<=9;v++)for(let k=0;k<(v?2:1);k++)d.push({c,v:""+v});["S","R","+2"].forEach(v=>{d.push({c,v});d.push({c,v})})}for(let k=0;k<4;k++){d.push({c:4,v:"W"});d.push({c:4,v:"+4"})}for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
 const startUno=n=>newUno(n+1);
-function newUno(N,names,online){closeModal();minCall(true);S.page="uno";U={n:N,h:Array.from({length:N},()=>[]),dk:mkDeck(),pl:[],t:0,d:1,col:0,pen:0,pt:null,drew:false,busy:false,over:false,win:-1,fly:0,seq:0,me:0,host:true,online:!!online,say:Array(N).fill(false),names:names||["You","Robot","Robot 2","Robot 3"]};
+function newUno(N,names,online,hn){closeModal();minCall(true);S.page="uno";U={n:N,h:Array.from({length:N},()=>[]),dk:mkDeck(),pl:[],t:0,d:1,col:0,pen:0,pt:null,drew:false,busy:false,over:false,win:-1,fly:0,seq:0,me:0,host:true,hn:hn||1,online:!!online,say:Array(N).fill(false),names:names||["You","Robot","Robot 2","Robot 3"]};
  for(let k=0;k<7;k++)U.h.forEach(h=>h.push(U.dk.pop()));let c;do{c=U.dk.pop();if(!/^\d$/.test(c.v))U.dk.unshift(c)}while(!/^\d$/.test(c.v));U.pl.push(c);U.col=c.c;U.fresh=1;U.busy=true;const u=U;for(let k=0;k<7;k++)tone(420+k*14,.05,"triangle",.07,k*.09);drawU();setTimeout(()=>{if(U===u){u.busy=false;u.fresh=0;drawU();nextU()}},1500)}
-function restartUno(){if(!U)return;if(U.online){if(U.host)newUno(U.n,U.names,1)}else newUno(U.n,U.names)}
+function restartUno(){if(!U)return;if(U.online){if(U.host)newUno(U.n,U.names,1,U.hn)}else newUno(U.n,U.names)}
 const topU=()=>U.pl[U.pl.length-1],okc=c=>U.pen?c.v===U.pt:(c.c===4||c.c===U.col||c.v===topU().v),nx=(f=1)=>(U.t+U.d*f+U.n*4)%U.n;
 function dr(p,k){const h=U.h[p];while(k--){if(!U.dk.length){const t=U.pl.pop();U.dk=U.pl.splice(0).sort(()=>Math.random()-.5);U.pl.push(t);if(!U.dk.length)return}h.push(U.dk.pop())}}
 function settle(){const p=U.t;if(U.pen&&!U.h[p].some(okc)){dr(p,U.pen);toast(U.names[p]+" draws "+U.pen);U.pen=0;U.pt=null;U.t=nx(1)}U.drew=false}
@@ -684,7 +687,7 @@ function playU(p,i,col){if(!U||U.busy||U.over||U.t!==p)return;const h=U.h[p],c=h
  if(c.c===4&&col===undefined)col=bestCol(h);
  h.splice(i,1);U.pl.push(c);U.col=c.c<4?c.c:col;U.drew=false;U.fly=1;U.seq++;sfx("move");let sk=1;
  if(c.v==="S")sk=2;else if(c.v==="R"){U.d*=-1;if(U.n===2)sk=2}else if(c.v==="+2"||c.v==="+4"){U.pen+=+c.v;U.pt=c.v}
- const human=p===0||(U.online&&p<2);
+ const human=p===0||(U.online&&p<U.hn);
  if(!h.length){U.over=true;U.win=p;U.say[p]=false;if(p===U.me){incWin("uno");sfx("win");for(let k=0;k<8;k++)setTimeout(()=>floatEmo("🎉"),k*150)}else sfx("lose");return drawU()}
  if(h.length===1){if(human&&!U.say[p]){dr(p,2);toast(U.names[p]+" forgot UNO! +2");sfx("lose")}else{toast("UNO! "+U.names[p]);tone(880,.2)}}
  U.say[p]=false;U.t=nx(sk);settle();drawU();nextU()}
@@ -692,39 +695,40 @@ function sayUno(p=U?.me){if(!U||U.over)return;toast("UNO!");tone(880,.2);if(U.on
 function takeU(p=U?.me){if(!U||U.over||U.t!==p||U.busy)return;if(U.online&&!U.host)return UR?.tx({t:"act",k:"draw"});
  if(U.pen){dr(p,U.pen);U.pen=0;U.pt=null;U.t=nx(1)}else if(U.drew){U.t=nx(1)}else{dr(p,1);const c=U.h[p][U.h[p].length-1];if(okc(c)){U.drew=true;U.seq++;sfx("tap");return drawU()}U.t=nx(1)}
  U.seq++;settle();drawU();nextU()}
-function nextU(){const u=U;if(!u||u.over||u.t===0||(u.online&&(!u.host||u.t<2)))return;u.busy=true;setTimeout(()=>{if(U!==u||u.over)return;u.busy=false;const p=u.t,h=u.h[p],ix=[];h.forEach((c,i)=>okc(c)&&ix.push(i));
+function nextU(){const u=U;if(!u||u.over||u.t===0||(u.online&&(!u.host||u.t<u.hn)))return;u.busy=true;setTimeout(()=>{if(U!==u||u.over)return;u.busy=false;const p=u.t,h=u.h[p],ix=[];h.forEach((c,i)=>okc(c)&&ix.push(i));
  if(ix.length){ix.sort((a,b)=>(h[a].c===4)-(h[b].c===4));return playU(p,ix[0])}
  dr(p,1);if(okc(h[h.length-1]))return playU(p,h.length-1);u.t=nx(1);u.seq++;settle();drawU();nextU()},1000)}
 /* UNO online room (host holds the game, guest sends actions) */
 function closeUR(notify){const R=UR;if(!R)return;UR=null;clearInterval(R.hb);if(notify&&R.started&&!R.left)R.tx({t:"bye"});try{sb.removeChannel(R.ch)}catch(_){}}
-async function uOpen(code,host,opp){closeUR(true);const ch=sb.channel("uno-"+code),R=UR={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now()};
+async function uOpen(code,host,opp,target){closeUR(true);const ch=sb.channel("uno-"+code),R=UR={code,host,ch,oppId:opp?.id||null,oppName:opp?.name||"Friend",started:false,seen:Date.now(),target:target||2};
  R.tx=m=>ch.send({type:"broadcast",event:"g",payload:{...m,from:S.user.id}}).catch(()=>{});ch.on("broadcast",{event:"g"},({payload:m})=>uMsg(R,m));
  await new Promise(r=>{ch.subscribe(s=>{if(s==="SUBSCRIBED")r()});setTimeout(r,6000)});if(UR!==R)return;
  if(!host){let n=0;const iv=setInterval(()=>{if(UR!==R||R.started||++n>15)return clearInterval(iv);R.tx({t:"join",name:myName()})},1200);R.tx({t:"join",name:myName()})}R.hb=setInterval(()=>uTick(R),3000)}
-async function hostUno(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await uOpen(code,true,opp);if(UR&&opp)UR.auto=true;
- openModal(`<h3>Room ready</h3><p class="sub">Waiting for your friend…</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:14px">${code}</div><button class="btn red wide" onclick="closeModal();closeUR(true)">Cancel</button>`)}
+async function hostUno(code,opp){code=code||Math.random().toString(36).slice(2,8).toUpperCase();closeModal();await uOpen(code,true,opp,opp?2:HS.p);if(UR&&opp)UR.auto=true;
+ openModal(`<h3>Room ready 🃏</h3><p class="sub">Share this code with your friends.</p><div class="card" style="padding:18px;text-align:center;font-size:32px;font-weight:900;letter-spacing:6px;margin-bottom:12px">${code}</div><div id="lbN" class="pw" style="margin-bottom:12px">1/${UR?.target||2} joined</div><button class="btn red wide" onclick="closeModal();closeUR(true)">Cancel</button>`)}
 function joinUno(code){if(!code||code.length<4)return toast("Enter the room code.");closeModal();uOpen(code,false);openModal(`<h3>Joining…</h3><p class="sub">Waiting for the host to start</p><button class="btn red wide" onclick="closeModal();closeUR(true)">Cancel</button>`)}
-function uMsg(R,m){if(UR!==R||m.from===S.user.id)return;if(R.started&&m.from!==R.oppId)return;R.seen=Date.now();
- if(m.t==="join"&&R.host){if(!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";R.nb=UNb;closeModal();R.tx({t:"start",name:myName(),nb:R.nb});uLobby(R)}else R.tx({t:"start",name:myName(),nb:R.nb})}
- else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.oppId=m.from;R.oppName=m.name||"Friend";R.nb=m.nb||0;closeModal();minCall(true);uLobby(R)}
- else if(m.t==="snap"&&!R.host)uSnap(m.s);
- else if(m.t==="act"&&R.host&&U?.online){if(m.k==="play")playU(1,m.i,m.col);else if(m.k==="draw")takeU(1);else if(m.k==="uno")sayUno(1)}
+function uMsg(R,m){if(UR!==R||m.from===S.user.id)return;if(R.started&&!R.ids.includes(m.from))return;R.seen=Date.now();
+ if(m.t==="join"&&R.host)hostJoin(R,m,()=>{closeModal();uLobby(R)})
+ else if(m.t==="start"&&!R.host&&!R.started){R.started=true;R.ids=m.ids;R.names=m.names;R.oppId=m.ids[0];R.oppName=m.names[0];R.nb=m.nb||0;closeModal();minCall(true);uLobby(R)}
+ else if(m.t==="lobby"&&!R.host&&!R.started){const ch=!R.ps||R.ps.length!==m.ps.length;R.ps=m.ps;R.target=m.target;if(ch){closeModal();minCall(true);uLobby(R)}}
+ else if(m.t==="snap"&&!R.host&&m.to===S.user.id)uSnap(m.s);
+ else if(m.t==="act"&&R.host&&U?.online){const s=R.ids.indexOf(m.from);if(s>0){if(m.k==="play")playU(s,m.i,m.col);else if(m.k==="draw")takeU(s);else if(m.k==="uno")sayUno(s)}}
  else if(m.t==="emo")floatEmo(m.e)
  else if(m.t==="bye")uLeft(R)}
 function uLeft(R){R.left=1;toast("Your friend left the game");if(U&&!U.over){U.over=true;U.win=-1;drawU()}}
 function uTick(R){if(UR!==R||!R.started)return;R.tx({t:"hb"});if(R.ch.state!=="joined"){R.dc=1;return}if(R.dc){R.dc=0;toast("Game reconnected ✓")}
  if(Date.now()-R.seen>60000&&!R.left)uLeft(R);if(R.host&&U?.online)uSend()}
-function uSend(){if(!U?.online||!UR?.host||!UR.started)return;UR.tx({t:"snap",s:{n:U.n,cnt:U.h.map(h=>h.length),mine:U.h[1],top:topU(),col:U.col,t:U.t,d:U.d,pen:U.pen,pt:U.pt,over:U.over,win:U.win,names:U.names,seq:U.seq,fresh:U.fresh}})}
-function uSnap(s){const o=U;if(o&&s.seq<o.seq)return;const me=1,h=s.cnt.map((c,i)=>i===me?s.mine:Array.from({length:c},()=>({c:4,v:"?"}))),ch=!o||o.seq!==s.seq;
- U={online:true,host:false,me,n:s.n,h,pl:[s.top],t:s.t,d:s.d,col:s.col,pen:s.pen,pt:s.pt,over:s.over,win:s.win,names:s.names,seq:s.seq,busy:false,drew:false,fresh:s.fresh,fly:ch&&o?1:0};
+function uSend(){if(!U?.online||!UR?.host||!UR.started||!UR.ids)return;const b={n:U.n,cnt:U.h.map(h=>h.length),top:topU(),col:U.col,t:U.t,d:U.d,pen:U.pen,pt:U.pt,over:U.over,win:U.win,names:U.names,seq:U.seq,fresh:U.fresh,hn:U.hn};UR.ids.forEach((id,i)=>{if(i>0)UR.tx({t:"snap",to:id,s:{...b,me:i,mine:U.h[i]}})})}
+function uSnap(s){const o=U;if(o&&s.seq<o.seq)return;const me=s.me,h=s.cnt.map((c,i)=>i===me?s.mine:Array.from({length:c},()=>({c:4,v:"?"}))),ch=!o||o.seq!==s.seq;
+ U={online:true,host:false,hn:s.hn,me,n:s.n,h,pl:[s.top],t:s.t,d:s.d,col:s.col,pen:s.pen,pt:s.pt,over:s.over,win:s.win,names:s.names,seq:s.seq,busy:false,drew:false,fresh:s.fresh,fly:ch&&o?1:0};
  if(ch&&o)sfx("move");if(s.over&&!o?.over){const won=s.win===me;if(won)incWin("uno");sfx(won?"win":"lose")}
  if(S.page==="uno")drawU()}
-function uVoice(){UR&&voiceBtn(UR.oppId,UR.oppName)}
+
 function drawU(){if(!U)return;uSend();if(S.page!=="uno")return;const me=U.me,t=topU(),mine=U.h[me],on=U.online,opp=U.h.map((h,i)=>[h,i]).filter(x=>x[1]!==me),
  sym=v=>v==="S"?"⦸":v==="R"?"⇄":v==="W"?"★":v,cd=(c,cls,oc,st)=>{const v=sym(c.v);return`<button class="uc ${c.c===4?"w ":""}${cls}" style="--c:${UC[c.c]};${st||""}" ${oc||""}><i class="cn tl">${v}</i><span class="cov"><b>${v}</b></span><i class="cn br">${v}</i></button>`},fly=U.fly?" fly":"";U.fly=0;
  const wn=U.win===me?"You won! 🏆":U.win>=0?U.names[U.win]+" won":"Your friend left",
  msg=U.over?wn:U.fresh?"Dealing cards…":U.t===me?(U.drew?"Play it, or tap the deck to pass":U.pen?`Stack a ${U.pt} or draw ${U.pen}`:"Your turn"):U.names[U.t]+"'s turn";
- $("main").innerHTML=`<section class="pg st"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;margin-bottom:12px;align-items:center"><button class="btn" onclick="go('games')">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>${UR?.oppId?`<button class="ib ok" onclick="uVoice()" aria-label="Voice">${I.mic}</button>`:""}`:""}${!on||U.host?`<button class="btn" onclick="restartUno()">↻ Restart</button>`:""}</div>
+ $("main").innerHTML=`<section class="pg st"><div style="max-width:560px;margin:auto"><div style="display:flex;gap:8px;margin-bottom:12px;align-items:center"><button class="btn" onclick="go('games')">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>${UR?.oppId?`<button class="ib gmic ${micCls()}" onclick="gameMic()" aria-label="Voice">${micI()}</button>`:""}`:""}${!on||U.host?`<button class="btn" onclick="restartUno()">↻ Restart</button>`:""}</div>
  <div id="ldBan" style="--tb:${UC[U.col]}"><i></i><span>${esc(msg)}</span></div><div class="card felt" style="padding:14px;position:relative">${U.fresh?`<div class="go"><b>Let's play!</b></div>`:""}
  <div class="grid" style="grid-template-columns:repeat(${opp.length},1fr)">${opp.map(([h,i])=>`<div class="lp ${U.t===i?"on":""}" style="--gc:#8e9cff"><em></em><div><b>${esc(U.names[i])}</b><div class="pw" style="text-align:left">${h.length} cards</div></div></div>`).join("")}</div>
  <div style="display:flex;justify-content:center;gap:22px;align-items:center;margin:22px 0 10px"><button class="uc back" onclick="takeU()"><span class="cov"><b>UNO</b></span></button>${cd(t,"pile"+fly,"",`--pr:${(U.seq*37)%17-8}deg`)}</div>
@@ -820,7 +824,72 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
 #ldCard.lw{display:grid;grid-template-columns:auto minmax(230px,1fr);gap:18px;align-items:center}
 #ldCard .lctl>div:first-child{flex-direction:column;align-items:flex-start;margin-top:0;gap:14px}
 #ldP{grid-template-columns:1fr!important}}`}));
-const VER="build 9";
+/* ---- in-game voice (no ringing): tap the mic, allow once, mute any time ---- */
+async function autoJoin(c){let g=false;try{g=(await navigator.permissions.query({name:"microphone"})).state==="granted"}catch(_){}if(C!==c)return;if(g)accept(true);else{toast("Friend turned on voice. Tap the mic to join");vib(40)}}
+const gRoom=()=>[S.room,LR,UR].find(r=>r?.started&&r.oppId);
+function gameMic(){const R=gRoom();if(!R)return;
+ if(!C)return startCall(R.oppId,R.oppName,false,true);
+ if(C.auto&&C.st==="ringing")return accept();
+ if(C.st==="on")return toggleMute();
+ if(C.st==="ringing")return toast("Incoming call");
+ toast("Connecting voice…")}
+const micCls=()=>C?(C.muted?"mmu":"mon"):"",micI=()=>C&&C.muted?I.micoff:I.mic;
+function updMic(){document.querySelectorAll(".gmic").forEach(b=>{b.className="ib gmic "+micCls();b.innerHTML=micI()})}
+/* ---- multi-player rooms (Ludo / UNO, up to 4 humans) ---- */
+function hostJoin(R,m,cb){R.ps=R.ps||[{id:S.user.id,name:myName()}];
+ if(R.started){if(R.ids.includes(m.from))R.tx({t:"start",ids:R.ids,names:R.names,nb:R.nb});return}
+ let add=false;if(!R.ps.some(p=>p.id===m.from)){if(R.ps.length>=R.target)return;R.ps.push({id:m.from,name:m.name||"Friend"});add=true}
+ R.oppId=R.ps[1].id;R.oppName=R.ps[1].name;R.tx({t:"lobby",ps:R.ps,target:R.target});if(add){lobbyUI(R);cb(R,R.ps.length>=R.target)}}
+function lobbyUI(R){const n=R.ps?.length||1,e=$("lbN");if(e)e.textContent=n+"/"+R.target+" joined";const l=$("lbL");if(l)l.textContent=(R.ps||[]).map(p=>p.name).join(" · ");const b=$("lbS");if(b)b.classList.toggle("h",!(R.host&&n>=2&&n<R.target))}
+function lStart(R){if(!R||LR!==R||R.started||!R.ps||R.ps.length<2)return;R.started=true;R.nb=Math.min(LNb,4-R.ps.length);R.ids=R.ps.map(p=>p.id);R.names=R.ps.map(p=>p.name);closeModal();R.tx({t:"start",ids:R.ids,names:R.names,nb:R.nb});startLudo("online",[...R.names,...bn(R.nb)],0,null,R.ids)}
+const own=(R,m)=>cur().bot?m.from===R.ids[0]:cur().uid===m.from;
+/* ---- game hub: pick a game, then a mode, then options ---- */
+const HG={ludo:{t:"Ludo",i:"dice",a:"#ef5368",b:"#ff8a5b",mx:4},ttt:{t:"Tic-Tac-Toe",i:"ttt",a:"#7889ff",b:"#a077ff",mx:2},uno:{t:"UNO",i:"cards",a:"#ffc93c",b:"#ff8a5b",mx:4}};
+const HS={p:2,b:0,r:1};
+const ludoMenu=()=>hub("ludo"),tttMenu=()=>hub("ttt"),unoMenu=()=>hub("uno");
+function hs(key,v){const g=HG[S.hub.k];HS[key]=v;if(key==="p")HS.b=Math.min(HS.b,g.mx-v);hub(S.hub.k,S.hub.m)}
+function hubBack(){const h=S.hub;h&&h.m?hub(h.k):go("games")}
+function hubRoom(k){LNb=UNb=HS.b;k==="ludo"?hostLudo():k==="uno"?hostUno():hostTTT()}
+function hubRandom(k){LNb=UNb=Math.min(HS.b,2);matchmake(k)}
+function hubJoin(k){const c=$("jc").value.trim().toUpperCase();k==="ludo"?joinLudo(c):k==="uno"?joinUno(c):joinTTT(c)}
+function hub(k,m){S.page="hub";S.hub={k,m};const g=HG[k],sg=(key,arr,lab)=>`<div class="seg">${arr.map(x=>`<button class="${HS[key]===x?"on":""}" onclick="hs('${key}',${x})">${lab?lab(x):x}</button>`).join("")}</div>`,
+ card=(t,s,f,i)=>`<button class="card hc" onclick="${f}">${gi(i[0],i[1],i[2])}<span class="t"><b>${t}</b><small>${s}</small></span></button>`;let body="";
+ if(!m){body=card("Play online","Friends, room code or random",`hub('${k}','online')`,[I.connect,"#5b8cff","#7a6bff"])+card("Vs robots",k==="ttt"?"Quick game against the bot":"Practice solo",k==="ttt"?"startG('bot')":`hub('${k}','bot')`,[I.users,"#2fd6a0","#2f9fd6"])+(k==="uno"?"":card("One phone","Take turns on this device",k==="ludo"?"startLudo('local')":"startG('local')",[I.game,"#ff8a5b","#ff5b8a"]))}
+ else if(m==="online"){const cnt=g.mx>2?`<div class="lbl">Players</div>${sg("p",[...Array(g.mx-1)].map((_,i)=>i+2))}<div class="lbl">Robots</div>${sg("b",[...Array(g.mx-HS.p+1)].map((_,i)=>i),x=>x||"None")}<div class="pw" style="text-align:left;margin:10px 4px 0">${HS.p} players${HS.b?" + "+HS.b+" robot"+(HS.b>1?"s":""):""} in a room. Random match is always 2 players.</div>`:"";
+  body=cnt+`<div class="lbl">Start</div>`+card("Create room","Share the code with friends",`hubRoom('${k}')`,[I.plus,"#9a6bff","#d26bff"])+card("Find random player","Matched with someone searching",`hubRandom('${k}')`,[I.connect,"#5b8cff","#7a6bff"])+`<div class="card" style="padding:14px;display:flex;gap:8px"><input id="jc" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn pri" onclick="hubJoin('${k}')">Join</button></div>`}
+ else if(m==="bot"){body=`<div class="lbl">Robots</div>${sg("r",[1,2,3],x=>x+" 🤖")}<div class="lbl">Start</div>`+card("Start game","You + "+HS.r+" robot"+(HS.r>1?"s":""),k==="ludo"?"startLudo('robot',null,null,HS.r+1)":"startUno(HS.r)",[I.users,"#2fd6a0","#2f9fd6"])}
+ $("main").innerHTML=`<section class="pg st"><div><button class="btn" onclick="hubBack()">‹ ${m?g.t:"Games"}</button></div><div style="display:flex;align-items:center;gap:14px;margin:14px 0 18px">${gi(I[g.i],g.a,g.b)}<div><h2 style="margin:0">${g.t}</h2><div class="sub" style="margin:2px 0 0">${m==="online"?"Play online":m==="bot"?"Vs robots":"Choose how to play"}</div></div></div><div class="fi">${body}</div></section>`}
+/* ---- premium look: depth, glass, glow ---- */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+body{background:radial-gradient(120% 80% at 50% -10%,#151b36 0%,#06070d 62%)}
+.orbs i{opacity:.34}
+.top{background:rgba(8,10,20,.5);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-bottom:1px solid rgba(255,255,255,.07)}
+.nav{margin:0 14px calc(12px + env(safe-area-inset-bottom,0px));padding-bottom:0;box-sizing:border-box;height:66px;border:1px solid rgba(255,255,255,.1);border-radius:28px;background:rgba(16,20,36,.62);backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);box-shadow:0 24px 50px -12px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.1)}
+.nav .on{color:#fff}.nav .on::before{top:auto;bottom:7px;width:5px;height:5px;border-radius:50%;background:var(--a);box-shadow:0 0 12px var(--a)}
+h2{font-size:31px;letter-spacing:-1.2px;font-weight:900}.sub{opacity:.85}
+.card{border:1px solid rgba(255,255,255,.08);border-radius:26px;background:linear-gradient(160deg,rgba(255,255,255,.075),rgba(255,255,255,.015) 60%),rgba(14,18,34,.6);box-shadow:0 24px 50px -22px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.12)}
+.btn{border-radius:16px;box-shadow:0 8px 20px -10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.14)}
+.btn:active{transform:scale(.96);box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
+.pri{background:linear-gradient(135deg,#6a7bff,#b36bff);box-shadow:0 14px 30px -10px rgba(140,110,255,.75),inset 0 1px 0 rgba(255,255,255,.3)}
+.ib{border-radius:15px;box-shadow:0 8px 18px -10px #000,inset 0 1px 0 rgba(255,255,255,.1)}
+.ib:active{transform:scale(.94);box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+.gi{width:52px;height:52px;border-radius:17px;box-shadow:0 16px 28px -10px var(--g1),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.18)}
+.qc{border-radius:28px;min-height:128px}
+.pg{animation:pgin2 .6s var(--e) both}
+@keyframes pgin2{from{opacity:0;transform:translateY(20px) scale(.985);filter:blur(8px)}}
+.md{border-radius:30px;border:1px solid rgba(255,255,255,.1)}
+.ov{backdrop-filter:blur(16px) saturate(1.2)}
+input{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.09)}
+::selection{background:rgba(140,110,255,.45)}
+.seg{display:flex;gap:6px;padding:5px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+.seg button{flex:1;min-height:42px;border-radius:13px;font-weight:800;color:#9aa6bd;transition:.25s var(--e)}
+.seg button.on{background:linear-gradient(135deg,#6a7bff,#b36bff);color:#fff;box-shadow:0 10px 22px -8px rgba(140,110,255,.8)}
+.hc{display:flex;align-items:center;gap:14px;padding:16px;margin-bottom:12px;width:100%;text-align:left}
+.hc .t{flex:1}.hc b{display:block;font-size:17px}.hc small{color:var(--mu)}.hc::after{content:"›";font-size:28px;color:#8e9cff}
+.lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b97ab;margin:20px 4px 8px;font-weight:800}
+.fi{animation:fi .45s var(--e) both}@keyframes fi{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.gmic.mon{color:#8ff0bd}.gmic.mmu{color:#ff8797}`}));
+const VER="build 10";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
 
