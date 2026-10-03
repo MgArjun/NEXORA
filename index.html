@@ -1001,6 +1001,46 @@ banner=function(title,text,onTap){const nmx=String(title).replace(/^💬\s*/,"")
  b.onclick=()=>{b.classList.remove("show");onTap&&onTap()};
  void b.offsetWidth;b.classList.add("show");clearTimeout(bnT);bnT=setTimeout(()=>b.classList.remove("show"),2000)};
 
+/* ---- v5: offline delivery + missed calls ---- */
+function deliver(to,text){const mid=crypto.randomUUID(),un=S.me?.username||"";
+ sig({type:"msg",to,text,name:myName(),un,mid});
+ sb.from("notifications").insert({user_id:to,type:"message",title:myName(),body:text.slice(0,80),data:{from:S.user.id,un,name:myName(),text:text.slice(0,300),mid}}).then(r=>{if(r&&r.error){console.warn(r.error.message);if(!deliver.w){deliver.w=1;toast("⚠️ Offline delivery fail: "+r.error.message.slice(0,70))}}},()=>{})}
+const _gm=gMsgSig;
+gMsgSig=function(p){if(p.type==="msg"&&p.mid){const k=K("nx_mids"),o=LS(k,[]);if(o.includes(p.mid))return;o.push(p.mid);localStorage[k]=JSON.stringify(o.slice(-300))}_gm(p)};
+sendMsg=async function(){const i=$("ci"),c=S.chat;if(!c||!i)return;const text=i.value.trim();if(!text)return;i.value="";const id=crypto.randomUUID(),at=new Date().toISOString();
+ addMsg({id,sender_id:S.user.id,content:text,created_at:at},true,true);sfx("send");rec(c.uid,c.un,c.name,text);
+ S.cch?.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});
+ deliver(c.uid,text);
+ try{const r=await sb.from("messages").insert({conversation_id:c.cid,sender_id:S.user.id,content:text});if(r.error)console.warn(r.error.message)}catch(_){}};
+const _ec=endCall;
+endCall=function(silent){const c=C;if(c&&c.init&&c.st==="calling"&&!silent&&!c.auto&&!c.random)deliver(c.uid,"📞 Missed voice call");_ec(silent)};
+let pulling=0;
+async function pullInbox(){if(!S.user||pulling)return;pulling=1;try{
+ const r=await sb.from("notifications").select("*").eq("user_id",S.user.id).eq("type","message").eq("is_read",false).order("created_at",{ascending:true}).limit(100);
+ if(r.error||!r.data||!r.data.length)return;
+ const k=K("nx_mids"),ms=LS(k,[]),fresh=[],old=[];
+ r.data.forEach(n=>{const d=n.data||{};if(!d.from)return;if(d.mid&&ms.includes(d.mid)){old.push(n.id);return}if(d.mid)ms.push(d.mid);
+  fresh.push({from:d.from,un:d.un||"",name:d.name||n.title||"Friend",text:String(d.text||n.body||""),t:new Date(n.created_at).getTime(),mid:d.mid})});
+ localStorage[k]=JSON.stringify(ms.slice(-300));
+ if(old.length)sb.from("notifications").update({is_read:true}).in("id",old).then(()=>{},()=>{});
+ if(!fresh.length)return;
+ fresh.forEach(m=>{cacheMsg(cidOf(m.from),{sender_id:m.from,content:m.text,created_at:m.t});rec(m.from,m.un,m.name,m.text);if(!(S.chat&&S.chat.uid===m.from))inboxAdd(m)});
+ const show=fresh.filter(m=>!(S.chat&&S.chat.uid===m.from));if(!show.length)return;
+ const l=show[show.length-1];sfx("recv");vib([30,30]);const d=$("bdot");d&&d.classList.remove("h");
+ show.length===1?banner("💬 "+dn(l.from,l.name),l.text,()=>{if(!inGame())openChat("",l.from,l.un,l.name)}):banner("💬 "+show.length+" new messages",l.text,()=>$("bell").click());
+ if(S.page==="recent")renderRecent()}catch(_){}finally{pulling=0}}
+$("bell").onclick=async()=>{INB=LS(K("nx_inbox"),[]);let l=[];
+ try{const r=await sb.from("notifications").select("*").eq("user_id",S.user.id).order("created_at",{ascending:false}).limit(40);l=(r.data||[]).filter(n=>n.type!=="message")}catch(_){}
+ const a=INB.map((m,i)=>`<button class="card" style="display:block;width:100%;text-align:left;padding:14px;margin-bottom:10px" onclick="inboxOpen(${i})"><b>💬 ${esc(dn(m.from,m.name))}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(m.text)}</div></button>`).join("");
+ const b=l.map(n=>`<div class="card" style="padding:14px;margin-bottom:10px"><b>${esc(n.title)}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(n.body||"")}</div>${n.type==="friend_request"&&n.data?.from?`<button class="btn pri" style="margin-top:10px;min-height:40px" onclick="acceptFr('${esc(n.data.from)}')">Accept</button>`:""}</div>`).join("");
+ openModal(`<h3>Notifications</h3><p class="sub">Messages, missed calls, friend requests and invites.</p>${a||b?a+b:`<div class="empty">You are all caught up.</div>`}<button class="btn wide" onclick="closeModal()">Close</button>`);
+ sb.from("notifications").update({is_read:true}).eq("user_id",S.user.id).eq("is_read",false).then(()=>{},()=>{});
+ const d=$("bdot");d&&d.classList.add("h")};
+const _en=enter;enter=async function(u){const r=await _en(u);setTimeout(pullInbox,1200);return r};
+setInterval(()=>{if(S.user&&!document.hidden)pullInbox()},20000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullInbox()});
+addEventListener("online",()=>pullInbox());
+
 const VER="build 10";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
