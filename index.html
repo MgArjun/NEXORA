@@ -959,6 +959,48 @@ sendMsg=async function(){const i=$("ci"),c=S.chat;if(!c||!i)return;const text=i.
  if(!Object.keys(LV?.presenceState?.()||{}).includes(c.uid))sb.from("notifications").insert({user_id:c.uid,type:"message",title:myName()+" sent a message",body:text.slice(0,80),data:{from:S.user.id}}).then(()=>{},()=>{});
  try{const r=await sb.from("messages").insert({conversation_id:c.cid,sender_id:S.user.id,content:text});if(r.error)console.warn(r.error.message)}catch(_){}};
 
+/* ---- v3: top banner + bell inbox ---- */
+let bnT;
+function banner(title,text,onTap){let b=$("nbn");if(!b){b=document.createElement("button");b.id="nbn";document.body.appendChild(b)}
+ b.innerHTML=`<span class="bt">${esc(title)}</span><span class="bx">${esc(text)}</span>`;
+ b.onclick=()=>{b.classList.remove("show");onTap&&onTap()};
+ void b.offsetWidth;b.classList.add("show");clearTimeout(bnT);bnT=setTimeout(()=>b.classList.remove("show"),4500)}
+const inboxAdd=m=>{const k=K("nx_inbox"),o=LS(k,[]);o.unshift(m);localStorage[k]=JSON.stringify(o.slice(0,30))};
+const inGame=()=>["ttt","ludo","uno"].includes(S.page);
+gMsgSig=function(p){
+ if(p.type==="seen"){if(S.chat&&S.chat.uid===p.from)document.querySelectorAll(".m.me .tk").forEach(e=>{e.textContent="✓✓ Seen";e.style.color="#7fd3ff"});return}
+ const x=String(p.text||"").slice(0,300),un=p.un||"",nmx=p.name||"Friend",n=dn(p.from,nmx);
+ cacheMsg(cidOf(p.from),{sender_id:p.from,content:x,created_at:Date.now()});rec(p.from,un,nmx,x);
+ if(S.chat&&S.chat.uid===p.from)return;
+ inboxAdd({from:p.from,un,name:nmx,text:x,t:Date.now()});
+ sfx("recv");vib([30,30]);
+ banner("💬 "+n,x,()=>{if(!inGame())openChat("",p.from,un,nmx)});
+ const d=$("bdot");d&&d.classList.remove("h");if(S.page==="recent")renderRecent()};
+gChatIn=function(R,m){if(m.from===S.user.id||!R.started||![S.room,LR,UR].includes(R))return;gcSync();const n=m.n||"Friend",x=String(m.x||"").slice(0,300);if(!x)return;gcAdd(n,x,false);sfx("recv");vib(15);if(!GC.open){GC.unread++;banner("💬 "+n,x,()=>gcOpen())}gcSync()};
+let INB=[];
+function inboxOpen(i){const m=INB[i];if(!m)return;closeModal();openChat("",m.from,m.un,m.name)}
+async function dbOpen(id){closeModal();try{const r=await sb.from("profiles").select("*").eq("id",id).maybeSingle();if(r.data)openChat("",id,r.data.username,nm(r.data))}catch(_){}}
+$("bell").onclick=async()=>{INB=LS(K("nx_inbox"),[]);let l=[];
+ try{const r=await sb.from("notifications").select("*").eq("user_id",S.user.id).order("created_at",{ascending:false}).limit(40);l=r.data||[]}catch(_){}
+ const a=INB.map((m,i)=>`<button class="card" style="display:block;width:100%;text-align:left;padding:14px;margin-bottom:10px" onclick="inboxOpen(${i})"><b>💬 ${esc(dn(m.from,m.name))}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(m.text)}</div></button>`).join("");
+ const b=l.map(n=>`<div class="card" style="padding:14px;margin-bottom:10px"><b>${esc(n.title)}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(n.body||"")}</div>${n.type==="friend_request"&&n.data?.from?`<button class="btn pri" style="margin-top:10px;min-height:40px" onclick="acceptFr('${esc(n.data.from)}')">Accept</button>`:""}${n.type==="message"&&n.data?.from?`<button class="btn pri" style="margin-top:10px;min-height:40px" onclick="dbOpen('${esc(n.data.from)}')">Open chat</button>`:""}</div>`).join("");
+ openModal(`<h3>Notifications</h3><p class="sub">Messages, friend requests and invites.</p>${a||b?a+b:`<div class="empty">You are all caught up.</div>`}<button class="btn wide" onclick="closeModal()">Close</button>`);
+ sb.from("notifications").update({is_read:true}).eq("user_id",S.user.id).eq("is_read",false).then(()=>{},()=>{});
+ const d=$("bdot");d&&d.classList.add("h")};
+
+/* ---- v4: compact pop banner ---- */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+#nbn{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);z-index:9400;width:min(90vw,360px);display:flex;align-items:center;gap:10px;text-align:left;padding:7px 16px 7px 7px;border-radius:999px;background:linear-gradient(145deg,rgba(38,50,88,.96),rgba(16,22,40,.96));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 30px -8px rgba(0,0,0,.75),0 0 0 1px rgba(124,140,255,.2);transform:translate(-50%,-34px) scale(.7);opacity:0;pointer-events:none;transition:transform .42s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+#nbn.show{transform:translate(-50%,0) scale(1);opacity:1;pointer-events:auto}
+#nbn .ba{width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:12px;font-weight:900;background:linear-gradient(135deg,#697cff,#a26cff)}
+#nbn .bl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+#nbn .bl b{font-weight:800;color:#c9d0ff}`}));
+banner=function(title,text,onTap){const nmx=String(title).replace(/^💬\s*/,""),t=String(text).replace(/\s+/g," ").trim().slice(0,80);
+ let b=$("nbn");if(!b){b=document.createElement("button");b.id="nbn";document.body.appendChild(b)}
+ b.innerHTML=`<span class="ba">${esc(ini(nmx))}</span><span class="bl"><b>${esc(nmx)}</b> · ${esc(t)}</span>`;
+ b.onclick=()=>{b.classList.remove("show");onTap&&onTap()};
+ void b.offsetWidth;b.classList.add("show");clearTimeout(bnT);bnT=setTimeout(()=>b.classList.remove("show"),2000)};
+
 const VER="build 10";
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
