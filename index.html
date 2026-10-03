@@ -1853,4 +1853,91 @@ body.nx-uno .felt>.grid>.lp .ofan{height:40px}
 }
 `}));
 setInterval(()=>{const g=!!S.user&&["ttt","ludo","uno"].includes(S.page),b=document.body.classList;b.toggle("nx-game",g);b.toggle("nx-uno",!!S.user&&S.page==="uno")},250);
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+@media(orientation:landscape){
+body.nx-game .top,body.nx-game .nav{display:none!important}
+body.nx-game .pg{padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px))!important}
+body.nx-game #nxfs,body.nx-game #gcb{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+body.nx-game .bd{max-width:min(420px,calc(100dvh - 240px))}
+body.nx-game .chbd{width:min(100%,calc(100dvh - 300px));margin:8px auto}
+body.nx-game #crCv{width:min(100%,calc(100dvh - 260px))!important;margin:0 auto}
+body.nx-game #crX{width:min(100%,calc(100dvh - 260px));display:block;margin:10px auto 0!important}
+body.nx-uno .pg:has(.uh){overflow:hidden!important}
+body.nx-uno .pg>div:has(.uh){max-width:none!important;height:100%;display:flex;flex-direction:column}
+body.nx-uno .pg>div:has(.uh)>div:first-child{margin-bottom:6px!important}
+body.nx-uno #ldBan{margin-bottom:6px!important;padding:6px 14px!important}
+body.nx-uno .felt:has(.uh){flex:1;min-height:0!important;padding:104px 14px 10px!important;justify-content:space-between;border-width:7px!important}
+body.nx-uno .felt:has(.uh)::before{top:52%}
+body.nx-uno .felt>.grid>.lp:only-child,body.nx-uno .felt>.grid>.lp:nth-child(2):nth-last-child(2){top:12px}
+body.nx-uno .felt>.grid>.lp:first-child:nth-last-child(2),body.nx-uno .felt>.grid>.lp:first-child:nth-last-child(3),body.nx-uno .felt>.grid>.lp:last-child:nth-child(2),body.nx-uno .felt>.grid>.lp:last-child:nth-child(3){top:50%}
+body.nx-uno .uh{height:150px!important;margin-top:auto!important}
+body.nx-uno .uh .uc{top:14px}
+body.nx-uno .felt>.btn.wide{position:absolute;right:18px;bottom:16px;margin:0!important;width:150px!important;z-index:3}
+}
+@media(orientation:landscape) and (min-height:601px){body.nx-ludo #ldCv{width:min(100%,calc(100dvh - 150px))!important}}
+@media(orientation:landscape) and (max-height:560px){
+body.nx-game #ldBan{display:none}
+body.nx-game .pg>div>h2,body.nx-game .pg>h2{display:none}
+body.nx-game .bd{max-width:min(420px,calc(100dvh - 150px))}
+body.nx-game .chbd{width:min(100%,calc(100dvh - 190px))}
+body.nx-game #crCv,body.nx-game #crX{width:min(100%,calc(100dvh - 170px))!important}
+body.nx-uno .felt:has(.uh){padding-top:72px!important}
+body.nx-uno .felt .uc.back,body.nx-uno .felt .uc.pile{width:46px!important;height:69px!important}
+body.nx-uno .felt .uc.pile .cov b{font-size:22px!important}
+body.nx-uno .uh{height:112px!important}
+body.nx-uno .uh .uc{width:44px!important;height:66px!important;margin-left:-22px!important;transform-origin:50% 110px}
+body.nx-uno .felt>.grid>.lp{width:104px}
+body.nx-uno .felt>.grid>.lp .ofan{height:40px}
+}
+`}));
+setInterval(()=>{const g=!!S.user&&["ttt","ludo","uno"].includes(S.page),b=document.body.classList;b.toggle("nx-game",g);b.toggle("nx-uno",!!S.user&&S.page==="uno")},250);
+/* NX-PATCH-V9 UNO-FINISH */
+UC[2]="#ffd21f";
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.uc[style*="--c:#ffd21f"]{background:linear-gradient(150deg,#fff6b0,#ffd21f 48%,#f2b300)!important}
+.uc[style*="--c:#ffd21f"] .cov b{color:#e09a00}
+.uc[style*="--c:#ffd21f"]:not(.ok):not(.pile):not(.back){filter:brightness(.92) saturate(1.05)!important}
+@media(orientation:portrait){#nxfs{display:none!important}}
+body.nx-pfs .top,body.nx-pfs .nav{display:none!important}
+body.nx-game #call.mn{left:auto;right:10px;top:calc(env(safe-area-inset-top,0px) + 64px);transform:none;width:max-content;max-width:calc(100vw - 20px)}
+@media(orientation:landscape){
+body.nx-uno .felt:has(.uh){display:grid!important;grid-template-columns:minmax(96px,1fr) auto minmax(96px,1fr);grid-template-rows:auto 1fr auto;align-items:center;justify-items:center;justify-content:stretch!important;gap:6px 10px;padding:10px 14px 8px!important}
+body.nx-uno .felt>.grid>.lp{position:static!important;transform:none!important;width:112px}
+body.nx-uno .felt>.grid>.lp:only-child,body.nx-uno .felt>.grid>.lp:nth-child(2):nth-last-child(2){grid-area:1/2}
+body.nx-uno .felt>.grid>.lp:first-child:nth-last-child(2),body.nx-uno .felt>.grid>.lp:first-child:nth-last-child(3){grid-area:2/1}
+body.nx-uno .felt>.grid>.lp:last-child:nth-child(2),body.nx-uno .felt>.grid>.lp:last-child:nth-child(3){grid-area:2/3}
+body.nx-uno .felt>div[style*="justify-content:center"]{grid-area:2/2;margin:0!important}
+body.nx-uno .uh{grid-area:3/1/4/4;width:100%;margin:0!important}
+}
+`}));
+/* full screen: landscape only, with fallback */
+nxfsTog=async function(){if(pfs())return pfsExit();
+ const e=document.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;
+ if(!r){document.body.classList.toggle("nx-pfs");return toast("Is browser me asli full screen nahi hai. iPhone: Share > Add to Home Screen karo")}
+ try{await r.call(e,{navigationUI:"hide"})}catch(_){return toast("Full screen nahi khula")}
+ pfsOwn=true;try{await screen.orientation.lock("landscape")}catch(_){}};
+$("nxfs").onclick=nxfsTog;
+addEventListener("orientationchange",()=>setTimeout(()=>{if(pfs()&&innerHeight>innerWidth)pfsExit()},300));
+/* more variety of cards */
+mkDeck=function(){const d=[];for(let c=0;c<4;c++){for(let v=0;v<=9;v++)for(let k=0;k<(v?2:1);k++)d.push({c,v:""+v});["S","R","+2"].forEach(v=>{for(let k=0;k<4;k++)d.push({c,v})})}
+ for(let k=0;k<6;k++)d.push({c:4,v:"W"});for(let k=0;k<4;k++)d.push({c:4,v:"+4"});
+ for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d};
+/* rematch that works for host and guest */
+let nxGen=Date.now(),nxSeen=0,nxRq=0;
+const _nU=newUno;newUno=function(){nxGen=Date.now();nxRq=0;return _nU.apply(this,arguments)};
+const _uS=uSend;uSend=function(){const R=UR;if(!R||!R.tx)return _uS();const tx=R.tx;R.tx=m=>tx(m&&m.t==="snap"&&m.s?{...m,s:{...m.s,gen:nxGen}}:m);try{return _uS()}finally{R.tx=tx}};
+const _uSn=uSnap;uSnap=function(s){if(s&&s.gen&&s.gen!==nxSeen){nxSeen=s.gen;nxRq=0;U=null}return _uSn(s)};
+function nxRematch(){if(!UR||nxRq)return;nxRq=1;UR.tx({t:"act",k:"rematch"});toast("Rematch request bheji");nxFix()}
+const _uM=uMsg;uMsg=function(R,m){if(m&&m.t==="act"&&m.k==="rematch"&&R.host&&UR===R&&m.from!==S.user.id&&U&&U.online&&U.over){restartUno();return}return _uM(R,m)};
+function nxFix(){const w=document.querySelector("#main .wo .pw");if(U&&U.over&&U.online&&!U.host&&w)w.outerHTML='<button class="btn pri" '+(nxRq?"disabled":"")+' onclick="nxRematch()">'+(nxRq?"⏳ Waiting…":"🔁 Rematch")+'</button>'}
+/* smooth hand animation (FLIP) */
+let nxHd=null;
+function nxFlip(){const h=document.querySelector("#main .uh");if(!h||!U||U.fresh){nxHd=null;return}
+ const cnt={},list=[...h.children].map((e,i)=>{const c=U.h[U.me][i],k=c?c.c+"_"+c.v:"?";cnt[k]=(cnt[k]||0)+1;return{e,k:k+"#"+cnt[k],r:e.getBoundingClientRect()}}),pv=nxHd;nxHd=list.map(x=>({k:x.k,r:x.r}));
+ if(!pv)return;const m={};pv.forEach(x=>m[x.k]=x.r);
+ list.forEach(x=>{const o=m[x.k],b=getComputedStyle(x.e).transform,bs=b==="none"?"":b;
+  if(!o){x.e.animate([{opacity:0,transform:"translateY(36px) scale(.6) "+bs},{opacity:1,transform:bs||"none"}],{duration:380,easing:"cubic-bezier(.22,1,.36,1)"});return}
+  const dx=o.left-x.r.left,dy=o.top-x.r.top;if(Math.abs(dx)+Math.abs(dy)<2)return;
+  x.e.animate([{transform:"translate("+dx+"px,"+dy+"px) "+bs},{transform:bs||"none"}],{duration:340,easing:"cubic-bezier(.22,1,.36,1)"})})}
+const _nx9=drawU;drawU=function(){const r=_nx9.apply(this,arguments);try{nxFlip();nxFix()}catch(_){}return r};
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
