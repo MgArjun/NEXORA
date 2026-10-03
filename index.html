@@ -2301,4 +2301,19 @@ main .pg .grid>*,main .pg>.card,main .pg .row{animation:none!important}
 `}));
 })();
 
+/* NX-PATCH-V17 NOTIF-FIX */
+(()=>{
+const KEY=()=>K("nx_inbox");
+$("bell").onclick=async()=>{INB=LS(KEY(),[]);let l=[];
+ try{const r=await sb.from("notifications").select("*").eq("user_id",S.user.id).eq("is_read",false).order("created_at",{ascending:false}).limit(40);l=(r.data||[]).filter(n=>n.type!=="message")}catch(_){}
+ const a=INB.map((m,i)=>`<button class="card" style="display:block;width:100%;text-align:left;padding:14px;margin-bottom:10px" onclick="inboxOpen(${i})"><b>💬 ${esc(dn(m.from,m.name))}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(m.text)}</div></button>`).join("");
+ const b=l.map(n=>`<div class="card" style="padding:14px;margin-bottom:10px"><b>${esc(n.title)}</b><div class="pw" style="text-align:left;margin-top:4px">${esc(n.body||"")}</div>${n.type==="friend_request"&&n.data?.from?`<button class="btn pri" style="margin-top:10px;min-height:40px" onclick="acceptFr('${esc(n.data.from)}')">Accept</button>`:""}</div>`).join("");
+ openModal(`<h3>Notifications</h3><p class="sub">Sirf naye messages, missed calls, friend requests aur invites.</p>${a||b?a+b:`<div class="empty">Koi naya notification nahi.</div>`}<button class="btn wide" onclick="closeModal()">Close</button>`);
+ try{localStorage[KEY()]="[]"}catch(_){}
+ sb.from("notifications").update({is_read:true}).eq("user_id",S.user.id).eq("is_read",false).then(()=>{},()=>{});
+ const d=$("bdot");d&&d.classList.add("h")};
+const _oc=openChat;
+openChat=function(a,b,c,d){try{localStorage[KEY()]=JSON.stringify(LS(KEY(),[]).filter(x=>x.from!==b))}catch(_){}return _oc(a,b,c,d)};
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
