@@ -1940,4 +1940,100 @@ function nxFlip(){const h=document.querySelector("#main .uh");if(!h||!U||U.fresh
   const dx=o.left-x.r.left,dy=o.top-x.r.top;if(Math.abs(dx)+Math.abs(dy)<2)return;
   x.e.animate([{transform:"translate("+dx+"px,"+dy+"px) "+bs},{transform:bs||"none"}],{duration:340,easing:"cubic-bezier(.22,1,.36,1)"})})}
 const _nx9=drawU;drawU=function(){const r=_nx9.apply(this,arguments);try{nxFlip();nxFix()}catch(_){}return r};
+
+
+/* NX-PATCH-V10 UNO-NOMERCY */
+const nuD=c=>({"+2":2,"+4":4,"+6":6,"+10":10,R4:4})[c.v]||0;
+const nuOk=c=>U.pen?nuD(c)>=nuD({v:U.pt}):(c.c===4||c.c===U.col||c.v===topU().v);
+const nuAl=()=>U.out.filter(x=>!x).length;
+const nuNx=(f=1)=>{let t=U.t;for(let k=0;k<f;k++){let g=0;do{t=(t+U.d+U.n)%U.n}while(U.out[t]&&++g<9)}return t};
+let nuP="",nxOut=null;
+mkDeck=function(){const d=[];for(let c=0;c<4;c++){for(let v=0;v<=9;v++)for(let k=0;k<2;k++)d.push({c,v:""+v});[["S",3],["SA",2],["R",3],["+2",3],["+4",3],["D",3]].forEach(([v,n])=>{for(let k=0;k<n;k++)d.push({c,v})})}
+ [["R4",4],["+6",4],["+10",4],["RL",4]].forEach(([v,n])=>{for(let k=0;k<n;k++)d.push({c:4,v})});
+ for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d};
+const _nuN=newUno;newUno=function(){const r=_nuN.apply(this,arguments);if(U&&!U.out)U.out=Array(U.n).fill(false);nuP="";return r};
+function nuEl(p){U.out[p]=true;U.dk.unshift(...U.h[p]);U.h[p]=[];toast(U.names[p]+" out! 25 cards (Mercy)");sfx("lose");if(nuAl()===1){U.over=true;U.win=U.out.indexOf(false);if(U.win===U.me){incWin("uno");sfx("win")}}}
+function nuDr(p,k){dr(p,k);if(U.h[p].length>=25&&!U.out[p])nuEl(p)}
+function nuSet(){if(U.over)return;const p=U.t;if(U.pen&&!U.h[p].some(nuOk)){nuDr(p,U.pen);toast(U.names[p]+" draws "+U.pen);U.pen=0;U.pt=null;if(!U.over)U.t=nuNx(1)}U.drew=false}
+function nuRL(p,col){let g=0;for(;;){const n=U.h[p].length;nuDr(p,1);if(U.out[p]||U.h[p].length===n||++g>40)break;if(U.h[p][U.h[p].length-1].c===col)break}}
+playU=function(p,i,col){if(!U||U.busy||U.over||U.t!==p||U.out[p])return;const h=U.h[p],c=h[i];if(!c||!nuOk(c))return;
+ if(c.c===4&&col===undefined&&p===U.me)return pickCol(i);
+ if(U.online&&!U.host)return UR?.tx({t:"act",k:"play",i,col});
+ if(c.c===4&&col===undefined)col=bestCol(h);
+ h.splice(i,1);U.pl.push(c);U.col=c.c<4?c.c:col;
+ if(c.v==="D")for(let k=h.length-1;k>=0;k--)if(h[k].c===c.c)U.pl.splice(U.pl.length-1,0,...h.splice(k,1));
+ U.drew=false;U.fly=1;U.seq++;sfx("move");let sk=1,rl=-1;const a=nuD(c);
+ if(c.v==="S")sk=2;else if(c.v==="SA")sk=nuAl();
+ else if(c.v==="R"||c.v==="R4"){U.d*=-1;if(nuAl()===2&&c.v==="R")sk=2}
+ else if(c.v==="RL"){rl=nuNx(1);sk=2}
+ if(a){U.pen+=a;U.pt=c.v}
+ const human=p===0||(U.online&&p<U.hn);
+ if(!h.length){U.over=true;U.win=p;U.say[p]=false;if(p===U.me){incWin("uno");sfx("win");for(let k=0;k<8;k++)setTimeout(()=>floatEmo("🎉"),k*150)}else sfx("lose");return drawU()}
+ if(rl>=0)nuRL(rl,U.col);
+ if(U.over)return drawU();
+ if(h.length===1){if(human&&!U.say[p]){nuDr(p,2);toast(U.names[p]+" forgot UNO! +2");sfx("lose")}else{toast("UNO! "+U.names[p]);tone(880,.2)}}
+ U.say[p]=false;if(U.over)return drawU();U.t=nuNx(sk);nuSet();drawU();nextU()};
+takeU=function(p=U?.me){if(!U||U.over||U.t!==p||U.busy||U.out[p])return;if(U.online&&!U.host)return UR?.tx({t:"act",k:"draw"});
+ if(U.pen){nuDr(p,U.pen);U.pen=0;U.pt=null;U.drew=false;if(!U.over)U.t=nuNx(1)}
+ else if(U.drew){U.drew=false;U.t=nuNx(1)}
+ else{let g=0;const lc=()=>U.h[p][U.h[p].length-1]||{c:-1,v:"x"};do{nuDr(p,1);g++}while(!U.out[p]&&!nuOk(lc())&&g<40);
+  if(U.out[p]){if(!U.over)U.t=nuNx(1)}
+  else if(U.h[p].length&&nuOk(lc())){U.drew=true;U.seq++;sfx("tap");return drawU()}
+  else U.t=nuNx(1)}
+ U.seq++;nuSet();drawU();nextU()};
+nextU=function(){const u=U;if(!u||u.over||u.out[u.t]||u.t===0||(u.online&&(!u.host||u.t<u.hn)))return;u.busy=true;
+ setTimeout(()=>{if(U!==u||u.over)return;u.busy=false;const p=u.t,h=u.h[p],ix=[];h.forEach((c,i)=>nuOk(c)&&ix.push(i));
+  if(ix.length){const sc=i=>{const c=h[i];return(c.c===4?5:0)+(c.v==="D"?-2:0)+(nuD(c)&&!u.pen?3:0)+nuD(c)*.1};ix.sort((a,b)=>sc(a)-sc(b));return playU(p,ix[0])}
+  takeU(p);if(u.t===p&&u.drew&&!u.over)playU(p,u.h[p].length-1)},1000)};
+const _nuS=uSend;uSend=function(){const R=UR;if(!R||!R.tx||!U)return _nuS();const tx=R.tx;R.tx=m=>tx(m&&m.t==="snap"&&m.s?{...m,s:{...m.s,out:U.out}}:m);try{return _nuS()}finally{R.tx=tx}};
+const _nuU=uSnap;uSnap=function(s){nxOut=s&&s.out;return _nuU(s)};
+/* new table layout */
+const nuSym={S:"⦸",SA:"⦸⦸",R:"⇄",D:"✕",R4:"⇄4","+6":"+6","+10":"+10",RL:"★",W:"★"},nuLab=v=>({S:"Skip",SA:"Skip All",R:"Reverse",D:"Discard All",R4:"Rev +4",RL:"Roulette"})[v]||v;
+const nuCd=(c,cls,oc,st)=>{const v=nuSym[c.v]||c.v;return`<button class="uc ${c.c===4?"w ":""}${cls}" style="--c:${UC[c.c]};${st||""}" data-l="${String(v).length}" ${oc||""}><i class="cn tl">${v}</i><span class="cov"><b>${v}</b></span><i class="cn br">${v}</i></button>`};
+function nuPop(t){const k=t.c+"_"+t.v+"_"+U.seq;if(nuP&&nuP!==k&&!U.fresh){const m={SA:"SKIP EVERYONE",D:"DISCARD ALL","+6":"+6 CARDS","+10":"+10 CARDS",R4:"REVERSE +4",RL:"COLOUR ROULETTE"}[t.v];if(m)nxPop(m,"",UC[U.col])}nuP=k}
+function nuFit(){const f=document.querySelector(".nu-felt");if(!f)return;const H=f.querySelector(".nu-hand"),M=f.querySelector(".nu-mid");if(!H||!M)return;
+ const n=H.children.length,w=H.clientWidth-6,fh=f.clientHeight;let cw=Math.min(74,fh*.215);if(n>1)cw=Math.min(cw,w/(1+(n-1)*.36));cw=Math.max(28,Math.floor(cw));
+ const st=n>1?Math.min(cw*.9,(w-cw)/(n-1)):0;H.style.setProperty("--cw",cw+"px");H.style.setProperty("--ov",(st-cw).toFixed(1)+"px");
+ const mw=Math.min((M.clientHeight-10)/1.5,(M.clientWidth-130)/2,74);M.style.setProperty("--mw",Math.max(30,Math.floor(mw))+"px")}
+addEventListener("resize",()=>setTimeout(nuFit,60));addEventListener("orientationchange",()=>setTimeout(nuFit,300));document.addEventListener("fullscreenchange",()=>setTimeout(nuFit,250));
+drawU=function(){if(!U)return;uSend();if(S.page!=="uno")return;U.out=(U.online&&!U.host?nxOut:U.out)||U.out||Array(U.n).fill(false);
+ const me=U.me,t=topU(),mine=U.h[me],on=U.online,opp=U.h.map((h,i)=>i).filter(i=>i!==me),fly=U.fly?" fly":"";U.fly=0;
+ const wn=U.win===me?"You won! 🏆":U.win>=0?U.names[U.win]+" won":"Your friend left",
+ msg=U.over?wn:U.fresh?"Dealing cards…":U.out[me]?"You are out (Mercy). Watching…":U.t===me?(U.drew?"Play it, or tap the deck to pass":U.pen?`Stack ${nuLab(U.pt)} or higher, or draw ${U.pen}`:"Your turn (deck = draw till playable)"):U.names[U.t]+"'s turn";
+ const seats=opp.map(i=>{const n=U.h[i].length,o=U.out[i];return`<div class="nu-s${U.t===i&&!U.over?" on":""}${o?" out":""}"><b>${esc(U.names[i])}</b><small>${o?"OUT":n+" cards"+(n>=20?" ⚠":"")}</small><div class="nu-f">${"<i></i>".repeat(Math.min(n,10))}</div></div>`}).join("");
+ $("main").innerHTML=`<section class="pg st"><div class="nu"><div class="nu-top"><button class="btn" onclick="go('games')">‹ Games</button><span style="flex:1"></span>${on?`<button class="ib" onclick="emoPop()" aria-label="Reactions">😀</button>${UR?.oppId?`<button class="ib gmic ${micCls()}" onclick="gameMic()" aria-label="Voice">${micI()}</button>`:""}`:""}${!on||U.host?`<button class="btn" onclick="restartUno()">↻ Restart</button>`:""}</div>
+ <div id="ldBan" style="--tb:${UC[U.col]}"><i></i><span>${esc(msg)}</span></div>
+ <div class="nu-felt">${U.fresh?`<div class="go"><b>Let's play!</b></div>`:""}<div class="nu-seats">${seats}</div>
+ <div class="nu-mid"><button class="uc back" onclick="takeU()"><span class="cov"><b>UNO</b></span></button>${nuCd(t,"pile"+fly,"",`--pr:${(U.seq*37)%17-8}deg`)}<div class="nu-side"><i class="nu-col" style="background:${UC[U.col]}"></i>${U.pen?`<b class="nu-pen">+${U.pen}</b>`:""}<small>You ${mine.length}/25</small>${mine.length<=2&&!U.over&&!U.out[me]?`<button class="btn pri" onclick="sayUno()">UNO!</button>`:""}</div></div>
+ <div class="nu-hand">${mine.map((c,i)=>nuCd(c,U.t===me&&!U.busy&&!U.over&&!U.out[me]&&nuOk(c)?"ok":"",`onclick="playU(${me},${i})"`,U.fresh?`animation:deal .5s ${(i*.09).toFixed(2)}s backwards`:"")).join("")}</div>
+ ${U.over?`<div class="wo"><div>🏆<br>${esc(wn)}<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:15px;min-width:220px">${!on||U.host?`<button class="btn pri" onclick="restartUno()">🔁 Play again</button>`:`<div class="pw">Waiting for the host…</div>`}<button class="btn" onclick="go('games')">Games</button></div></div></div>`:""}</div></div></section>`;
+ nuFit();try{nxUno()}catch(_){}try{nuPop(t)}catch(_){}try{nxFix()}catch(_){}};
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.nu{max-width:640px;margin:auto;height:100%;display:flex;flex-direction:column}
+.nu-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex:none}
+.nu #ldBan{flex:none;margin-bottom:8px}
+.nu-felt{flex:1;min-height:340px;position:relative;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:6px;padding:10px;border:7px solid #4a2c14;border-radius:26px;overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#2f9a66 0,#17603f 58%,#0a3524 100%);box-shadow:inset 0 0 80px rgba(0,0,0,.55),0 20px 40px -16px #000}
+.nu-seats{display:flex;gap:8px;justify-content:center}
+.nu-s{flex:1 1 0;max-width:150px;min-width:0;text-align:center;padding:5px 6px;border-radius:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12)}
+.nu-s.on{border-color:#ffe27a;box-shadow:0 0 18px -2px #ffe27a}.nu-s.out{opacity:.4}
+.nu-s b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nu-s small{font-size:11px;color:#c9d3e6}
+.nu-f{display:flex;justify-content:center;height:22px;margin-top:3px}
+.nu-f i{flex:none;width:13px;height:20px;margin-left:-7px;border-radius:3px;border:1.5px solid #fafafa;background:linear-gradient(150deg,#2a2a36,#0c0c12)}.nu-f i:first-child{margin-left:0}
+.nu-mid{--mw:60px;--cw:var(--mw);min-height:0;display:flex;align-items:center;justify-content:center;gap:clamp(14px,5vw,30px)}
+.nu-side{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:70px}.nu-side small{font-weight:800;color:#e6ecf7}
+.nu-col{width:22px;height:22px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 14px rgba(255,255,255,.4)}
+.nu-pen{font-size:22px;color:#ff8797;text-shadow:0 2px 6px #000}
+.nu-side .btn{min-height:40px;padding:0 14px}
+.nu-hand{--cw:56px;--ov:-30px;display:flex;justify-content:center;align-items:flex-end;padding:16px 0 2px;min-height:calc(var(--cw)*1.5 + 18px)}
+.nu-hand .uc{margin-left:var(--ov)}.nu-hand .uc:first-child{margin-left:0}.nu-hand .uc.ok{transform:translateY(-14px);z-index:2}
+.nu .uc{width:var(--cw)!important;height:calc(var(--cw)*1.5)!important;border-width:max(2px,calc(var(--cw)*.05))!important;border-radius:calc(var(--cw)*.14)!important}
+.nu .uc .cov b{font-size:calc(var(--cw)*.46)!important}
+.nu .uc[data-l="2"] .cov b{font-size:calc(var(--cw)*.34)!important}.nu .uc[data-l="3"] .cov b{font-size:calc(var(--cw)*.26)!important}
+.nu .uc.back .cov b{font-size:calc(var(--cw)*.22)!important}
+.nu .uc .cn{font-size:calc(var(--cw)*.17)!important}
+body.nx-uno #call.mn{left:50%;right:auto;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px)}
+@media(orientation:landscape){.pg:has(.nu){overflow:hidden!important}.nu-felt{min-height:0;padding:6px 10px;gap:4px;border-width:6px}.nu-s{padding:3px 6px}.nu-top{margin-bottom:4px}body.nx-uno #call.mn{top:calc(env(safe-area-inset-top,0px) + 4px)}}
+@media(orientation:landscape) and (max-height:560px){.nu-f{display:none}body.nx-uno #ldBan{display:flex!important;margin-bottom:4px!important;padding:3px 12px!important;font-size:12px}}
+`}));
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
