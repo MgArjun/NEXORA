@@ -1546,6 +1546,58 @@ new MutationObserver(()=>{document.body.classList.toggle("nx-ludo",S.page==="lud
  const k=S.page+(S.page==="hub"&&S.hub?S.hub.k+(S.hub.m||""):"");if(k===nxK)return;nxK=k;
  const p=document.querySelector("#main>.pg.st");if(p){p.classList.add("nxin");setTimeout(()=>p.classList.remove("nxin"),460)}}).observe($("main"),{childList:true});
 
+/* NX-PATCH-V5 UNO-TABLE */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+body .felt{min-height:calc(100dvh - 330px);display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px 10px!important;border:9px solid #4a2c14!important;border-radius:30px!important;background:radial-gradient(ellipse at 50% 42%,#2f9a66 0,#17603f 58%,#0a3524 100%)!important;box-shadow:inset 0 0 90px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,220,170,.22),0 24px 50px -16px #000!important}
+body .felt::before{content:"";position:absolute;left:50%;top:46%;width:min(72%,300px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);box-shadow:inset 0 0 40px rgba(255,255,255,.04);transform:translate(-50%,-50%);pointer-events:none}
+body .felt>div[style*="justify-content:center"]{margin:auto 0!important;gap:36px!important}
+body .felt .uc.back,body .felt .uc.pile{width:76px!important;height:114px!important;border-width:4px!important;border-radius:12px!important}
+body .felt .uc.pile .cov b{font-size:36px!important}
+body .felt .uc.back .cov b{font-size:17px!important}
+body .felt .uc.back .cn,body .felt .uc.pile .cn{font-size:13px!important}
+body .uh{height:180px!important}
+body .uh .uc{width:58px!important;height:88px!important;margin:0 0 0 -29px!important;top:26px;transform-origin:50% 170px}
+body .uh .uc .cov b{font-size:26px!important}
+body .felt .lp{flex-direction:column;align-items:center;gap:0;padding:8px 6px 4px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.12);text-align:center;min-width:0}
+body .felt .lp em{display:none}
+body .felt .lp .pw{text-align:center!important}
+body .felt .lp.on{border-color:#ffe27a;box-shadow:0 0 22px -2px #ffe27a}
+.ofan{position:relative;width:100%;height:60px;margin-top:4px}
+.ofan i{position:absolute;left:50%;top:6px;width:26px;height:38px;margin-left:-13px;border-radius:5px;border:2px solid #fafafa;background:linear-gradient(150deg,#2a2a36,#0c0c12);box-shadow:0 2px 5px rgba(0,0,0,.5);transform-origin:50% 80px;transform:rotate(var(--a,0deg))}
+.ofan i::after{content:"";position:absolute;left:16%;top:26%;width:68%;height:46%;border-radius:50%;background:#d4261a;transform:rotate(-26deg)}
+.ofan.fr i{animation:odeal .5s calc(var(--k)*.05s) backwards}
+@keyframes odeal{from{opacity:0;transform:rotate(var(--a,0deg)) translateY(-120px) scale(.5)}}
+`}));
+let nxP=null,nxTap=null,nxTapT=0;
+document.addEventListener("pointerdown",e=>{const c=e.target.closest&&e.target.closest(".uh .uc");if(c){nxTap=c.getBoundingClientRect();nxTapT=Date.now()}},true);
+nxArc=function(){const h=document.querySelector("#main .uh");if(!h)return;const c=[...h.children],n=c.length,st=Math.min(11,90/Math.max(1,n-1));
+ c.forEach((e,i)=>e.style.setProperty("--a",((i-(n-1)/2)*st).toFixed(1)+"deg"))};
+const nxC=(r,w)=>({x:r.left+r.width/2,y:r.top+r.height/2,w:w||r.width});
+function nxFly(src,fr,to,dl,done){const w=src.offsetWidth||76,h=src.offsetHeight||114,c=src.cloneNode(true);c.classList.remove("fly","ok");c.removeAttribute("onclick");
+ c.style.cssText+=";position:fixed;left:0;top:0;margin:0;z-index:9300;pointer-events:none;visibility:visible;width:"+w+"px;height:"+h+"px;transform-origin:50% 50%";document.body.appendChild(c);
+ const f=(p,r)=>"translate("+(p.x-w/2)+"px,"+(p.y-h/2)+"px) scale("+((p.w||w)/w)+") rotate("+(r||0)+"deg)";
+ const a=c.animate([{transform:f(fr,fr.r)},{transform:f(to,to.r)}],{duration:560,delay:dl,easing:"cubic-bezier(.22,1,.36,1)",fill:"both"});
+ const end=()=>{c.remove();done&&done()};a.onfinish=end;a.oncancel=end}
+function nxBoard(){const u=U,m=$("main");
+ if(!u||S.page!=="uno"||!m.querySelector(".uh")){nxP=null;return}
+ const opp=[...Array(u.n).keys()].filter(i=>i!==u.me);
+ m.querySelectorAll(".felt .lp").forEach((e,k)=>{const i=opp[k];if(i===undefined)return;e.dataset.p=i;
+  const n=u.h[i].length,sh=Math.min(n,12),st=Math.min(7,48/Math.max(1,sh-1));let h='<div class="ofan'+(u.fresh?" fr":"")+'">';
+  for(let j=0;j<sh;j++)h+='<i style="--a:'+((j-(sh-1)/2)*st).toFixed(1)+'deg;--k:'+j+'"></i>';e.insertAdjacentHTML("beforeend",h+"</div>")});
+ const cnt=u.h.map(h=>h.length),t0=u.pl[u.pl.length-1],tk=t0.c+"_"+t0.v,pv=nxP;nxP={cnt,tk,t:u.t,n:u.n,seq:u.seq};
+ if(!pv||u.fresh||pv.n!==u.n||u.seq<pv.seq||(tk===pv.tk&&cnt.join()===pv.cnt.join()))return;
+ const pile=m.querySelector(".felt .uc.pile"),deck=m.querySelector(".felt .uc.back"),uh=m.querySelector(".uh");if(!pile||!deck||!uh)return;
+ const pr=parseFloat(pile.style.getPropertyValue("--pr"))||0,pc=nxC(pile.getBoundingClientRect(),pile.offsetWidth),dc=nxC(deck.getBoundingClientRect(),deck.offsetWidth);
+ const src=i=>{if(i===u.me)return nxC((Date.now()-nxTapT<2000&&nxTap)?nxTap:uh.getBoundingClientRect(),60);const f=m.querySelector('.lp[data-p="'+i+'"] .ofan');return f?nxC(f.getBoundingClientRect(),26):null};
+ let pl=[];cnt.forEach((c,i)=>{if(c<pv.cnt[i])pl.push(i)});if(!pl.length&&tk!==pv.tk)pl=[pv.t];
+ const s=pl.length&&src(pl[0]);
+ if(s){pile.classList.remove("fly");pile.style.visibility="hidden";nxFly(pile,s,{x:pc.x,y:pc.y,w:pc.w,r:pr},0,()=>{pile.style.visibility=""})}
+ cnt.forEach((c,i)=>{const d=c-pv.cnt[i];if(d<=0)return;const dest=i===u.me?uh.lastElementChild:null,t=dest?nxC(dest.getBoundingClientRect(),58):src(i);if(!t)return;
+  if(dest)dest.style.visibility="hidden";const q=Math.min(d,4);
+  for(let j=0;j<q;j++)nxFly(deck,dc,{x:t.x,y:t.y,w:t.w,r:0},j*140,j===q-1?()=>{if(dest)dest.style.visibility=""}:null)})}
+const _nx5=drawU;
+drawU=function(){const r=_nx5.apply(this,arguments);try{nxBoard()}catch(_){}return r};
+
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
 
