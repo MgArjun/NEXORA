@@ -1170,6 +1170,167 @@ openRoom=function(c,h,o){if(CARF&&Date.now()-CARF<90000&&!h&&o){CARF=0;return ca
 renderGames=PG.games=function(){_rg();document.querySelectorAll("#main .qc").forEach(b=>{if(b.textContent.includes("Carrom")){b.setAttribute("onclick","carromMenu()");const s=b.querySelector("small");if(s)s.textContent="2 players · online · robot"}})};
 go=function(p){if(CG){closeRoom(true);CG=null}return _go(p)};
 const VER="build 10";
+/* NX-VIDEO-PATCH v3 */
+const VQ={"720":{w:1280,h:720,f:30,b:4e6,s:6e6},"1080":{w:1920,h:1080,f:60,b:8e6,s:16e6},"1440":{w:2560,h:1440,f:60,b:12e6,s:25e6},"2160":{w:3840,h:2160,f:60,b:18e6,s:40e6}};
+let hq="720",sm="motion",ns=true,face="user",deaf=false,VA=null,RV=1;
+/* high quality stereo Opus (voice + screen audio) */
+const OSLD=RTCPeerConnection.prototype.setLocalDescription;
+RTCPeerConnection.prototype.setLocalDescription=function(d){try{if(d&&d.sdp&&(d.type==="offer"||d.type==="answer")){let s=d.sdp;const m=/a=rtpmap:(\d+) opus\/48000/.exec(s);
+ if(m)s=s.replace(new RegExp("a=fmtp:"+m[1]+" (.*)","g"),(_,x)=>"a=fmtp:"+m[1]+" "+x.replace(/;?(stereo|sprop-stereo|maxaveragebitrate)=\d+/g,"").replace(/^;/,"")+";stereo=1;sprop-stereo=1;maxaveragebitrate=192000");
+ const vb="x-google-start-bitrate=4000;x-google-min-bitrate=400;x-google-max-bitrate=40000",vp=[];s.replace(/a=rtpmap:(\d+) (VP8|VP9|AV1|H264)\//g,(_,q)=>{vp.push(q);return _});
+ vp.forEach(q=>{const re=new RegExp("a=fmtp:"+q+" (.*)");s=re.test(s)?s.replace(re,(_,x)=>"a=fmtp:"+q+" "+x.replace(/;?x-google-[a-z-]+=\d+/g,"").replace(/^;/,"")+";"+vb):s.replace(new RegExp("(a=rtpmap:"+q+" [^\\r\\n]*)"),"$1\r\na=fmtp:"+q+" "+vb)});
+ d={type:d.type,sdp:s}}}catch(_){}return OSLD.call(this,d)};
+/* UI */
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.cx{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}.cx .cb2{width:54px;height:54px;font-size:22px}
+#call>.ctop,#call>.cmid,#call>.cx,#call>.cbs{position:relative;z-index:1}
+#vs{position:absolute;inset:0;z-index:0;overflow:hidden}
+#rv{width:100%;height:100%;background:#000;display:none}#vs.rem #rv{display:block}
+#vs.rem::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(#0009,transparent 25%,transparent 55%,#000b)}
+#lv{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 76px);width:104px;aspect-ratio:3/4;object-fit:cover;border-radius:16px;border:2px solid rgba(255,255,255,.3);z-index:2;background:#111}#lv.mir{transform:scaleX(-1)}
+#lv.spk{box-shadow:0 0 0 3px var(--g)}#vs.spk.rem{box-shadow:inset 0 0 0 4px var(--g)}
+#vqs{position:absolute;left:14px;top:calc(env(safe-area-inset-top,0px) + 76px);z-index:2;font-size:12px;font-weight:700;text-shadow:0 1px 3px #000}
+#call.vid .cav,#call.vid .cnm,#call.vid .cst,#call.vid .eq{display:none}
+#call.mn .cx,#call.mn #lv,#call.mn #vqs,#call.mn #vs:not(.rem){display:none!important}#call.mn #vs.rem{position:relative;inset:auto;width:92px;height:62px;border-radius:12px;flex:none;order:-1}#call.mn #vs.rem::after{display:none}
+.nxh #call,.nxh #nbn{display:none!important}#nxr{position:fixed;left:6px;bottom:6px;width:26px;height:26px;border-radius:50%;z-index:9999;background:rgba(124,140,255,.35);display:none}
+#call .cav.spk{box-shadow:0 0 0 5px var(--g),0 20px 56px rgba(104,124,255,.6)}
+.vsel{width:100%;height:46px;border-radius:13px;background:#0a101b;border:1px solid var(--ln);padding:0 10px;margin-bottom:8px}`}));
+(()=>{const cl=$("call");cl.insertAdjacentHTML("afterbegin",'<div id="vs" class="h"><video id="rv" autoplay playsinline></video><video id="lv" class="mir" autoplay playsinline muted></video><div id="vqs"></div></div>');
+ cl.querySelector(".cbs").insertAdjacentHTML("beforebegin",'<div id="cx" class="cx h"><button id="xCam" class="cb2" onclick="camToggle()" aria-label="Video on/off">🎥</button><button id="xFlip" class="cb2 h" onclick="camFlip()" aria-label="Flip camera">🔄</button><button id="xScr" class="cb2" onclick="scrToggle()" aria-label="Share screen">🖥️</button><button id="xDf" class="cb2" onclick="deafen()" aria-label="Deafen">🎧</button><button id="xHd" class="cb2" onclick="hideUI(1)" aria-label="Hide call screen">🙈</button><button id="xSt" class="cb2" onclick="vset()" aria-label="Call settings">⚙️</button></div>');
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia)$("xScr").classList.add("h")})();
+/* sender tuning + renegotiation */
+const tune=async(s,b,f,d,np)=>{if(!s)return;try{const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];const e=p.encodings[0];if(b)e.maxBitrate=b;if(f)e.maxFramerate=f;if(d)p.degradationPreference=d;if(np){e.networkPriority=np;e.priority=np}await s.setParameters(p)}catch(_){}};
+const tuneAll=c=>{const q=VQ[hq],k=VQ[hq==="2160"?"1440":hq];tune(c.camS,k.b,k.f,"maintain-framerate","low");tune(c.scrS,q.s,q.f,sm==="detail"?"maintain-resolution":"maintain-framerate","medium");c.pc.getSenders().forEach(x=>{if(x.track&&x.track.kind==="audio")tune(x,x===c.scrAS?192e3:64e3,0,"","high")})};
+const vcons=scr=>{const q=VQ[!scr&&hq==="2160"?"1440":hq];return{width:{ideal:q.w},height:{ideal:q.h},frameRate:{ideal:q.f}}};
+const meta=c=>sig({type:"vmeta",to:c.uid,id:c.id,cam:!!c.cam,scr:!!c.scr});
+async function renego(c){const pc=c.pc;if(!pc||C!==c)return;if(pc.signalingState!=="stable"||c.rg){c.again=1;return}c.rg=1;c.again=0;try{await pc.setLocalDescription(await pc.createOffer());await sig({type:"reoffer",to:c.uid,id:c.id,sdp:pc.localDescription})}catch(_){}c.rg=0}
+const _mk9=mkPc;
+mkPc=async function(c){await _mk9(c);const pc=c.pc,o=pc.ontrack;
+ pc.ontrack=e=>{const t=e.track,st=e.streams[0];
+  if(t.kind==="audio"){if(!c.mid){c.mid=st&&st.id;return o(e)}if(!st||st.id===c.mid)return o(e);c.rscr=st;return vsPaint()}
+  if(st&&st.id===c.mid)c.rcam=new MediaStream([t]);else c.rscr=st;vsPaint()};
+ pc.onsignalingstatechange=()=>{if(pc.signalingState==="stable"){tuneAll(c);if(c.again)renego(c)}}};
+const _or9=onReoffer;
+onReoffer=function(p){const c=C;if(c&&c.init&&c.pc&&c.pc.signalingState==="have-local-offer")return;return _or9(p)};
+const _os9=onSig;
+onSig=function(p){if(p.type==="vmeta"){const c=C;if(c&&p.id===c.id){c.rm={cam:!!p.cam,scr:!!p.scr};if(!p.cam)c.rcam=null;if(!p.scr)c.rscr=null;vsPaint()}return}return _os9(p)};
+/* camera */
+async function camToggle(){const c=C;if(!c||c.st!=="on")return;
+ if(c.cam){try{c.pc.removeTrack(c.camS)}catch(_){}c.cam.stop();c.cam=c.camS=null;renego(c);meta(c);vsPaint();return paintCall()}
+ let s;try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,...vcons()}})}catch(_){return toast("Camera allow karo (browser settings me)")}
+ if(C!==c||c.cam){s.getTracks().forEach(t=>t.stop());return}
+ const t=c.cam=s.getVideoTracks()[0];t.contentHint="motion";c.camS=c.pc.addTrack(t,c.stream);$("lv").srcObject=s;$("lv").classList.toggle("mir",face==="user");renego(c);meta(c);vsPaint();paintCall()}
+async function newCam(k){const c=C;if(!c||!c.cam)return;const o=c.cam;o.stop();let s;
+ try{s=await navigator.mediaDevices.getUserMedia({video:{...k,...vcons()}})}catch(_){toast("Camera switch nahi hua");c.cam=o;return camToggle()}
+ const t=s.getVideoTracks()[0];t.contentHint="motion";await c.camS.replaceTrack(t);c.cam=t;$("lv").srcObject=s;$("lv").classList.toggle("mir",face==="user")}
+function camFlip(){face=face==="user"?"environment":"user";newCam({facingMode:face})}
+/* screen share + device audio (desktop Chrome/Edge) */
+async function scrToggle(){const c=C;if(!c||c.st!=="on")return;if(c.scr)return scrOff(c);
+ let s;try{s=await navigator.mediaDevices.getDisplayMedia({video:vcons(1),audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:2,sampleRate:48000},systemAudio:"include",restrictOwnAudio:true,selfBrowserSurface:"exclude",surfaceSwitching:"include",monitorTypeSurfaces:"include"})}catch(e){return e.name==="NotAllowedError"?0:toast("Screen share start nahi hua")}
+ if(C!==c||c.scr){s.getTracks().forEach(t=>t.stop());return}
+ c.scr=s;const v=s.getVideoTracks()[0],a=s.getAudioTracks()[0];v.contentHint=sm;c.scrS=c.pc.addTrack(v,s);
+ if(a){a.contentHint="music";c.scrAS=c.pc.addTrack(a,s)}else toast("Audio share nahi hua. Share karte waqt 'Share audio' tick karo");
+ v.onended=()=>{if(C===c&&c.scr)scrOff(c)};renego(c);meta(c);paintCall();setTimeout(()=>{if(C===c&&c.scr)hideUI(1)},700)}
+function scrOff(c){try{c.pc.removeTrack(c.scrS);if(c.scrAS)c.pc.removeTrack(c.scrAS)}catch(_){}c.scr.getTracks().forEach(t=>t.stop());c.scr=c.scrS=c.scrAS=null;hideUI(0);renego(c);meta(c);paintCall()}
+/* remote video view */
+function vsPaint(){const c=C,vs=$("vs");if(!vs)return;const rm=(c&&c.rm)||{},sc=rm.scr&&c.rscr,cm=rm.cam&&c.rcam,src=sc||cm||null,rv=$("rv"),any=!!(src||(c&&c.cam));
+ vs.classList.toggle("h",!any);vs.classList.toggle("rem",!!src);$("call").classList.toggle("vid",!!src);if(!src)$("call").classList.remove("cuh");$("lv").style.display=c&&c.cam?"block":"none";
+ const want=sc?c.rscr:cm?c.rcam:null;if(rv.srcObject!==want)rv.srcObject=want;rv.muted=!sc||deaf;rv.volume=RV;rv.style.objectFit=sc?"contain":"cover";if(want)rv.play().catch(()=>{})}
+/* deafen, volume, noise, devices, fullscreen, PiP */
+function deafen(){const c=C;if(!c)return;deaf=!deaf;const a=$("ra");if(a)a.muted=deaf;if(deaf!==!!c.muted)toggleMute();vsPaint();paintCall()}
+function vQual(k){hq=k;const c=C;if(c){if(c.cam)c.cam.applyConstraints(vcons()).catch(()=>{});const st=c.scr&&c.scr.getVideoTracks()[0];if(st)st.applyConstraints(vcons(1)).catch(()=>{});tuneAll(c)}vset()}
+const vvol=v=>{RV=v/100;const a=$("ra");if(a)a.volume=RV;$("rv").volume=RV};
+function vns(b){ns=!ns;b.classList.toggle("on",ns);if(C)C.stream.getAudioTracks().forEach(t=>t.applyConstraints({noiseSuppression:ns,echoCancellation:true}).catch(()=>{}))}
+async function vdev(k,id){const c=C;if(!c)return;
+ if(k==="videoinput"){face="";return newCam({deviceId:{exact:id}})}
+ if(k==="audiooutput"){[$("ra"),$("rv")].forEach(e=>{if(e&&e.setSinkId)e.setSinkId(id).catch(()=>{})});return}
+ try{const s=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:id},echoCancellation:true,noiseSuppression:ns,autoGainControl:true}}),t=s.getAudioTracks()[0],o=c.stream.getAudioTracks()[0],se=c.pc.getSenders().find(x=>x.track===o);t.enabled=!c.muted;await se.replaceTrack(t);c.stream.removeTrack(o);o.stop();c.stream.addTrack(t);c.lm=null}catch(_){toast("Mic switch nahi hua")}}
+const vfs=()=>{closeModal();const e=$("vs"),f=e.requestFullscreen||e.webkitRequestFullscreen;if(f)f.call(e);else if($("rv").webkitEnterFullscreen)$("rv").webkitEnterFullscreen()};
+const vpip=()=>{closeModal();const p=$("rv").requestPictureInPicture?$("rv").requestPictureInPicture():null;if(p)p.catch(()=>{});else toast("PiP is device pe nahi hai")};
+async function vset(){const c=C;if(!c)return;let d=[];try{d=await navigator.mediaDevices.enumerateDevices()}catch(_){}
+ const sel=(k,t)=>{const l=d.filter(x=>x.kind===k);return l.length>1?`<div class="lbl">${t}</div><select class="vsel" onchange="vdev('${k}',this.value)">${l.map((x,i)=>`<option value="${esc(x.deviceId)}">${esc(x.label||t+" "+(i+1))}</option>`).join("")}</select>`:""};
+ openModal(`<h3>Call settings</h3><div class="lbl">Video quality</div><div class="seg">${[["720","720p"],["1080","1080p"],["1440","2K"],["2160","4K"]].map(([k,n])=>`<button class="${hq===k?"on":""}" onclick="vQual('${k}')">${n}</button>`).join("")}</div><div class="lbl">Screen share mode</div><div class="seg"><button class="${sm==="motion"?"on":""}" onclick="vMode('motion')">Video / Game</button><button class="${sm==="detail"?"on":""}" onclick="vMode('detail')">Text / Work</button></div><div class="lbl">Volume</div><input type="range" min="0" max="100" value="${Math.round(RV*100)}" oninput="vvol(this.value)" style="padding:0;height:34px"><div class="pr"><div class="t"><b>Noise cancellation</b><small>Mic ka shor aur echo kam karta hai</small></div><button class="tg2 ${ns?"on":""}" onclick="vns(this)" aria-label="Noise suppression"><i></i></button></div>${sel("audioinput","Microphone")}${sel("videoinput","Camera")}${sel("audiooutput","Speaker")}<div class="grid" style="margin-top:14px"><button class="btn" onclick="vfs()">⛶ Fullscreen</button><button class="btn" onclick="vpip()">PiP</button></div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>`)}
+/* speaking ring + connection quality */
+function lvl(st){try{VA=VA||new(window.AudioContext||window.webkitAudioContext)();VA.resume();const a=VA.createAnalyser();a.fftSize=256;VA.createMediaStreamSource(st).connect(a);return{a,d:new Uint8Array(256)}}catch(_){return null}}
+const rms=o=>{if(!o)return 0;o.a.getByteTimeDomainData(o.d);let s=0;for(const v of o.d)s+=(v-128)**2;return Math.sqrt(s/o.d.length)};
+async function qstat(c){try{const r=await c.pc.getStats();let rtt=null,h=0,f=0;r.forEach(x=>{if(x.type==="candidate-pair"&&x.nominated&&x.currentRoundTripTime!=null)rtt=Math.round(x.currentRoundTripTime*1000);if(x.type==="inbound-rtp"&&x.kind==="video"){h=x.frameHeight||0;f=Math.round(x.framesPerSecond||0)}});
+ const e=$("vqs");if(e)e.textContent=(rtt==null?"":(rtt<80?"🟢 ":rtt<200?"🟡 ":"🔴 ")+rtt+"ms")+(h?" · "+h+"p "+f+"fps":"")}catch(_){}}
+let sq=0;setInterval(()=>{const c=C;if(!c||c.st!=="on")return;if(!c.lm)c.lm=lvl(c.stream);const ra=$("ra");if(!c.lr&&ra&&ra.srcObject)c.lr=lvl(ra.srcObject);
+ const me=!c.muted&&rms(c.lm)>5,th=!deaf&&rms(c.lr)>5;$("cAv").classList.toggle("spk",th);$("vs").classList.toggle("spk",th);$("lv").classList.toggle("spk",me);if(++sq%15===0)qstat(c)},200);
+/* button states + cleanup */
+const _pc9=paintCall;
+paintCall=function(){_pc9();const c=C,on=!!c&&c.st==="on";if(c&&c.vid&&c.st==="ringing")$("cSt").textContent="Incoming video call";$("cx").classList.toggle("h",!on);if(c){const l=document.querySelector("#call .ctop span");if(l)l.textContent=(c.cam||c.rcam)?"NEXORA VIDEO":"NEXORA VOICE"}if(!on)return;if(c.vid&&!c.vauto){c.vauto=1;camToggle()}$("xCam").classList.toggle("on",!!c.cam);$("xFlip").classList.toggle("h",!c.cam);$("xScr").classList.toggle("on",!!c.scr);$("xDf").classList.toggle("on",deaf)};
+const _e9=endCall;
+endCall=function(s){const c=C;if(c){[c.cam,...(c.scr?c.scr.getTracks():[])].forEach(t=>{try{if(t)t.stop()}catch(_){}})}deaf=false;WV=null;hideUI(0);const r=_e9(s);$("vs").classList.add("h");$("vs").classList.remove("rem");$("call").classList.remove("vid");$("lv").srcObject=null;$("rv").srcObject=null;return r};
+/* v2: video call from chat, screen mode, hide call UI while sharing */
+I.vid=IC('<rect x="2" y="6" width="14" height="12" rx="3"/><path d="M22 8l-6 4 6 4z"/>');
+let WV=null;
+function vidCall(uid,name){if(C)return minCall(false);WV=uid;startCall(uid,name)}
+function vMode(m){sm=m;const c=C;if(c&&c.scr){const v=c.scr.getVideoTracks()[0];if(v)v.contentHint=m;tuneAll(c)}vset()}
+function hideUI(on){document.body.classList.toggle("nxh",!!on);let d=$("nxr");if(!d){d=document.createElement("button");d.id="nxr";d.setAttribute("aria-label","Show call");d.onclick=()=>hideUI(0);document.body.appendChild(d)}d.style.display=on?"block":"none"}
+const _sg9=sig;
+sig=async function(p){if(p&&p.type==="offer"&&WV&&p.to===WV){p={...p,vid:1};if(C&&C.id===p.id)C.vid=1}return _sg9(p)};
+const _oo9=onOffer;
+onOffer=function(p){_oo9(p);if(C&&C.id===p.id&&p.vid){C.vid=1;paintCall()}};
+const _oc9=openChat;
+openChat=function(a,b,c,d){_oc9(a,b,c,d);const h=document.querySelector(".ch");if(!h||!S.chat||S.chat.uid!==b||h.querySelector(".xvc"))return;
+ const x=Object.assign(document.createElement("button"),{className:"ib ok xvc",innerHTML:I.vid,onclick:()=>{const q=P[b];vidCall(b,q?nm(q):d)}});x.setAttribute("aria-label","Video call");h.insertBefore(x,h.lastElementChild)};
+/* v3: clean mic, perf + dim look, chat media (photo/GIF/video) */
+mic=async function(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("Open the site over HTTPS in Chrome or Safari to use the microphone.");
+ try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:ns,autoGainControl:true,voiceIsolation:true,channelCount:1,sampleRate:48000},video:false})}
+ catch(e){throw new Error(e.name==="NotAllowedError"?"Allow the microphone in your browser settings.":e.name==="NotFoundError"?"No microphone found.":e.name==="NotReadableError"?"The microphone is in use by another app.":"The microphone could not start.")}};
+document.removeEventListener("pointermove",tilt);
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+body{background:radial-gradient(120% 80% at 50% -10%,#10152b 0%,#05060b 62%)!important}
+.orbs i{filter:none!important;border-radius:50%!important;will-change:transform,opacity;animation:orb 40s ease-in-out infinite alternate,orbp 20s ease-in-out infinite!important}
+.orbs i:nth-child(1){background:radial-gradient(circle,#5b6dff,transparent 62%)!important;opacity:.14!important}
+.orbs i:nth-child(2){background:radial-gradient(circle,#b05cff,transparent 62%)!important;opacity:.12!important;animation-delay:-8s,-6s!important}
+.orbs i:nth-child(3){background:radial-gradient(circle,#2fd6a0,transparent 62%)!important;opacity:.08!important;animation-delay:-15s,-12s!important}
+@keyframes orbp{50%{opacity:.2}}
+body:has(#call:not(.h):not(.mn)) .orbs{display:none}
+.card,.top,.nav,.md{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.card{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.012) 60%),#10162a!important;box-shadow:0 8px 18px -12px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08)!important}
+.top{background:#080b16!important}.nav{background:#0d1222!important;box-shadow:0 10px 24px -12px #000,inset 0 1px 0 rgba(255,255,255,.08)!important}
+.md{background:#121a2c!important}#ov{backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important}
+.pri::after{display:none!important}.grad{animation:none!important}
+@keyframes pgin2{from{opacity:0;transform:translateY(10px)}}
+.pg{animation:pgin2 .3s var(--e) both!important}
+.cb{contain:content;overscroll-behavior:contain}
+#call>.ctop,#call>.cx,#call>.cbs{transition:opacity .25s}
+#call.cuh>.ctop,#call.cuh>.cx,#call.cuh>.cbs{opacity:0;pointer-events:none}
+.mm{padding:5px!important}.mm img,.mm video{display:block;max-width:100%;max-height:300px;border-radius:14px;background:#000}.mm img{cursor:zoom-in}
+.mf{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 6px 1px}.mf .msv{font-size:12px;font-weight:800;color:#e6e9ff}`}));
+$("vs").addEventListener("click",()=>{if($("call").classList.contains("vid"))$("call").classList.toggle("cuh")});
+const MB="chat-media";let MP=[];
+const cleanMedia=()=>{if(!MP.length)return;const l=MP.splice(0).map(x=>x.path);try{sb.storage.from(MB).remove(l).then(()=>{},()=>{})}catch(_){}};
+setInterval(()=>{if(MP.length&&S.page!=="chat")cleanMedia()},1000);addEventListener("pagehide",cleanMedia);
+const sweepMedia=()=>{try{sb.storage.from(MB).list(S.user.id,{limit:100}).then(r=>{if(r&&r.data&&r.data.length)sb.storage.from(MB).remove(r.data.map(x=>S.user.id+"/"+x.name))},()=>{})}catch(_){}};
+const _en8=enter;enter=async function(u){const r=await _en8(u);sweepMedia();return r};
+const _am8=addMsg;addMsg=function(m,f,l){const x=m&&(m.content??m.body??m.text??"");if(typeof x==="string"&&x.startsWith("NXM:"))return addMedia(m);return _am8(m,f,l)};
+function addMedia(m){const b=$("cb");if(!b||!S.chat)return;const id=m.id||"";if(id&&b.querySelector('[data-id="'+id+'"]'))return;let o;try{o=JSON.parse(String(m.content).slice(4))}catch(_){return}
+ const mine=m.sender_id===S.user.id,d=document.createElement("div");d.className="m mm "+(mine?"me":"th");d.dataset.id=id;d.dataset.s=m.sender_id;d.dataset.u=o.u;d.dataset.n=o.n||"nexora";
+ d.innerHTML=(o.k==="vid"?'<video src="'+esc(o.u)+'" controls playsinline preload="metadata"></video>':'<img src="'+esc(o.u)+'" alt="">')+'<div class="mf"><button class="msv">⬇ Save</button><small style="margin:0">'+tm(m.created_at||Date.now())+'</small></div>';
+ b.appendChild(d);b.scrollTop=b.scrollHeight;if(!mine){MP.push({path:o.p});sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,"📎 Media")}}
+async function shrink(f){try{const bm=await createImageBitmap(f),k=Math.min(1,2048/Math.max(bm.width,bm.height));if(k===1&&f.size<2e6)return f;const c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(x=>r(x||f),"image/jpeg",.88))}catch(_){return f}}
+async function sendMedia(f){const c=S.chat;if(!c||!f)return;const v=f.type.startsWith("video/"),g=f.type==="image/gif";
+ if(!v&&!f.type.startsWith("image/"))return toast("Sirf photo, GIF ya video bhej sakte ho");if(f.size>50*1048576)return toast("File 50MB se badi hai");
+ toast("Bhej raha hu…");const bl=(v||g)?f:await shrink(f),ext=bl!==f?"jpg":((f.name.split(".").pop()||(v?"mp4":"jpg")).toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"bin"),path=S.user.id+"/"+Date.now()+"_"+Math.random().toString(36).slice(2,7)+"."+ext;
+ const r=await sb.storage.from(MB).upload(path,bl,{contentType:bl.type||f.type,cacheControl:"3600"});
+ if(r.error)return toast(/not found/i.test(r.error.message)?"Supabase me 'chat-media' bucket banao":"Upload fail: "+r.error.message.slice(0,60));
+ if(S.chat!==c){sb.storage.from(MB).remove([path]);return}
+ const u=sb.storage.from(MB).getPublicUrl(path).data.publicUrl,id=crypto.randomUUID(),at=new Date().toISOString(),text="NXM:"+JSON.stringify({k:v?"vid":g?"gif":"img",u,p:path,n:f.name||"media."+ext});
+ MP.push({path});addMedia({id,sender_id:S.user.id,content:text,created_at:at});if(S.cch)S.cch.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});sfx("send");rec(c.uid,c.un,c.name,"📎 Media")}
+async function msave(u,n){try{const r=await fetch(u),b=await r.blob(),f=new File([b],n||"nexora",{type:b.type});
+ if(/iPhone|iPad|iPod/.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}
+ const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n||"nexora";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);toast("Saved ✓")}catch(e){if(!e||e.name!=="AbortError")toast("Save nahi hua")}}
+function mview(){const o=window.__mv;if(!o)return;openModal('<img src="'+esc(o.u)+'" alt="" style="width:100%;border-radius:14px;max-height:70dvh;object-fit:contain"><div class="grid" style="margin-top:12px"><button class="btn" onclick="closeModal()">Close</button><button class="btn pri" onclick="msave(__mv.u,__mv.n)">⬇ Save</button></div>')}
+document.addEventListener("click",e=>{const m=e.target.closest(".mm");if(!m)return;if(e.target.closest(".msv"))return msave(m.dataset.u,m.dataset.n);if(e.target.closest("img")){window.__mv={u:m.dataset.u,n:m.dataset.n};mview()}});
+const _oc8=openChat;
+openChat=function(a,b,c,d){const pv=S.chat&&S.chat.uid;if(pv&&pv!==b)cleanMedia();_oc8(a,b,c,d);const p=document.querySelector(".cp");if(!p||!S.chat||S.chat.uid!==b||p.querySelector(".xat"))return;
+ p.insertAdjacentHTML("afterbegin",'<button class="ib xat" aria-label="Send photo, GIF or video" style="width:46px;height:46px;align-self:center">📎</button><input type="file" class="xfi" accept="image/*,video/*" style="display:none">');
+ const bt=p.querySelector(".xat"),fi=p.querySelector(".xfi");bt.onclick=()=>fi.click();fi.onchange=()=>{const f=fi.files[0];fi.value="";if(f)sendMedia(f)}};
+
+
 /* boot */
 (async()=>{await sleep(1800);$("splash").classList.add("out");try{const{data}=await sb.auth.getSession();if(data.session?.user)return enter(data.session.user)}catch(_){}$("auth").classList.remove("h");authMode(false)})();
 
