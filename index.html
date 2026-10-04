@@ -3186,4 +3186,108 @@ body.nx-chat #main{transform:none!important}
 `}));
 })();
 
+</script><script>
+/* NX-CALLFIX-V2 */
+
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(_){}};
+const NX={auto:localStorage.nx_qa!=="0",ve:localStorage.nx_ve==="1"};
+const NXR={"720":[1280,720],"1080":[1920,1080],"1440":[2560,1440],"2160":[3840,2160]};
+/* 1. old heavy effects (skin smoothing, steady picture) off once; they capped video at 1080p and caused lag */
+tf(()=>{if(localStorage.nx_cf2)return;localStorage.nx_cf2="1";const v=Object.assign({enh:true,stab:true},LS("nx_vq2",{})),k={classList:{toggle(){}}};if(v.stab)window.nxVT("stab",k);if(v.enh)window.nxVT("enh",k)});
+/* 2. call server: timeout + own Metered key from Settings */
+const tn=()=>{const t=LS("nx_turn",{});return{a:String(t.app||"").replace(/[^a-z0-9-]/gi,""),k:String(t.key||"").trim()}};
+iceServers=async function(){
+ if(ICE_C&&Date.now()-ICE_T<3e5)return ICE_C;
+ let l=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302","stun:stun.cloudflare.com:3478"]}],ok=false;const m=tn();
+ if(m.a&&m.k)try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000),r=await fetch("https://"+m.a+".metered.live/api/v1/turn/credentials?apiKey="+encodeURIComponent(m.k),{signal:ac.signal});clearTimeout(t);const j=await r.json();if(Array.isArray(j)&&j.length){l=l.concat(j);ok=true}}catch(_){}
+ if(!ok)tf(()=>{l=l.concat(CFG.turn)});
+ tf(()=>{if(CFG.own)l=l.concat(CFG.own)});
+ ICE_C=l;ICE_T=Date.now();return l};
+/* 3. SDP: H264 first (hardware, smooth), AV1 last, higher start bitrate */
+const VID=["H264","VP9","VP8","AV1"],RK={H264:0,VP9:1,VP8:2,AV1:5},VB="x-google-start-bitrate=3000;x-google-min-bitrate=200;x-google-max-bitrate=25000";
+const GX=/;?x-google-[a-z-]+=\d+/g,OX=/;?(stereo|sprop-stereo|maxaveragebitrate|useinbandfec|usedtx)=\d+/g;
+const fm=(s,p,add,strip)=>{const re=new RegExp("a=fmtp:"+p+" ([^\\r\\n]*)");
+ if(re.test(s))return s.replace(re,(_,x)=>{const y=x.replace(strip,"").replace(/^;/,"");return "a=fmtp:"+p+" "+(y?y+";":"")+add});
+ return s.replace(new RegExp("(a=rtpmap:"+p+" [^\\r\\n]*)"),m=>m+"\r\na=fmtp:"+p+" "+add)};
+const ro=sec=>{const h=sec[0].split(" ");if(h.length<5)return sec;const pts=h.slice(3),nm={},rx={},used={},gr=[];
+ sec.forEach(l=>{let m=/^a=rtpmap:(\d+) ([\w-]+)\//.exec(l);if(m)nm[m[1]]=m[2].toUpperCase();m=/^a=fmtp:(\d+) .*apt=(\d+)/.exec(l);if(m)(rx[m[2]]=rx[m[2]]||[]).push(m[1])});
+ pts.forEach((p,i)=>{if(VID.indexOf(nm[p])>=0){const g=[p].concat(rx[p]||[]);g.forEach(x=>used[x]=1);gr.push({r:RK[nm[p]],i:i,g:g})}});
+ gr.sort((a,b)=>a.r-b.r||a.i-b.i);const np=[];gr.forEach(x=>x.g.forEach(p=>np.push(p)));pts.forEach(p=>{if(!used[p])np.push(p)});
+ sec[0]=h.slice(0,3).concat(np).join(" ");return sec};
+const sdp=s=>{const o=/a=rtpmap:(\d+) opus\/48000/.exec(s);if(o)s=fm(s,o[1],"stereo=1;sprop-stereo=1;maxaveragebitrate=192000;useinbandfec=1;usedtx=0",OX);
+ const L=s.split("\r\n"),q=[];let i=0;
+ while(i<L.length){if(L[i].indexOf("m=video")!==0){q.push(L[i++]);continue}let j=i+1;while(j<L.length&&L[j].indexOf("m=")!==0)j++;ro(L.slice(i,j)).forEach(x=>q.push(x));i=j}
+ s=q.join("\r\n");const vp=[];s.replace(/a=rtpmap:(\d+) (VP8|VP9|AV1|H264)\//g,(a,p)=>{vp.push(p);return a});vp.forEach(p=>{s=fm(s,p,VB,GX)});return s};
+RTCPeerConnection.prototype.setLocalDescription=function(d){
+ try{if(d&&d.sdp&&(d.type==="offer"||d.type==="answer"))d={type:d.type,sdp:sdp(d.sdp)}}catch(_){}
+ return OSLD.call(this,d)};
+/* 4. camera capture: right size + 16:9 + 30fps, 4K when Auto (device gives the best it can) */
+const md=navigator.mediaDevices;
+if(md&&md.getUserMedia){const prev=md.getUserMedia;
+ md.getUserMedia=async function(c){let c2=c;
+  try{if(c&&c.video&&typeof c.video==="object"&&!c.audio){const k=NX.auto?((navigator.hardwareConcurrency||8)<=4?"1080":"2160"):(NXR[hq]?hq:"1080"),r=NXR[k],v={width:{ideal:r[0]},height:{ideal:r[1]},aspectRatio:{ideal:16/9},frameRate:{ideal:30}};
+   if(c.video.facingMode)v.facingMode=c.video.facingMode;if(c.video.deviceId)v.deviceId=c.video.deviceId;c2=Object.assign({},c,{video:v})}}catch(_){}
+  try{return await prev.call(md,c2)}catch(e){if(c2!==c)return prev.call(md,c);throw e}}}
+/* 5. sender: FPS first, bitrate by real resolution */
+const tune=async c=>{try{const s=c.camS;if(!s||!c.cam||!s.getParameters)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)return;
+ const e=p.encodings[0],st=(c.cam.getSettings&&c.cam.getSettings())||{},h=Math.min(st.width||1080,st.height||1080),br=h<=720?3.5e6:h<=1080?7e6:h<=1440?11e6:18e6;let ch=false;
+ if(e.maxBitrate!==br){e.maxBitrate=br;ch=true}
+ if(e.maxFramerate!==30){e.maxFramerate=30;ch=true}
+ if(p.degradationPreference!=="maintain-framerate"){p.degradationPreference="maintain-framerate";ch=true}
+ if("networkPriority" in e&&e.networkPriority!=="medium"){e.networkPriority="medium";ch=true}
+ if(ch)await s.setParameters(p)}catch(_){}};
+setInterval(()=>{const c=C;if(c&&c.pc&&c.st==="on"&&c.camS)tune(c)},3000);
+/* 6. voice enhance (calls only) */
+async function voice(on){const c=C;if(!on){voiceOff(c);return}
+ if(!c||c.vx||!c.stream||!c.pc)return;const raw=c.stream.getAudioTracks()[0],snd=raw&&c.pc.getSenders().find(x=>x.track===raw);if(!snd)return;
+ try{const A=window.AudioContext||window.webkitAudioContext,ctx=new A({latencyHint:"interactive"});if(ctx.state==="suspended")await ctx.resume();
+  const f=(t,fr,g,q)=>{const n=ctx.createBiquadFilter();n.type=t;n.frequency.value=fr;if(g!=null)n.gain.value=g;if(q)n.Q.value=q;return n},
+   src=ctx.createMediaStreamSource(new MediaStream([raw])),hp=f("highpass",90,null,.7),mud=f("peaking",260,-2.5,1),pre=f("peaking",3200,3,.9),air=f("highshelf",8500,1.5),lp=f("lowpass",15000,null,.7),
+   cp=ctx.createDynamicsCompressor(),mk=ctx.createGain(),lm=ctx.createDynamicsCompressor(),dst=ctx.createMediaStreamDestination();
+  cp.threshold.value=-26;cp.knee.value=18;cp.ratio.value=3;cp.attack.value=.006;cp.release.value=.2;mk.gain.value=1.4;
+  lm.threshold.value=-2;lm.knee.value=0;lm.ratio.value=20;lm.attack.value=.002;lm.release.value=.08;
+  [src,hp,mud,pre,air,lp,cp,mk,lm,dst].reduce((a,b)=>(a.connect(b),b));
+  const out=dst.stream.getAudioTracks()[0];if(C!==c||c.vx){ctx.close();return}
+  await snd.replaceTrack(out);c.vx={ctx:ctx,out:out,snd:snd,raw:raw};toast("Voice enhance on")}
+ catch(_){toast("Voice enhance is not supported on this device")}}
+function voiceOff(c){const x=c&&c.vx;if(!x)return;c.vx=null;
+ Promise.resolve(tf(()=>c.pc.signalingState!=="closed"?x.snd.replaceTrack(x.raw):0)).catch(()=>{}).then(()=>{tf(()=>x.out.stop());tf(()=>x.ctx.close())})}
+/* 7. preview mirror, preview size, remote fit (no heavy crop in any orientation) */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#vs.rem.nxct:not(.rsc) #rv{object-fit:contain!important;background:#000}#lv{object-fit:cover}"}));
+setInterval(()=>tf(()=>{const vs=D.getElementById("vs"),rv=D.getElementById("rv"),lv=D.getElementById("lv");if(!vs||!rv||!lv)return;
+ if(rv.videoWidth&&rv.videoHeight&&vs.clientWidth&&vs.clientHeight)vs.classList.toggle("nxct",Math.abs(Math.log((rv.videoWidth/rv.videoHeight)/(vs.clientWidth/vs.clientHeight)))>.35);
+ const c=C,st=(c&&c.cam&&c.cam.getSettings&&c.cam.getSettings())||{},fm2=st.facingMode||(typeof face==="string"?face:"user"),tr=(fm2!=="environment"&&!D.body.classList.contains("nx-nomir"))?"scaleX(-1)":"none";
+ if(lv.style.getPropertyValue("transform")!==tr)lv.style.setProperty("transform",tr,"important");
+ if(vs.classList.contains("swp")||!lv.videoWidth||!lv.videoHeight){["width","height","aspect-ratio"].forEach(p=>lv.style.removeProperty(p));return}
+ const r=lv.videoWidth/lv.videoHeight,land=innerWidth>innerHeight;let w,h;
+ if(r<1){h=Math.min(land?170:140,innerHeight*.3);w=h*r}else{w=Math.min(land?160:120,innerWidth*.3);h=w/r}
+ const a=Math.round(w)+"px",b=Math.round(h)+"px";
+ if(lv.style.getPropertyValue("width")!==a)lv.style.setProperty("width",a,"important");
+ if(lv.style.getPropertyValue("height")!==b)lv.style.setProperty("height",b,"important");
+ lv.style.setProperty("aspect-ratio","auto","important")}),400);
+/* 8. settings: quality Auto + Voice enhance inside call settings */
+const rs=()=>{const c=C;if(!c||!c.cam)return;const s=(c.cam.getSettings&&c.cam.getSettings())||{};newCam(s.deviceId?{deviceId:{exact:s.deviceId}}:{facingMode:(typeof face==="string"&&face)||"user"})};
+const noAuto=()=>{NX.auto=false;localStorage.nx_qa="0"};
+const _vq=vQual;vQual=function(k){noAuto();return _vq(k)};
+tf(()=>{const sh=window.setHq;if(sh)window.setHq=function(k){noAuto();return sh(k)}});
+window.nxAuto=()=>{NX.auto=true;localStorage.nx_qa="1";rs();vset()};
+window.nxVE=b=>{NX.ve=!NX.ve;localStorage.nx_ve=NX.ve?"1":"0";b.classList.toggle("on",NX.ve);voice(NX.ve)};
+const _vs=vset;
+vset=async function(){await _vs.apply(this,arguments);tf(()=>{const m=D.getElementById("md");if(!m||m.querySelector(".nxv"))return;
+ const h3=m.querySelector("h3"),sg=m.querySelector(".seg");
+ if(h3)h3.insertAdjacentHTML("afterend",'<div class="pr nxv"><div class="t"><b>Voice enhance</b><small>Clearer voice: cuts rumble, evens volume, adds presence</small></div><button class="tg2 '+(NX.ve?"on":"")+'" onclick="nxVE(this)" aria-label="Voice enhance"><i></i></button></div>');
+ if(sg){if(NX.auto)sg.querySelectorAll("button").forEach(b=>b.classList.remove("on"));sg.insertAdjacentHTML("afterbegin",'<button class="'+(NX.auto?"on":"")+'" onclick="nxAuto()">Auto</button>')}})};
+/* 9. Settings page: optional Metered call server key */
+window.nxTurnSave=()=>{const a=$("nxTa").value.trim().replace(/^https?:\/\//,"").replace(/\.metered\.live.*$/,""),k=$("nxTk").value.trim();
+ localStorage.nx_turn=JSON.stringify({app:a,key:k});ICE_C=null;ICE_T=0;toast(a&&k?"Call server saved":"Call server cleared")};
+const _rs=renderSettings;
+PG.settings=renderSettings=function(){const r=_rs.apply(this,arguments);tf(()=>{const b=D.querySelector("#main .pg>button.red");if(!b||$("nxTa"))return;const t=LS("nx_turn",{});
+ b.insertAdjacentHTML("beforebegin",'<div class="card" style="padding:16px;margin-bottom:14px"><b>Call server (optional)</b><div class="pw" style="text-align:left;margin:4px 0 10px">Makes calls smoother on weak networks. Make a free account at metered.ca, open TURN, then paste the app name and API key.</div><input id="nxTa" placeholder="App name" value="'+esc(t.app||"")+'" autocapitalize="off" autocomplete="off"><input id="nxTk" placeholder="API key" value="'+esc(t.key||"")+'" autocapitalize="off" autocomplete="off"><button class="btn pri wide" onclick="nxTurnSave()">Save</button></div>')});return r};
+/* 10. hooks: auto voice enhance on connect, clean up on end, mic switch */
+const _pc=paintCall;paintCall=function(){const r=_pc.apply(this,arguments);tf(()=>{const c=C;if(c&&c.st==="on"&&NX.ve&&!c.vx&&!c.vxT){c.vxT=1;voice(true)}});return r};
+const _ec=endCall;endCall=function(){const c=C;if(c&&c.vx){const x=c.vx;c.vx=null;tf(()=>x.out.stop());tf(()=>x.ctx.close())}return _ec.apply(this,arguments)};
+const _vd=vdev;vdev=async function(k){const c=C;if(k==="audioinput"&&c&&c.vx)voiceOff(c);const r=await _vd.apply(this,arguments);if(k==="audioinput"&&NX.ve&&c&&C===c&&!c.vx)setTimeout(()=>{if(C===c)voice(true)},400);return r};
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
