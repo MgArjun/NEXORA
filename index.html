@@ -2685,59 +2685,12 @@ mm.animate=function(k,o){try{if(Array.isArray(k)&&k[0]&&/scale\(\.82\)/.test(k[0
 const _sn=snap;snap=function(R,g){const o=R.G;if(o&&g&&g.rd===o.rd&&g.seq===o.seq&&!!g.over===!!o.over)return;return _sn(R,g)};
 })();
 
-/* NX-PATCH-V26 */
+/* NX-PATCH-V27 */
 (()=>{
-const D=document;
-/* ---- sounds: very short, soft, premium ---- */
-const AX=()=>{try{const x=nnAC();if(!x.nx6){const g=x.nx6=x.createGain(),lp=x.createBiquadFilter();lp.type="lowpass";lp.frequency.value=5600;g.connect(lp);lp.connect(x.destination)}return x}catch(_){return null}};
-const nt=(f,dl,d,v,f1)=>{if(!PR.snd)return;const x=AX();if(!x)return;const t=x.currentTime+dl,o=x.createOscillator(),h=x.createOscillator(),g=x.createGain(),k=x.createGain();
- o.frequency.setValueAtTime(f,t);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+d*.8);h.frequency.value=f*2;k.gain.value=.12;
- g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+d);
- o.connect(g);h.connect(k);k.connect(g);g.connect(x.nx6);o.start(t);h.start(t);o.stop(t+d+.02);h.stop(t+d+.02)};
-let tl=0;const th=ms=>{const n=Date.now();if(n-tl<ms)return 1;tl=n;return 0};
-SFX.send=()=>{nt(560,0,.09,.2,900);nt(1250,.045,.07,.08)};
-SFX.recv=SFX.notif=()=>{if(th(350))return;nt(880,0,.1,.2);nt(1320,.085,.12,.16)};
-const tapS=()=>nt(700,0,.06,.18,980);
-const _tp=SFX.tap;SFX.tap=function(){const e=window.event,t=e&&e.target;if(t&&t.closest&&t.closest(".qc,.hc,.row")&&!t.closest("#nav"))return tapS();return _tp.apply(this,arguments)};
-/* ---- local (one phone) 2-4 players ---- */
-window.localPick=g=>openModal('<h3>'+(g==="ludo"?"🎲 Ludo":"🃏 UNO")+' · ek phone</h3><p class="sub">Kitne players?</p><div class="grid" style="grid-template-columns:repeat(3,1fr)">'+[2,3,4].map(n=>'<button class="btn pri" onclick="localGo(\''+g+'\','+n+')">'+n+'</button>').join("")+'</div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
-window.localGo=(g,n)=>{closeModal();if(g==="ludo")startLudo("local",null,null,n);else{newUno(n,Array.from({length:n},(_,i)=>"Player "+(i+1)),1,n);if(U)U.local=1}};
-/* Ludo: local = 2/3/4 humans, dice at each colour's own corner */
-const _sl=startLudo;startLudo=function(mode,names,me,n,ids){if(mode==="local"&&!names){if(!(n>=2&&n<=4))return localPick("ludo");const cs=SEAT[n];names=cs.map(c=>c[0].toUpperCase()+c.slice(1));ids=cs.map((_,i)=>"l"+i)}return _sl.call(this,mode,names,me,n,ids)};
-const FC="⚀⚁⚂⚃⚄⚅",chip=(p,i)=>'<button class="ldc'+(/^(green|yellow)$/.test(p.color)?" rt":"")+'" data-i="'+i+'" style="--c:'+LC[p.color].c+'" onclick="ldRoll('+i+')"><span class="df">🎲</span><small>'+esc(p.name)+'</small></button>';
-window.ldRoll=i=>{if(L&&L.mode==="local"&&i===L.turn)rollL()};
-function ldUI(){const cv=$("ldCv"),card=$("ldCard");if(!cv||!card||card.querySelector(".lcol"))return;card.classList.add("lloc");
- const w=D.createElement("div");w.className="lcol";cv.parentNode.insertBefore(w,cv);w.appendChild(cv);
- const row=(c,f)=>'<div class="lrow '+c+'">'+L.players.map((p,i)=>f(p)?chip(p,i):"").join("")+'</div>';
- w.insertAdjacentHTML("afterbegin",row("t",p=>/^(red|green)$/.test(p.color)));w.insertAdjacentHTML("beforeend",row("b",p=>/^(blue|yellow)$/.test(p.color)))}
-function ldChips(){if(!L||L.mode!=="local")return;L.lb=L.lb||[];if(L.dice&&!L.rolling)L.lb[L.turn]=L.dice;
- D.querySelectorAll(".ldc").forEach(b=>{const i=+b.dataset.i,a=i===L.turn&&!L.winner;b.classList.toggle("on",a);b.classList.toggle("tm",a&&!!L.rolling);const v=a&&L.dice?L.dice:L.lb[i];b.querySelector(".df").textContent=v?FC[v-1]:"🎲"});
- const h=$("ldH");if(h&&!L.winner)h.textContent=L.dice?"Glowing token dabao":cur().name+": apne corner ka dice dabao"}
-const _rl=renderL;renderL=function(){const r=_rl.apply(this,arguments);try{if(L&&L.mode==="local"){ldUI();ldChips()}}catch(_){}return r};
-const _ul=updL;updL=function(){const r=_ul.apply(this,arguments);try{ldChips()}catch(_){}return r};
-/* UNO: local hot-seat, hand hidden until the phone is passed */
-const _h=hub;hub=function(k,m){const r=_h(k,m);if(k==="uno"&&!m){const f=D.querySelector("#main .fi");if(f)f.insertAdjacentHTML("beforeend",'<button class="card hc" onclick="localPick(\'uno\')">'+gi(I.game,"#ff8a5b","#ff5b8a")+'<span class="t"><b>One phone</b><small>2-4 players, pass the phone</small></span></button>')}return r};
-const _nn=newUno;newUno=function(){const keep=U&&U.local;const r=_nn.apply(this,arguments);if(keep&&U)U.local=1;return r};
-function cover(){let e=$("nxcv");if(!U||!U.local||!U.cover||S.page!=="uno"||U.over){e&&e.remove();return}if(e)return;
- e=D.createElement("div");e.id="nxcv";e.innerHTML='<div><small>Phone ise do</small><b>'+esc(U.names[U.me])+'</b><button class="btn pri" id="nxcb">Tap when ready</button></div>';D.body.appendChild(e);$("nxcb").onclick=()=>{U.cover=0;e.remove()}}
-const _dr=drawU;drawU=function(){if(U&&U.local&&!U.over&&!U.fresh&&U.me!==U.t&&!(U.out&&U.out[U.t])){U.me=U.t;U.cover=1}const r=_dr.apply(this,arguments);try{cover()}catch(_){}return r};
-setInterval(()=>{const e=$("nxcv");if(e&&(!U||!U.local||S.page!=="uno"||U.over))e.remove()},400);
-D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
-.lrow{display:flex;gap:10px;margin:8px 0}.lrow:empty{display:none}
-.ldc{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:16px;border:2px solid var(--c);background:rgba(255,255,255,.05);opacity:.5;transition:opacity .25s,box-shadow .25s;min-width:112px;color:#fff}
-.ldc.rt{margin-left:auto}
-.ldc .df{font-size:38px;line-height:1;width:40px;text-align:center;display:block}
-.ldc small{font-size:13px;font-weight:800;color:#e6ebff}
-.ldc.on{opacity:1;box-shadow:0 0 22px -2px var(--c);animation:ldp 1.2s ease-in-out infinite alternate}
-@keyframes ldp{to{transform:translateY(-2px)}}
-.lrow.t .ldc{transform:rotate(180deg)}
-.lrow.t .ldc.on{animation:ldpt 1.2s ease-in-out infinite alternate}
-@keyframes ldpt{from{transform:rotate(180deg)}to{transform:rotate(180deg) translateY(-2px)}}
-.ldc.tm .df{animation:ldsp .45s linear infinite}@keyframes ldsp{to{transform:rotate(360deg)}}
-.lloc #ldDice{display:none}
-@media(orientation:landscape) and (max-height:600px){body.nx-ludo .lloc #ldCv{width:calc(100dvh - 130px)!important}}
-#nxcv{position:fixed;inset:0;z-index:9300;background:#070b1a;display:grid;place-items:center;text-align:center}
-#nxcv>div{display:grid;gap:14px;justify-items:center}#nxcv b{font-size:34px}#nxcv small{color:#8b97ab;font-size:15px}`}));
+/* "Powered by" only on the splash screen and at the bottom of Settings */
+const fx=()=>document.querySelectorAll("#main .pw").forEach(e=>{if(/^Powered by/.test(e.textContent))e.classList.toggle("nxhide",S.page!=="settings")});
+new MutationObserver(fx).observe($("main"),{childList:true,subtree:true});fx();
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:".top .pw,.acard .pw,.nxhide{display:none!important}"}));
 })();
 
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
