@@ -3523,4 +3523,18 @@ Element.prototype.animate=function(k,o){
  return oa.call(this,k,o)};
 D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"main .pg,main .pg.st,main .pg.st.nxin,#main>.pg{animation:none!important;opacity:1!important;filter:none!important}.nxg{display:none!important}::view-transition-old(root),::view-transition-new(root){animation:none!important}"}));
 })();
+</script><script>
+/* NX-PATCH-V33 CHAT-BLACK-FIX */
+(()=>{
+const D=document,app=$("app"),vv=window.visualViewport,P=["position","left","right","top","height"];
+const kbo=()=>!!vv&&innerHeight-vv.height>120;
+/* 1. the chat screen is only resized when the keyboard is really open (old code resized it after ~1s and left a black area) */
+P.forEach(p=>{const d=Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype,p);if(!d||!d.set||!d.get)return;
+ Object.defineProperty(app.style,p,{configurable:true,get(){return d.get.call(this)},set(v){d.set.call(this,v&&!kbo()?"":v)}})});
+const clr=()=>{if(!kbo()){P.forEach(p=>app.style[p]="");delete app.dataset.vv}};
+if(vv){vv.addEventListener("resize",clr);vv.addEventListener("scroll",clr)}
+setInterval(clr,500);
+/* 2. lighter chat screen: no extra GPU layers or blur behind chat (these can blank out for a moment on Android) */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"body.nx-chat .orbs,body.nx-chat::before{display:none!important}body.nx-chat *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}.cb{contain:none!important;transform:none!important;will-change:auto!important}body.nx-chat,body.nx-chat #app,body.nx-chat #shell,body.nx-chat main{background-color:#070a10}"}));
+})();
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
