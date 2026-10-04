@@ -3375,4 +3375,118 @@ PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(newStack);retu
 const _cm=cacheMsg;
 cacheMsg=function(){const r=_cm.apply(this,arguments);setTimeout(()=>{if($("nxStk2")&&!dragging)build(false)},260);return r};
 })();
+</script><script>
+/* NX-PATCH-V30 SMOOTH-STACK-CAMERA-CALL */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(_){}},cl=(v,a,b)=>Math.max(a,Math.min(b,v)),AND=/Android/i.test(navigator.userAgent);
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#nxStk3{position:relative;margin-bottom:14px}
+#nxStk3.drag .nsk2{transition:none!important}
+#nxst{position:absolute;z-index:4;left:14px;top:calc(env(safe-area-inset-top,0px) + 80px);display:none;align-items:center;padding:6px 14px;border-radius:999px;background:rgba(10,14,28,.62);border:1px solid rgba(255,255,255,.14);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+#call.nxp #nxst{display:flex}
+#call.nxp .ctm,#call.nxp #vqs,#call.vid:not(.mn) .cmid{display:none!important}
+#call.mn #nxst{display:none!important}
+@media(orientation:landscape) and (max-height:600px){#nxst{top:calc(env(safe-area-inset-top,0px) + 56px)}}
+.cb.nxi .m{animation:none!important}
+#nxcam{position:fixed;inset:0;z-index:9950;background:#000;display:flex;flex-direction:column}
+#nxcam video{flex:1;min-height:0;width:100%;object-fit:cover;background:#000}
+#nxcam .ctp{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;background:linear-gradient(#0008,transparent)}
+#nxcam .cbt{position:absolute;left:0;right:0;bottom:0;padding:16px 0 calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;flex-direction:column;align-items:center;gap:16px;background:linear-gradient(transparent,#000a)}
+#nxcam .cmd{display:flex;gap:6px;padding:4px;border-radius:999px;background:rgba(0,0,0,.45)}
+#nxcam .cmd button{padding:6px 16px;border-radius:999px;font-weight:700;font-size:14px;color:#ddd}
+#nxcam .cmd .on{background:#fff;color:#000}
+#nxcam .csh{width:74px;height:74px;border-radius:50%;border:4px solid #fff;display:grid;place-items:center}
+#nxcam .csh i{width:56px;height:56px;border-radius:50%;background:#fff;transition:.2s}
+#nxcam .csh.rec i{width:30px;height:30px;border-radius:8px;background:#ff4d63}
+#nxcam .cct{font-weight:800;text-shadow:0 1px 4px #000}`}));
+/* ---------- 1. Home recent stack: free scroll with finger + momentum ---------- */
+const VIS=4,RH=72,PT=82,ST=8,SC=.045,RS=26;
+let L=[],els=[],pos=0,drag=0,anim=0,sup=0;
+const UG=()=>LS(K("nx_unr"),{}),mx=()=>Math.max(0,L.length-VIS),T0=()=>L.length>VIS?RS:0,fade=k=>k<=3?1-.2*k:Math.max(0,.4-(k-3)*.4);
+function pose(s){const t=T0();let y,sc=1,op=1,z=20,pk=0;
+ if(s<0){const k=-s,kk=Math.min(k,3);sc=1-SC*kk;y=t-ST*kk;op=fade(k);z=8-Math.floor(kk);pk=s<-.5}
+ else if(s>VIS-1){const k=s-(VIS-1),kk=Math.min(k,3);sc=1-SC*kk;y=t+(VIS-1)*PT+RH+ST*kk-RH*sc;op=fade(k);z=8-Math.floor(kk);pk=k>.5}
+ else y=t+s*PT;
+ return{y,sc,op,z,pk}}
+function apply(){for(let i=0;i<els.length;i++){const p=pose(i-pos),e=els[i];e.style.transform="translate3d(0,"+p.y.toFixed(1)+"px,0) scale("+p.sc.toFixed(3)+")";e.style.opacity=p.op.toFixed(2);e.style.zIndex=p.z;e.classList.toggle("pk",!!p.pk);e.style.pointerEvents=p.pk||p.op<.05?"none":""}}
+const rowH=(x,U)=>{const n=dn(x.id,x.name),u=U[x.id],pre=u?u.text:(x.last||"Say hi");
+ return'<div class="card row nsk2'+(u?" nun":"")+'" onclick="chatWith(\''+esc(x.id)+'\')"><div class="av">'+esc(ini(n))+'</div><div class="t"><b>'+esc(n)+'</b><small>'+esc(pre)+'</small></div>'+(u&&u.n?'<span class="nub">'+(u.n>99?"99+":u.n)+'</span>':"")+'</div>'};
+function build(){const b=$("nxStk3");if(!b)return;L=LS(K("nx_rc"),[]);L.forEach(x=>reg({id:x.id,username:x.un,display_name:x.name}));const U=UG(),n=L.length;pos=cl(pos,0,mx());
+ b.style.height=(n>VIS?RS*2:0)+(Math.min(n,VIS)-1)*PT+RH+"px";b.innerHTML=L.map(x=>rowH(x,U)).join("");els=[...b.children];apply()}
+function bind(b){let sy=0,sx=0,p0=0,on=0,lock=0,ly=0,lt=0,v=0,wt=0;
+ const stop=()=>{if(anim){cancelAnimationFrame(anim);anim=0}};
+ const run=()=>{let last=performance.now();const f=n=>{const dt=Math.min(34,n-last);last=n;
+  if(Math.abs(v)>.0005){pos+=v*dt;v*=Math.exp(-dt/240);if(pos<0||pos>mx()){pos=cl(pos,0,mx());v=0}}
+  else{const t=Math.round(pos);pos+=(t-pos)*(1-Math.exp(-dt/80));if(Math.abs(t-pos)<.004){pos=t;apply();anim=0;b.classList.remove("drag");return}}
+  apply();anim=requestAnimationFrame(f)};anim=requestAnimationFrame(f)};
+ b.addEventListener("touchstart",e=>{if(e.touches.length!==1){on=0;return}stop();const t=e.touches[0];sy=ly=t.clientY;sx=t.clientX;p0=pos;lt=performance.now();v=0;on=1;lock=0;drag=1;b.classList.add("drag")},{passive:true});
+ b.addEventListener("touchmove",e=>{if(!on)return;const t=e.touches[0],dy=t.clientY-sy,dx=t.clientX-sx;
+  if(!lock){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;const dir=dy<0?1:-1;if(Math.abs(dx)>Math.abs(dy)||mx()===0||(dir>0&&pos>=mx()-.001)||(dir<0&&pos<=.001)){on=0;drag=0;b.classList.remove("drag");return}lock=1}
+  if(e.cancelable)e.preventDefault();
+  const n=performance.now(),dt=Math.max(1,n-lt);v=cl(.75*v+.25*((ly-t.clientY)/PT/dt),-.02,.02);ly=t.clientY;lt=n;
+  pos=cl(p0-dy/PT,0,mx());apply()},{passive:false});
+ const end=()=>{if(!on)return;on=0;drag=0;if(!lock){if(Math.abs(pos-Math.round(pos))>.004)run();else b.classList.remove("drag");return}lock=0;sup=Date.now();run()};
+ b.addEventListener("touchend",end,{passive:true});b.addEventListener("touchcancel",end,{passive:true});
+ b.addEventListener("wheel",e=>{if(mx()===0||(e.deltaY>0&&pos>=mx())||(e.deltaY<0&&pos<=0))return;e.preventDefault();stop();b.classList.add("drag");pos=cl(pos+e.deltaY/PT*.6,0,mx());apply();clearTimeout(wt);wt=setTimeout(()=>{v=0;run()},120)},{passive:false});
+ b.addEventListener("click",e=>{if(Date.now()-sup<350){e.stopPropagation();e.preventDefault()}},true)}
+const _h=PG.home;
+PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(()=>{const o=$("nxStk2");if(!o)return;const b=D.createElement("div");b.id="nxStk3";o.replaceWith(b);stopAnim();pos=0;build();bind(b);b.animate([{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:300,easing:"cubic-bezier(.22,1,.36,1)"})});return r};
+function stopAnim(){if(anim){cancelAnimationFrame(anim);anim=0}}
+const _cm=cacheMsg;cacheMsg=function(){const r=_cm.apply(this,arguments);setTimeout(()=>{if($("nxStk3")&&!drag&&!anim)build()},300);return r};
+/* ---------- 2. In-app camera: photo + video, front/back ---------- */
+window.nxCam=async function(){if(!S.chat||$("nxcam"))return;let fc="environment",mode="p",st=null,mr=null,ch=[],iv=0,t0=0;
+ const o=D.createElement("div");o.id="nxcam";
+ o.innerHTML='<video playsinline muted autoplay></video><div class="ctp"><button class="ib" id="ccx" aria-label="Close">✕</button><span class="cct" id="cct"></span><button class="ib" id="ccf" aria-label="Flip camera">🔄</button></div><div class="cbt"><div class="cmd"><button id="cm1" class="on">Photo</button><button id="cm2">Video</button></div><button id="csh" class="csh" aria-label="Capture"><i></i></button></div>';
+ D.body.appendChild(o);const vid=o.querySelector("video"),sh=$("csh");
+ const stopS=()=>{if(st)st.getTracks().forEach(t=>t.stop());st=null};
+ const close=()=>{clearInterval(iv);if(mr&&mr.state!=="inactive"){mr.onstop=null;tf(()=>mr.stop())}stopS();o.remove()};
+ const start=async()=>{stopS();const v={facingMode:{ideal:fc},width:{ideal:1920},height:{ideal:1080}};let s;
+  try{s=await navigator.mediaDevices.getUserMedia({video:v,audio:true})}catch(_){try{s=await navigator.mediaDevices.getUserMedia({video:v,audio:false})}catch(e){toast("Camera allow karo");close();return}}
+  if(!$("nxcam")){s.getTracks().forEach(t=>t.stop());return}
+  st=s;vid.srcObject=s;vid.style.transform=fc==="user"?"scaleX(-1)":"none";vid.play().catch(()=>{})};
+ const done=f=>{close();window.__cf=f;openModal('<h3>Kaise bhejna hai?</h3><p class="sub">One-time: dekhne ke baad gayab ho jata hai.</p><div class="grid"><button class="btn" onclick="nxSend(0)">Normal</button><button class="btn pri" onclick="nxSend(3)">🔥 3 sec</button><button class="btn pri" onclick="nxSend(5)">🔥 5 sec</button><button class="btn pri" onclick="nxSend(10)">🔥 10 sec</button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Cancel</button>')};
+ $("ccx").onclick=close;$("ccf").onclick=()=>{if(mr&&mr.state==="recording")return;fc=fc==="user"?"environment":"user";start()};
+ const setM=m=>{if(mr&&mr.state==="recording")return;mode=m;$("cm1").classList.toggle("on",m==="p");$("cm2").classList.toggle("on",m==="v")};
+ $("cm1").onclick=()=>setM("p");$("cm2").onclick=()=>setM("v");
+ sh.onclick=()=>{if(!st)return;
+  if(mode==="p"){if(!vid.videoWidth)return;const c=D.createElement("canvas");c.width=vid.videoWidth;c.height=vid.videoHeight;c.getContext("2d").drawImage(vid,0,0);c.toBlob(b=>b&&done(new File([b],"photo_"+Date.now()+".jpg",{type:"image/jpeg"})),"image/jpeg",.92);return}
+  if(mr&&mr.state==="recording"){mr.stop();return}
+  if(!window.MediaRecorder)return toast("Is browser me video record nahi hota");
+  const mt=["video/mp4","video/webm;codecs=vp9,opus","video/webm"].find(x=>MediaRecorder.isTypeSupported(x))||"";ch=[];
+  try{mr=new MediaRecorder(st,mt?{mimeType:mt,videoBitsPerSecond:8e6}:{})}catch(_){return toast("Video record start nahi hua")}
+  mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  mr.onstop=()=>{clearInterval(iv);sh.classList.remove("rec");const ty=(mr.mimeType||mt||"video/webm").split(";")[0];if(ch.length)done(new File([new Blob(ch,{type:ty})],"video_"+Date.now()+(ty==="video/mp4"?".mp4":".webm"),{type:ty}))};
+  mr.start(500);sh.classList.add("rec");t0=Date.now();iv=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000),e=$("cct");if(e)e.textContent="● "+Math.floor(s/60)+":"+String(s%60).padStart(2,"0");if(s>=60&&mr.state==="recording")mr.stop()},300)};
+ start()};
+window.nxSend=s=>{closeModal();const f=window.__cf;window.__cf=null;if(!f)return;sendMedia(s?new File([f],"OT"+s+"_"+f.name,{type:f.type}):f)};
+const _ap=window.atPick;window.atPick=function(t){if(t==="c"){closeModal();return nxCam()}return _ap.apply(this,arguments)};
+/* ---------- 3. Video call: one clean timer + ping pill ---------- */
+$("call").insertAdjacentHTML("beforeend",'<div id="nxst"></div>');
+setInterval(()=>{const c=$("call"),vs=$("vs"),p=$("nxst");if(!c||!vs||!p)return;
+ const on=!!C&&C.st==="on"&&!vs.classList.contains("h")&&!c.classList.contains("mn")&&!c.classList.contains("h");c.classList.toggle("nxp",on);
+ if(on){const q=($("vqs").textContent||"").trim(),x=$("cTm").textContent+(q?"  ·  "+q:"");if(p.textContent!==x)p.textContent=x}},500);
+/* ---------- 4. Android video call: stable FPS, quality follows network ---------- */
+const md=navigator.mediaDevices;
+if(md&&md.getUserMedia){const g=md.getUserMedia;md.getUserMedia=async function(c){const s=await g.apply(md,arguments);
+ tf(()=>{if(AND&&c&&c.video&&!c.audio){const t=s.getVideoTracks()[0];if(t&&!t._nx)t.applyConstraints({width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:60}}).catch(()=>{})}});return s}}
+const sp=RTCRtpSender.prototype.setParameters;
+RTCRtpSender.prototype.setParameters=function(p){tf(()=>{const n=this._nx;if(n&&p&&p.encodings&&p.encodings[0]){Object.assign(p.encodings[0],n);p.degradationPreference="maintain-framerate"}});return sp.call(this,p)};
+setInterval(async()=>{if(!AND)return;const c=C;if(!c||c.st!=="on"||!c.camS||!c.pc)return;const s=c.camS;if(!s.track||s.track.readyState!=="live")return;
+ let n=s._nx;if(!n){n=s._nx={maxFramerate:(navigator.hardwareConcurrency||8)>=8?60:30,maxBitrate:6e6,scaleResolutionDownBy:1};s._b=0;s._g=0}
+ let fps=0,rs="none",lost=0,av=0;
+ try{(await s.getStats()).forEach(x=>{if(x.type==="outbound-rtp"&&x.kind==="video"){fps=x.framesPerSecond||0;rs=x.qualityLimitationReason||"none"}if(x.type==="remote-inbound-rtp")lost=x.fractionLost||0});
+  (await c.pc.getStats()).forEach(x=>{if(x.type==="candidate-pair"&&x.nominated&&x.availableOutgoingBitrate)av=x.availableOutgoingBitrate})}catch(_){return}
+ const t=n.maxFramerate,bad=(fps>1&&fps<t*.8)||rs==="cpu"||lost>.06;
+ if(bad){s._g=0;if(++s._b>=2){s._b=0;if(n.scaleResolutionDownBy<2.5)n.scaleResolutionDownBy=+(n.scaleResolutionDownBy*1.25).toFixed(2);else if(n.maxFramerate>30){n.maxFramerate=30;n.scaleResolutionDownBy=1.25}}}
+ else if(fps>=t*.92&&rs==="none"&&lost<.02){s._b=0;if(++s._g>=6){s._g=0;if(n.scaleResolutionDownBy>1)n.scaleResolutionDownBy=Math.max(1,+(n.scaleResolutionDownBy/1.25).toFixed(2))}}
+ if(av)n.maxBitrate=cl(av*.85,8e5,14e6);
+ Promise.resolve(tf(()=>{const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];return s.setParameters(p)})).catch(()=>{})},2000);
+/* ---------- 5. Recent to chat: no layout jump, smooth slide ---------- */
+const mm=$("main"),oa2=mm.animate;
+mm.animate=function(k,o){if(S.page==="chat"&&Array.isArray(k)&&k[0]&&/scale\(\.82\)/.test(k[0].transform||""))return{finished:Promise.resolve(),cancel(){},onfinish:null};return oa2.call(mm,k,o)};
+const _oc=openChat;
+openChat=function(){D.body.classList.add("nx-chat");const r=_oc.apply(this,arguments);
+ tf(()=>{const k=$("cb");if(k){k.classList.add("nxi");setTimeout(()=>k.classList.remove("nxi"),900)}mm.animate([{opacity:0,transform:"translate3d(22px,0,0)"},{opacity:1,transform:"none"}],{duration:280,easing:"cubic-bezier(.22,1,.36,1)"})});return r};
+const _g=go;go=function(p){if(p!=="chat")D.body.classList.remove("nx-chat");return _g.apply(this,arguments)};
+})();
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
