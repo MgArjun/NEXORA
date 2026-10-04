@@ -3290,4 +3290,89 @@ const _ec=endCall;endCall=function(){const c=C;if(c&&c.vx){const x=c.vx;c.vx=nul
 const _vd=vdev;vdev=async function(k){const c=C;if(k==="audioinput"&&c&&c.vx)voiceOff(c);const r=await _vd.apply(this,arguments);if(k==="audioinput"&&NX.ve&&c&&C===c&&!c.vx)setTimeout(()=>{if(C===c)voice(true)},400);return r};
 })();
 
+</script><script>
+/* NX-PATCH-V29 FRIENDS-STACK-ENC */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(_){}},cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#cb::before{content:"🔒 This chat is end-to-end encrypted";position:sticky;top:4px;z-index:-1;flex:none;align-self:center;padding:5px 12px;border-radius:999px;font-size:11px;line-height:16px;color:var(--mu);background:rgba(255,255,255,.06);text-align:center;pointer-events:none}
+#cb .e2n{display:none!important}
+#nxStk{display:none!important}
+#nxStk2{position:relative;margin-bottom:14px}
+.nsk2{position:absolute!important;left:0;right:0;top:0;height:72px;margin:0!important;width:auto!important;transform-origin:50% 0;transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .25s;will-change:transform,opacity;cursor:pointer;overflow:hidden;-webkit-user-select:none;user-select:none;animation:none!important}
+.nsk2>*{transition:opacity .2s}.nsk2.pk>*{opacity:0}
+#nxStk2.drag .nsk2{transition:none!important}
+.fstk{position:relative;padding-bottom:calc(var(--g)*9px);margin-bottom:10px}
+.fstk .ff{position:relative;z-index:3}.fstk .ff .row{margin-bottom:0}
+.fg{position:absolute;left:9px;right:9px;bottom:calc((var(--g) - 1)*9px);height:58px;border-radius:22px;border:1px solid var(--ln);background:#10162a;filter:brightness(.85);z-index:2;cursor:pointer}
+.fg.g2{left:18px;right:18px;bottom:0;z-index:1;filter:brightness(.7)}
+.md:has(.adg){width:min(330px,92vw);padding:24px 24px 14px;border-radius:28px;background:#1a2036!important}
+.adg h3{font-size:22px;font-weight:600;margin:0 0 14px}
+.adg p{margin:0 0 22px;color:#c3cadd;font-size:15px;line-height:1.5}
+.adb{display:flex;justify-content:flex-end;gap:4px}
+.adb button{min-height:44px;padding:0 16px;border-radius:22px;font-weight:700;font-size:15px;color:#aab8ff}
+.adb button:active{background:rgba(170,184,255,.18)}.adb .dl{color:#ff8a98}`}));
+
+/* ---- Friends: 1 friend + stack, View all page, delete ---- */
+let FR=[];
+const frHtml=()=>{const n=FR.length;if(!n)return'<div class="card empty">No friends yet. Search a username above.</div>';const g=Math.min(2,n-1);
+ return'<div class="fstk" style="--g:'+g+'">'+(g>1?'<i class="fg g2" onclick="friendsAll()"></i>':'')+(g>0?'<i class="fg g1" onclick="friendsAll()"></i>':'')+'<div class="ff">'+prow(FR[0])+'</div></div><button class="btn wide" onclick="friendsAll()">View all · '+n+' friend'+(n>1?'s':'')+'</button>'};
+loadFriends=async function(){const el=$("fl");
+ try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or(`requester_id.eq.${S.user.id},addressee_id.eq.${S.user.id}`);
+  const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);if(!$("fl"))return;
+  if(!ids.length){FR=[];return el.innerHTML=frHtml()}
+  const{data:ps}=await sb.from("profiles").select("*").in("id",ids);
+  FR=(ps||[]).slice().sort((a,b)=>(b.online?1:0)-(a.online?1:0)||nm(a).localeCompare(nm(b)));
+  if($("fl"))$("fl").innerHTML=frHtml()}catch(_){if($("fl"))$("fl").innerHTML='<div class="card empty">Could not load friends.</div>'}};
+function faPaint(){const n=FR.length,c=$("faC"),a=$("fa");if(!a)return;if(c)c.textContent=n?n+" friend"+(n>1?"s":""):"";
+ a.innerHTML=n?FR.map(p=>{reg(p);const x=dn(p.id,nm(p)),id=esc(p.id);return'<div class="card row"><div class="av">'+esc(ini(x))+'</div><div class="t"><b>'+esc(x)+'</b><small>@'+esc(p.username)+' · '+(p.online?"online":"offline")+'</small></div><button class="ib" onclick="chatWith(\''+id+'\')" aria-label="Chat">'+I.chat+'</button><button class="ib del" onclick="friendAsk(\''+id+'\')" aria-label="Remove friend">'+I.trash+'</button></div>'}).join(""):'<div class="card empty">No friends yet.</div>'}
+window.friendsAll=()=>{S.page="friends";page('<button class="btn" onclick="go(\'connect\')">‹ Back</button><h2 style="margin-top:14px">Friends</h2><p class="sub" id="faC"></p><div id="fa"></div>');faPaint()};
+window.friendAsk=id=>{const p=FR.find(x=>x.id===id);if(!p)return;
+ openModal('<div class="adg"><h3>Remove friend?</h3><p>'+esc(dn(p.id,nm(p)))+' will be removed from your friends list. Your chat stays. You can add them again later.</p><div class="adb"><button onclick="closeModal()">Cancel</button><button class="dl" onclick="friendDel(\''+esc(id)+'\')">Delete</button></div></div>')};
+window.friendDel=async id=>{closeModal();const me=S.user.id;let ok=false;
+ try{const r=await sb.from("friendships").delete().or("and(requester_id.eq."+me+",addressee_id.eq."+id+"),and(requester_id.eq."+id+",addressee_id.eq."+me+")").select();ok=!r.error&&!!(r.data&&r.data.length)}catch(_){}
+ if(!ok)return toast("Friend remove nahi hua. Supabase me delete permission lagani padegi");
+ FR=FR.filter(x=>x.id!==id);toast("Friend removed");if(S.page==="friends")faPaint()};
+addEventListener("popstate",e=>{if(S.page==="friends"&&S.user&&$("ov").classList.contains("h")){e.stopImmediatePropagation();history.pushState({n:1},"");go("connect")}},true);
+
+/* ---- Home recent stack: finger-follow, exactly one card per swipe ---- */
+const VIS=4,RH=72,PT=82,ST=8,SC=.045,RS=26;
+let NW=0,L=[],els=[],dragging=false,sup=0,raf=0,dpos=0;
+const UG=()=>LS(K("nx_unr"),{}),mx=()=>Math.max(0,L.length-VIS),T0=()=>L.length>VIS?RS:0;
+const chats=()=>{const l=LS(K("nx_rc"),[]);l.forEach(x=>reg({id:x.id,username:x.un,display_name:x.name}));return l};
+const rowH=(x,U)=>{const n=dn(x.id,x.name),u=U[x.id],pre=u?u.text:(x.last||"Say hi");
+ return'<div class="card row nsk2'+(u?" nun":"")+'" onclick="chatWith(\''+esc(x.id)+'\')"><div class="av">'+esc(ini(n))+'</div><div class="t"><b>'+esc(n)+'</b><small>'+esc(pre)+'</small></div>'+(u&&u.n?'<span class="nub">'+(u.n>99?"99+":u.n)+'</span>':"")+'</div>'};
+const fade=k=>k<=3?1-.2*k:Math.max(0,.4-(k-3)*.4);
+function pose(s){const t=T0();let y,sc=1,op=1,z=20,pk=0;
+ if(s<0){const k=-s,kk=Math.min(k,3);sc=1-SC*kk;y=t-ST*kk;op=fade(k);z=8-Math.floor(kk);pk=s<-.5}
+ else if(s>VIS-1){const k=s-(VIS-1),kk=Math.min(k,3);sc=1-SC*kk;y=t+(VIS-1)*PT+RH+ST*kk-RH*sc;op=fade(k);z=8-Math.floor(kk);pk=k>.5}
+ else y=t+s*PT;
+ return{y,sc,op,z,pk}}
+function apply(pos){for(let i=0;i<els.length;i++){const p=pose(i-pos),e=els[i];e.style.transform="translate3d(0,"+p.y.toFixed(1)+"px,0) scale("+p.sc.toFixed(3)+")";e.style.opacity=p.op.toFixed(2);e.style.zIndex=p.z;e.classList.toggle("pk",!!p.pk);e.style.pointerEvents=p.pk||p.op<.05?"none":""}}
+function build(anim){const b=$("nxStk2");if(!b)return;L=chats();const U=UG(),n=L.length;NW=cl(NW,0,mx());
+ b.style.height=(n>VIS?RS*2:0)+(Math.min(n,VIS)-1)*PT+RH+"px";b.innerHTML=L.map(x=>rowH(x,U)).join("");els=[...b.children];
+ if(anim){b.classList.add("drag");els.forEach(e=>{e.style.transform="translate3d(0,"+T0()+"px,0) scale(.9)";e.style.opacity="0"});void b.offsetWidth;b.classList.remove("drag");
+  els.forEach((e,i)=>e.style.transitionDelay=Math.min(i,5)*.05+"s");apply(NW);setTimeout(()=>els.forEach(e=>e.style.transitionDelay=""),800)}
+ else apply(NW)}
+const canS=d=>d>0?NW<mx():NW>0;
+function bind(b){let sy=0,sx=0,on=0,lock=0,vel=0,py=0,pt=0,dy=0,wt=0;
+ b.addEventListener("touchstart",e=>{if(e.touches.length!==1){on=0;return}const t=e.touches[0];sy=py=t.clientY;sx=t.clientX;pt=Date.now();on=1;lock=0;vel=0;dy=0},{passive:true});
+ b.addEventListener("touchmove",e=>{if(!on)return;const t=e.touches[0],dx=t.clientX-sx;dy=t.clientY-sy;
+  if(!lock){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;if(Math.abs(dx)>Math.abs(dy)||!canS(dy<0?1:-1)){on=0;return}lock=1;dragging=true;b.classList.add("drag");els.forEach(x=>x.style.transitionDelay="")}
+  if(e.cancelable)e.preventDefault();
+  const n=Date.now();vel=(t.clientY-py)/Math.max(1,n-pt);py=t.clientY;pt=n;
+  dpos=cl(NW-dy/PT,Math.max(0,NW-1),Math.min(mx(),NW+1));
+  if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(dragging)apply(dpos)})},{passive:false});
+ const end=()=>{if(!on)return;on=0;if(!lock)return;lock=0;dragging=false;cancelAnimationFrame(raf);raf=0;
+  let st=0;if(Math.abs(dy)>24||(Math.abs(vel)>.35&&Math.abs(dy)>8))st=dy<0?1:-1;
+  const o=NW;NW=cl(NW+st,0,mx());b.classList.remove("drag");sup=Date.now();if(NW!==o)tf(()=>vib(8));apply(NW)};
+ b.addEventListener("touchend",end,{passive:true});b.addEventListener("touchcancel",end,{passive:true});
+ b.addEventListener("wheel",e=>{const d=e.deltaY>0?1:-1;if(!canS(d))return;e.preventDefault();const t=Date.now();if(t-wt<300)return;wt=t;NW+=d;apply(NW)},{passive:false});
+ b.addEventListener("click",e=>{if(Date.now()-sup<350){e.stopPropagation();e.preventDefault()}},true)}
+function newStack(){const old=$("nxStk");if(!old)return;const b=D.createElement("div");b.id="nxStk2";old.after(b);old.innerHTML="";NW=0;dragging=false;build(true);bind(b)}
+const _h=PG.home;
+PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(newStack);return r};
+const _cm=cacheMsg;
+cacheMsg=function(){const r=_cm.apply(this,arguments);setTimeout(()=>{if($("nxStk2")&&!dragging)build(false)},260);return r};
+})();
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
