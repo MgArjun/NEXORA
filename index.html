@@ -2862,4 +2862,37 @@ SFX.tap=click;
 D.head.appendChild(Object.assign(D.createElement("style"),{textContent:".e2n{align-self:center;font-size:11px;color:var(--mu);opacity:.75;padding:4px 12px;margin:2px 0 8px;border-radius:999px;background:rgba(255,255,255,.05);text-align:center}.e2c{font-size:11px;color:var(--mu);opacity:.75;margin-top:6px}#call.mn .e2c{display:none}.cp{flex:none}.cb{min-height:0}"}));
 })();
 
+/* NX-ONETIME-PATCH v1 */
+
+(()=>{
+const D=document,OK=()=>K("nx_otv"),seen=id=>LS(OK(),[]).includes(id),mark=id=>{const o=LS(OK(),[]);o.push(id);localStorage[OK()]=JSON.stringify(o.slice(-300))};
+/* sender deletes the file after the friend has opened it */
+const rmf=p=>{try{if(!p||!p.startsWith(S.user.id+"/"))return;const s=sb.storage.from(MB);delete s.remove;s.remove([p]).then(()=>{},()=>{})}catch(_){}};
+const _ad=addMedia;
+addMedia=function(m){const b=$("cb"),x=String(m&&m.content||"");if(!b||!S.chat||!x.startsWith("NXM:"))return _ad(m);
+ let o;try{o=JSON.parse(x.slice(4))}catch(_){return _ad(m)}
+ const t=/^OT(\d+)_/.exec(o.n||"");if(!t||(o.k!=="img"&&o.k!=="vid"))return _ad(m);
+ const id=m.id||"";if(id&&b.querySelector('[data-id="'+id+'"]'))return;
+ const mine=m.sender_id===S.user.id,sec=+t[1],lab=o.k==="vid"?"video":"photo",d=D.createElement("div");
+ d.className="m ot "+(mine?"me":"th");d.dataset.id=id;d.dataset.s=m.sender_id;
+ d.innerHTML=mine?"🔥 One-time "+lab+" · sent":seen(id)?"🔥 Opened":"🔥 One-time "+lab+"<small>Tap to view"+(o.k==="img"?" · "+sec+"s":" · plays once")+"</small>";
+ if(!mine&&!seen(id)){d.classList.add("tp");d.onclick=()=>view(d,o,m,sec)}
+ b.appendChild(d);b.scrollTop=b.scrollHeight;if(!mine){sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,"🔥 One-time "+lab)}};
+function view(d,o,m,sec){if(d.dataset.go)return;d.dataset.go=1;const v=D.createElement("div");v.id="otv";
+ v.innerHTML='<div class="otb"><i></i></div><div class="ott"></div>'+(o.k==="vid"?'<video src="'+esc(o.u)+'" autoplay playsinline disablepictureinpicture controlslist="nodownload noremoteplayback"></video>':'<img src="'+esc(o.u)+'" alt="" draggable="false">')+'<button class="ib otx" aria-label="Close">✕</button>';
+ D.body.appendChild(v);v.oncontextmenu=e=>e.preventDefault();
+ const bar=v.querySelector(".otb i"),tt=v.querySelector(".ott"),im=v.querySelector("img"),vd=v.querySelector("video");let iv=0,done=0;
+ const fin=()=>{if(done)return;done=1;clearInterval(iv);v.remove();mark(m.id);d.onclick=null;d.classList.remove("tp");d.innerHTML="🔥 Opened";sig({type:"otdel",to:m.sender_id,id:m.id,p:o.p})};
+ const start=()=>{if(iv)return;let t=sec;tt.textContent=t+"s";bar.style.transition="width "+t+"s linear";requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.width="0"));iv=setInterval(()=>{t--;tt.textContent=Math.max(t,0)+"s";if(t<=0)fin()},1000)};
+ v.querySelector(".otx").onclick=fin;
+ if(im){im.onload=start;im.onerror=fin;if(im.complete&&im.naturalWidth)start()}else{tt.textContent="Plays once";vd.onended=fin;vd.onerror=fin}}
+const _os=onSig;onSig=function(p){if(p&&p.type==="otdel"){const d=D.querySelector('.m[data-id="'+p.id+'"]');if(d){d.classList.remove("tp");d.innerHTML="🔥 Opened"}rmf(p.p);return}return _os(p)};
+/* gallery / camera: ask normal or one-time */
+const _ap=window.atPick;
+window.atPick=function(t){if(t==="f")return _ap(t);openModal('<h3>Kaise bhejna hai?</h3><p class="sub">One-time: dekhne ke baad apne aap gayab ho jata hai.</p><div class="grid"><button class="btn" onclick="otGo(\''+t+'\',0)">Normal</button><button class="btn pri" onclick="otGo(\''+t+'\',3)">🔥 3 sec</button><button class="btn pri" onclick="otGo(\''+t+'\',5)">🔥 5 sec</button><button class="btn pri" onclick="otGo(\''+t+'\',10)">🔥 10 sec</button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Cancel</button>')};
+window.otGo=(t,s)=>{closeModal();if(!s)return _ap(t);const i=D.createElement("input");i.type="file";i.accept="image/*,video/*";if(t==="c")i.setAttribute("capture","environment");
+ i.onchange=()=>{const f=i.files[0];if(f)sendMedia(new File([f],"OT"+s+"_"+(f.name||"media"),{type:f.type}))};i.click()};
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:".m.ot{white-space:normal}.m.ot.tp{cursor:pointer;border:1px dashed rgba(255,255,255,.45)}#otv{position:fixed;inset:0;z-index:9900;background:#000;display:grid;place-items:center;-webkit-user-select:none;user-select:none}#otv img,#otv video{max-width:100%;max-height:100%;-webkit-touch-callout:none;pointer-events:none}.otb{position:absolute;left:0;right:0;top:0;height:5px;background:rgba(255,255,255,.15)}.otb i{display:block;height:100%;width:100%;background:#8fa2f0}.ott{position:absolute;left:14px;top:calc(env(safe-area-inset-top,0px) + 16px);font-weight:800;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.55)}.otx{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 14px)}"}));
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
