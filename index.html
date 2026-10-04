@@ -3489,4 +3489,23 @@ openChat=function(){D.body.classList.add("nx-chat");const r=_oc.apply(this,argum
  tf(()=>{const k=$("cb");if(k){k.classList.add("nxi");setTimeout(()=>k.classList.remove("nxi"),900)}mm.animate([{opacity:0,transform:"translate3d(22px,0,0)"},{opacity:1,transform:"none"}],{duration:280,easing:"cubic-bezier(.22,1,.36,1)"})});return r};
 const _g=go;go=function(p){if(p!=="chat")D.body.classList.remove("nx-chat");return _g.apply(this,arguments)};
 })();
+</script><script>
+/* NX-PATCH-V31 SMOOTH-TRANSITIONS */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(_){}},mm=$("main"),app=$("app");
+/* never let a page transition dip into the dark background */
+const fix=k=>{if(!Array.isArray(k))return k;return k.map(f=>{if(!f||typeof f!=="object")return f;const g=Object.assign({},f);
+ if(g.opacity!==undefined&&+g.opacity<.9)g.opacity=.9;
+ if(typeof g.transform==="string")g.transform=g.transform.replace(/scale\(\.\d+\)/,"scale(.97)");
+ if(g.filter!==undefined)delete g.filter;return g})};
+const ma=mm.animate;mm.animate=function(k,o){return ma.call(mm,fix(k),o)};
+const oa=Element.prototype.animate;
+Element.prototype.animate=function(k,o){if(this!==mm&&mm.contains(this)&&!this.classList.contains("nxg"))k=fix(k);return oa.call(this,k,o)};
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"main .pg,main .pg.st.nxin{animation:none!important}html,body{background-color:#060810}"}));
+/* leaving a chat: close keyboard + reset the screen size at once (no black/blank flash) */
+const _g=go;
+go=function(){tf(()=>{const a=D.activeElement;if(a&&a.blur&&/INPUT|TEXTAREA/.test(a.tagName))a.blur();
+ if(app.dataset.vv){app.style.position=app.style.left=app.style.right=app.style.top=app.style.height="";delete app.dataset.vv}scrollTo(0,0)});
+ return _g.apply(this,arguments)};
+})();
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
