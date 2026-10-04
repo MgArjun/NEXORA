@@ -1017,7 +1017,7 @@ endCall=function(silent){const c=C;if(c&&c.init&&c.st==="calling"&&!silent&&!c.a
 let pulling=0;
 async function pullInbox(){if(!S.user||pulling)return;pulling=1;try{
  const r=await sb.from("notifications").select("*").eq("user_id",S.user.id).eq("type","message").eq("is_read",false).order("created_at",{ascending:true}).limit(100);
- if(r.error||!r.data||!r.data.length)return;
+ if(r.error||!r.data||!r.data.length)return;await(window.nxPre?window.nxPre(r.data):0);
  const k=K("nx_mids"),ms=LS(k,[]),fresh=[],old=[];
  r.data.forEach(n=>{const d=n.data||{};if(!d.from)return;if(d.mid&&ms.includes(d.mid)){old.push(n.id);return}if(d.mid)ms.push(d.mid);
   fresh.push({from:d.from,un:d.un||"",name:d.name||n.title||"Friend",text:String(d.text||n.body||""),t:new Date(n.created_at).getTime(),mid:d.mid})});
@@ -2695,7 +2695,7 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
 
 /* NX-PATCH-V28 CHAT-GIF-LOCAL */
 (()=>{
-const D=document,GK="";
+const D=document,GK="EOVf0OCQzkDljpvQtQZx6WTnqNcNGzDg";
 /* ---- soft sounds ---- */
 let nb=null;const noise=c=>nb||(nb=(()=>{const n=Math.floor(c.sampleRate*.06),x=c.createBuffer(1,n,c.sampleRate),d=x.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);return x})());
 function soft(){if(!PR.snd)return;try{const c=nnAC(),t=c.currentTime,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(),s=c.createBufferSource(),h=c.createGain(),l=c.createBiquadFilter();
@@ -2806,4 +2806,60 @@ drawU=function(){if(U&&U.local&&S.page==="uno"){if(U.over)U.me=U.win>=0?U.win:U.
   U.me=U.t}}
  return _du.apply(this,arguments)};
 })();
+/* NX-E2E-GIF-PATCH v1 */
+
+(()=>{
+const D=document,cs=crypto.subtle,te=new TextEncoder(),td=new TextDecoder(),EC={name:"ECDH",namedCurve:"P-256"};
+const b64=u=>{let s="";new Uint8Array(u).forEach(x=>s+=String.fromCharCode(x));return btoa(s)},ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const isE=x=>typeof x==="string"&&x.startsWith("E2:");
+let Q=Promise.resolve();const q=f=>{Q=Q.then(f).catch(()=>{});return Q};
+const SK=()=>"nx_e2e_"+S.user.id,peers={};let mine=null;
+/* ---- keys: private key stays on this device, public key goes to profiles.pubkey ---- */
+async function myKey(){if(mine&&mine.u===S.user.id)return mine;Object.keys(peers).forEach(k=>delete peers[k]);let j=LS(SK(),null);
+ if(!j||!j.priv){const kp=await cs.generateKey(EC,true,["deriveKey"]);j={priv:await cs.exportKey("jwk",kp.privateKey),pub:JSON.stringify(await cs.exportKey("jwk",kp.publicKey))};localStorage[SK()]=JSON.stringify(j)}
+ return mine={u:S.user.id,priv:await cs.importKey("jwk",j.priv,EC,false,["deriveKey"]),pub:j.pub}}
+async function shared(uid){if(!uid)return null;if(peers[uid])return peers[uid];const m=await myKey(),r=await sb.from("profiles").select("pubkey").eq("id",uid).maybeSingle();
+ if(!r||!r.data||!r.data.pubkey)return null;const pk=await cs.importKey("jwk",JSON.parse(r.data.pubkey),EC,false,[]);
+ return peers[uid]=await cs.deriveKey({name:"ECDH",public:pk},m.priv,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function enc(uid,t){try{const k=await shared(uid);if(!k)return t;const iv=crypto.getRandomValues(new Uint8Array(12));return "E2:"+b64(iv)+"."+b64(await cs.encrypt({name:"AES-GCM",iv},k,te.encode(t)))}catch(_){return t}}
+async function dec(uid,w,again){try{const k=await shared(uid);if(!k)throw 0;const p=w.slice(3).split(".");return td.decode(await cs.decrypt({name:"AES-GCM",iv:ub(p[0])},k,ub(p[1])))}catch(_){if(!again){delete peers[uid];return dec(uid,w,1)}return "🔒 Ye message is device par khul nahi sakta"}}
+window.nxPre=async rows=>{for(const n of rows){const d=n&&n.data;if(d&&isE(d.text))d.text=await dec(d.from,d.text)}};
+/* publish my public key after login */
+const _en=enter;enter=async function(u){const r=await _en(u);try{const m=await myKey();sb.from("profiles").update({pubkey:m.pub}).eq("id",S.user.id).then(()=>{},()=>{})}catch(_){}return r};
+/* ---- receive: decrypt before the old code sees the message ---- */
+const _am=addMsg;addMsg=function(m,f,l){const x=m&&(m.content??m.body??m.text);if(!isE(x))return _am(m,f,l);
+ const uid=m.sender_id===S.user.id?(S.chat&&S.chat.uid):m.sender_id;q(async()=>{_am({...m,content:await dec(uid,x)},f,l)})};
+const _gm=gMsgSig;gMsgSig=function(p){if(p&&p.type==="msg"&&isE(p.text)){q(async()=>_gm({...p,text:await dec(p.from,p.text)}));return}return _gm(p)};
+/* ---- send: encrypt text (and GIF/media messages) ---- */
+const _dl=deliver;deliver=function(to,t){if(isE(t)||typeof t!=="string")return _dl(to,t);enc(to,t).then(w=>_dl(to,w))};
+sendMsg=async function(){const i=$("ci"),c=S.chat;if(!c||!i)return;const text=i.value.trim();if(!text)return;i.value="";i.style.height="";
+ const id=crypto.randomUUID(),at=new Date().toISOString();
+ addMsg({id,sender_id:S.user.id,content:text,created_at:at},true,true);sfx("send");rec(c.uid,c.un,c.name,text);
+ const w=await enc(c.uid,text);
+ S.cch&&S.cch.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text:w,at}}).catch(()=>{});
+ deliver(c.uid,w);
+ try{await sb.from("messages").insert({conversation_id:c.cid,sender_id:S.user.id,content:w})}catch(_){}};
+const _oc=openChat;openChat=function(a,b,c,d){const r=_oc(a,b,c,d);try{const ch=S.cch;
+ if(ch&&!ch.nxs){ch.nxs=1;const s=ch.send.bind(ch);ch.send=function(x){const p=x&&x.payload;if(x&&x.event==="m"&&p&&typeof p.text==="string"&&!isE(p.text)&&S.chat)return enc(S.chat.uid,p.text).then(w=>s({...x,payload:{...p,text:w}}));return s(x)}}
+ const cb=$("cb");if(cb&&S.chat&&S.chat.uid===b&&!cb.querySelector(".e2n")){cb.insertAdjacentHTML("afterbegin",'<div class="e2n">🔒 Messages are end-to-end encrypted</div>');
+  shared(b).then(k=>{if(!k){const e=cb.querySelector(".e2n");if(e)e.textContent="🔒 Encryption shuru hogi jab friend app kholega"}}).catch(()=>{})}}catch(_){}return r};
+$("cSt").insertAdjacentHTML("afterend",'<div class="e2c">🔒 End-to-end encrypted</div>');
+/* ---- typing box: always visible above keyboard, grows to show your text ---- */
+const vv=window.visualViewport,app=$("app");
+try{const m=D.querySelector('meta[name=viewport]');if(m&&!/interactive-widget/.test(m.content))m.content+=",interactive-widget=resizes-content"}catch(_){}
+function kb(){if(!vv||!D.body.classList.contains("nx-chat"))return;app.dataset.vv=1;app.style.position="fixed";app.style.left=app.style.right="0";app.style.top=vv.offsetTop+"px";app.style.height=Math.min(vv.height,innerHeight)+"px";scrollTo(0,0);
+ const b=$("cb"),t=$("ci");if(b&&t&&D.activeElement===t)b.scrollTop=b.scrollHeight}
+if(vv){vv.addEventListener("resize",kb);vv.addEventListener("scroll",kb)}
+D.addEventListener("focusin",()=>[60,250,600,1000].forEach(t=>setTimeout(kb,t)));
+D.addEventListener("fullscreenchange",()=>setTimeout(kb,300));addEventListener("orientationchange",()=>setTimeout(kb,400));
+D.addEventListener("input",e=>{const t=e.target;if(!t||t.id!=="ci"||t.tagName!=="TEXTAREA")return;setTimeout(()=>{t.style.height="auto";t.style.height=Math.min(Math.round((vv?vv.height:innerHeight)*.45),t.scrollHeight)+"px";t.scrollTop=t.scrollHeight;kb()},0)},true);
+/* ---- soft click tap sound ---- */
+function click(){if(!PR.snd)return;try{const c=nnAC(),t=c.currentTime,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();
+ f.type="lowpass";f.frequency.value=2400;o.type="sine";o.frequency.setValueAtTime(1500,t);o.frequency.exponentialRampToValueAtTime(950,t+.03);
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.07,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+.045);
+ o.connect(g);g.connect(f);f.connect(c.destination);o.start(t);o.stop(t+.06)}catch(_){}}
+SFX.tap=click;
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:".e2n{align-self:center;font-size:11px;color:var(--mu);opacity:.75;padding:4px 12px;margin:2px 0 8px;border-radius:999px;background:rgba(255,255,255,.05);text-align:center}.e2c{font-size:11px;color:var(--mu);opacity:.75;margin-top:6px}#call.mn .e2c{display:none}.cp{flex:none}.cb{min-height:0}"}));
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
