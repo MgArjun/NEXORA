@@ -2571,4 +2571,69 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
 `}));
 })();
 
+/* NX-PATCH-V23 */
+(()=>{
+const D=document,sz=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
+/* uploaded media is never auto-deleted (so files keep opening + can be downloaded) */
+try{const _sf=sb.storage.from.bind(sb.storage);sb.storage.from=b=>{const s=_sf(b);if(b===MB)s.remove=()=>Promise.resolve({data:[],error:null});return s}}catch(_){}
+const copy=t=>{const ok=()=>toast("Copied ✓");function fb(){const a=D.createElement("textarea");a.value=t;a.style.cssText="position:fixed;opacity:0";D.body.appendChild(a);a.select();try{D.execCommand("copy");ok()}catch(_){toast("Copy nahi hua")}a.remove()}try{navigator.clipboard.writeText(t).then(ok,fb)}catch(_){fb()}};
+/* fullscreen: games never force it; picker returns to it */
+let noF=0;const _nf=nxFs;nxFs=function(){return noF?Promise.resolve():_nf.apply(this,arguments)};
+const _rl=renderL;renderL=function(){noF=1;try{return _rl.apply(this,arguments)}finally{noF=0}};
+const fsE=()=>D.fullscreenElement||D.webkitFullscreenElement;
+const keep=i=>{if(!fsE())return;const back=()=>{if(fsE())return;const e=D.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;try{const p=r&&r.call(e,{navigationUI:"hide"});p&&p.catch&&p.catch(()=>{})}catch(_){}};["change","cancel"].forEach(v=>i.addEventListener(v,back));addEventListener("focus",back,{once:true});[500,1500].forEach(t=>setTimeout(back,t))};
+/* attach sheet: gallery / camera / file */
+window.atSheet=()=>openModal('<h3>Send</h3><div class="grid" style="grid-template-columns:repeat(3,1fr)"><button class="btn" onclick="atPick(\'g\')">🖼<br><small>Gallery</small></button><button class="btn" onclick="atPick(\'c\')">📷<br><small>Camera</small></button><button class="btn" onclick="atPick(\'f\')">📄<br><small>File</small></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+window.atPick=t=>{closeModal();const i=D.createElement("input");i.type="file";i.accept=t==="f"?"application/pdf,.pdf,audio/*":"image/*,video/*";if(t==="c")i.setAttribute("capture","environment");else i.multiple=true;
+ i.onchange=async()=>{for(const f of [...i.files])await sendMedia(f)};keep(i);i.click()};
+/* video call quality: settings + chat menu */
+const VQL=[["720","720p"],["1080","1080p"],["1440","2K"],["2160","4K"]];
+try{const q=localStorage.nx_hq;if(q&&VQ[q])hq=q}catch(_){}
+const seg=()=>'<div class="seg" id="vqg">'+VQL.map(([k,n])=>'<button class="'+(hq===k?"on":"")+'" onclick="setHq(\''+k+'\')">'+n+'</button>').join("")+'</div>';
+window.setHq=k=>{hq=k;try{localStorage.nx_hq=k}catch(_){}D.querySelectorAll("#vqg button").forEach((b,i)=>b.classList.toggle("on",VQL[i][0]===k));const c=C;if(c){if(c.cam)c.cam.applyConstraints(vcons()).catch(()=>{});tuneAll(c)}toast("Video quality: "+VQL.find(x=>x[0]===k)[1])};
+const _rs=renderSettings;PG.settings=renderSettings=function(){_rs();const b=D.querySelector("#main .pg>button.red");if(b)b.insertAdjacentHTML("beforebegin",'<div class="card" style="padding:16px;margin-bottom:14px"><b>Video call quality</b><div class="pw" style="text-align:left;margin:4px 0 10px">Higher = sharper, more data</div>'+seg()+'</div>')};
+window.chMore=()=>{const c=S.chat;if(!c)return;window.__cm=c;openModal('<h3>More</h3><button class="btn wide" style="margin-bottom:14px" onclick="closeModal();wtInvite(__cm.uid,__cm.name)">🎬 Watch together</button><b>Video call quality</b><div style="margin:8px 0 14px">'+seg()+'</div><div class="pr"><div class="t"><b>Data saver for files</b><small>On = compress before sending</small></div><button class="tg2 '+(PR.ds?"on":"")+'" onclick="tog(\'ds\',this)" aria-label="Data saver"><i></i></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>')};
+/* chat header, multi-line input, attach button */
+const _oc=openChat;openChat=function(a,b,c,d){const r=_oc(a,b,c,d);try{
+ const h=D.querySelector(".ch");if(h&&S.chat&&S.chat.uid===b&&!h.querySelector(".xmr")){
+  h.querySelector(".ed")?.remove();h.querySelector(".xwt")?.remove();
+  const ibs=[...h.querySelectorAll(".ib")],vc=h.querySelector(".xvc"),gm=ibs.find(x=>/gameWith/.test(x.getAttribute("onclick")||"")),ph=ibs.find(x=>/callWith/.test(x.getAttribute("onclick")||""));
+  [vc,ph,gm].forEach(x=>x&&h.appendChild(x));
+  h.insertAdjacentHTML("beforeend",'<button class="ib xmr" onclick="chMore()" aria-label="More">'+I.more+'</button>')}
+ const ci=$("ci");if(ci&&ci.tagName==="INPUT"){const t=D.createElement("textarea"),c0=S.chat;t.id="ci";t.rows=1;t.placeholder="Message";t.maxLength=100000;t.autocomplete="off";ci.replaceWith(t);
+  t.addEventListener("input",()=>{t.style.height="auto";t.style.height=Math.min(140,t.scrollHeight)+"px";const n=Date.now();if(n-(c0.ts||0)>1500){c0.ts=n;S.cch&&S.cch.send({type:"broadcast",event:"t",payload:{}}).catch(()=>{})}});
+  t.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!matchMedia("(pointer:coarse)").matches){e.preventDefault();sendMsg()}})}
+ const at=D.querySelector(".xat");if(at)at.onclick=window.atSheet}catch(_){}return r};
+const _sm=sendMsg;sendMsg=function(){const r=_sm.apply(this,arguments);const t=$("ci");if(t)t.style.height="";return r};
+/* full text everywhere (no 300 char cut) */
+deliver=function(to,text){const mid=crypto.randomUUID(),un=S.me?.username||"";sig({type:"msg",to,text,name:myName(),un,mid});
+ sb.from("notifications").insert({user_id:to,type:"message",title:myName(),body:text.slice(0,80),data:{from:S.user.id,un,name:myName(),text,mid}}).then(()=>{},()=>{})};
+const _gm=gMsgSig;gMsgSig=function(p){_gm(p);try{if(p.type==="msg"&&p.text&&p.text.length>300){const k=hk(cidOf(p.from)),o=LS(k,[]),s=p.text.slice(0,300);for(let i=o.length-1;i>=0;i--)if(o[i].s===p.from&&o[i].x===s){o[i].x=p.text;break}localStorage[k]=JSON.stringify(o)}}catch(_){}};
+/* tap a text message = copy */
+D.addEventListener("click",e=>{const m=e.target.closest&&e.target.closest(".m:not(.mm)"),cb=$("cb");if(!m||!cb||!cb.contains(m)||String(getSelection()))return;if(m.dataset.x)copy(m.dataset.x)},true);
+/* media: small ratio-correct preview, tap to open, PDF opens, save for all */
+addMedia=function(m){const b=$("cb");if(!b||!S.chat)return;const id=m.id||"";if(id&&b.querySelector('[data-id="'+id+'"]'))return;let o;try{o=JSON.parse(String(m.content).slice(4))}catch(_){return}
+ const mine=m.sender_id===S.user.id,d=D.createElement("div"),u=esc(o.u),n=esc(o.n||"file"),z=o.z?sz(o.z):"";d.className="m mm "+(mine?"me":"th");d.dataset.id=id;d.dataset.s=m.sender_id;d.dataset.u=o.u;d.dataset.n=o.n||"nexora";
+ const body=o.k==="vid"?'<div class="mt" data-v="1"><video src="'+u+'#t=0.1" preload="metadata" muted playsinline></video><b class="pl">▶</b></div>':o.k==="aud"?'<div class="fl"><span>♪</span><div><b>'+n+'</b><small>'+z+'</small></div></div><audio src="'+u+'" controls preload="metadata"></audio>':o.k==="pdf"?'<div class="fl" data-pdf="1"><span>PDF</span><div><b>'+n+'</b><small>'+z+' · tap to open</small></div></div>':'<div class="mt"><img src="'+u+'" alt="" onload="this.classList.add(\'ld\')"></div>';
+ d.innerHTML=body+'<div class="mf"><button class="msv">⬇ Save'+(z?" · "+z:"")+'</button><small style="margin:0">'+tm(m.created_at||Date.now())+'</small></div>';
+ b.appendChild(d);b.scrollTop=b.scrollHeight;if(!mine){sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,"📎 Media")}};
+const vview=(u,n)=>{let v=$("mvw");v&&v.remove();v=D.createElement("div");v.id="mvw";v.innerHTML='<div class="mvb"><button class="ib" id="mvx" aria-label="Close">✕</button><span></span><button class="btn pri" id="mvs">⬇ Save</button></div><video src="'+esc(u)+'" controls autoplay playsinline style="max-width:100%;max-height:100%;background:#000"></video>';D.body.appendChild(v);requestAnimationFrame(()=>v.classList.add("on"));
+ $("mvx").onclick=()=>{v.classList.remove("on");setTimeout(()=>v.remove(),300)};$("mvs").onclick=()=>msave(u,n)};
+D.addEventListener("click",e=>{const m=e.target.closest&&e.target.closest(".mm");if(!m||e.target.closest(".msv"))return;
+ if(e.target.closest("[data-v]")){e.stopPropagation();vview(m.dataset.u,m.dataset.n)}
+ else if(e.target.closest("[data-pdf]")){e.stopPropagation();window.open(m.dataset.u,"_blank")}},true);
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.m:not(.mm){white-space:pre-wrap}
+.ch>div[style*="flex:1"] b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch{gap:8px}.ch .ib{width:38px;height:38px;border-radius:12px}.ch .av{width:38px;height:38px}
+.cp{align-items:flex-end}
+.cp textarea{flex:1;margin:0;min-height:50px;max-height:140px;padding:13px 16px;border-radius:26px;border:1px solid var(--ln);background:rgba(255,255,255,.04);resize:none;outline:none;font:inherit;font-size:16px;color:inherit}
+.mt{position:relative;width:min(230px,62vw);border-radius:16px;overflow:hidden;background:#0b1020;cursor:pointer;min-height:110px}
+.mt img,.mt video{display:block;width:100%;height:auto}
+.mt img{opacity:0;filter:blur(16px);transition:opacity .4s,filter .5s}.mt img.ld{opacity:1;filter:none}
+.mt .pl{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55);color:#fff}
+.fl[data-pdf]{cursor:pointer}
+#nxf2{z-index:9800!important}`}));
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
