@@ -3584,4 +3584,18 @@ D.body.classList.add("nx-nomir");
 setInterval(()=>{if(!D.body.classList.contains("nx-nomir"))D.body.classList.add("nx-nomir")},300);
 })();
 </script>
+<script>
+/* NX-HOME-NAME-PATCH v1 */
+(()=>{
+const D=document;
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#main .pg>h2.nxhn{line-height:1.12}#main .pg>h2.nxhn .gr{display:block}#main .pg>h2.nxhn .nm{display:block;font-size:19px;font-weight:800;letter-spacing:-.3px;margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"}));
+const fix=()=>{const h=D.querySelector("#main .pg>h2");if(!h||h.dataset.nhn)return;const g=h.querySelector(".grad");
+ if(!g||!/^Good (morning|afternoon|evening),/.test(h.textContent))return;
+ const hi=h.textContent.slice(0,h.textContent.indexOf(",")),name=g.textContent;
+ h.dataset.nhn=1;h.classList.add("nxhn");h.textContent="";
+ const a=D.createElement("span"),b=D.createElement("span");a.className="gr";a.textContent=hi;b.className="nm grad";b.textContent=name;h.append(a,b)};
+const _h=PG.home;
+PG.home=renderHome=function(){const r=_h.apply(this,arguments);try{fix()}catch(_){}return r};
+})();
+</script>
 <script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
