@@ -2636,4 +2636,43 @@ D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
 #nxf2{z-index:9800!important}`}));
 })();
 
+/* NX-PATCH-V24 */
+(()=>{
+const D=document,W=7*864e5,gk=()=>K("nx_gone"),qk=()=>K("nx_sq");
+const rm=p=>{try{const s=sb.storage.from(MB);delete s.remove;return s.remove(p).then(()=>{},()=>{})}catch(_){return Promise.resolve()}};
+const addGone=l=>{const g=new Set(LS(gk(),[]));l.forEach(x=>g.add(x));localStorage[gk()]=JSON.stringify([...g].slice(-500))};
+const pOf=m=>{const x=m&&(m.content??m.body??m.text??"");if(typeof x!=="string"||!x.startsWith("NXM:"))return null;try{return JSON.parse(x.slice(4)).p||null}catch(_){return null}};
+/* received file seen -> delete when you leave the chat */
+const mark=p=>{if(!p)return;const q=LS(qk(),[]);if(!q.includes(p)){q.push(p);localStorage[qk()]=JSON.stringify(q)}};
+const flush=()=>{if(!S.user)return;const q=LS(qk(),[]);if(!q.length)return;localStorage[qk()]="[]";addGone(q);rm(q)};
+setInterval(()=>{if(S.user&&S.page!=="chat")flush()},1500);
+const _oc=openChat;openChat=function(a,b,c,d){if(S.chat&&S.chat.uid!==b)flush();return _oc(a,b,c,d)};
+/* anything older than 7 days is not shown, and its file is deleted */
+const _am=addMsg;addMsg=function(m,f,l){const t=new Date(m.created_at||Date.now()).getTime();if(t&&Date.now()-t>W){const p=pOf(m);if(p){addGone([p]);rm([p])}return}return _am(m,f,l)};
+const _ad=addMedia;addMedia=function(m){_ad(m);try{let o;try{o=JSON.parse(String(m.content).slice(4))}catch(_){return}const b=$("cb");if(!b)return;
+ const d=[...b.querySelectorAll(".mm")].reverse().find(x=>x.dataset.u===o.u);if(!d||d.dataset.x7)return;d.dataset.x7=1;d.dataset.p=o.p||"";const rc=d.classList.contains("th");
+ const exp=()=>{d.innerHTML='<div class="fl"><span>✕</span><div><b>File expired</b><small>Ye file ab available nahi hai</small></div></div>'};
+ if(new Set(LS(gk(),[])).has(o.p))return exp();
+ const im=d.querySelector("img"),vd=d.querySelector("video"),au=d.querySelector("audio");
+ if(im){im.addEventListener("error",exp);if(rc){const ok=()=>mark(o.p);im.complete&&im.naturalWidth?ok():im.addEventListener("load",ok)}}
+ if(vd)vd.addEventListener("error",exp);
+ if(au){au.addEventListener("error",exp);rc&&au.addEventListener("play",()=>mark(o.p),{once:true})}
+ if(o.k==="pdf")fetch(o.u,{method:"HEAD"}).then(r=>{if(!r.ok)exp()}).catch(()=>{})}catch(_){}};
+D.addEventListener("click",e=>{const m=e.target.closest&&e.target.closest(".mm.th");if(m&&m.dataset.p&&e.target.closest(".msv,[data-v],[data-pdf]"))mark(m.dataset.p)},true);
+/* purge local data (recents, history, inbox) + try server cleanup */
+const purge=remote=>{if(!S.user)return;const cut=Date.now()-W,me=S.user.id;
+ try{const k=K("nx_inbox");localStorage[k]=JSON.stringify(LS(k,[]).filter(x=>(x.t||0)>cut))}catch(_){}
+ try{const k=K("nx_rc");localStorage[k]=JSON.stringify(LS(k,[]).map(x=>(x.t||0)>cut||!x.last?x:{...x,last:""}))}catch(_){}
+ try{Object.keys(localStorage).forEach(k=>{if(!k.startsWith("nx_h_")||!k.endsWith("_"+me))return;const all=LS(k,[]),keep=all.filter(x=>x.t>cut);
+  all.filter(x=>x.t<=cut).forEach(x=>{const p=pOf({content:x.x});if(p){addGone([p]);rm([p])}});
+  keep.length?(keep.length!==all.length&&(localStorage[k]=JSON.stringify(keep))):localStorage.removeItem(k)})}catch(_){}
+ if(remote){const iso=new Date(cut).toISOString();
+  sb.from("messages").delete().lt("created_at",iso).eq("sender_id",me).then(()=>{},()=>{});
+  sb.from("notifications").delete().lt("created_at",iso).eq("user_id",me).then(()=>{},()=>{});
+  sb.storage.from(MB).list(me,{limit:200}).then(r=>{const old=((r&&r.data)||[]).filter(x=>x.created_at&&Date.now()-new Date(x.created_at)>W).map(x=>me+"/"+x.name);if(old.length){addGone(old);rm(old)}},()=>{})}};
+const _rr=renderRecent;PG.recent=renderRecent=function(){purge();return _rr.apply(this,arguments)};
+const _rh=renderHome;PG.home=renderHome=function(){purge();return _rh.apply(this,arguments)};
+let lt=0;setInterval(()=>{if(S.user&&Date.now()-lt>36e5){lt=Date.now();purge(1)}},4000);
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
