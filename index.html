@@ -2693,4 +2693,117 @@ new MutationObserver(fx).observe($("main"),{childList:true,subtree:true});fx();
 document.head.appendChild(Object.assign(document.createElement("style"),{textContent:".top .pw,.acard .pw,.nxhide{display:none!important}"}));
 })();
 
+/* NX-PATCH-V28 CHAT-GIF-LOCAL */
+(()=>{
+const D=document,GK="";
+/* ---- soft sounds ---- */
+let nb=null;const noise=c=>nb||(nb=(()=>{const n=Math.floor(c.sampleRate*.06),x=c.createBuffer(1,n,c.sampleRate),d=x.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);return x})());
+function soft(){if(!PR.snd)return;try{const c=nnAC(),t=c.currentTime,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(),s=c.createBufferSource(),h=c.createGain(),l=c.createBiquadFilter();
+ f.type="lowpass";f.frequency.value=1100;o.frequency.setValueAtTime(250,t);o.frequency.exponentialRampToValueAtTime(130,t+.07);
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.2,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.1);
+ o.connect(g);g.connect(f);f.connect(c.destination);o.start(t);o.stop(t+.12);
+ s.buffer=noise(c);l.type="lowpass";l.frequency.value=1600;h.gain.value=.05;s.connect(l);l.connect(h);h.connect(c.destination);s.start(t)}catch(_){}}
+function tik(){if(!PR.snd)return;try{const c=nnAC(),t=c.currentTime,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();
+ f.type="lowpass";f.frequency.value=3200;o.frequency.setValueAtTime(1000,t);o.frequency.exponentialRampToValueAtTime(720,t+.05);
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.1,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.07);
+ o.connect(g);g.connect(f);f.connect(c.destination);o.start(t);o.stop(t+.09)}catch(_){}}
+const ot=SFX.tap;
+SFX.tap=function(){const e=window.event,t=e&&e.target;if(t&&t.closest&&t.closest(".cell,.cs,.uc,.m"))return ot();soft()};
+SFX.send=tik;
+/* ---- chat screen: hide top/bottom bars, fit to visible area ---- */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+body.nx-chat .top,body.nx-chat .nav{display:none!important}
+body.nx-chat .ch{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+#ci{-webkit-user-select:text;user-select:text}
+.cp .xgf{width:46px;height:46px;align-self:center;font-size:13px;font-weight:800;flex:none}
+#gfp{position:absolute;left:0;right:0;bottom:0;z-index:6;height:min(62%,460px);display:flex;flex-direction:column;background:#10162a;border:1px solid var(--ln);border-radius:22px 22px 0 0;box-shadow:0 -16px 40px rgba(0,0,0,.55)}
+.gfh{display:flex;gap:8px;padding:10px;flex:none}.gfh input{margin:0;flex:1;height:44px}
+#gfg{flex:1;overflow:auto;columns:2;column-gap:6px;padding:0 10px 6px}
+#gfg img{width:100%;display:block;margin-bottom:6px;border-radius:10px;cursor:pointer;background:#0b1020}
+#gfg .empty{column-span:all}
+.vgb{width:100%}`}));
+const vv=window.visualViewport,app=$("app");
+function fit(){if(!app)return;if(!D.body.classList.contains("nx-chat")){if(app.dataset.vv){app.style.position=app.style.left=app.style.right=app.style.top=app.style.height="";delete app.dataset.vv}return}
+ if(!vv)return;app.dataset.vv=1;app.style.position="fixed";app.style.left="0";app.style.right="0";app.style.top=vv.offsetTop+"px";app.style.height=vv.height+"px";if(scrollY)scrollTo(0,0)}
+if(vv){const r=()=>{fit();const b=$("cb");if(b&&D.body.classList.contains("nx-chat"))b.scrollTop=b.scrollHeight};vv.addEventListener("resize",r);vv.addEventListener("scroll",fit)}
+setInterval(()=>{D.body.classList.toggle("nx-chat",!!S.user&&S.page==="chat");fit()},250);
+/* auto fullscreen must never steal focus while chatting (iPad Safari typing bug) */
+let allowFs=0;D.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("#nxf2,#xFs,#nxfs")){allowFs=1;setTimeout(()=>allowFs=0,1500)}},true);
+["requestFullscreen","webkitRequestFullscreen"].forEach(n=>{const o=Element.prototype[n];if(!o)return;Element.prototype[n]=function(){if(S.page==="chat"&&!allowFs)return n==="requestFullscreen"?Promise.resolve():undefined;return o.apply(this,arguments)}});
+D.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#ci");if(t&&D.activeElement!==t)t.focus()},true);
+/* ---- GIF encoder (no libraries) ---- */
+const BY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function quant(d,w,h){const o=new Uint8Array(w*h);let k=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++,k++){const j=k*4,t=(BY[(y&3)*4+(x&3)]-7.5)/16,r=Math.max(0,Math.min(5,Math.round(d[j]/51+t))),g=Math.max(0,Math.min(6,Math.round(d[j+1]/42.5+t))),b=Math.max(0,Math.min(5,Math.round(d[j+2]/51+t)));o[k]=r*42+g*6+b}return o}
+function lzw(px){const out=[],m=new Map();let cur=0,nb2=0,size=9,next=258;const put=c=>{cur|=c<<nb2;nb2+=size;while(nb2>=8){out.push(cur&255);cur>>>=8;nb2-=8}};
+ put(256);let p=px[0];for(let i=1;i<px.length;i++){const c=px[i],k=(p<<8)|c,v=m.get(k);if(v!==undefined)p=v;else{put(p);if(next===4096){put(256);m.clear();next=258;size=9}else{if(next>=(1<<size))size++;m.set(k,next++)}p=c}}
+ put(p);put(257);if(nb2>0)out.push(cur&255);return out}
+function mkGif(fr,w,h,dl){const o=[],b=(...a)=>{for(const x of a)o.push(x)},s=t=>{for(const ch of t)o.push(ch.charCodeAt(0))},le=n=>b(n&255,n>>8);
+ s("GIF89a");le(w);le(h);b(0xF7,0,0);
+ for(let i=0;i<256;i++){if(i<252)b(Math.floor(i/42)*51,Math.round(Math.floor(i%42/6)*42.5),(i%6)*51);else b(0,0,0)}
+ b(0x21,0xFF,11);s("NETSCAPE2.0");b(3,1,0,0,0);
+ for(const f of fr){b(0x21,0xF9,4,0);le(dl);b(0,0);b(0x2C);le(0);le(0);le(w);le(h);b(0,8);const z=lzw(f);for(let i=0;i<z.length;i+=255){const c=z.slice(i,i+255);b(c.length);for(const x of c)o.push(x)}b(0)}
+ b(0x3B);return new Uint8Array(o)}
+/* ---- video to GIF with trim ---- */
+function pickVid(){const i=D.createElement("input");i.type="file";i.accept="video/*";i.onchange=()=>{const f=i.files[0];if(f)v2g(f)};i.click()}
+window.nxVid=pickVid;
+function v2g(file){if(!S.chat)return;const url=URL.createObjectURL(file);
+ openModal(`<h3>Video to GIF</h3><video id="vgV" playsinline muted style="width:100%;border-radius:14px;max-height:34dvh;background:#000"></video><div class="pw" id="vgT" style="margin:8px 0">Loading…</div><div class="lbl">Start</div><input type="range" id="vgS" value="0" style="padding:0;height:30px;margin:0"><div class="lbl">End</div><input type="range" id="vgE" value="50" style="padding:0;height:30px;margin:0"><button class="btn pri wide vgb" id="vgM" style="margin-top:14px">Make GIF</button><button class="btn wide vgb" id="vgC" style="margin-top:8px">Cancel</button>`,()=>URL.revokeObjectURL(url));
+ const v=$("vgV"),S1=$("vgS"),E1=$("vgE"),T=$("vgT");let dur=0,busy=false;v.src=url;
+ const rd=()=>[+S1.value/10,+E1.value/10],txt=()=>{const[a,b]=rd();T.textContent="Clip: "+a.toFixed(1)+"s to "+b.toFixed(1)+"s ("+(b-a).toFixed(1)+"s). Max 6s. Tap video to preview."};
+ v.onloadedmetadata=()=>{dur=v.duration||0;if(!isFinite(dur)||dur<=0){T.textContent="Ye video khul nahi paaya.";return}const mx=Math.floor(dur*10);S1.max=E1.max=mx;S1.value=0;E1.value=Math.min(mx,60);txt();v.currentTime=.01};
+ S1.oninput=()=>{let[a,b]=rd();if(b-a>6)E1.value=Math.min(+E1.max,+S1.value+60);if(b<=a)E1.value=Math.min(+E1.max,+S1.value+5);v.pause();v.currentTime=+S1.value/10;txt()};
+ E1.oninput=()=>{let[a,b]=rd();if(b-a>6)S1.value=Math.max(0,+E1.value-60);if(b<=a)S1.value=Math.max(0,+E1.value-5);v.pause();v.currentTime=+E1.value/10;txt()};
+ v.onclick=()=>{if(busy)return;if(v.paused){v.currentTime=+S1.value/10;v.play().catch(()=>{})}else v.pause()};
+ v.ontimeupdate=()=>{if(!busy&&!v.paused&&v.currentTime>=+E1.value/10)v.currentTime=+S1.value/10};
+ $("vgC").onclick=()=>{busy=false;closeModal()};
+ $("vgM").onclick=async()=>{if(busy||!dur)return;busy=true;v.pause();const[s,e]=rd(),fps=10,n=Math.max(2,Math.round((e-s)*fps)),W0=v.videoWidth,H0=v.videoHeight,w=Math.min(240,W0),h=Math.round(w*H0/W0),cv=D.createElement("canvas");cv.width=w;cv.height=h;const cx=cv.getContext("2d",{willReadFrequently:true}),fr=[];
+  $("vgM").disabled=true;
+  try{for(let i=0;i<n;i++){if(!busy)return;T.textContent="Bana raha hu… "+Math.round(i/n*100)+"%";v.currentTime=Math.min(dur-.01,s+i/fps);await new Promise(r=>{const t=setTimeout(r,2500);v.onseeked=()=>{clearTimeout(t);r()}});cx.drawImage(v,0,0,w,h);fr.push(quant(cx.getImageData(0,0,w,h).data,w,h));if(i%4===3)await new Promise(r=>setTimeout(r,0))}
+   const g=mkGif(fr,w,h,10);busy=false;closeModal();sendMedia(new File([g],"nexora.gif",{type:"image/gif"}))}catch(_){busy=false;T.textContent="GIF nahi ban payi. Chhota clip try karo.";$("vgM").disabled=false}}}
+/* ---- GIF search (Giphy) ---- */
+function sendGif(u){const c=S.chat;if(!c)return;const id=crypto.randomUUID(),at=new Date().toISOString(),text="NXM:"+JSON.stringify({k:"gif",u,p:"",n:"giphy.gif"});
+ addMedia({id,sender_id:S.user.id,content:text,created_at:at});if(S.cch)S.cch.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});sfx("send");rec(c.uid,c.un,c.name,"GIF")}
+window.nxGifOpen=()=>{const m=$("main");if(!S.chat||$("gfp"))return;const p=D.createElement("div");p.id="gfp";
+ p.innerHTML='<div class="gfh"><input id="gfq" placeholder="Search GIFs" autocomplete="off"><button class="ib" id="gfv" aria-label="Video to GIF">🎞</button><button class="ib" id="gfx" aria-label="Close">✕</button></div><div id="gfg"></div><div class="pw" style="padding:4px 0 8px;text-align:center">Powered by GIPHY</div>';
+ m.appendChild(p);const q=p.querySelector("#gfq"),g=p.querySelector("#gfg");let tm,list=[];
+ const load=async s=>{if(!GK){g.innerHTML='<div class="empty">GIF search ke liye Giphy key chahiye. Abhi add nahi hui.</div>';return}
+  g.innerHTML='<div class="empty">Loading…</div>';
+  try{const r=await fetch("https://api.giphy.com/v1/gifs/"+(s?"search":"trending")+"?api_key="+encodeURIComponent(GK)+"&limit=30&rating=pg-13"+(s?"&q="+encodeURIComponent(s):"")),j=await r.json();list=j.data||[];
+   g.innerHTML=list.length?list.map((x,i)=>'<img src="'+esc(x.images.fixed_width.url)+'" data-i="'+i+'" alt="">').join(""):'<div class="empty">Koi GIF nahi mila</div>'}catch(_){g.innerHTML='<div class="empty">GIFs load nahi hue. Internet check karo.</div>'}};
+ q.oninput=()=>{clearTimeout(tm);tm=setTimeout(()=>load(q.value.trim()),400)};
+ g.onclick=e=>{const i=e.target.dataset&&e.target.dataset.i;if(i==null)return;const x=list[i];if(!x)return;p.remove();sendGif((x.images.downsized_medium&&x.images.downsized_medium.url)||x.images.original.url)};
+ p.querySelector("#gfx").onclick=()=>p.remove();p.querySelector("#gfv").onclick=()=>{p.remove();pickVid()};load("")};
+window.atSheet=()=>openModal('<h3>Send</h3><div class="grid"><button class="btn" onclick="atPick(\'g\')">🖼<br><small>Gallery</small></button><button class="btn" onclick="atPick(\'c\')">📷<br><small>Camera</small></button><button class="btn" onclick="atPick(\'f\')">📄<br><small>File</small></button><button class="btn" onclick="closeModal();nxVid()">🎞<br><small>Video to GIF</small></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+const _oc=openChat;
+openChat=function(a,b,c,d){const r=_oc(a,b,c,d);try{
+ const p=D.querySelector(".cp");if(p&&S.chat&&S.chat.uid===b&&!p.querySelector(".xgf")){const at=p.querySelector(".xat"),x=D.createElement("button");x.className="ib xgf";x.textContent="GIF";x.setAttribute("aria-label","GIF");x.onclick=window.nxGifOpen;if(at){at.after(x);at.onclick=window.atSheet}else p.prepend(x)}
+ const t=$("ci");if(t&&t.tagName==="TEXTAREA"&&!t.dataset.nx){t.dataset.nx=1;
+  t.addEventListener("input",()=>{t.style.height="auto";const mx=Math.max(140,Math.round((vv?vv.height:innerHeight)*.4));t.style.height=Math.min(mx,t.scrollHeight)+"px"});
+  t.addEventListener("focus",()=>setTimeout(()=>{const k=$("cb");k&&(k.scrollTop=k.scrollHeight)},300))}}catch(_){}return r};
+/* ---- mic permission: ask once after login ---- */
+window.nxMicAsk=async()=>{closeModal();try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop());localStorage.nx_mic="1";toast("Mic allowed ✓")}catch(_){localStorage.nx_mic="0";toast("Mic allow nahi hua. Phone settings se allow kar sakte ho")}};
+async function prime(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||localStorage.nx_mic)return;
+ try{const p=await navigator.permissions.query({name:"microphone"});if(p.state!=="prompt"){localStorage.nx_mic=p.state==="granted"?"1":"0";return}}catch(_){}
+ if(!$("ov").classList.contains("h"))return;
+ openModal('<h3>Microphone allow karo</h3><p class="sub">Calls ke liye mic chahiye. Ek baar allow kar do, baar baar nahi poochhenge.</p><button class="btn pri wide" onclick="nxMicAsk()">Allow microphone</button><button class="btn wide" style="margin-top:10px" onclick="localStorage.nx_mic=\'0\';closeModal()">Baad me</button>')}
+const _en=enter;enter=async function(u){const r=await _en(u);setTimeout(prime,3500);return r};
+/* ---- Ludo: One phone with 2/3/4 players ---- */
+const _sl=startLudo;
+startLudo=function(mode,names,me,n,ids){if(mode==="local"&&!names){if(!n){openModal('<h3>🎲 One phone</h3><p class="sub">Kitne players khelenge?</p><div class="grid" style="grid-template-columns:repeat(3,1fr)">'+[2,3,4].map(k=>'<button class="btn pri" onclick="startLudo(\'local\',null,null,'+k+')">'+k+'</button>').join("")+'</div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Cancel</button>');return}
+  names=Array.from({length:n},(_,i)=>"Player "+(i+1));ids=Array(n).fill(null)}
+ return _sl(mode,names,me,n,ids)};
+/* ---- UNO: One phone, pass the phone ---- */
+window.nxLU=n=>{closeModal();const nm2=Array.from({length:n},(_,i)=>"Player "+(i+1));newUno(n,nm2,false,n);if(U){U.local=true;U.cov=0}};
+window.nxUR=()=>{if(U){U.cov=U.t;drawU()}};
+const _hub=hub;
+hub=function(k,m){_hub(k,m);if(k==="uno"&&!m){const f=D.querySelector("#main .fi");if(f)f.insertAdjacentHTML("beforeend",'<button class="card hc" onclick="nxLUp()">'+gi(I.game,"#ff8a5b","#ff5b8a")+'<span class="t"><b>One phone</b><small>2 to 4 players, pass the phone</small></span></button>')}};
+window.nxLUp=()=>openModal('<h3>🃏 One phone</h3><p class="sub">Kitne players khelenge?</p><div class="grid" style="grid-template-columns:repeat(3,1fr)">'+[2,3,4].map(k=>'<button class="btn pri" onclick="nxLU('+k+')">'+k+'</button>').join("")+'</div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Cancel</button>');
+const _nx=nextU;nextU=function(){if(U&&U.local)return;return _nx.apply(this,arguments)};
+const _ru=restartUno;restartUno=function(){if(U&&U.local)return nxLU(U.n);return _ru.apply(this,arguments)};
+const _du=drawU;
+drawU=function(){if(U&&U.local&&S.page==="uno"){if(U.over)U.me=U.win>=0?U.win:U.t;else if(!U.fresh){if(U.cov===undefined)U.cov=0;
+  if(U.cov!==U.t){const n=U.names[U.t];$("main").innerHTML='<section class="pg st"><div style="max-width:420px;margin:60px auto;text-align:center"><div class="av" style="margin:0 auto 14px;width:84px;height:84px;font-size:30px">'+esc(ini(n))+'</div><h2>'+esc(n)+"'s turn</h2><p class=\"sub\">Phone "+esc(n)+' ko do. Baaki log screen na dekhein.</p><button class="btn pri wide" onclick="nxUR()">I\'m ready</button><button class="btn wide" style="margin-top:10px" onclick="go(\'games\')">‹ Leave game</button></div></section>';return}
+  U.me=U.t}}
+ return _du.apply(this,arguments)};
+})();
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
