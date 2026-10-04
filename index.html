@@ -2895,4 +2895,80 @@ window.otGo=(t,s)=>{closeModal();if(!s)return _ap(t);const i=D.createElement("in
 D.head.appendChild(Object.assign(D.createElement("style"),{textContent:".m.ot{white-space:normal}.m.ot.tp{cursor:pointer;border:1px dashed rgba(255,255,255,.45)}#otv{position:fixed;inset:0;z-index:9900;background:#000;display:grid;place-items:center;-webkit-user-select:none;user-select:none}#otv img,#otv video{max-width:100%;max-height:100%;-webkit-touch-callout:none;pointer-events:none}.otb{position:absolute;left:0;right:0;top:0;height:5px;background:rgba(255,255,255,.15)}.otb i{display:block;height:100%;width:100%;background:#8fa2f0}.ott{position:absolute;left:14px;top:calc(env(safe-area-inset-top,0px) + 16px);font-weight:800;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.55)}.otx{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 14px)}"}));
 })();
 
+/* NX-FIXES-PATCH v1 */
+
+(()=>{
+const D=document,sz=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
+const PH="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+/* ---- UNO one phone: no "pass the phone" screen, game keeps going ---- */
+const _dr=drawU;drawU=function(){if(U&&U.local&&!U.over&&!U.fresh)U.cov=U.t;return _dr.apply(this,arguments)};
+/* ---- simple fixed encryption note ---- */
+const ET="🔒 This chat is end-to-end encrypted";
+setInterval(()=>D.querySelectorAll(".e2n").forEach(e=>{if(e.textContent!==ET)e.textContent=ET}),400);
+/* ---- tiny blurred preview is sent with every photo/video ---- */
+function pn(n){n=String(n||"");let th=null;const m=/^TH([A-Za-z0-9+\/=]*)~/.exec(n);if(m){th="data:image/jpeg;base64,"+m[1];n=n.slice(m[0].length)}return{n,th}}
+async function thumb(f){let u=null;try{let s,w,h;
+ if(f.type.startsWith("video/")){const v=D.createElement("video");v.muted=true;v.playsInline=true;u=URL.createObjectURL(f);v.src=u;
+  await new Promise((ok,no)=>{v.onloadeddata=ok;v.onerror=no;setTimeout(no,5000)});v.currentTime=Math.min(.3,(v.duration||1)/2);await new Promise(r=>{v.onseeked=r;setTimeout(r,1500)});s=v;w=v.videoWidth;h=v.videoHeight}
+ else{s=await createImageBitmap(f);w=s.width;h=s.height}
+ const k=32/Math.max(w,h),c=D.createElement("canvas");c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));c.getContext("2d").drawImage(s,0,0,c.width,c.height);return c.toDataURL("image/jpeg",.5).split(",")[1]}
+ catch(_){return null}finally{if(u)URL.revokeObjectURL(u)}}
+const _sm=sendMedia;
+sendMedia=async function(f){try{if(f&&f.type&&((f.type.startsWith("image/")&&f.type!=="image/gif")||f.type.startsWith("video/"))&&!/^(OT\d+_|TH[A-Za-z0-9+\/=]*~)/.test(f.name)){const t=await thumb(f);if(t)f=new File([f],"TH"+t+"~"+f.name,{type:f.type})}}catch(_){}return _sm(f)};
+/* ---- new media bubbles ---- */
+function body(o,n,th,z,mine){const u=esc(o.u),nm2=esc(n),src=th?esc(th):PH,c0=th?"tb":"tb tb0",rm="this.closest(\'.m\').remove()";
+ if(o.k==="gif")return '<img class="gif" src="'+u+'" alt="" onerror="'+rm+'">';
+ if(o.k==="img")return mine?'<img class="ph" src="'+u+'" alt="" onerror="'+rm+'">':'<div class="bl"><img class="'+c0+'" src="'+src+'" alt=""><b class="chip">⬇ '+z+'</b></div>';
+ if(o.k==="vid")return '<div class="bl vd'+(mine?" mn":"")+'"><img class="'+c0+'" src="'+src+'" alt=""><b class="pl">▶</b>'+(mine?"":'<b class="chip">⬇ '+z+'</b>')+'</div>';
+ if(o.k==="aud")return /^voice_/.test(n)?'<div class="vm"><button class="vp" aria-label="Play">▶</button><div class="vbr"><i></i></div><span class="vt">Voice · '+z+'</span></div>':'<div class="fl"><span>♪</span><div><b>'+nm2+'</b><small>'+z+'</small></div></div><audio src="'+u+'" controls preload="none" onerror="'+rm+'"></audio>';
+ return '<div class="fl"><span>'+(o.k==="pdf"?"PDF":"FILE")+'</span><div><b>'+nm2+'</b><small>'+z+(mine?"":" · tap to download")+'</small></div></div>'}
+const _ad=addMedia;
+addMedia=function(m){const b=$("cb");if(!b||!S.chat)return;const x=String(m&&m.content||"");if(!x.startsWith("NXM:"))return _ad(m);
+ let o;try{o=JSON.parse(x.slice(4))}catch(_){return}
+ if(/^OT\d+_/.test(o.n||"")&&(o.k==="img"||o.k==="vid"))return _ad(m);
+ const id=m.id||"";if(id&&b.querySelector('[data-id="'+id+'"]'))return;
+ const mine=m.sender_id===S.user.id,p=pn(o.n),z=o.z?sz(o.z):"",d=D.createElement("div");
+ d.className="m nm "+(mine?"me":"th");d.dataset.id=id;d.dataset.s=m.sender_id;d._o=o;d._nm=p.n;d._z=z;
+ d.innerHTML=body(o,p.n,p.th,z,mine)+"<small>"+tm(m.created_at||Date.now())+"</small>";
+ b.appendChild(d);b.scrollTop=b.scrollHeight;if(!mine){sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,"📎 Media")}};
+async function get(d){const o=d._o,chip=d.querySelector(".chip")||d.querySelector(".fl small");d._busy=1;
+ try{const r=await fetch(o.u);if(!r.ok)throw 0;const L=+r.headers.get("content-length")||o.z||0,rd=r.body&&r.body.getReader(),ch=[];let g=0;
+  if(rd)for(;;){const q=await rd.read();if(q.done)break;ch.push(q.value);g+=q.value.length;if(L&&chip)chip.textContent="⬇ "+Math.min(99,Math.round(g/L*100))+"%"}
+  else ch.push(new Uint8Array(await r.arrayBuffer()));
+  d._bu=URL.createObjectURL(new Blob(ch,{type:r.headers.get("content-type")||""}));d._busy=0;return true}
+ catch(_){d._busy=0;if(chip)chip.textContent="Download nahi hua, dobara tap karo";return false}}
+function addSave(d){if(d.querySelector(".nr"))return;d.querySelector("small:last-child").insertAdjacentHTML("beforebegin",'<div class="nr"><button class="btn sv">⬇ Save</button></div>')}
+function openV(d){const o=d._o,u=d._bu||o.u,v=D.createElement("div");v.id="nxv";
+ v.innerHTML='<div class="nvb"><button class="ib" id="nvx" aria-label="Close">✕</button><span></span><button class="btn pri" id="nvs">⬇ Save</button></div>'+(o.k==="vid"?'<video src="'+esc(u)+'" controls autoplay playsinline></video>':'<img src="'+esc(u)+'" alt="">');
+ D.body.appendChild(v);const x=()=>{v.classList.add("out");setTimeout(()=>v.remove(),250)};$("nvx").onclick=x;$("nvs").onclick=()=>msave(u,d._nm);v.addEventListener("click",e=>{if(e.target===v)x()})}
+function vplay(d){let a=d._a;const p=d.querySelector(".vp");
+ if(!a){a=d._a=new Audio();a.src=d._o.u;const bar=d.querySelector(".vbr i"),t=d.querySelector(".vt"),f=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
+  a.ontimeupdate=()=>{bar.style.width=(isFinite(a.duration)&&a.duration?a.currentTime/a.duration*100:0)+"%";t.textContent=f(a.currentTime)+(isFinite(a.duration)?" / "+f(a.duration):"")};
+  a.onended=()=>{p.textContent="▶";bar.style.width="0"};a.onerror=()=>d.remove()}
+ if(a.paused){D.querySelectorAll(".nm").forEach(q=>{if(q!==d&&q._a&&!q._a.paused){q._a.pause();const b=q.querySelector(".vp");if(b)b.textContent="▶"}});a.play().catch(()=>{});p.textContent="⏸"}else{a.pause();p.textContent="▶"}}
+D.addEventListener("click",async e=>{const d=e.target.closest&&e.target.closest(".nm");if(!d||!d._o)return;const o=d._o;
+ if(e.target.closest(".sv"))return msave(d._bu||o.u,d._nm);
+ if(e.target.closest(".vp"))return vplay(d);
+ if(e.target.closest("audio,a,.nr")||o.k==="gif"||o.k==="aud")return;
+ const mine=d.classList.contains("me");
+ if(o.k==="img"){if(mine||d._bu)return openV(d);if(d._busy||!await get(d))return;const bl=d.querySelector(".bl"),im=bl.querySelector("img"),c=bl.querySelector(".chip");bl.classList.add("rv");im.className="ph rvl";im.src=d._bu;c&&c.remove();return addSave(d)}
+ if(o.k==="vid"){if(mine||d._bu)return openV(d);if(d._busy||!await get(d))return;const c=d.querySelector(".chip");c&&c.remove();d.querySelector(".bl").classList.add("rv");addSave(d);return openV(d)}
+ if(mine)return window.open(o.u,"_blank");
+ if(d._bu||d._busy||!await get(d))return;const sm=d.querySelector(".fl small");if(sm)sm.textContent=d._z+" · downloaded";
+ d.querySelector(".fl").insertAdjacentHTML("afterend",'<div class="nr"><a class="btn pri" href="'+d._bu+'" target="_blank">Open</a><button class="btn sv">⬇ Save</button></div>')},true);
+const _g=go;go=function(p){D.querySelectorAll(".nm").forEach(q=>q._a&&q._a.pause());return _g(p)};
+/* ---- voice recording + audio file ---- */
+window.nxAud=()=>{closeModal();const i=D.createElement("input");i.type="file";i.accept="audio/*";i.onchange=()=>{const f=i.files[0];if(f)sendMedia(f)};i.click()};
+window.nxRec=async()=>{closeModal();let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(_){return toast("Mic allow karo")}
+ const mt=["audio/webm;codecs=opus","audio/mp4","audio/webm"].find(x=>window.MediaRecorder&&MediaRecorder.isTypeSupported(x));if(!mt){st.getTracks().forEach(t=>t.stop());return toast("Is browser me recording nahi hoti")}
+ const mr=new MediaRecorder(st,{mimeType:mt}),ch=[],t0=Date.now(),ty=mt.split(";")[0];let cancel=false,iv;
+ mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
+ mr.onstop=()=>{clearInterval(iv);st.getTracks().forEach(t=>t.stop());if(cancel||!ch.length)return;sendMedia(new File([new Blob(ch,{type:ty})],"voice_"+Date.now()+"."+(ty==="audio/mp4"?"m4a":"webm"),{type:ty}))};
+ openModal('<h3>🎙 Recording…</h3><div id="nrt" style="font-size:34px;font-weight:900;text-align:center;margin:14px 0">0:00</div><div class="grid"><button class="btn red" id="nrc">Cancel</button><button class="btn pri" id="nrs">Send</button></div>',()=>{if(mr.state!=="inactive"){cancel=true;mr.stop()}});
+ mr.start();iv=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000),e=$("nrt");if(e)e.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")},500);
+ $("nrc").onclick=()=>closeModal();$("nrs").onclick=()=>{onClose=null;closeModal();mr.stop()}};
+window.atSheet=()=>openModal('<h3>Send</h3><div class="grid"><button class="btn" onclick="atPick(\'g\')">🖼<br><small>Gallery</small></button><button class="btn" onclick="atPick(\'c\')">📷<br><small>Camera</small></button><button class="btn" onclick="atPick(\'f\')">📄<br><small>File</small></button><button class="btn" onclick="nxAud()">🎵<br><small>Audio file</small></button><button class="btn" onclick="nxRec()">🎙<br><small>Record</small></button><button class="btn" onclick="closeModal();nxVid()">🎞<br><small>Video to GIF</small></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:".m.nm{padding:6px;max-width:86%;white-space:normal}.nm .gif,.nm .ph{display:block;width:min(230px,62vw);height:auto;border-radius:14px;animation:nxr .4s ease both}.nm .ph{cursor:zoom-in}.nm .gif{max-height:300px;object-fit:contain}.bl{position:relative;overflow:hidden;border-radius:14px;cursor:pointer;min-width:120px}.bl img{display:block;width:min(230px,62vw);height:auto}.bl .tb0{height:150px;background:linear-gradient(135deg,#222c55,#3a2a60)}.nm.th .bl:not(.rv):not(.mn) img{filter:blur(8px);transform:scale(1.06)}.bl.rv img.rvl{animation:nxr .6s cubic-bezier(.22,1,.36,1) both}.chip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.6);font-size:13px;font-weight:800;white-space:nowrap}.bl.vd .chip{top:auto;bottom:8px;left:8px;transform:none}.bl .pl{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55)}@keyframes nxr{from{opacity:.5;filter:blur(14px);transform:scale(.94)}}.nr{display:flex;gap:8px;margin-top:6px}.nr .btn,.nr a{flex:1;min-height:38px;display:grid;place-items:center;text-decoration:none;color:#fff;font-size:13px}.vm{display:flex;align-items:center;gap:10px;min-width:200px;padding:4px 6px}.vp{width:40px;height:40px;border-radius:50%;flex:none;background:rgba(255,255,255,.22);font-size:16px}.vbr{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}.vbr i{display:block;height:100%;width:0;background:#fff}.vt{font-size:12px;opacity:.85;white-space:nowrap}#nxv{position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.94);display:grid;place-items:center;animation:nxvi .32s cubic-bezier(.22,1,.36,1)}#nxv.out{opacity:0;transition:opacity .25s}#nxv img,#nxv video{max-width:100%;max-height:100%;animation:nxzm .45s cubic-bezier(.22,1,.36,1)}.nvb{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;background:linear-gradient(#000a,transparent)}@keyframes nxvi{from{opacity:0}}@keyframes nxzm{from{opacity:0;transform:scale(.8)}}"}));
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
