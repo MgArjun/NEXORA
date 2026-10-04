@@ -3508,4 +3508,19 @@ go=function(){tf(()=>{const a=D.activeElement;if(a&&a.blur&&/INPUT|TEXTAREA/.tes
  if(app.dataset.vv){app.style.position=app.style.left=app.style.right=app.style.top=app.style.height="";delete app.dataset.vv}scrollTo(0,0)});
  return _g.apply(this,arguments)};
 })();
+</script><script>
+/* NX-PATCH-V32 NO-PAGE-FADE */
+(()=>{
+const D=document,mm=$("main");
+const dummy=()=>({finished:Promise.resolve(),cancel(){},finish(){},onfinish:null,oncancel:null});
+/* page-level fades/slides/zooms are switched off: screens change instantly, no "reload" look */
+mm.animate=function(){return dummy()};
+const oa=Element.prototype.animate;
+Element.prototype.animate=function(k,o){
+ const c=this.classList;
+ if(c&&c.contains("nxg")){this.remove();return dummy()}
+ if(this.id==="nxStk3"||(c&&c.contains("pg")&&mm.contains(this)))return dummy();
+ return oa.call(this,k,o)};
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"main .pg,main .pg.st,main .pg.st.nxin,#main>.pg{animation:none!important;opacity:1!important;filter:none!important}.nxg{display:none!important}::view-transition-old(root),::view-transition-new(root){animation:none!important}"}));
+})();
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
