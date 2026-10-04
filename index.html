@@ -2675,4 +2675,14 @@ const _rh=renderHome;PG.home=renderHome=function(){purge();return _rh.apply(this
 let lt=0;setInterval(()=>{if(S.user&&Date.now()-lt>36e5){lt=Date.now();purge(1)}},4000);
 })();
 
+/* NX-PATCH-V25 */
+(()=>{
+/* tic-tac-toe: no whole-screen zoom blink on every cell tap */
+let lc=0;document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest(".cell"))lc=Date.now()},true);
+const mm=$("main"),oa=mm.animate.bind(mm);
+mm.animate=function(k,o){try{if(Array.isArray(k)&&k[0]&&/scale\(\.82\)/.test(k[0].transform||"")&&Date.now()-lc<1500)return{finished:Promise.resolve(),cancel(){},onfinish:null}}catch(_){}return oa(k,o)};
+/* online: ignore repeat snapshots that change nothing (no redraw every 3 sec) */
+const _sn=snap;snap=function(R,g){const o=R.G;if(o&&g&&g.rd===o.rd&&g.seq===o.seq&&!!g.over===!!o.over)return;return _sn(R,g)};
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
