@@ -3157,4 +3157,33 @@ vset=async function(){await _vs.apply(this,arguments);const m=$("md");if(!m)retu
  const cl=[...m.querySelectorAll("button.wide")].pop();cl?cl.insertAdjacentHTML("beforebegin",h):m.insertAdjacentHTML("beforeend",h)};
 })();
 
+
+/* NX-SMOOTH-V1 */
+(()=>{
+const D=document;
+/* 1. Full screen only when the person taps a full screen button (never on a normal tap) */
+let ok=0,okT;
+const arm=()=>{ok=1;clearTimeout(okT);okT=setTimeout(()=>ok=0,1500)};
+const isFsBtn=e=>e.target&&e.target.closest&&e.target.closest("#nxf2,#xFs,#nxfs");
+D.addEventListener("pointerdown",e=>{if(isFsBtn(e))arm()},true);
+D.addEventListener("click",e=>{if(isFsBtn(e))arm()},true);
+["requestFullscreen","webkitRequestFullscreen"].forEach(n=>{const o=Element.prototype[n];if(!o)return;
+ Element.prototype[n]=function(){if(this===D.documentElement&&!ok)return n==="requestFullscreen"?Promise.resolve():undefined;return o.apply(this,arguments)}});
+/* 2. No jelly wobble on the main screen (it moved the whole chat while scrolling) */
+try{const m=$("main"),d=Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype,"transform");
+ if(m&&d&&d.set&&d.get)Object.defineProperty(m.style,"transform",{configurable:true,get(){return d.get.call(this)},set(v){if(v)return;d.set.call(this,v)}})}catch(_){}
+/* 3. Lighter rendering */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+body{animation:none!important}
+main{perspective:none!important}
+.top::after,.qc .gi{animation:none!important}
+.m{animation-fill-mode:backwards!important}
+.cs,.cell,.uc{will-change:auto!important}
+.m.me,.m.th{box-shadow:none!important}
+.cb{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;transform:translateZ(0)}
+body.nx-chat .orbs{display:none!important}
+body.nx-chat #main{transform:none!important}
+`}));
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
