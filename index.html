@@ -3044,4 +3044,117 @@ D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
 `}));
 })();
 
+
+/* NX-VIDEO-PRO-V1 */
+(()=>{
+const D=document,MAR=.055,EW=112,AL=.08,SM=[.35,.55,.8];
+const VP=Object.assign({enh:true,stab:true,mir:true,lv:1},LS("nx_vq2",{}));
+const SV=()=>{try{localStorage.nx_vq2=JSON.stringify(VP)}catch(_){}};
+const applyMir=()=>D.body.classList.toggle("nx-nomir",!VP.mir);applyMir();
+/* ---- GPU shader: stabilise (zoom+shift), smooth skin, warm natural tone ---- */
+const VS="attribute vec2 a;varying vec2 vUv;void main(){vUv=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0.,1.);}";
+const FS=[
+"#ifdef GL_FRAGMENT_PRECISION_HIGH","precision highp float;","#else","precision mediump float;","#endif",
+"varying vec2 vUv;uniform sampler2D uT;uniform vec2 uPx;uniform vec2 uOff;uniform float uZ;uniform float uSm;uniform float uTn;",
+"float L(vec3 c){return dot(c,vec3(.299,.587,.114));}",
+"void main(){",
+"vec2 uv=(vUv-.5)/uZ+.5+uOff;",
+"vec3 c=texture2D(uT,uv).rgb;float y=L(c);",
+"float cb=-.1687*c.r-.3313*c.g+.5*c.b+.5;float cr=.5*c.r-.4187*c.g-.0813*c.b+.5;",
+"float m=smoothstep(.27,.31,cb)*(1.-smoothstep(.49,.53,cb))*smoothstep(.5,.54,cr)*(1.-smoothstep(.66,.7,cr))*smoothstep(.1,.2,y);",
+"vec3 acc=c;float ws=1.;",
+"for(int i=0;i<8;i++){float a=float(i)*.7853982;vec3 s=texture2D(uT,uv+vec2(cos(a),sin(a))*uPx*2.).rgb;float d=L(s)-y;float w=exp(-d*d*30.);acc+=s*w;ws+=w;}",
+"for(int i=0;i<4;i++){float a=float(i)*1.5707963+.7853982;vec3 s=texture2D(uT,uv+vec2(cos(a),sin(a))*uPx).rgb;float d=L(s)-y;float w=exp(-d*d*30.);acc+=s*w;ws+=w;}",
+"vec3 bl=acc/ws;",
+"vec3 o=mix(c,bl,uSm*m);",
+"o+=(c-bl)*uSm*(.22*m+.45*(1.-m));",
+"o=pow(clamp(o,0.,1.),vec3(1.-.045*uTn));",
+"o=mix(o,o*o*(3.-2.*o),.2*uTn);",
+"float l=L(o);o=mix(vec3(l),o,1.+.06*uTn);",
+"o.r*=1.+.025*uTn*(.5+m);o.b*=1.-.025*uTn*(.5+m);",
+"o+=m*.02*uTn;",
+"gl_FragColor=vec4(clamp(o,0.,1.),1.);}"].join("\n");
+function sh(gl,t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return gl.getShaderParameter(x,gl.COMPILE_STATUS)?x:null}
+function mkGL(cv){const gl=cv.getContext("webgl",{alpha:false,antialias:false,preserveDrawingBuffer:true,powerPreference:"high-performance"})||cv.getContext("experimental-webgl");if(!gl)return null;
+ const v=sh(gl,gl.VERTEX_SHADER,VS),f=sh(gl,gl.FRAGMENT_SHADER,FS);if(!v||!f)return null;
+ const p=gl.createProgram();gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))return null;gl.useProgram(p);
+ const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+ const l=gl.getAttribLocation(p,"a");gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+ const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+ [[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE],[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR]].forEach(a=>gl.texParameteri(gl.TEXTURE_2D,a[0],a[1]));
+ const u={};["uT","uPx","uOff","uZ","uSm","uTn"].forEach(n=>u[n]=gl.getUniformLocation(p,n));gl.uniform1i(u.uT,0);return{gl,u}}
+/* ---- shake estimate: compare row/column brightness profiles of two frames ---- */
+function best(c,p){const n=c.length,R=6,cost=[];let bi=0,bv=1e9;
+ for(let s=-R;s<=R;s++){let a=0,k=0;for(let x=R;x<n-R;x++){a+=Math.abs(c[x+s]-p[x]);k++}const v=a/k;cost.push(v);if(v<bv){bv=v;bi=s}}
+ let r=bi;const k=bi+R;if(k>0&&k<cost.length-1){const a=cost[k-1],b=cost[k],d=cost[k+1],den=a-2*b+d;if(den>1e-6)r=bi+.5*(a-d)/den}
+ return Math.abs(r)<.12?0:r}
+async function enhance(raw){const vt=raw.getVideoTracks()[0];if(!vt)return null;
+ try{await vt.applyConstraints({advanced:[{exposureMode:"continuous",whiteBalanceMode:"continuous",focusMode:"continuous"}]})}catch(_){}
+ const v=D.createElement("video");v.muted=true;v.playsInline=true;v.setAttribute("playsinline","");v.srcObject=raw;
+ v.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";D.body.appendChild(v);
+ const bail=()=>{try{v.srcObject=null;v.remove()}catch(_){}return null};
+ try{await v.play()}catch(_){}
+ await new Promise(r=>{if(v.videoWidth)return r();v.onloadedmetadata=r;setTimeout(r,3000)});
+ if(!v.videoWidth)return bail();
+ const cv=D.createElement("canvas"),g=mkGL(cv);if(!g)return bail();
+ const gl=g.gl,u=g.u;let dead=0,last=Date.now(),ec=null,ex=null,eh=0,pX=null,pY=null;
+ const Cp={x:0,y:0},Sm={x:0,y:0},ap={x:0,y:0};
+ const est=(vw,vh)=>{const h=Math.max(40,Math.round(EW*vh/vw));
+  if(!ec||eh!==h){ec=D.createElement("canvas");ec.width=EW;ec.height=h;eh=h;ex=ec.getContext("2d",{willReadFrequently:true});pX=pY=null}
+  ex.drawImage(v,0,0,EW,h);const d=ex.getImageData(0,0,EW,h).data,px=new Float32Array(EW),py=new Float32Array(h);
+  for(let y=0,i=0;y<h;y++)for(let x=0;x<EW;x++,i+=4){const q=d[i]*.299+d[i+1]*.587+d[i+2]*.114;px[x]+=q;py[y]+=q}
+  const gx=new Float32Array(EW-1),gy=new Float32Array(h-1);
+  for(let x=0;x<EW-1;x++)gx[x]=(px[x+1]-px[x])/h;for(let y=0;y<h-1;y++)gy[y]=(py[y+1]-py[y])/EW;
+  const r=pX?{x:best(gx,pX),y:best(gy,pY)}:{x:0,y:0};pX=gx;pY=gy;return r};
+ const draw=()=>{const vw=v.videoWidth,vh=v.videoHeight;if(!vw||v.readyState<2)return;last=Date.now();
+  const k=Math.min(1,1920/Math.max(vw,vh)),W=Math.round(vw*k),H=Math.round(vh*k);
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;gl.viewport(0,0,W,H)}
+  if(VP.stab){const m=est(vw,vh);Cp.x+=m.x;Cp.y+=m.y;Sm.x+=AL*(Cp.x-Sm.x);Sm.y+=AL*(Cp.y-Sm.y);
+   let ox=(Cp.x-Sm.x)/EW,oy=(Cp.y-Sm.y)/eh;const lim=MAR*.9;
+   if(Math.abs(ox)>lim){ox=Math.sign(ox)*lim;Cp.x=Sm.x+ox*EW}
+   if(Math.abs(oy)>lim){oy=Math.sign(oy)*lim;Cp.y=Sm.y+oy*eh}
+   ap.x+=.65*(ox-ap.x);ap.y+=.65*(oy-ap.y)}
+  else{ap.x*=.8;ap.y*=.8;pX=pY=null}
+  gl.bindTexture(gl.TEXTURE_2D,gl.getParameter(gl.TEXTURE_BINDING_2D));
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);
+  const r=Math.max(1,vw/1280);
+  gl.uniform2f(u.uPx,r/vw,r/vh);gl.uniform2f(u.uOff,ap.x,ap.y);gl.uniform1f(u.uZ,VP.stab?1/(1-2*MAR):1);
+  gl.uniform1f(u.uSm,VP.enh?SM[VP.lv]:0);gl.uniform1f(u.uTn,VP.enh?1:0);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4)};
+ try{draw()}catch(_){return bail()}
+ const out=cv.captureStream(30),tr=out.getVideoTracks()[0],os=tr.stop.bind(tr);tr._nx=1;
+ const sched=()=>{if(dead)return;if(D.hidden)setTimeout(loop,40);else if(v.requestVideoFrameCallback)v.requestVideoFrameCallback(loop);else requestAnimationFrame(loop)};
+ const loop=()=>{if(dead)return;try{draw()}catch(_){}sched()};
+ const wd=setInterval(()=>{if(dead)return clearInterval(wd);if(!D.hidden&&Date.now()-last>2000)v.play().catch(()=>{})},2000);
+ tr.stop=function(){dead=1;clearInterval(wd);try{os()}catch(_){}try{raw.getTracks().forEach(t=>t.stop())}catch(_){}try{v.srcObject=null;v.remove()}catch(_){}try{const e=gl.getExtension("WEBGL_lose_context");e&&e.loseContext()}catch(_){}};
+ vt.addEventListener("ended",()=>{if(!dead)tr.stop()});
+ sched();return out}
+/* every camera request (not mic, not screen) goes through the enhancer */
+const md=navigator.mediaDevices;
+if(md&&md.getUserMedia){const _g=md.getUserMedia.bind(md);
+ md.getUserMedia=async function(c){const s=await _g(c);
+  try{if(c&&c.video&&!c.audio&&(VP.enh||VP.stab)&&s.getVideoTracks().length){const e=await enhance(s);if(e)return e}}catch(_){}
+  return s}}
+/* call screen: professional fit (fills the screen like WhatsApp / FaceTime) */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#vs.swp #lv{transform:none!important;object-fit:cover!important}
+body.nx-nomir #lv{transform:none!important}
+#vs.rem:not(.rsc) #rv{object-fit:cover!important}
+`}));
+const _vp=vsPaint;
+vsPaint=function(){const r=_vp.apply(this,arguments);try{const c=C,rm=(c&&c.rm)||{};$("vs").classList.toggle("rsc",!!(rm.scr&&c&&c.rscr))}catch(_){}return r};
+/* settings inside the call menu */
+window.nxVT=function(k,b){VP[k]=!VP[k];SV();b.classList.toggle("on",!!VP[k]);if(k==="mir")applyMir();
+ else if(C&&C.cam&&!C.cam._nx&&(VP.enh||VP.stab))newCam({facingMode:face||"user"})};
+window.nxVL=function(i,b){VP.lv=i;SV();[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b))};
+const row=(k,t,d)=>'<div class="pr"><div class="t"><b>'+t+'</b><small>'+d+'</small></div><button class="tg2 '+(VP[k]?"on":"")+'" onclick="nxVT(\''+k+'\',this)" aria-label="'+t+'"><i></i></button></div>';
+const _vs=vset;
+vset=async function(){await _vs.apply(this,arguments);const m=$("md");if(!m)return;
+ const h='<div class="lbl">Video look</div><div class="seg">'+["Light","Natural","Strong"].map((n,i)=>'<button class="'+(VP.lv===i?"on":"")+'" onclick="nxVL('+i+',this)">'+n+'</button>').join("")+'</div>'
+  +row("enh","Enhance skin and tone","Smoother skin, warm natural colour")
+  +row("stab","Steady picture","Reduces shake, crops the edges a little")
+  +row("mir","Mirror my preview","Only your small preview. The other person always sees you normally");
+ const cl=[...m.querySelectorAll("button.wide")].pop();cl?cl.insertAdjacentHTML("beforebegin",h):m.insertAdjacentHTML("beforeend",h)};
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
