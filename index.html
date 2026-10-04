@@ -2478,4 +2478,97 @@ SFX.tap=()=>{const e=window.event,t=e&&e.target,c=s=>t&&t.closest?t.closest(s):n
 tone=function(f,d,t,v,dl){dl=dl||0;if(!dl){const n=Date.now();if(n-tt<40)return;tt=n}f=f||500;if(f<260)thud(dl,Math.max(90,f*.75),.45,.14);else{const q=Math.min(1100,f);pop(q,q*.7,dl,Math.min(.35,(v||.05)*5+.12),.09)}};
 })();
 
+/* NX-PATCH-V21 RECENT-STACK */
+(()=>{
+const TOP=5,m=$("main");let tap=null;
+document.addEventListener("pointerdown",e=>{const t=e.target.closest&&e.target.closest(".qc,.hc,.row,.rrow,.cell");if(t){const r=t.getBoundingClientRect(),q=m.getBoundingClientRect();tap={x:r.left+r.width/2-q.left,y:r.top+r.height/2-q.top,t:Date.now()}}},true);
+const row=(x,k)=>{const n=dn(x.id,x.name);return`<div class="card row rrow" style="--k:${k}"><button class="av" onclick="chatWith('${x.id}')">${esc(ini(n))}</button><button class="t" style="text-align:left" onclick="chatWith('${x.id}')"><b>${esc(n)}</b><small>${esc(x.last||"Say hi")}</small></button><button class="ib ed" onclick="editNick('${x.id}')" aria-label="Rename">${I.edit}</button><button class="ib del" onclick="askDel('${x.id}')" aria-label="Delete">${I.trash}</button></div>`};
+const ex=on=>{const s=$("stk");if(!s)return;s.classList.toggle("ex",on);sfx("tap");setTimeout(fx,650)};
+window.stkTap=e=>{const s=$("stk");if(s&&!s.classList.contains("ex")){e.stopPropagation();ex(true)}};
+function fx(){const pg=document.querySelector("#main .pg");if(!pg)return;const top=pg.getBoundingClientRect().top+4;
+ pg.querySelectorAll(".rrow").forEach(r=>{if(r.closest(".stk:not(.ex)"))return;const b=r.getBoundingClientRect(),p=Math.max(0,Math.min(1,(top-b.top)/b.height));r.style.transform=p?"scale("+(1-.06*p)+") translateY("+p*6+"px)":"";r.style.opacity=p?1-.55*p:""})}
+function bind(){const pg=document.querySelector("#main .pg"),s=$("stk");if(!pg)return;pg.addEventListener("scroll",fx,{passive:true});fx();
+ if(s)s.style.setProperty("--h",(s.children.length-1)*82+10+"px");
+ let y0=0;pg.addEventListener("touchstart",e=>{y0=e.touches[0].clientY},{passive:true});
+ pg.addEventListener("touchend",e=>{const d=e.changedTouches[0].clientY-y0;if(!s)return;if(d<-40&&!s.classList.contains("ex"))ex(true);else if(d>40&&s.classList.contains("ex")&&pg.scrollTop<=2)ex(false)},{passive:true})}
+PG.recent=renderRecent=function(){const l=LS(K("nx_rc"),[]);l.forEach(x=>reg({id:x.id,username:x.un,display_name:x.name}));const rest=l.slice(TOP);
+ page(`<h2>Messages</h2><p class="sub">${l.length?l.length+" conversation"+(l.length>1?"s":""):"Start a conversation from Connect."}</p>${l.length?l.slice(0,TOP).map(row).join(""):`<div class="card empty">No chats yet. Open Connect to find people.</div>`}${rest.length?`<div id="stk" class="stk" onclick="stkTap(event)">${rest.map((x,j)=>row(x,j)).join("")}<div class="stkm">+${rest.length} more · swipe up</div></div>`:""}`);bind()};
+/* zoom into whatever you tapped (chat, game, section) */
+new MutationObserver(rs=>rs.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType!==1||!n.classList.contains("pg")||n.classList.contains("nxg"))return;
+ if(!tap||Date.now()-tap.t>900||m.classList.contains("nxm"))return;const o=tap.x+"px "+tap.y+"px";tap=null;
+ m.animate([{opacity:.3,transform:"scale(.82)",transformOrigin:o},{opacity:1,transform:"none",transformOrigin:o}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"})}))).observe(m,{childList:true});
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.rrow{transform-origin:50% 0;will-change:transform}
+.stk{position:relative;max-height:104px;overflow:hidden;transition:max-height .6s cubic-bezier(.22,1,.36,1)}
+.stk .rrow{height:72px;margin-bottom:0;transition:margin-top .6s cubic-bezier(.22,1,.36,1),transform .6s cubic-bezier(.22,1,.36,1),filter .6s;pointer-events:none}
+.stk:not(.ex) .rrow{margin-top:-56px;transform:scale(calc(1 - var(--k)*.05));filter:brightness(calc(1 - var(--k)*.12))}
+.stk:not(.ex) .rrow:first-child{margin-top:0}
+.stk.ex{max-height:var(--h,2000px)}
+.stk.ex .rrow{margin-top:10px;pointer-events:auto}
+.stkm{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:12px;font-weight:700;color:var(--mu);padding-top:16px;background:linear-gradient(transparent,var(--bg) 75%);transition:opacity .3s}
+.stk.ex .stkm{opacity:0;pointer-events:none}
+`}));
+})();
+
+/* NX-PATCH-V22 FILES-FULL-QUALITY */
+(()=>{
+const MAXB=50*1048576,BIG=600*1048576,SZ=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
+shrink=async f=>f;
+async function shrinkImg(f){if(f.type==="image/gif"||f.size<1.5*1048576)return f;try{const bm=await createImageBitmap(f),k=Math.min(1,2560/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);const b=await new Promise(r=>c.toBlob(r,"image/jpeg",.8));return b&&b.size<f.size?new File([b],f.name.replace(/\.\w+$/,"")+".jpg",{type:"image/jpeg"}):f}catch(_){return f}}
+async function shrinkVid(f){let stop=false;try{const v=document.createElement("video");v.src=URL.createObjectURL(f);v.playsInline=true;v.preload="auto";
+ await new Promise((ok,no)=>{v.onloadedmetadata=ok;v.onerror=no});const dur=v.duration,cs=v.captureStream||v.mozCaptureStream;
+ const mime=["video/mp4;codecs=avc1,mp4a.40.2","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"].find(x=>window.MediaRecorder&&MediaRecorder.isTypeSupported(x));
+ if(!isFinite(dur)||dur<=0||!cs||!mime)return null;
+ const A=new(window.AudioContext||window.webkitAudioContext)(),src=A.createMediaElementSource(v),dst=A.createMediaStreamDestination();src.connect(dst);
+ const rec=new MediaRecorder(new MediaStream([...cs.call(v).getVideoTracks(),...dst.stream.getAudioTracks()]),{mimeType:mime,videoBitsPerSecond:Math.max(2e5,Math.min(4e6,Math.floor(38*1048576*8/dur*.85))),audioBitsPerSecond:96000}),ch=[];
+ rec.ondataavailable=e=>e.data.size&&ch.push(e.data);const fin=new Promise(r=>rec.onstop=r);
+ openModal(`<h3>Compressing video</h3><p class="sub" id="cpP">0%</p><div class="cpb"><i id="cpI"></i></div><p class="pw">This takes about as long as the video. Keep this screen open.</p><button class="btn red wide" id="cpX">Cancel</button>`);
+ $("cpX").onclick=()=>{stop=true;v.pause();v.dispatchEvent(new Event("ended"))};
+ rec.start(1000);await A.resume();await v.play();
+ await new Promise(r=>{v.ontimeupdate=()=>{const p=Math.min(100,Math.round(v.currentTime/dur*100)),a=$("cpI"),b=$("cpP");if(a){a.style.width=p+"%";b.textContent=p+"%"}};v.onended=r});
+ rec.stop();await fin;closeModal();URL.revokeObjectURL(v.src);A.close();if(stop)return "cancel";
+ const t=mime.split(";")[0];return new File([new Blob(ch,{type:t})],f.name.replace(/\.\w+$/,"")+(t==="video/mp4"?".mp4":".webm"),{type:t})}catch(_){closeModal();return stop?"cancel":null}}
+sendMedia=async function(f){const c=S.chat;if(!c||!f)return;const t=f.type||"",x=(f.name.split(".").pop()||"").toLowerCase();
+ const k=t.startsWith("video/")?"vid":t==="image/gif"?"gif":t.startsWith("image/")?"img":t.startsWith("audio/")?"aud":(t==="application/pdf"||x==="pdf")?"pdf":null;
+ if(!k)return toast("You can send photos, GIFs, videos, audio and PDF files.");
+ const ds=!!PR.ds;if(f.size>(ds&&k==="vid"?BIG:MAXB))return toast(ds&&k==="vid"?"Videos up to 600 MB can be compressed.":"Files up to 50 MB can be sent. Turn on Data saver in Settings for photos and videos.");
+ let bl=f;if(ds){if(k==="img")bl=await shrinkImg(f);else if(k==="vid"&&f.size>8*1048576){const r=await shrinkVid(f);if(r==="cancel")return;if(r)bl=r}}
+ if(bl.size>MAXB)return toast("This file is still above 50 MB. Try a shorter video.");
+ toast("Sending "+SZ(bl.size)+"…");
+ const ext=(bl.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"bin",path=S.user.id+"/"+Date.now()+"_"+Math.random().toString(36).slice(2,7)+"."+ext;
+ const r=await sb.storage.from(MB).upload(path,bl,{contentType:bl.type||"application/octet-stream",cacheControl:"3600"});
+ if(r.error)return toast(/not found/i.test(r.error.message)?"Create a 'chat-media' bucket in Supabase.":"Upload failed: "+r.error.message.slice(0,60));
+ if(S.chat!==c){sb.storage.from(MB).remove([path]);return}
+ const u=sb.storage.from(MB).getPublicUrl(path).data.publicUrl,id=crypto.randomUUID(),at=new Date().toISOString(),text="NXM:"+JSON.stringify({k,u,p:path,n:f.name||"file."+ext,z:bl.size});
+ MP.push({path});addMedia({id,sender_id:S.user.id,content:text,created_at:at});if(S.cch)S.cch.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});sfx("send");rec(c.uid,c.un,c.name,"📎 Media")};
+addMedia=function(m){const b=$("cb");if(!b||!S.chat)return;const id=m.id||"";if(id&&b.querySelector('[data-id="'+id+'"]'))return;let o;try{o=JSON.parse(String(m.content).slice(4))}catch(_){return}
+ const mine=m.sender_id===S.user.id,d=document.createElement("div"),u=esc(o.u),n=esc(o.n||"file"),z=o.z?SZ(o.z):"";d.className="m mm "+(mine?"me":"th");d.dataset.id=id;d.dataset.s=m.sender_id;d.dataset.u=o.u;d.dataset.n=o.n||"nexora";
+ const body=o.k==="vid"?`<video src="${u}" controls playsinline preload="metadata"></video>`:o.k==="aud"?`<div class="fl"><span>♪</span><div><b>${n}</b><small>${z}</small></div></div><audio src="${u}" controls preload="metadata"></audio>`:o.k==="pdf"?`<div class="fl"><span>PDF</span><div><b>${n}</b><small>${z}</small></div></div>`:`<div class="mmw"><img src="${u}" alt="" onload="this.classList.add('ld')"></div>`;
+ d.innerHTML=body+`<div class="mf"><button class="msv">⬇ Save${z&&o.k!=="aud"?" · "+z:""}</button><small style="margin:0">${tm(m.created_at||Date.now())}</small></div>`;
+ b.appendChild(d);b.scrollTop=b.scrollHeight;if(!mine){MP.push({path:o.p});sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,"📎 Media")}};
+mview=function(){const o=window.__mv;if(!o)return;let v=$("mvw");if(v)v.remove();v=document.createElement("div");v.id="mvw";
+ v.innerHTML=`<div class="mvb"><button class="ib" id="mvx" aria-label="Close">✕</button><span></span><button class="btn pri" id="mvs">⬇ Save</button></div><img src="${esc(o.u)}" alt="">`;document.body.appendChild(v);
+ const im=v.querySelector("img");let z=false;requestAnimationFrame(()=>v.classList.add("on"));
+ const close=()=>{v.classList.remove("on");setTimeout(()=>v.remove(),300)};
+ $("mvx").onclick=close;$("mvs").onclick=()=>msave(o.u,o.n);
+ let lt=0;im.onclick=e=>{const n=Date.now();if(n-lt<300){z=!z;im.style.transformOrigin=(e.offsetX/im.clientWidth*100)+"% "+(e.offsetY/im.clientHeight*100)+"%";im.style.transform=z?"scale(2.4)":"none"}else v.classList.toggle("bars");lt=n}};
+const _oc=openChat;openChat=function(a,b,c,d){const r=_oc(a,b,c,d);const i=document.querySelector(".xfi");if(i)i.setAttribute("accept","image/*,video/*,audio/*,application/pdf,.pdf");return r};
+const _rs=renderSettings;PG.settings=renderSettings=function(){_rs();const p=document.querySelector("#main .pr");if(p&&p.parentElement)p.parentElement.insertAdjacentHTML("beforeend",`<div class="pr"><div class="t"><b>Data saver for files</b><small>Off = original quality (up to 50 MB). On = compress photos and large videos before sending</small></div><button class="tg2 ${PR.ds?"on":""}" onclick="tog('ds',this)" aria-label="Data saver"><i></i></button></div>`)};
+document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
+.mm{padding:6px!important;max-width:86%!important}
+.mmw{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.05);min-height:120px}
+.mmw img{display:block;width:100%;max-height:420px;object-fit:contain;opacity:0;filter:blur(14px);transform:scale(1.03);transition:opacity .45s,filter .6s,transform .6s}
+.mmw img.ld{opacity:1;filter:none;transform:none}
+.mm video{width:100%;border-radius:16px;max-height:420px}
+.mm audio{width:100%;margin-top:8px;height:40px}
+.fl{display:flex;align-items:center;gap:12px;padding:8px 6px}.fl>span{flex:none;min-width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:13px;background:linear-gradient(135deg,#6f84cf,#9a78d0);color:#fff}
+.fl b{display:block;font-size:14px;word-break:break-all}.fl small{opacity:.7}
+.cpb{height:8px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin:12px 0}.cpb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6f84cf,#63c29c);transition:width .4s}
+#mvw{position:fixed;inset:0;z-index:9700;background:#000;display:grid;place-items:center;opacity:0;transition:opacity .3s;overflow:hidden}#mvw.on{opacity:1}
+#mvw img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.mvb{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;background:linear-gradient(#000a,transparent);transition:opacity .3s}
+#mvw.bars .mvb{opacity:0;pointer-events:none}
+`}));
+})();
+
 </script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
