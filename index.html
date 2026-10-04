@@ -3548,4 +3548,40 @@ document.head.appendChild(Object.assign(document.createElement("style"),{textCon
 (()=>{
 document.head.appendChild(Object.assign(document.createElement("style"),{textContent:".cb{isolation:isolate}#cb::before{z-index:0!important}"}));
 })();
-</script><script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
+</script><script>
+/* NX-MIRROR-OUT-PATCH v1 */
+(()=>{
+const D=document,md=navigator.mediaDevices;
+if(!md||!md.getUserMedia)return;
+const prev=md.getUserMedia;
+const isEnv=(c,t)=>{let r="";try{r=JSON.stringify(c.video.facingMode||"")}catch(_){}try{r+=(t.getSettings&&t.getSettings().facingMode)||""}catch(_){}return /environment/i.test(r)};
+md.getUserMedia=async function(c){
+ const s=await prev.apply(md,arguments);
+ try{
+  if(!c||!c.video||c.audio!==undefined)return s;
+  const t=s.getVideoTracks()[0];if(!t||t._mo||isEnv(c,t))return s;
+  const v=D.createElement("video");v.muted=true;v.playsInline=true;v.setAttribute("playsinline","");v.srcObject=s;
+  v.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";D.body.appendChild(v);
+  try{await v.play()}catch(_){}
+  await new Promise(r=>{if(v.videoWidth)return r();v.onloadedmetadata=r;setTimeout(r,3000)});
+  if(!v.videoWidth){v.remove();return s}
+  const cv=D.createElement("canvas"),x=cv.getContext("2d");let dead=0,last=0;
+  const draw=()=>{const w=v.videoWidth,h=v.videoHeight;if(!w||v.readyState<2)return;if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}x.setTransform(-1,0,0,1,w,0);x.drawImage(v,0,0,w,h);last=Date.now()};
+  draw();
+  const fr=(t.getSettings&&t.getSettings().frameRate)||30;
+  const out=cv.captureStream(Math.min(60,Math.max(15,Math.round(fr)))),ot=out.getVideoTracks()[0],os=ot.stop.bind(ot);ot._mo=1;
+  const sched=()=>{if(dead)return;if(D.hidden)setTimeout(loop,33);else if(v.requestVideoFrameCallback)v.requestVideoFrameCallback(loop);else requestAnimationFrame(loop)};
+  const loop=()=>{if(dead)return;try{draw()}catch(_){}sched()};
+  const wd=setInterval(()=>{if(dead)return clearInterval(wd);if(Date.now()-last>800)try{draw()}catch(_){}},400);
+  ot.stop=function(){dead=1;clearInterval(wd);try{os()}catch(_){}try{t.stop()}catch(_){}try{s.getTracks().forEach(q=>q.stop())}catch(_){}try{v.srcObject=null;v.remove()}catch(_){}};
+  t.addEventListener("ended",()=>{if(!dead)ot.stop()});
+  sched();
+  return out;
+ }catch(_){return s}
+};
+/* own preview must NOT be flipped again by CSS, because the stream is already flipped */
+D.body.classList.add("nx-nomir");
+setInterval(()=>{if(!D.body.classList.contains("nx-nomir"))D.body.classList.add("nx-nomir")},300);
+})();
+</script>
+<script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
