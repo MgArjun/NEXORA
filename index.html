@@ -4572,4 +4572,228 @@ setInterval(async()=>{const c=C;if(!c||c.st!=="on"||!c.camS||!c.pc||!c.cam)retur
 })();
 
 </script>
+
+<script>
+
+/* NX-FULL-V1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-full",e)}catch(_){}}};
+const ADMIN_EMAIL="surajpurve078@gmail.com";
+const isAdmin=()=>S.user&&(S.user.email||"").toLowerCase()===ADMIN_EMAIL;
+
+/* ===== PHASE 1 ===== */
+
+/* 1. Forget Password on login */
+tf(()=>{
+ const fL=$("fL");
+ if(!fL||$("bFP"))return;
+ const btn=D.createElement("button");
+ btn.id="bFP";btn.className="btn wide";btn.style.marginTop="8px";
+ btn.textContent="Forget Password?";
+ btn.onclick=async()=>{
+  const email=($("em").value||"").trim();
+  if(!email)return amsg("Pehle email daalo.","e");
+  busy(1);amsg("Reset link bhej rahe hain…");
+  try{
+   const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+   if(error)throw error;
+   amsg("Check your email – reset link bhej diya.","o");
+  }catch(e){amsg(e.message||"Error","e")}
+  busy(0);
+ };
+ fL.appendChild(btn);
+});
+
+/* 2. PR hideLS */
+tf(()=>{
+ if(typeof PR!=="undefined"&&PR.hideLS===undefined){
+  PR.hideLS=false;
+  try{const o=JSON.parse(localStorage.nx_pr||"{}");if(o.hideLS!==undefined)PR.hideLS=!!o.hideLS}catch(_){}
+ }
+});
+
+/* 3. tog override */
+tf(()=>{
+ const oldTog=window.tog;
+ window.tog=function(k,b){
+  if(k==="hideLS"){
+   PR.hideLS=!PR.hideLS;savePr();
+   if(b)b.classList.toggle("on",PR.hideLS);
+   setOnline(true);
+   sfx&&sfx("up");
+   return;
+  }
+  return oldTog.apply(this,arguments);
+ };
+});
+
+/* 4. Settings extras */
+tf(()=>{
+ const _rs=PG.settings;
+ PG.settings=renderSettings=function(){
+  const r=_rs.apply(this,arguments);
+  tf(()=>{
+   // Hide Last Seen
+   const card=D.querySelector("#main .pg .card .pr");
+   if(card&&!D.querySelector("#nxHLS")){
+    const row=D.createElement("div");
+    row.className="pr";row.id="nxHLS";
+    row.innerHTML=`<div class="t"><b>Hide my last seen</b><small>On = dusre log last seen nahi dekhenge</small></div>
+     <button class="tg2 ${PR.hideLS?"on":""}" onclick="tog('hideLS',this)" aria-label="Hide last seen"><i></i></button>`;
+    const parent=card.closest(".card");
+    if(parent)parent.appendChild(row);
+   }
+
+   // Account + DP
+   if(S.user&&!S.user.is_anonymous&&!$("nxCP")){
+    const red=D.querySelector("#main .pg>button.red");
+    if(red){
+     const div=D.createElement("div");
+     div.className="card";div.id="nxCP";div.style.cssText="padding:16px;margin-bottom:14px";
+     div.innerHTML=`<b>Account & Profile</b>
+      <button class="btn wide" style="margin-top:12px" onclick="nxChPass()">Change Password</button>
+      <button class="btn wide" style="margin-top:8px" onclick="nxForget()">Forget Password (email link)</button>
+      <button class="btn wide" style="margin-top:8px" onclick="nxDP()">Change Profile Picture (DP)</button>`;
+     red.before(div);
+    }
+   }
+
+   // Admin badge
+   if(isAdmin()&&!$("nxAdBadge")){
+    const h2=D.querySelector("#main .pg h2");
+    if(h2){
+     const b=D.createElement("div");
+     b.id="nxAdBadge";b.style.cssText="margin:8px 0 12px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,#3a1a2e,#1a1020);border:1px solid #ff6377;font-size:13px;font-weight:700;color:#ff8a9a";
+     b.textContent="🔴 Admin mode active";
+     h2.after(b);
+    }
+   }
+  });
+  return r;
+ };
+});
+
+window.nxChPass=()=>{
+ openModal(`<h3>Change Password</h3>
+  <p class="sub">Naya password daalo (6+ characters)</p>
+  <input id="nxNP" type="password" placeholder="New password" style="margin-bottom:10px">
+  <input id="nxNP2" type="password" placeholder="Confirm password">
+  <div id="nxPMsg" class="pw" style="text-align:left;min-height:18px;margin:6px 0"></div>
+  <button class="btn pri wide" onclick="nxDoChPass()">Save new password</button>
+  <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>`);
+};
+window.nxDoChPass=async()=>{
+ const p=$("nxNP").value,p2=$("nxNP2").value,m=$("nxPMsg");
+ if(p.length<6){m.style.color="#ff8190";m.textContent="Kam se kam 6 characters";return}
+ if(p!==p2){m.style.color="#ff8190";m.textContent="Dono password same hone chahiye";return}
+ m.style.color="";m.textContent="Saving…";
+ try{
+  const{error}=await sb.auth.updateUser({password:p});
+  if(error)throw error;
+  m.style.color="#65dda1";m.textContent="Password change ho gaya ✓";
+  setTimeout(closeModal,1200);
+ }catch(e){m.style.color="#ff8190";m.textContent=e.message||"Error"}
+};
+window.nxForget=async()=>{
+ const email=(S.user&&S.user.email)||"";
+ if(!email)return toast("Email nahi mila");
+ try{
+  await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+  toast("Reset link email pe bhej diya");
+  closeModal();
+ }catch(e){toast(e.message||"Error")}
+};
+
+/* DP placeholder (local for now) */
+window.nxDP=()=>{
+ openModal(`<h3>Profile Picture</h3>
+  <p class="sub">Camera / Gallery se photo choose karo (abhi local preview)</p>
+  <input type="file" id="nxDPf" accept="image/*" capture="environment" style="margin:12px 0">
+  <div id="nxDPprev" style="text-align:center;margin:10px 0"></div>
+  <button class="btn pri wide" onclick="nxSaveDP()">Save DP</button>
+  <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>`);
+ $("nxDPf").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{$("nxDPprev").innerHTML=`<img src="${r.result}" style="width:96px;height:96px;border-radius:50%;object-fit:cover">`;window.__dpData=r.result};
+  r.readAsDataURL(f);
+ };
+};
+window.nxSaveDP=()=>{
+ if(!window.__dpData)return toast("Pehle photo choose karo");
+ try{localStorage.nx_dp=window.__dpData;toast("DP save ho gaya (local)");paintAv&&paintAv();closeModal()}catch(e){toast("Save fail")}
+};
+
+/* Last seen helper */
+tf(()=>{
+ window.nxLastSeenTxt=async function(uid){
+  if(!uid)return "";
+  const admin=isAdmin();
+  try{
+   const{data}=await sb.from("profiles").select("last_seen,online,hide_last_seen").eq("id",uid).maybeSingle();
+   if(!data)return "";
+   if(!admin&&data.hide_last_seen)return "";
+   if(data.online)return "Online";
+   if(!data.last_seen)return "";
+   const d=new Date(data.last_seen),diff=Date.now()-d.getTime();
+   if(diff<60000)return "Last seen just now";
+   if(diff<3600000)return "Last seen "+Math.floor(diff/60000)+" min ago";
+   if(diff<86400000)return "Last seen "+Math.floor(diff/3600000)+" hr ago";
+   return "Last seen "+d.toLocaleDateString();
+  }catch(_){return ""}
+ };
+});
+
+/* Show last seen in chat header */
+tf(()=>{
+ const _oc=window.openChat;
+ if(!_oc)return;
+ window.openChat=function(a,b,c,d){
+  const r=_oc.apply(this,arguments);
+  tf(async()=>{
+   if(!S.chat||!S.chat.uid)return;
+   const txt=await nxLastSeenTxt(S.chat.uid);
+   if(!txt)return;
+   const ch=D.querySelector("#main .pg.chat .ch");
+   if(!ch||ch.querySelector(".nxls"))return;
+   const span=D.createElement("div");
+   span.className="nxls";span.style.cssText="font-size:11px;color:var(--mu);margin-top:1px";
+   span.textContent=txt;
+   const nameEl=ch.querySelector("b, .t b, div > b");
+   if(nameEl&&nameEl.parentNode)nameEl.parentNode.appendChild(span);
+   else ch.appendChild(span);
+  });
+  return r;
+ };
+});
+
+/* setOnline respect hideLS */
+tf(()=>{
+ window.setOnline=function(on){
+  if(!S.user)return;
+  const payload={online:on&&!PR.hide,last_seen:new Date().toISOString()};
+  if(PR.hideLS!==undefined)payload.hide_last_seen=!!PR.hideLS;
+  sb.from("profiles").update(payload).eq("id",S.user.id).then(()=>{},()=>{});
+ };
+});
+
+/* ===== PHASE 2 safe: Chats list style hint ===== */
+tf(()=>{
+ // Add a small style so Chats section rows look flatter (WhatsApp-ish)
+ // We do NOT touch Recent cylindrical cards
+ const st=D.createElement("style");
+ st.id="nx-chats-style";
+ st.textContent=`
+ #main .pg:not(.st) .row{border-radius:0;margin-bottom:0;padding:12px 14px;border-bottom:1px solid var(--ln);background:transparent}
+ #main .pg:not(.st) .row:active{background:rgba(255,255,255,.04)}
+ #main .pg:not(.st) .row .t b{font-size:15px}
+ #main .pg:not(.st) .row .t small{font-size:12px}
+ `;
+ if(!D.getElementById("nx-chats-style"))D.head.appendChild(st);
+});
+
+console.log("%c[NX-FULL] Phase1+2safe loaded","color:#6dffb0");
+})();
+
+</script>
 </body></html>
