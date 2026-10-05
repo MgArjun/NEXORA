@@ -4347,4 +4347,110 @@ tf(()=>{if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
  D.body.appendChild(o);setTimeout(()=>{o.classList.add("o");setTimeout(()=>o.remove(),700)},7000)});
 })();
 </script>
+<script>
+/* NX-CHAT-DELETE-THEME-PATCH v1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(_){}};
+const hs=s=>{let h=5381;s=String(s);for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(36)};
+const DK=()=>K("nx_dt"),TK=()=>K("nx_th2"),ST=()=>LS(DK(),{}),sv=o=>{try{localStorage[DK()]=JSON.stringify(o)}catch(_){}};
+const ent=(st,c)=>st[c]||(st[c]={cut:0,l:[]});
+const nk=n=>{if(n.dataset.x!==undefined)return n.dataset.x;const u=n._o&&n._o.u;return u?"U"+u:null};
+const xk=x=>{if(typeof x==="string"&&x.indexOf("NXM:")===0){try{return "U"+JSON.parse(x.slice(4)).u}catch(_){}}return x};
+const nt=n=>+n.dataset.t||0;
+const mt=(e,s,h,t)=>e.s===s&&e.h===h&&(!e.t||!t||Math.abs(e.t-t)<3e5);
+function hidden(n){const c=S.chat;if(!c)return false;const d=ST()[c.cid];if(!d)return false;const t=nt(n);if(d.cut&&t&&t<=d.cut)return true;const k=nk(n);if(k==null)return false;const h=hs(k),s=n.dataset.s;return d.l.some(e=>mt(e,s,h,t))}
+function vanish(n,anim){if(!anim){n.remove();return}
+ n.style.transition="opacity .32s ease,transform .32s cubic-bezier(.4,0,.2,1),filter .32s";n.style.opacity="0";n.style.transform="scale(.5) translateY(-6px)";n.style.filter="blur(6px)";n.style.pointerEvents="none";
+ setTimeout(()=>{const h=n.offsetHeight;n.style.height=h+"px";n.style.overflow="hidden";n.style.transition="height .24s ease,padding .24s,margin .24s";void n.offsetWidth;n.style.height="0";n.style.padding="0";n.style.marginTop="-5px";n.style.marginBottom="0";setTimeout(()=>n.remove(),270)},300)}
+function sweep(a){D.querySelectorAll("#cb .m").forEach(n=>{if(hidden(n))vanish(n,a)})}
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList.contains("m")&&n.parentNode&&n.parentNode.id==="cb"&&hidden(n))n.remove()}))).observe($("main"),{childList:true,subtree:true});
+function addDel(cid,es){const st=ST(),d=ent(st,cid);es.forEach(e=>{if(!d.l.some(x=>x.s===e.s&&x.h===e.h&&x.t===e.t))d.l.push(e)});d.l=d.l.slice(-400);sv(st)}
+function purge(cid,es){tf(()=>{const k=hk(cid),o=LS(k,[]);localStorage[k]=JSON.stringify(o.filter(x=>{const h=hs(xk(x.x));return!es.some(e=>mt(e,x.s,h,x.t))}))})}
+function wipe(uid,cid,t,chk){const st=ST(),d=ent(st,cid);d.cut=Math.max(d.cut,t);d.l=[];sv(st);tf(()=>localStorage.removeItem(hk(cid)));
+ const rk=K("nx_rc");localStorage[rk]=JSON.stringify(LS(rk,[]).filter(x=>x.id!==uid||(chk&&(x.t||0)>t)));
+ const uk=K("nx_unr"),u=LS(uk,{});if(u[uid]){delete u[uid];localStorage[uk]=JSON.stringify(u)}}
+const refresh=()=>{if(S.page==="recent")PG.recent();else if(S.page==="home")PG.home()};
+/* ---------- select mode ---------- */
+let SEL=null,lp=null,lpd=0;
+function upd(){const e=$("dsn");if(e&&SEL)e.textContent=SEL.size+" selected"}
+function bar(){const h=D.querySelector("#main .pg.chat .ch");if(!h)return;
+ h.insertAdjacentHTML("beforebegin",'<div id="dsb"><button class="ib" id="dsx" aria-label="Cancel">&#10005;</button><b id="dsn"></b><span style="flex:1"></span><button class="btn" id="dsa" style="min-height:38px">Select all</button><button class="ib del" id="dsd" aria-label="Delete">'+I.trash+'</button></div>');
+ $("dsx").onclick=selOff;$("dsd").onclick=ask;$("dsa").onclick=()=>{D.querySelectorAll("#cb .m").forEach(n=>{if(!SEL.has(n)){SEL.add(n);n.classList.add("dsel")}});upd()}}
+function selOff(){if(!SEL)return;SEL.forEach(n=>n.classList.remove("dsel"));SEL=null;D.body.classList.remove("nx-sel");const b=$("dsb");if(b)b.remove()}
+function tog(n){if(SEL.has(n)){SEL.delete(n);n.classList.remove("dsel")}else{SEL.add(n);n.classList.add("dsel")}upd();if(!SEL.size)selOff()}
+function selOn(n){if(!SEL){SEL=new Set();D.body.classList.add("nx-sel");bar()}tog(n);tf(()=>navigator.vibrate&&navigator.vibrate(15))}
+addEventListener("pointerdown",e=>{const n=e.target.closest&&e.target.closest("#cb .m");if(!n||SEL)return;lp={x:e.clientX,y:e.clientY,t:setTimeout(()=>{lp=null;lpd=Date.now();selOn(n)},430)}},true);
+addEventListener("pointermove",e=>{if(lp&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>10){clearTimeout(lp.t);lp=null}},true);
+["pointerup","pointercancel"].forEach(v=>addEventListener(v,()=>{if(lp){clearTimeout(lp.t);lp=null}},true));
+addEventListener("scroll",()=>{if(lp){clearTimeout(lp.t);lp=null}},true);
+addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest("#cb .m"))e.preventDefault()},true);
+addEventListener("click",e=>{const n=e.target.closest&&e.target.closest("#cb .m");if(!n)return;
+ if(Date.now()-lpd<700){e.stopImmediatePropagation();e.preventDefault();return}
+ if(SEL){e.stopImmediatePropagation();e.preventDefault();tog(n)}},true);
+addEventListener("popstate",e=>{if(SEL){e.stopImmediatePropagation();history.pushState({n:1},"");selOff()}},true);
+function ask(){if(!SEL||!SEL.size)return;const n=SEL.size,c=S.chat;
+ openModal('<div class="adg"><h3>Delete '+n+' message'+(n>1?"s":"")+'?</h3><p>"Delete for me" hatata hai sirf aapke phone se. "Delete for both" '+esc(dn(c.uid,c.name))+' ke chat se bhi hata deta hai.</p><div class="adb dlx"><button onclick="closeModal()">Cancel</button><button onclick="nxDel(0)">Delete for me</button><button class="dl" onclick="nxDel(1)">Delete for both</button></div></div>')}
+window.nxDel=both=>{closeModal();const c=S.chat;if(!c||!SEL||!SEL.size)return;const ns=[...SEL],es=[];
+ ns.forEach(n=>{const k=nk(n);if(k!=null)es.push({s:n.dataset.s,h:hs(k),t:nt(n)})});
+ selOff();ns.forEach(n=>vanish(n,1));addDel(c.cid,es);purge(c.cid,es);
+ if(both&&es.length){tf(()=>sb.from("chat_del").insert(es.map(e=>({conversation_id:c.cid,sender_id:e.s,h:e.h,t:e.t,by:S.user.id}))).then(r=>{if(r&&r.error)toast("Server pe save nahi hua. SQL chalaya?")},()=>{}));sig({type:"mdel",to:c.uid,cid:c.cid,l:es})}
+ toast(both?"Deleted for both":"Deleted for you")};
+/* ---------- delete whole chat (Chats list) ---------- */
+askDel=function(id){const x=LS(K("nx_rc"),[]).find(z=>z.id===id),n=dn(id,x?x.name:"This chat"),q=esc(id);
+ openModal('<div class="adg"><h3>Delete chat?</h3><p>'+esc(n)+': "Delete for me" chat sirf aapke phone se saaf karta hai. "Delete for both" dono taraf se saaf karta hai.</p><div class="adb dlx"><button onclick="closeModal()">Cancel</button><button onclick="nxDc(\''+q+'\',0)">Delete for me</button><button class="dl" onclick="nxDc(\''+q+'\',1)">Delete for both</button></div></div>')};
+window.nxDc=(id,both)=>{closeModal();const cid=cidOf(id),t=Date.now(),me=S.user.id;
+ const av=D.querySelector('#main .nrw .av[onclick*="'+id+'"]'),row=av&&av.closest(".nrw");wipe(id,cid,t,0);
+ if(both){tf(()=>sb.from("chat_del").insert({conversation_id:cid,sender_id:me,h:"*",t,by:me}).then(r=>{if(r&&r.error)toast("Server pe save nahi hua. SQL chalaya?")},()=>{}));tf(()=>sb.from("messages").delete().eq("conversation_id",cid).then(()=>{},()=>{}));sig({type:"cdel",to:id,cid,t})}
+ if(row)vanish(row,1);setTimeout(refresh,row?700:0);toast(both?"Chat deleted for both":"Chat deleted for you")};
+async function syncDel(cid){try{const r=await sb.from("chat_del").select("sender_id,h,t").eq("conversation_id",cid).order("id",{ascending:false}).limit(500),rows=r.data||[];if(!rows.length)return;
+ const st=ST(),d=ent(st,cid);rows.forEach(w=>{const t=+w.t||0;if(w.h==="*")d.cut=Math.max(d.cut,t);else if(!d.l.some(x=>x.s===w.sender_id&&x.h===w.h&&x.t===t))d.l.push({s:w.sender_id,h:w.h,t})});d.l=d.l.slice(-400);sv(st);if(S.chat&&S.chat.cid===cid)sweep(0)}catch(_){}}
+async function pullDel(){try{const rc=LS(K("nx_rc"),[]);if(rc.length){const m={};rc.forEach(x=>m[cidOf(x.id)]=x);
+ const r=await sb.from("chat_del").select("conversation_id,t,by").eq("h","*").neq("by",S.user.id).in("conversation_id",Object.keys(m));
+ (r.data||[]).forEach(w=>{const x=m[w.conversation_id];if(x&&(x.t||0)<=+w.t)wipe(x.id,w.conversation_id,+w.t,1)});refresh()}}catch(_){}
+ tf(()=>sb.from("chat_del").delete().lt("created_at",new Date(Date.now()-6048e5).toISOString()).eq("by",S.user.id).then(()=>{},()=>{}))}
+/* ---------- themes ---------- */
+const TH=[["","Midnight","#0b1020","#141b36","#6a7fc9","#8d78c4"],["t2","Rose","#1a1220","#2c1b2e","#b5667f","#8a5a9e"],["t3","Ocean","#0b1a24","#10303a","#3e8ea3","#3b6ea5"],["t4","Forest","#0d1a16","#173026","#4f9a78","#3a7a6a"],["t5","Lilac","#16132a","#262042","#8a7ad4","#a37ac8"],["t6","Peach","#20150f","#33201a","#c9805e","#b25f6a"],["t7","Graphite","#121317","#1f2128","#5c6478","#4a5266"],["t8","Sky","#0d1730","#18305a","#5a8de0","#7a7ae0"],["t9","Mint","#0c1d1c","#143a36","#4ab3a0","#4a94b3"],["t10","Wine","#1c0f1a","#321a30","#a85a8c","#84508f"]];
+let css='';TH.forEach(t=>{if(t[0])css+='.pg.chat[data-th="'+t[0]+'"]{--ca:'+t[2]+';--cc:'+t[3]+';--m1:'+t[4]+';--m2:'+t[5]+'}'});
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:css+`
+.pg.chat[data-th] .cb{background:radial-gradient(120% 55% at 15% 0%,rgba(255,255,255,.06),transparent 60%),linear-gradient(180deg,var(--ca),var(--cc))!important}
+.pg.chat[data-th] .m.me{background:linear-gradient(135deg,var(--m1),var(--m2))!important}
+.pg.chat[data-th] .m.th{background:rgba(255,255,255,.1)!important}
+.pg.chat[data-th] .ch,.pg.chat[data-th] .cp,.pg.chat[data-th] #dsb{background:var(--ca)!important}
+#cb .m{position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#dsb{display:none;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--ln);background:rgba(12,17,25,.95);flex:none}
+body.nx-chat #dsb{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+body.nx-sel #dsb{display:flex}body.nx-sel .pg.chat .ch{display:none}
+body.nx-sel #cb .m::before{content:"";position:absolute;left:-9px;top:50%;margin-top:-10px;width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:#0e1426;z-index:2;display:grid;place-items:center;font-size:12px;color:#fff}
+body.nx-sel #cb .m.dsel::before{content:"\\2713";background:linear-gradient(135deg,#6f84cf,#9a78d0);border-color:#fff}
+#cb .m.dsel{box-shadow:0 0 0 2px rgba(143,162,240,.95)!important}
+.dlx{flex-wrap:wrap}
+.thg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:6px 0 12px}.thg.off{opacity:.45;pointer-events:none}
+.ths{display:grid;gap:5px;justify-items:center;font-size:10px;color:#c3cadd}
+.ths i{position:relative;width:100%;aspect-ratio:1;border-radius:14px;border:1px solid rgba(255,255,255,.14)}
+.ths i::after{content:"";position:absolute;right:6px;bottom:6px;width:13px;height:13px;border-radius:50%;background:var(--d)}
+.ths.on i{outline:2px solid #fff;outline-offset:2px}`}));
+const TS=()=>LS(TK(),{});
+function setT(cid,th,lk){const o=TS();o[cid]={th,lk:lk||""};try{localStorage[TK()]=JSON.stringify(o)}catch(_){}}
+function paint(){const p=D.querySelector("#main .pg.chat");if(!p||!S.chat)return;const t=(TS()[S.chat.cid]||{}).th||"";t?p.setAttribute("data-th",t):p.removeAttribute("data-th")}
+async function loadT(c){paint();try{const r=await sb.from("chat_theme").select("*").eq("conversation_id",c.cid).maybeSingle();if(r&&r.data&&S.chat===c){setT(c.cid,r.data.theme||"",r.data.locked_by);paint()}}catch(_){}}
+function push(c,th,lk){sig({type:"cth",to:c.uid,cid:c.cid,th,lk});tf(()=>sb.from("chat_theme").upsert({conversation_id:c.cid,theme:th,locked_by:lk||null,updated_by:S.user.id,updated_at:new Date().toISOString()}).then(r=>{if(r&&r.error)toast("Theme server pe save nahi hui. SQL chalaya?")},()=>{}))}
+window.nxTh=th=>{const c=S.chat;if(!c)return;const cur=TS()[c.cid]||{};if(cur.lk&&cur.lk!==S.user.id)return toast("Friend ne theme lock ki hai");setT(c.cid,th,cur.lk);paint();push(c,th,cur.lk);themeUI()};
+window.nxLk=()=>{const c=S.chat;if(!c)return;const cur=TS()[c.cid]||{};if(cur.lk&&cur.lk!==S.user.id)return;const lk=cur.lk?"":S.user.id;setT(c.cid,cur.th||"",lk);push(c,cur.th||"",lk);themeUI()};
+window.themeUI=()=>{const c=S.chat;if(!c)return;const cur=TS()[c.cid]||{},lock=cur.lk&&cur.lk!==S.user.id,mine=cur.lk===S.user.id;
+ openModal('<h3>Chat theme</h3><p class="sub">Dono ko same dikhegi.</p>'+(lock?'<div class="pw" style="text-align:left;margin-bottom:8px">Friend ne theme lock ki hai. Abhi aap badal nahi sakte.</div>':'')+'<div class="thg'+(lock?" off":"")+'">'+TH.map(t=>'<button class="ths'+((cur.th||"")===t[0]?" on":"")+'" onclick="nxTh(\''+t[0]+'\')"><i style="background:linear-gradient(135deg,'+t[2]+','+t[3]+');--d:'+t[4]+'"></i><span>'+t[1]+'</span></button>').join("")+'</div>'+(lock?"":'<div class="pr"><div class="t"><b>Lock theme</b><small>On = sirf aap badal sakte ho, friend nahi</small></div><button class="tg2 '+(mine?"on":"")+'" onclick="nxLk()" aria-label="Lock theme"><i></i></button></div>')+'<button class="btn wide" style="margin-top:12px" onclick="closeModal()">Done</button>')};
+const _cm=window.chMore;
+window.chMore=function(){_cm.apply(this,arguments);tf(()=>{const m=$("md"),h=m&&m.querySelector("h3");if(h&&!m.querySelector(".thb"))h.insertAdjacentHTML("afterend",'<button class="btn wide thb" style="margin-bottom:10px" onclick="themeUI()">Chat theme</button>')})};
+/* ---------- signals + hooks ---------- */
+const _os=onSig;
+onSig=function(p){if(p){
+ if(p.type==="mdel"){addDel(p.cid,p.l||[]);purge(p.cid,p.l||[]);if(S.chat&&S.chat.cid===p.cid)sweep(1);return}
+ if(p.type==="cdel"){wipe(p.from,p.cid,p.t,1);if(S.chat&&S.chat.cid===p.cid)sweep(1);refresh();return}
+ if(p.type==="cth"){setT(p.cid,p.th,p.lk);if(S.chat&&S.chat.cid===p.cid){paint();toast("Chat theme badli gayi")}return}}
+ return _os(p)};
+const _oc=openChat;
+openChat=function(a,b,c,d){selOff();const r=_oc.apply(this,arguments);tf(()=>{const c0=S.chat;if(c0&&c0.uid===b){paint();loadT(c0);syncDel(c0.cid)}});return r};
+const _g=go;go=function(){selOff();return _g.apply(this,arguments)};
+const _en=enter;enter=async function(u){const r=await _en(u);setTimeout(pullDel,2500);return r};
+})();
+</script>
 </body></html>
