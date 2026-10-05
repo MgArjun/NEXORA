@@ -6021,4 +6021,116 @@ W.addEventListener("popstate",e=>{
 })();
 
 </script>
+<script>
+/* NX-WATCH-AUDIO-V1: Watch Together - separate call/media volume, Fit/Fill/Zoom, speaker + Bluetooth fix */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("nx-wa",e)}catch(_){}}};
+const $$=i=>D.getElementById(i);
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const T=m=>tf(()=>toast(m));
+const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+const K="nx_wta";
+let saved={};try{saved=JSON.parse(localStorage.getItem(K))||{}}catch(_){}
+const ST=Object.assign({cv:100,mv:100,mode:"fit",z:150,sink:""},saved);
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(ST))}catch(_){}};
+const canSink=("setSinkId" in HTMLMediaElement.prototype);
+
+D.head.appendChild(Object.assign(D.createElement("style"),{id:"nx-wa-css",textContent:`
+#nxwa{padding:14px 16px;margin-top:12px;border-radius:22px}
+#nxwa .nxwr{display:flex;justify-content:space-between;align-items:center;margin:12px 0 2px}
+#nxwa .nxwr:first-child{margin-top:0}
+#nxwa .nxwr span{color:#aab3ff;font-weight:800;font-size:13px}
+#nxwa input[type=range]{padding:0;height:30px;margin:0}
+#nxwa .seg{margin-top:6px}
+#nxwa .nxwn{color:var(--mu);font-size:12px;line-height:1.45;margin-top:10px;min-height:16px}
+#nxwa .nxwg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+#nxwa .nxwg .btn{min-height:44px;font-size:13px}
+`}));
+
+function ytMsg(ifr,vol){tf(()=>ifr.contentWindow.postMessage(JSON.stringify({event:"command",func:"setVolume",args:[vol]}),"*"))}
+function sinkTo(e,id){if(e&&canSink)tf(()=>e.setSinkId(id||"").catch(()=>{}))}
+function elsSink(){[$$("ra"),$$("rv")].concat([].slice.call(D.querySelectorAll("#wtV video"))).forEach(e=>sinkTo(e,ST.sink))}
+
+/* ---- apply all settings (runs often, only writes when something changed) ---- */
+function apply(){
+ const a=$$("ra");
+ if(a){if(a._cv!==ST.cv){a._cv=ST.cv;tf(()=>{a.volume=ST.cv/100})}
+  if(ST.sink&&canSink&&a.sinkId!==ST.sink)sinkTo(a,ST.sink)}
+ const rv=$$("rv");if(rv&&ST.sink&&canSink&&rv.sinkId!==ST.sink)sinkTo(rv,ST.sink);
+ const box=$$("wtV"),Wt=tf(()=>WT);if(!box||!Wt)return;
+ const vid=box.querySelector("video"),ifr=box.querySelector("iframe"),m=vid||ifr;if(!m)return;
+ const yt=!!(ifr&&!vid&&Wt.src&&tf(()=>ytId(Wt.src)));
+ if(vid){if(vid._mv!==ST.mv){vid._mv=ST.mv;tf(()=>{vid.volume=ST.mv/100})}
+  if(ST.sink&&canSink&&vid.sinkId!==ST.sink)sinkTo(vid,ST.sink)}
+ if(yt&&ifr._mv!==ST.mv){ifr._mv=ST.mv;ytMsg(ifr,ST.mv);setTimeout(()=>ytMsg(ifr,ST.mv),1500);setTimeout(()=>ytMsg(ifr,ST.mv),3500)}
+ let z=1,fit="contain";
+ if(ST.mode==="fill"){fit="cover";z=(yt||!vid)?1.33:1}
+ else if(ST.mode==="zoom")z=ST.z/100;
+ if(vid)vid.style.setProperty("object-fit",fit,"important");
+ const tr=z===1?"":"scale("+z+")";
+ if(m.style.transform!==tr){m.style.transform=tr;m.style.transformOrigin="center center"}
+}
+
+/* ---- panel under the video ---- */
+function note(){const box=$$("wtV"),n=$$("nxwn");if(!n)return;
+ const vid=box&&box.querySelector("video"),ifr=box&&box.querySelector("iframe"),Wt=tf(()=>WT),yt=!!(ifr&&!vid&&Wt&&Wt.src&&tf(()=>ytId(Wt.src)));
+ let t;
+ if(IOS)t="iPhone par awaaz sirf phone ke volume button se badalti hai (Apple ki limit). Fit/Fill/Zoom kaam karega. Bluetooth/AirPlay Control Centre se chuno.";
+ else if(!vid&&!ifr)t="Pehle video ka link load karo.";
+ else if(!vid&&!yt)t="Ye website hai, isliye iski awaaz yahan se control nahi ho sakti. Zoom kaam karega.";
+ else if(yt)t="YouTube ki awaaz yahan se alag control hoti hai. YouTube ka output phone ke default speaker/Bluetooth par chalta hai.";
+ else t="";
+ if(n.textContent!==t)n.textContent=t}
+function sync(){
+ const g=i=>$$(i);
+ if(g("nxwcv")){g("nxwcv").value=ST.cv;g("nxwcl").textContent=ST.cv+"%"}
+ if(g("nxwmv")){g("nxwmv").value=ST.mv;g("nxwml").textContent=ST.mv+"%"}
+ if(g("nxwzv")){g("nxwzv").value=ST.z;g("nxwzl").textContent=(ST.z/100).toFixed(1)+"x";g("nxwzr").style.display=ST.mode==="zoom"?"block":"none"}
+ D.querySelectorAll("#nxwseg button").forEach(b=>b.classList.toggle("on",b.dataset.m===ST.mode))}
+function panel(){
+ if(tf(()=>S.page)!=="watch"||!$$("wtS")||$$("nxwa"))return;
+ const p=D.createElement("div");p.id="nxwa";p.className="card";
+ p.innerHTML='<div class="nxwr"><b>Call volume</b><span id="nxwcl"></span></div><input id="nxwcv" type="range" min="0" max="100" aria-label="Call volume">'
+ +'<div class="nxwr"><b>Media volume</b><span id="nxwml"></span></div><input id="nxwmv" type="range" min="0" max="100" aria-label="Media volume">'
+ +'<div class="nxwr"><b>Video size</b></div><div class="seg" id="nxwseg"><button data-m="fit">Fit</button><button data-m="fill">Fill</button><button data-m="zoom">Zoom</button></div>'
+ +'<div id="nxwzr" style="display:none"><div class="nxwr"><b>Zoom</b><span id="nxwzl"></span></div><input id="nxwzv" type="range" min="100" max="300" step="5" aria-label="Zoom"></div>'
+ +'<div class="nxwg"><button class="btn" id="nxwout">Speaker / Bluetooth</button><button class="btn" id="nxwfix">Fix audio</button></div><div class="nxwn" id="nxwn"></div>';
+ $$("wtS").after(p);
+ $$("nxwcv").oninput=e=>{ST.cv=+e.target.value;save();sync();apply()};
+ $$("nxwmv").oninput=e=>{ST.mv=+e.target.value;save();sync();apply()};
+ $$("nxwzv").oninput=e=>{ST.z=+e.target.value;save();sync();apply()};
+ $$("nxwseg").onclick=e=>{const b=e.target.closest("button");if(!b)return;ST.mode=b.dataset.m;save();sync();apply()};
+ $$("nxwout").onclick=outPick;$$("nxwfix").onclick=()=>fix(false);
+ sync();note();apply();
+}
+
+/* ---- speaker / Bluetooth ---- */
+async function outPick(){
+ const md=navigator.mediaDevices;
+ if(!canSink){T("Is browser me app se output nahi badal sakte. Phone ke Control Centre / Bluetooth settings se chuno.");return}
+ if(md&&md.selectAudioOutput){try{const d=await md.selectAudioOutput();setSink(d.deviceId);return}catch(e){if(e&&e.name==="NotAllowedError")return}}
+ let l=[];try{l=(await md.enumerateDevices()).filter(x=>x.kind==="audiooutput")}catch(_){}
+ if(!l.length){T("Koi output device nahi mila. Pehle phone me Bluetooth connect karo.");return}
+ W.__wal=l;
+ openModal('<h3>Audio output</h3><p class="sub">Awaaz kahan se aaye?</p><div style="display:grid;gap:8px">'+l.map((x,i)=>'<button class="btn wide'+((x.deviceId===ST.sink||(!ST.sink&&x.deviceId==="default"))?" pri":"")+'" onclick="nxWaSink('+i+')">'+E(x.label||("Output "+(i+1)))+'</button>').join("")+'</div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+}
+W.nxWaSink=i=>{const x=(W.__wal||[])[i];tf(()=>closeModal());if(x)setSink(x.deviceId)};
+function setSink(id){ST.sink=id||"";save();elsSink();T("Output badal diya")}
+function fix(silent){
+ tf(()=>{if(AC&&AC.state==="suspended")AC.resume()});
+ tf(()=>{if(VA)VA.resume()});
+ const a=$$("ra");if(a){a.muted=false;tf(()=>a.play().catch(()=>{}))}
+ elsSink();apply();
+ if(!silent)T("Audio refresh ho gaya. Bluetooth pehle phone me connect hona chahiye.");
+}
+tf(()=>{const md=navigator.mediaDevices;if(!md||!md.addEventListener)return;let t=0;
+ md.addEventListener("devicechange",()=>{clearTimeout(t);t=setTimeout(async()=>{
+  if(ST.sink&&canSink){let l=[];try{l=(await md.enumerateDevices()).filter(x=>x.kind==="audiooutput")}catch(_){}
+   if(l.length&&!l.some(x=>x.deviceId===ST.sink)){ST.sink="";save()}}
+  fix(true);if(tf(()=>S.page)==="watch"||tf(()=>!!C))T("Audio device badla, awaaz dobara set ki")},700)})});
+
+setInterval(()=>{panel();apply();note()},500);
+})();
+
+</script>
 </body></html>
