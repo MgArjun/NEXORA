@@ -4970,4 +4970,161 @@ enter=async function(u){const r=await _en.apply(this,arguments);tf(()=>{paintMin
 if(S.user)tf(paintMine);
 })();
 </script>
+
+<script>
+
+/* NX-FIX-V1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-fix",e)}catch(_){}}};
+const ADMIN_EMAIL="surajpurve078@gmail.com";
+const isAdmin=()=>S&&S.user&&(S.user.email||"").toLowerCase()===ADMIN_EMAIL;
+
+/* 1. Stop message bar / input bar shaking */
+tf(()=>{
+ const st=D.createElement("style");
+ st.id="nx-fix-shake";
+ st.textContent=`
+ .cp, .cp input, .snd, #main .pg.chat .cp {
+   animation: none !important;
+   transform: none !important;
+   transition: none !important;
+ }
+ .cp { will-change: auto !important; }
+ `;
+ if(!D.getElementById("nx-fix-shake")) D.head.appendChild(st);
+});
+
+/* 2. Smooth DP zoom / enlarge */
+tf(()=>{
+ const st=D.createElement("style");
+ st.id="nx-fix-dpzoom";
+ st.textContent=`
+ .dpv, .dpv canvas, #dpc {
+   transition: transform .35s cubic-bezier(.22,1,.36,1) !important;
+ }
+ .hasdp, .av.hasdp, .stav {
+   transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s !important;
+ }
+ .av.hasdp:active, .stav:active {
+   transform: scale(1.08);
+ }
+ /* full screen DP preview smooth */
+ #nxDpBig {
+   position: fixed; inset: 0; z-index: 9900;
+   background: rgba(0,0,0,.92);
+   display: grid; place-items: center;
+   animation: nxdpIn .35s cubic-bezier(.22,1,.36,1) both;
+ }
+ #nxDpBig img {
+   max-width: 92vw; max-height: 80vh;
+   border-radius: 12px;
+   transition: transform .4s cubic-bezier(.22,1,.36,1);
+   transform-origin: center;
+ }
+ @keyframes nxdpIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+ `;
+ if(!D.getElementById("nx-fix-dpzoom")) D.head.appendChild(st);
+
+ // Click on avatar in chat header → big smooth preview
+ D.addEventListener("click", e => {
+   const av = e.target.closest && e.target.closest(".ch .av, .ch .hasdp, .pg.chat .av");
+   if(!av) return;
+   const url = av.dataset.dp || av.style.backgroundImage.replace(/url\\(["']?|["']?\\)/g,"");
+   if(!url || url.length < 5) return;
+   e.stopPropagation();
+   const o = D.createElement("div");
+   o.id = "nxDpBig";
+   o.innerHTML = '<img src="'+url.replace(/"/g,"&quot;")+'" alt="DP">';
+   o.onclick = () => o.remove();
+   D.body.appendChild(o);
+ }, true);
+});
+
+/* 3. Fix Settings not opening (stSub / categories) */
+tf(()=>{
+ // Re-bind PG.settings safely
+ if(typeof stMain === "function"){
+   PG.settings = renderSettings = function(){ try{ stMain(); }catch(e){ console.warn(e); } };
+ }
+ // Force click handlers for settings rows if broken
+ D.addEventListener("click", e => {
+   const btn = e.target.closest && e.target.closest(".str, .stp");
+   if(!btn) return;
+   // if onclick already works, leave it
+   if(btn.onclick) return;
+   const oc = btn.getAttribute("onclick");
+   if(oc){
+     e.preventDefault();
+     try{ (new Function(oc))(); }catch(_){}
+   }
+ }, true);
+});
+
+/* 4. Basic Status section entry + admin permission */
+tf(()=>{
+ // Add Status button in chat list area (top) when on recent/chats
+ const oldGo = window.go;
+ if(oldGo){
+   window.go = function(p){
+     const r = oldGo.apply(this, arguments);
+     tf(()=>{
+       if(p === "recent" || p === "home"){
+         setTimeout(()=>{
+           if(D.querySelector("#nxStatBar")) return;
+           const main = $("main");
+           if(!main) return;
+           const bar = D.createElement("div");
+           bar.id = "nxStatBar";
+           bar.style.cssText = "padding:10px 14px;display:flex;gap:10px;overflow-x:auto;border-bottom:1px solid var(--ln)";
+           bar.innerHTML = '<button class="btn" style="flex:none;min-height:36px;padding:0 14px" onclick="nxOpenStatus()">Status</button>'
+             + (isAdmin() ? '<button class="btn pri" style="flex:none;min-height:36px;padding:0 14px" onclick="nxAddStatus()">+ Add Status</button>' : '');
+           const first = main.querySelector(".pg");
+           if(first) first.insertAdjacentElement("afterbegin", bar);
+         }, 300);
+       }
+     });
+     return r;
+   };
+ }
+
+ window.nxOpenStatus = function(){
+   openModal(`<h3>Status</h3>
+     <p class="sub">24 hours • Sirf admin permission se add ho sakta hai</p>
+     <div class="card empty" style="margin:12px 0">Abhi koi status nahi (Storage setup ke baad full aayega)</div>
+     <button class="btn wide" onclick="closeModal()">Close</button>`);
+ };
+
+ window.nxAddStatus = function(){
+   if(!isAdmin()) return toast("Sirf Admin status laga sakta hai");
+   openModal(`<h3>Add Status</h3>
+     <p class="sub">Admin only</p>
+     <input type="file" id="nxStF" accept="image/*,video/*" style="margin:10px 0">
+     <button class="btn pri wide" onclick="toast('Status upload ke liye Storage setup chahiye');closeModal()">Upload (soon)</button>
+     <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>`);
+ };
+});
+
+/* 5. DP change also in chat settings (chMore) */
+tf(()=>{
+ const oldMore = window.chMore;
+ if(oldMore){
+   window.chMore = function(){
+     oldMore.apply(this, arguments);
+     tf(()=>{
+       const m = $("md");
+       if(!m || m.querySelector("#nxChatDp")) return;
+       const h = m.querySelector("h3");
+       if(h){
+         h.insertAdjacentHTML("afterend",
+           '<button id="nxChatDp" class="btn wide" style="margin-bottom:10px" onclick="closeModal();nxDpSheet&&nxDpSheet()">Change Profile Photo</button>');
+       }
+     });
+   };
+ }
+});
+
+console.log("%c[NX-FIX-V1] loaded","color:#6dffb0");
+})();
+
+</script>
 </body></html>
