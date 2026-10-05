@@ -5538,4 +5538,301 @@ tf(fixSet);
 console.log("%c[NX-ADMIN-PRO-V1] ready","color:#6dffb0");
 })();
 </script>
+
+<script>
+/* NX-STATUS-E2EE-V1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-st2",e)}catch(_){}}};
+const BK="nx-public",TTL=864e5,QR=["❤️","👍","🔥","😂","😮","😢"];
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const T=m=>tf(()=>toast(m));
+const IN=n=>{n=String(n||"?").trim();return(n.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase())||"?"};
+const ic=d=>'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+d+'</svg>';
+const myId=()=>(typeof S!=="undefined"&&S.user)?S.user.id:null;
+const myNm=()=>tf(()=>myName())||"Me";
+const myUn=()=>(typeof S!=="undefined"&&S.me&&S.me.username)||"";
+const $$=i=>D.getElementById(i);
+const LSg=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(_){return d}};
+const LSs=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+const clk=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?"just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+"h ago":Math.floor(m/1440)+"d ago"};
+const when=t=>ago(t)+" · "+clk(t);
+const fmtS=s=>{s=Math.max(0,s);return Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0")};
+const X=ic('<path d="M6 6l12 12M18 6L6 18"/>'),DL=ic('<path d="M12 4v11M7.5 11L12 15.5 16.5 11M5 20h14"/>'),TR=ic('<path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6"/>'),EYE=ic('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),SEND=ic('<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>');
+
+/* ================= CSS ================= */
+D.head.appendChild(Object.assign(D.createElement("style"),{id:"nx-st2-css",textContent:`
+.nxring{box-shadow:0 0 0 2px #070a10,0 0 0 4.5px #3fd68f!important}
+.nxring.nxseen{box-shadow:0 0 0 2px #070a10,0 0 0 4.5px #5c6478!important}
+.stg{box-shadow:0 0 0 2px #070a10,0 0 0 4.5px #3fd68f!important}
+/* composer */
+#nxsc{position:fixed;inset:0;z-index:8800;background:#05070d;display:flex;flex-direction:column;color:#fff}
+#nxsc .scb{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 8px}
+#nxsc .scm{flex:1;min-height:0;display:grid;place-items:center;padding:0 12px}
+#nxsc .scm video,#nxsc .scm img{max-width:100%;max-height:100%;border-radius:16px;background:#000;object-fit:contain}
+#nxsc .scp{padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 16px);background:#0e1420;border-radius:22px 22px 0 0;display:grid;gap:10px}
+#nxsc .scl{font-weight:700;font-size:14px}
+#nxsc .scch{display:flex;gap:8px;flex-wrap:wrap}
+#nxsc .scch button{padding:8px 14px;border-radius:999px;font-weight:700;font-size:13px;background:#182234;border:1px solid var(--ln);color:#dfe5ff}
+#nxsc .scch button.on{background:linear-gradient(135deg,#6a7fd6,#8b78d2);border-color:transparent;color:#fff}
+#nxsc .scs{display:grid;gap:4px}#nxsc .scs span{font-size:12px;color:var(--mu)}
+#nxsc input[type=range]{padding:0;height:30px;margin:0}
+#nxsc .sci{margin:0;height:46px;border-radius:23px;padding:0 18px}
+/* viewer */
+#nxsv2{position:fixed;inset:0;z-index:8800;background:#000;display:flex;flex-direction:column;color:#fff;-webkit-user-select:none;user-select:none}
+#nxsv2 .vbars{position:relative;display:flex;gap:4px;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0;z-index:4}
+#nxsv2 .vbars i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.3);overflow:hidden}
+#nxsv2 .vbars b{display:block;height:100%;width:0;background:#fff}
+#nxsv2 .vhd{position:relative;display:flex;align-items:center;gap:8px;padding:10px 12px;z-index:4;background:linear-gradient(rgba(0,0,0,.55),transparent)}
+#nxsv2 .vav,.vsr .vav{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:13px;background:linear-gradient(135deg,#697cff,#a26cff);background-size:cover;background-position:center;flex:none}
+#nxsv2 .vav.hd{font-size:0;color:transparent}
+#nxsv2 .vnm{flex:1;min-width:0}#nxsv2 .vnm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#nxsv2 .vnm small{color:#bbb;font-size:12px}
+#nxsv2 .vmd{position:absolute;inset:0;display:grid;place-items:center}
+#nxsv2 .vmd img,#nxsv2 .vmd video{max-width:100%;max-height:100%;object-fit:contain}
+#nxsv2 .vzl,#nxsv2 .vzr{position:absolute;top:100px;bottom:190px;z-index:2}
+#nxsv2 .vzl{left:0;width:35%}#nxsv2 .vzr{right:0;width:65%}
+#nxsv2 .vcap{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 128px);text-align:center;padding:10px 18px;font-size:16px;z-index:3;background:linear-gradient(transparent,rgba(0,0,0,.65));text-shadow:0 1px 4px #000;word-break:break-word}
+#nxsv2 .vrx{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);display:flex;gap:6px;overflow-x:auto;padding:0 12px;z-index:4;min-height:0}
+#nxsv2 .rch{flex:none;padding:5px 11px;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:700;white-space:nowrap}
+#nxsv2 .vbt{position:absolute;left:0;right:0;bottom:0;padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 12px);z-index:5;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+#nxsv2 .vq{display:flex;justify-content:space-around;margin-bottom:8px}
+#nxsv2 .vq span{font-size:28px;padding:2px 6px;cursor:pointer}
+#nxsv2 .vq span:active{transform:scale(1.35)}
+#nxsv2 .vin{display:flex;gap:8px;align-items:center}
+#nxsv2 .vin input{margin:0;height:44px;border-radius:22px;flex:1;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);padding:0 16px;font-size:15px}
+#nxsv2 .vseen{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;font-weight:800;border-radius:22px;background:rgba(255,255,255,.14)}
+#nxsv2 .vsh{position:absolute;inset:0;z-index:7;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+#nxsv2 .vsc{width:100%;max-height:68%;overflow:auto;background:#121a2c;border-radius:24px 24px 0 0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 18px)}
+#nxsv2 .vsh1{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:17px}
+#nxsv2 .vsr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.07)}
+#nxsv2 .vrs{font-size:18px;white-space:nowrap}
+#nxsv2 .vem{padding:20px;text-align:center;color:var(--mu)}
+/* chat more menu */
+.cml{display:grid;gap:8px;margin:6px 0 4px}
+.cmr{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:background .2s,transform .2s}
+.cmr:active{background:rgba(255,255,255,.1);transform:scale(.98)}
+.cmr .gi{width:44px;height:44px;border-radius:14px}
+.cmr .gi svg{width:23px;height:23px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cmr .t{flex:1;min-width:0}.cmr .t b{display:block;font-size:16px}.cmr .t small{color:var(--mu);font-size:12.5px}
+.cmr .cmc{font-style:normal;font-size:26px;color:#8e9cff;opacity:.7}
+.cmq{padding:14px 16px;margin-bottom:10px;border-radius:20px}
+.cmq .seg{margin-top:10px}
+.cmq .pr{border:0;padding:0}
+`}));
+
+/* ================= 1. Green ring on avatars ================= */
+const ACT={map:{},t:0};
+const svK=()=>"nx_sv_"+myId();
+const allSeen=ids=>{const sv=LSg(svK(),[]);return ids.every(x=>sv.indexOf(x)>-1)};
+const idFrom=s=>{const m=/chatWith\('([^']+)'\)/.exec(s||"");return m&&m[1]};
+function mark(el,uid){if(!el)return;const a=uid&&ACT.map[uid],on=!!(a&&a.length);el.classList.toggle("nxring",on);el.classList.toggle("nxseen",on&&allSeen(a))}
+function paintRings(){if(!myId())return;
+ D.querySelectorAll("#main .wa[data-id]").forEach(r=>mark(r.querySelector(".wav"),r.dataset.id));
+ D.querySelectorAll("#main .nsk2").forEach(r=>mark(r.querySelector(".av"),idFrom(r.getAttribute("onclick"))));
+ D.querySelectorAll('#main .row [onclick*="chatWith("]').forEach(b=>{const r=b.closest(".row");if(r&&!r.matches(".nsk2"))mark(r.querySelector(".av"),idFrom(b.getAttribute("onclick")))});
+ if(S.chat)mark(D.querySelector("#main .pg.chat .ch .av"),S.chat.uid);
+ D.querySelectorAll('#pinf [onclick^="pPhoto("]').forEach(w=>{const m=/pPhoto\('([^']+)'\)/.exec(w.getAttribute("onclick"));mark(w.querySelector(".pbig"),m&&m[1])});
+ mark($$("prof"),myId())}
+async function loadAct(force){if(!myId())return;if(!force&&Date.now()-ACT.t<20000)return;ACT.t=Date.now();
+ try{const r=await sb.from("statuses").select("id,user_id").gt("created_at",new Date(Date.now()-TTL).toISOString()).limit(600);if(r.error)return;
+  const m={};(r.data||[]).forEach(s=>{(m[s.user_id]=m[s.user_id]||[]).push(s.id)});ACT.map=m;paintRings()}catch(_){}}
+let rq=0;
+new MutationObserver(()=>{if(rq)return;rq=setTimeout(()=>{rq=0;tf(paintRings)},150)}).observe(D.body,{childList:true,subtree:true});
+setInterval(()=>{if(myId()&&!D.hidden)loadAct()},8000);
+D.addEventListener("visibilitychange",()=>{if(!D.hidden)loadAct(true)});
+tf(()=>{const _e=enter;enter=async function(){const r=await _e.apply(this,arguments);setTimeout(()=>loadAct(true),800);return r}});
+
+/* ================= right swipe on Chats => Status ================= */
+(()=>{let sw=null;
+ const onPage=()=>myId()&&(S.page==="recent"||S.page==="status");
+ addEventListener("touchstart",e=>{if(!onPage()){sw=null;return}e.stopImmediatePropagation();
+  if(e.touches.length!==1||(e.target.closest&&e.target.closest("input,textarea"))){sw=null;return}
+  const t=e.touches[0];sw={x:t.clientX,y:t.clientY,p:S.page}},{capture:true,passive:true});
+ addEventListener("touchend",e=>{if(!onPage()){sw=null;return}e.stopImmediatePropagation();
+  const s=sw;sw=null;if(!s||s.p!==S.page)return;if(!$$("ov").classList.contains("h")||$$("nxsv2")||$$("nxsc"))return;
+  const t=e.changedTouches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.6)return;
+  if(dx>0&&s.p==="recent"&&s.x<innerWidth*.7)tf(()=>window.nxStatus());
+  else if(dx<0&&s.p==="status")tf(()=>go("recent"))},{capture:true,passive:true});
+ addEventListener("touchcancel",()=>{sw=null},{capture:true,passive:true})})();
+
+/* ================= 2. Advanced Status ================= */
+const hexOf=s=>Array.from(new TextEncoder().encode(s)).map(b=>b.toString(16).padStart(2,"0")).join("");
+function parse(s){const base=String(s.path||s.url||"").split("/").pop().split("?")[0];let cap=s.caption||"",tr=null;
+ const mc=/_c([0-9a-f]+)\.\w+$/.exec(base);
+ if(mc&&!cap)tf(()=>{const h=mc[1],by=new Uint8Array(Math.floor(h.length/2));for(let i=0;i<by.length;i++)by[i]=parseInt(h.substr(i*2,2),16);cap=new TextDecoder().decode(by)});
+ const mt=/_s(\d+)e(\d+)/.exec(base);if(mt)tr=[+mt[1]/10,+mt[2]/10];
+ return{cap,tr}}
+async function imgBlob(f){const bm=await createImageBitmap(f),k=Math.min(1,1280/Math.max(bm.width,bm.height)),c=D.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(r,"image/jpeg",.82))}
+async function trim(file,a,b,onP,st){let v,A,url;
+ try{const cs=HTMLMediaElement.prototype.captureStream||HTMLMediaElement.prototype.mozCaptureStream;
+  const mime=["video/mp4;codecs=avc1,mp4a.40.2","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"].find(x=>window.MediaRecorder&&MediaRecorder.isTypeSupported(x));
+  if(!cs||!mime)return null;
+  v=D.createElement("video");url=URL.createObjectURL(file);v.src=url;v.playsInline=true;v.preload="auto";
+  v.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";D.body.appendChild(v);
+  await new Promise((ok,no)=>{v.onloadedmetadata=ok;v.onerror=no;setTimeout(no,8000)});
+  A=new(window.AudioContext||window.webkitAudioContext)();const src=A.createMediaElementSource(v),dst=A.createMediaStreamDestination();src.connect(dst);
+  const vs=cs.call(v);v.currentTime=a;await new Promise(r=>{v.onseeked=r;setTimeout(r,2500)});
+  const chunks=[],rec=new MediaRecorder(new MediaStream([...vs.getVideoTracks(),...dst.stream.getAudioTracks()]),{mimeType:mime,videoBitsPerSecond:3e6,audioBitsPerSecond:96000});
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};const fin=new Promise(r=>rec.onstop=r);
+  rec.start(500);await A.resume();await v.play();const len=b-a;
+  await new Promise(r=>{let done=0;const end=()=>{if(done)return;done=1;r()};
+   v.ontimeupdate=()=>{if(st&&st.cancel)return end();onP&&onP(Math.max(0,Math.min(100,Math.round((v.currentTime-a)/len*100))));if(v.currentTime>=b-.03)end()};
+   v.onended=end;setTimeout(end,(len+5)*1000)});
+  v.pause();if(rec.state!=="inactive")rec.stop();await fin;
+  if(!chunks.length)return null;return new Blob(chunks,{type:mime.split(";")[0]})}
+ catch(_){return null}
+ finally{tf(()=>v&&v.remove());tf(()=>url&&URL.revokeObjectURL(url));tf(()=>A&&A.close())}}
+async function compose(file){
+ if(!file||$$("nxsc"))return;const ty=file.type||"",vid=/^video\//.test(ty);
+ if(!vid&&!/^image\//.test(ty))return T("Choose a photo or a video");
+ const url=URL.createObjectURL(file),o=D.createElement("div"),st={a:0,len:30,total:0,busy:0,cancel:0};o.id="nxsc";
+ o.innerHTML='<div class="scb"><button class="ib" id="scx" aria-label="Close">'+X+'</button><b>New status</b><span style="width:42px"></span></div>'
+ +'<div class="scm">'+(vid?'<video id="scv" src="'+url+'" muted playsinline autoplay></video>':'<img src="'+url+'" alt="">')+'</div>'
+ +'<div class="scp">'+(vid?'<div id="scd" class="scl">Loading video…</div><div id="sch" class="scch"></div><div class="scs"><span id="scst"></span><input id="scr" type="range" min="0" max="0" step="0.1" value="0" aria-label="Start time"></div>':'')
+ +'<input id="scc" class="sci" maxlength="80" placeholder="Add a caption (optional)" autocomplete="off"><button class="btn pri wide" id="scpost">Post status</button></div>';
+ D.body.appendChild(o);
+ const close=()=>{st.cancel=1;tf(()=>URL.revokeObjectURL(url));o.remove()};o._close=close;$$("scx").onclick=close;
+ if(vid){const v=$$("scv");
+  const upd=()=>{const t=st.total,full=Math.min(30,t),opts=[10,15,20,30].filter(x=>x<full-.05);opts.push(+full.toFixed(1));
+   $$("scd").textContent="Video length: "+Math.round(t)+" sec"+(t>30?" (status can be 30 sec at most)":"");
+   $$("sch").innerHTML=opts.map(x=>'<button data-l="'+x+'" class="'+(Math.abs(x-st.len)<.05?"on":"")+'">'+Math.round(x)+' sec'+(x===+full.toFixed(1)?(t>30?" (max)":" (full)"):"")+'</button>').join("");
+   const r=$$("scr"),mx=Math.max(0,t-st.len);r.max=mx;r.value=Math.min(st.a,mx);r.disabled=mx<.05;
+   $$("scst").textContent="Using "+fmtS(st.a)+" to "+fmtS(st.a+st.len)+" of "+fmtS(t)};
+  v.onloadedmetadata=()=>{st.total=v.duration||0;if(!isFinite(st.total)||st.total<=0){$$("scd").textContent="This video could not be opened";$$("scpost").disabled=true;return}
+   st.len=Math.min(30,st.total);st.a=0;upd();v.currentTime=0;v.play().catch(()=>{})};
+  v.ontimeupdate=()=>{if(st.total&&(v.currentTime>=st.a+st.len-.05||v.currentTime<st.a-.3)){v.currentTime=st.a;v.play().catch(()=>{})}};
+  $$("sch").onclick=e=>{const b=e.target.closest("button");if(!b)return;st.len=+b.dataset.l;st.a=Math.max(0,Math.min(st.a,st.total-st.len));upd();v.currentTime=st.a};
+  $$("scr").oninput=e=>{st.a=+e.target.value;v.currentTime=st.a;$$("scst").textContent="Using "+fmtS(st.a)+" to "+fmtS(st.a+st.len)+" of "+fmtS(st.total)}}
+ $$("scpost").onclick=async()=>{if(st.busy)return;st.busy=1;const btn=$$("scpost");btn.disabled=true;btn.textContent="Preparing…";
+  const cap=($$("scc").value||"").trim().slice(0,80);
+  try{let blob=file,ext="jpg",ct="image/jpeg",meta="";
+   if(vid){const t=st.total,a=st.a,b=a+st.len,whole=a<.15&&Math.abs(b-t)<.4;
+    ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,4)||"mp4";ct=ty||"video/mp4";
+    if(!(whole&&file.size<=15*1048576)){
+     const r=await trim(file,a,b,p=>{btn.textContent="Trimming… "+p+"%"},st);
+     if(st.cancel)return;
+     if(r){blob=r;ct=r.type;ext=r.type.indexOf("mp4")>-1?"mp4":"webm"}
+     else{if(file.size>25*1048576)throw new Error("This device cannot trim. Pick a video under 25 MB.");if(!whole)meta="_s"+Math.round(a*10)+"e"+Math.round(b*10)}}}
+   else blob=await imgBlob(file);
+   if(st.cancel)return;btn.textContent="Uploading…";
+   const path="status/"+myId()+"/"+Date.now()+meta+(cap?"_c"+hexOf(cap):"")+"."+ext,up=await sb.storage.from(BK).upload(path,blob,{contentType:ct,cacheControl:"3600"});if(up.error)throw up.error;
+   const u=sb.storage.from(BK).getPublicUrl(path).data.publicUrl,w=await sb.from("statuses").insert({user_id:myId(),url:u,path,kind:vid?"video":"image"});
+   if(w.error){sb.storage.from(BK).remove([path]);throw w.error}
+   close();T("Status posted");loadAct(true);if(S.page==="status")tf(()=>window.nxStatus())}
+  catch(e){if(st.cancel)return;btn.disabled=false;btn.textContent="Post status";st.busy=0;T(/row-level|policy|permission/i.test(e&&e.message||"")?"Status posting is not allowed for you":"Could not post: "+String(e&&e.message||"").slice(0,60))}}}
+tf(()=>{const _pk=window.nxPick;
+ window.nxPick=function(k,cam){if(k!=="st")return _pk.apply(this,arguments);tf(()=>closeModal());
+  const i=D.createElement("input");i.type="file";i.accept="image/*,video/*";if(cam)i.setAttribute("capture","environment");i.onchange=()=>{const f=i.files[0];if(f)compose(f)};i.click()}});
+
+/* ---------- viewer ---------- */
+window.nxView=async function(uid){if(!uid||$$("nxsv2"))return;let l=[],pr=null;
+ try{const r=await sb.from("statuses").select("*").eq("user_id",uid).gt("created_at",new Date(Date.now()-TTL).toISOString()).order("created_at",{ascending:true});l=r.data||[]}catch(_){}
+ if(!l.length)return T("No status");const own=uid===myId();
+ if(!own)try{pr=(await sb.from("profiles").select("id,username,display_name,avatar_url").eq("id",uid).maybeSingle()).data}catch(_){}
+ openViewer(uid,l,own,pr)};
+function openViewer(uid,list,own,pr){
+ const nm=own?"My status":(pr&&(pr.display_name||pr.username))||"Friend",av=own?(S.me&&S.me.avatar_url):(pr&&pr.avatar_url),v=D.createElement("div");v.id="nxsv2";
+ v.innerHTML='<div class="vbars">'+list.map(()=>'<i><b></b></i>').join("")+'</div>'
+ +'<div class="vhd"><span class="vav'+(av?" hd":"")+'" style="'+(av?"background-image:url(&quot;"+E(av)+"&quot;)":"")+'">'+E(IN(nm))+'</span><div class="vnm"><b>'+E(nm)+'</b><small id="vtm"></small></div><button class="ib" id="vdl" aria-label="Download">'+DL+'</button>'+(own?'<button class="ib del" id="vdel" aria-label="Delete">'+TR+'</button>':'')+'<button class="ib" id="vx" aria-label="Close">'+X+'</button></div>'
+ +'<div class="vmd" id="vmd"></div><i class="vzl"></i><i class="vzr"></i><div class="vcap" id="vcap"></div><div class="vrx" id="vrx"></div>'
+ +'<div class="vbt">'+(own?'<button class="vseen" id="vseen">'+EYE+'<span id="vsn">0</span> seen</button>':'<div class="vq">'+QR.map(e=>'<span role="button" data-e="'+e+'">'+e+'</span>').join("")+'</div><div class="vin"><input id="vri" maxlength="40" placeholder="Send a reaction or short message" autocomplete="off"><button class="ib" id="vrs" aria-label="Send">'+SEND+'</button></div>')+'</div>';
+ D.body.appendChild(v);
+ const q=s=>v.querySelector(s),bars=[...v.querySelectorAll(".vbars b")],md=q("#vmd"),myR={};
+ let i=0,el=0,dur=5,paused=0,vd=null,seg=null,closed=0,social=[],lastR=0,tickI=0,socI=0;
+ const fin=()=>{if(closed)return;closed=1;clearInterval(tickI);clearInterval(socI);tf(()=>vd&&vd.pause());v.remove()};v._close=fin;
+ const setP=b=>{paused=b?1:0;if(vd)tf(()=>{b?vd.pause():vd.play().catch(()=>{})})};
+ function agg(sid){const seen={},reacts=[];social.forEach(x=>{const d=x.data;if(!d||d.sid!==sid)return;const t=d.t||new Date(x.created_at).getTime();
+  if(x.type==="st_seen"){if(!seen[d.from]||seen[d.from].t>t)seen[d.from]={from:d.from,name:d.name,un:d.un,t}}
+  else if(x.type==="st_react"){reacts.push({from:d.from,name:d.name,e:d.e,t});if(!seen[d.from])seen[d.from]={from:d.from,name:d.name,un:d.un,t}}});
+  return{seen:Object.values(seen).sort((a,b)=>b.t-a.t),reacts}}
+ function paintSoc(){const s=list[i];if(!s)return;let h="";
+  if(own){const g=agg(s.id),sn=q("#vsn");if(sn)sn.textContent=g.seen.length;h=g.reacts.slice(-30).reverse().map(r=>'<span class="rch">'+E(r.name||"User")+" "+E(r.e)+'</span>').join("")}
+  else h=(myR[s.id]||[]).map(e=>'<span class="rch">You '+E(e)+'</span>').join("");
+  q("#vrx").innerHTML=h}
+ async function loadSoc(){if(!own)return;try{const r=await sb.from("notifications").select("type,data,created_at").eq("user_id",myId()).in("type",["st_seen","st_react"]).order("created_at",{ascending:true}).limit(1000);if(r.error)return;social=r.data||[];paintSoc()}catch(_){}}
+ function markSeen(s){const sv=LSg(svK(),[]);if(sv.indexOf(s.id)<0){sv.push(s.id);LSs(svK(),sv.slice(-300));tf(paintRings)}
+  if(own)return;const k="nx_ssn_"+myId(),b=LSg(k,[]);if(b.indexOf(s.id)>-1)return;b.push(s.id);LSs(k,b.slice(-300));
+  tf(()=>sb.from("notifications").insert({user_id:uid,type:"st_seen",title:"Status seen",body:"",data:{sid:s.id,from:myId(),name:myNm(),un:myUn(),t:Date.now()},is_read:true}).then(()=>{},()=>{}))}
+ function show(n){if(closed)return;if(n<0)n=0;if(n>=list.length)return fin();i=n;el=0;const s=list[i],pa=parse(s);
+  bars.forEach((b,k)=>b.style.width=k<i?"100%":"0");q("#vtm").textContent=when(s.created_at);
+  const cp=q("#vcap");cp.textContent=pa.cap;cp.style.display=pa.cap?"block":"none";
+  tf(()=>vd&&vd.pause());
+  if(s.kind==="video"){md.innerHTML="<video playsinline></video>";vd=md.firstChild;seg=pa.tr;dur=seg?Math.max(1,seg[1]-seg[0]):10;
+   vd.onloadedmetadata=()=>{if(seg)vd.currentTime=seg[0];dur=seg?Math.max(1,seg[1]-seg[0]):Math.min(30,vd.duration||10)};
+   vd.onerror=()=>show(i+1);vd.src=s.url;vd.play().catch(()=>{vd.muted=true;vd.play().catch(()=>{})})}
+  else{md.innerHTML='<img alt="">';vd=null;seg=null;dur=5;const im=md.firstChild;im.onerror=()=>show(i+1);im.src=s.url}
+  markSeen(s);paintSoc();if(paused)setP(true)}
+ tickI=setInterval(()=>{if(closed||paused)return;let p;
+  if(vd){if(vd.readyState<2)return;const a=seg?seg[0]:0;p=(vd.currentTime-a)/dur;if(vd.ended||p>=1)return show(i+1);if(seg&&vd.currentTime<a-.3)vd.currentTime=a}
+  else{el+=.05;p=el/dur;if(p>=1)return show(i+1)}
+  if(bars[i])bars[i].style.width=Math.max(0,Math.min(1,p))*100+"%"},50);
+ q(".vzl").onclick=()=>show(i-1);q(".vzr").onclick=()=>show(i+1);q("#vx").onclick=fin;
+ q("#vdl").onclick=()=>{const s=list[i],ext=(String(s.path||s.url).split("?")[0].split(".").pop()||(s.kind==="video"?"mp4":"jpg")).toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,4),nm2="ZNEXORA-status-"+Date.now()+"."+ext;T("Saving…");
+  try{msave(s.url,nm2)}catch(_){const a=D.createElement("a");a.href=s.url;a.download=nm2;a.target="_blank";D.body.appendChild(a);a.click();a.remove()}};
+ const del=q("#vdel");if(del)del.onclick=async()=>{const s=list[i];setP(true);
+  if(!confirm("Delete this status?")){setP(false);return}
+  try{const r=await sb.from("statuses").delete().eq("id",s.id);if(r.error)throw r.error;if(s.path)sb.storage.from(BK).remove([s.path]).then(()=>{},()=>{});T("Deleted");
+   list.splice(i,1);loadAct(true);if(!list.length){fin();if(S.page==="status")tf(()=>window.nxStatus());return}
+   const b=q(".vbars");b.removeChild(b.lastElementChild);bars.pop();setP(false);show(Math.min(i,list.length-1))}
+  catch(_){T("Could not delete");setP(false)}};
+ function react(e){e=String(e||"").trim().slice(0,40);if(!e||own||Date.now()-lastR<700)return;lastR=Date.now();const s=list[i];
+  if(/^\p{Extended_Pictographic}/u.test(e))tf(()=>floatEmo(e));
+  (myR[s.id]=myR[s.id]||[]).push(e);paintSoc();
+  tf(()=>sb.from("notifications").insert({user_id:uid,type:"st_react",title:"Status reaction",body:"",data:{sid:s.id,from:myId(),name:myNm(),un:myUn(),e,t:Date.now()},is_read:true}).then(r=>{if(r&&r.error)T("Reaction could not be sent")},()=>{}));
+  tf(()=>sig({type:"strx",to:uid,name:myNm(),e}))}
+ if(!own){v.querySelectorAll(".vq span").forEach(b=>b.onclick=()=>react(b.dataset.e));
+  const inp=q("#vri");inp.onfocus=()=>setP(true);inp.onblur=()=>setP(false);
+  q("#vrs").onclick=()=>{const t=inp.value;inp.value="";react(t)};inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const t=inp.value;inp.value="";react(t)}}}
+ else{q("#vseen").onclick=()=>{setP(true);const g=agg(list[i].id),sh=D.createElement("div");sh.className="vsh";
+   sh.innerHTML='<div class="vsc"><div class="vsh1"><b>Seen by '+g.seen.length+'</b><button class="ib" aria-label="Close">'+X+'</button></div>'
+   +(g.seen.length?g.seen.map(u=>{const rs=g.reacts.filter(r=>r.from===u.from).map(r=>E(r.e)).join(" ");return'<div class="vsr"><span class="vav">'+E(IN(u.name))+'</span><div class="vnm"><b>'+E(u.name||"User")+'</b><small>'+(u.un?"@"+E(u.un)+" · ":"")+E(when(u.t))+'</small></div>'+(rs?'<span class="vrs">'+rs+'</span>':"")+'</div>'}).join(""):'<div class="vem">No views yet</div>')+'</div>';
+   v.appendChild(sh);const cl=()=>{sh.remove();setP(false)};sh.querySelector("button").onclick=cl;sh.onclick=e=>{if(e.target===sh)cl()}};
+  loadSoc();socI=setInterval(()=>{if(!closed)loadSoc()},8000)}
+ show(0)}
+addEventListener("popstate",e=>{const el=$$("nxsv2")||$$("nxsc");if(el){e.stopImmediatePropagation();tf(()=>history.pushState({n:1},""));tf(()=>el._close&&el._close())}},true);
+tf(()=>{const _os=onSig;onSig=function(p){if(p&&p.type==="strx"){T((p.name||"Someone")+" reacted to your status "+String(p.e||"").slice(0,30));return}return _os.apply(this,arguments)}});
+
+/* ================= 3. E2EE private key: localStorage => encrypted IndexedDB ================= */
+(()=>{
+ const SKEY=u=>"nx_e2e_"+u;
+ let _db=null,dkp=null;
+ const db=()=>_db||(_db=new Promise((res,rej)=>{try{const r=indexedDB.open("nx-secure",1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains("kv"))r.result.createObjectStore("kv")};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error("blocked"))}catch(e){rej(e)}}).catch(e=>{_db=null;throw e}));
+ const kvGet=async k=>{const d=await db();return new Promise((res,rej)=>{const q=d.transaction("kv","readonly").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
+ const kvSet=async(k,v)=>{const d=await db();return new Promise((res,rej)=>{const t=d.transaction("kv","readwrite");t.objectStore("kv").put(v,k);t.oncomplete=()=>res(true);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})};
+ const devKey=()=>dkp||(dkp=(async()=>{let k=await kvGet("dev");if(!k){k=await crypto.subtle.generateKey({name:"AES-GCM",length:256},false,["encrypt","decrypt"]);await kvSet("dev",k)}return k})().catch(e=>{dkp=null;throw e}));
+ async function seal(uid,text){const k=await devKey(),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(text));await kvSet("pk:"+uid,{v:1,iv,ct})}
+ async function unseal(uid){const rec=await kvGet("pk:"+uid);if(!rec)return null;const k=await devKey();return new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:rec.iv},k,rec.ct))}
+ /* before login: make the key available to the app (migrate old key, or restore from IndexedDB) */
+ async function prep(uid){try{const key=SKEY(uid),ls=localStorage.getItem(key);let rec=null;try{rec=await unseal(uid)}catch(_){}
+  if(ls){if(rec!==ls)await seal(uid,ls)}else if(rec)localStorage.setItem(key,rec)}catch(_){}}
+ /* after login: confirm the encrypted copy is good, then remove the plain copy from localStorage */
+ async function after(uid){try{const key=SKEY(uid),ls=localStorage.getItem(key);if(!ls)return;await seal(uid,ls);const back=await unseal(uid);
+  if(back!==ls)return;setTimeout(()=>{try{if(typeof S!=="undefined"&&S.user&&S.user.id===uid&&S.me&&localStorage.getItem(key)===ls)localStorage.removeItem(key)}catch(_){}},3000)}catch(_){}}
+ const _en=enter;
+ enter=async function(u){const id=u&&u.id;if(id)await prep(id);let r;try{r=await _en.apply(this,arguments)}finally{if(id)after(id)}return r};
+})();
+
+/* ================= 4. Chat More menu: icons + labels ================= */
+(()=>{
+ const I_USER='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/>';
+ const I_GAME='<path d="M6 8h12a4 4 0 014 4v2.5a3.5 3.5 0 01-6.2 2.2L14.5 15h-5l-1.3 1.7A3.5 3.5 0 012 14.5V12a4 4 0 014-4z"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r=".8" fill="currentColor"/><circle cx="18" cy="13.5" r=".8" fill="currentColor"/>';
+ const I_PAL='<circle cx="13.5" cy="6.5" r="1" fill="currentColor"/><circle cx="17.5" cy="10.5" r="1" fill="currentColor"/><circle cx="8.5" cy="7.5" r="1" fill="currentColor"/><circle cx="6.5" cy="12.5" r="1" fill="currentColor"/><path d="M12 2a10 10 0 100 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2H17a5 5 0 005-5c0-4.4-4.5-8-10-8z"/>';
+ const I_PLAY='<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5z"/><path d="M8 21h8"/>';
+ const row=(a,c1,c2,t,s,i)=>'<button class="cmr" data-cm="'+a+'"><span class="gi" style="--g1:'+c1+';--g2:'+c2+'">'+ic(i)+'</span><span class="t"><b>'+t+'</b><small>'+s+'</small></span><i class="cmc">&rsaquo;</i></button>';
+ window.chMore=function(){const c=S.chat;if(!c)return;window.__cm=c;const n=dn(c.uid,c.name);
+  const q=[["720","720p"],["1080","1080p"],["1440","2K"],["2160","4K"]];
+  openModal('<h3>'+E(n)+'</h3><p class="sub">Chat options</p><div class="cml">'
+   +row("dp","#5b8cff","#7a6bff","Change Profile Photo","Update your photo",I_USER)
+   +row("game","#2fd6a0","#2f9fd6","Play a Game","Invite to Ludo, UNO, Chess and more",I_GAME)
+   +row("theme","#ff8a5b","#ff5b8a","Change Chat Theme","Pick a colour for this chat",I_PAL)
+   +row("watch","#ef5368","#c21f35","Watch Together","Watch a video at the same time",I_PLAY)
+   +'</div><div class="lbl">Call and data</div><div class="card cmq"><b>Video call quality</b><div class="seg" id="vqg">'+q.map(a=>'<button class="'+(hq===a[0]?"on":"")+'" onclick="setHq(\''+a[0]+'\')">'+a[1]+'</button>').join("")+'</div></div>'
+   +'<div class="card cmq"><div class="pr"><div class="t"><b>Data saver for files</b><small>On = compress before sending</small></div><button class="tg2 '+(PR.ds?"on":"")+'" onclick="tog(\'ds\',this)" aria-label="Data saver"><i></i></button></div></div>'
+   +'<button class="btn wide" style="margin-top:6px" onclick="closeModal()">Close</button>')};
+ D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-cm]");if(!b)return;const c=window.__cm||S.chat;if(!c)return;const a=b.dataset.cm,n=dn(c.uid,c.name);closeModal();
+  if(a==="dp")tf(()=>nxDpSheet());else if(a==="game")tf(()=>gamePick(c.uid,n));else if(a==="theme")tf(()=>themeUI());else if(a==="watch")tf(()=>wtInvite(c.uid,n))});
+})();
+console.log("%c[NX-STATUS-E2EE-V1] ready","color:#6dffb0");
+})();
+</script>
 </body></html>
