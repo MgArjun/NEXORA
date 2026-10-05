@@ -5127,4 +5127,223 @@ console.log("%c[NX-FIX-V1] loaded","color:#6dffb0");
 })();
 
 </script>
+
+<script>
+
+/* NX-SETSTAT-FIX-V1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-ss",e)}catch(_){}}};
+const ADMIN_EMAIL="surajpurve078@gmail.com";
+const isAdmin=()=>S&&S.user&&(S.user.email||"").toLowerCase()===ADMIN_EMAIL;
+
+/* ========== 1. FORCE SETTINGS TO WORK ========== */
+tf(()=>{
+  // Make sure the categorized Settings is the final one
+  if(typeof stMain === "function"){
+    PG.settings = renderSettings = function(){
+      try{ stMain(); }catch(e){ console.warn("stMain",e); }
+    };
+  }
+
+  // Global click fallback so .str / .stp always work even if onclick is broken
+  D.addEventListener("click", function(e){
+    const btn = e.target.closest && e.target.closest("button.str, button.stp, .str, .stp");
+    if(!btn) return;
+
+    // Prefer existing onclick
+    if(typeof btn.onclick === "function") return;
+
+    const oc = btn.getAttribute("onclick");
+    if(oc){
+      e.preventDefault();
+      e.stopPropagation();
+      try{ (new Function(oc))(); }catch(err){ console.warn("settings click",err); }
+      return;
+    }
+
+    // Fallback by text
+    const t = (btn.textContent||"").toLowerCase();
+    if(t.includes("account") || btn.classList.contains("stp")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("acc");
+    } else if(t.includes("privacy")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("prv");
+    } else if(t.includes("sound")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("snd");
+    } else if(t.includes("call")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("cal");
+    } else if(t.includes("storage") || t.includes("data")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("dat");
+    } else if(t.includes("advanced")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("adv");
+    } else if(t.includes("about")){
+      e.preventDefault();
+      if(typeof stSub === "function") stSub("abt");
+    } else if(t.includes("admin")){
+      e.preventDefault();
+      if(typeof nxAdm === "function") nxAdm();
+    }
+  }, true);
+
+  // Also re-bind after any page render
+  const _go = window.go;
+  if(_go){
+    window.go = function(p){
+      const r = _go.apply(this, arguments);
+      if(p === "settings"){
+        setTimeout(()=>{
+          if(typeof stMain === "function" && S.page === "settings") stMain();
+        }, 50);
+      }
+      return r;
+    };
+  }
+});
+
+/* ========== 2. REMOVE wrong Status bar from Recent ========== */
+tf(()=>{
+  // Kill any previous nxStatBar that was put on recent/home
+  const kill = () => {
+    const b = D.getElementById("nxStatBar");
+    if(b) b.remove();
+  };
+  kill();
+  // Keep killing if something re-adds it on recent
+  new MutationObserver(()=>{
+    if(S && (S.page === "recent" || S.page === "home")){
+      const b = D.getElementById("nxStatBar");
+      if(b) b.remove();
+    }
+  }).observe(D.body, {childList:true, subtree:true});
+});
+
+/* ========== 3. RIGHT-SWIPE on Chats page → Status view ========== */
+tf(()=>{
+  let statusMode = false;
+  let startX = 0, startY = 0, tracking = false;
+
+  function showStatusView(){
+    statusMode = true;
+    const pg = D.querySelector("#main .pg");
+    if(!pg) return;
+
+    // Change title if exists
+    const h2 = pg.querySelector("h2");
+    if(h2) h2.textContent = "Status";
+
+    // Hide normal chat list rows temporarily
+    pg.querySelectorAll(".row, .nrw, .card.row").forEach(el => {
+      el.dataset.nxhide = "1";
+      el.style.display = "none";
+    });
+
+    // Add status panel if not present
+    let panel = D.getElementById("nxStatusPanel");
+    if(!panel){
+      panel = D.createElement("div");
+      panel.id = "nxStatusPanel";
+      panel.style.cssText = "padding:16px 12px;";
+      panel.innerHTML = `
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <div id="nxMyStat" style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#697cff,#a26cff);display:grid;place-items:center;font-weight:900;font-size:18px;position:relative;flex:none">
+            ${((S.me&&(S.me.display_name||S.me.username))||"N").trim().slice(0,1).toUpperCase()}
+            <span style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:#3fd68f;border:2px solid #0b1020;display:grid;place-items:center;font-size:14px;color:#000">+</span>
+          </div>
+          <div>
+            <b style="display:block">My status</b>
+            <small style="color:var(--mu)">${isAdmin() ? "Tap to add status" : "Only admin can add status"}</small>
+          </div>
+        </div>
+        <div class="card empty" style="text-align:center;padding:28px 16px">
+          No status found
+        </div>
+        <button class="btn wide" style="margin-top:16px" id="nxBackChats">← Back to Chats</button>
+      `;
+      pg.appendChild(panel);
+
+      const my = panel.querySelector("#nxMyStat");
+      if(my){
+        my.onclick = () => {
+          if(!isAdmin()) return toast("Sirf Admin status laga sakta hai");
+          openModal(`<h3>Add Status</h3>
+            <p class="sub">Admin only • 24 hours</p>
+            <input type="file" accept="image/*,video/*" style="margin:12px 0">
+            <button class="btn pri wide" onclick="toast('Full status upload ke liye Storage setup chahiye');closeModal()">Upload</button>
+            <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>`);
+        };
+      }
+      const back = panel.querySelector("#nxBackChats");
+      if(back) back.onclick = hideStatusView;
+    }
+    panel.style.display = "block";
+  }
+
+  function hideStatusView(){
+    statusMode = false;
+    const pg = D.querySelector("#main .pg");
+    if(!pg) return;
+    const h2 = pg.querySelector("h2");
+    if(h2) h2.textContent = "Chats";
+    pg.querySelectorAll("[data-nxhide]").forEach(el => {
+      el.style.display = "";
+      delete el.dataset.nxhide;
+    });
+    const panel = D.getElementById("nxStatusPanel");
+    if(panel) panel.style.display = "none";
+  }
+
+  // Touch handlers only when on chats-like page
+  D.addEventListener("touchstart", e => {
+    if(!S || S.page === "chat" || S.page === "settings" || S.page === "games") return;
+    // only when we are on a list page that has "Chats" title or recent chats list
+    const h2 = D.querySelector("#main .pg h2");
+    if(!h2) return;
+    const title = (h2.textContent||"").toLowerCase();
+    if(title !== "chats" && title !== "status" && !title.includes("chat")) return;
+
+    if(e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, {passive:true});
+
+  D.addEventListener("touchend", e => {
+    if(!tracking) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.4) return;
+
+    // right swipe (finger moves right) → Status
+    if(dx > 60 && !statusMode){
+      showStatusView();
+    }
+    // left swipe → back to Chats
+    if(dx < -60 && statusMode){
+      hideStatusView();
+    }
+  }, {passive:true});
+
+  // Also clean status panel when leaving page
+  const _go2 = window.go;
+  if(_go2){
+    window.go = function(p){
+      statusMode = false;
+      const panel = D.getElementById("nxStatusPanel");
+      if(panel) panel.remove();
+      return _go2.apply(this, arguments);
+    };
+  }
+});
+
+console.log("%c[NX-SETSTAT-FIX-V1] Settings + Status swipe ready","color:#6dffb0");
+})();
+
+</script>
 </body></html>
