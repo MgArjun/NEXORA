@@ -3434,7 +3434,7 @@ PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(()=>{const o=$
 function stopAnim(){if(anim){cancelAnimationFrame(anim);anim=0}}
 const _cm=cacheMsg;cacheMsg=function(){const r=_cm.apply(this,arguments);setTimeout(()=>{if($("nxStk3")&&!drag&&!anim)build()},300);return r};
 /* ---------- 2. In-app camera: photo + video, front/back ---------- */
-window.nxCam=async function(){if(!S.chat||$("nxcam"))return;let fc="environment",mode="p",st=null,mr=null,ch=[],iv=0,t0=0;
+window.nxCam=async function(){if(!S.chat||$("nxcam"))return;let fc="user",mode="p",st=null,mr=null,ch=[],iv=0,t0=0;
  const o=D.createElement("div");o.id="nxcam";
  o.innerHTML='<video playsinline muted autoplay></video><div class="ctp"><button class="ib" id="ccx" aria-label="Close">✕</button><span class="cct" id="cct"></span><button class="ib" id="ccf" aria-label="Flip camera">🔄</button></div><div class="cbt"><div class="cmd"><button id="cm1" class="on">Photo</button><button id="cm2">Video</button></div><button id="csh" class="csh" aria-label="Capture"><i></i></button></div>';
  D.body.appendChild(o);const vid=o.querySelector("video"),sh=$("csh");
@@ -3596,6 +3596,118 @@ const fix=()=>{const h=D.querySelector("#main .pg>h2");if(!h||h.dataset.nhn)retu
  const a=D.createElement("span"),b=D.createElement("span");a.className="gr";a.textContent=hi;b.className="nm grad";b.textContent=name;h.append(a,b)};
 const _h=PG.home;
 PG.home=renderHome=function(){const r=_h.apply(this,arguments);try{fix()}catch(_){}return r};
+})();
+</script>
+<script>
+/* NX-ADMIN-SYNC-PATCH v1 */
+(()=>{
+const D=document,OWN="surajpurve078@gmail.com",tf=f=>{try{return f()}catch(_){}};
+let GCH=null,NXF=false;
+const own=u=>!!(u&&u.email&&u.email.toLowerCase()===OWN);
+const dev=()=>{const u=navigator.userAgent,os=/iPhone/.test(u)?"iPhone":/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?"iPad":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows":/Mac/.test(u)?"Mac":/Linux/.test(u)?"Linux":"Other",br=/Edg/.test(u)?"Edge":/OPR/.test(u)?"Opera":/CriOS|Chrome/.test(u)?"Chrome":/FxiOS|Firefox/.test(u)?"Firefox":/Safari/.test(u)?"Safari":"Browser";return os+" · "+br};
+const ft=t=>t?new Date(t).toLocaleString([],{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"-";
+async function cfg(){try{const r=await sb.from("app_config").select("*").eq("id",1).maybeSingle(),d=r&&r.data;if(d)return{open:d.signups_open!==false,max:d.max_users||40,by:d.bypass_until?new Date(d.bypass_until).getTime():0}}catch(_){}return{open:true,max:40,by:0}}
+function gs(){const m={},w=[];if(GCH)tf(()=>Object.values(GCH.presenceState()).flat().forEach(x=>{if(x&&x.id)m[x.id]=x}));let a=0;Object.values(m).forEach(x=>x.w?w.push(x):a++);w.sort((p,q)=>p.w-q.w||(p.id<q.id?-1:1));return{act:a,w}}
+const join=u=>new Promise(r=>{tf(()=>GCH&&sb.removeChannel(GCH));const ch=GCH=sb.channel("nx-gate",{config:{presence:{key:u.id}}});ch.subscribe(s=>{if(s==="SUBSCRIBED")setTimeout(r,1200)});setTimeout(r,6000)});
+const trk=m=>tf(()=>GCH.track(m));
+const showAuth=()=>{$("shell").classList.add("h");$("auth").classList.remove("h");authMode(false)};
+function wq(){let e=$("nxwq");if(!e){e=D.createElement("div");e.id="nxwq";e.innerHTML='<div class="wc"><h3>Server abhi full hai</h3><p>Aap waiting list me ho. Jagah khali hote hi aap apne aap andar aa jaoge. Ye screen band mat karna.</p><div class="qp">...</div><button class="btn wide">Log out</button></div>';D.body.appendChild(e)}return e}
+async function gate(u){
+ if(own(u)){await join(u);trk({id:u.id,t:Date.now()});return true}
+ try{const b=await sb.from("app_ban").select("user_id").eq("user_id",u.id).maybeSingle();if(b&&b.data){await sb.auth.signOut();showAuth();amsg("Aapka account block hai.","e");return false}}catch(_){}
+ let c=await cfg();await join(u);
+ if(gs().act<c.max&&!gs().w.length){trk({id:u.id,t:Date.now()});return true}
+ trk({id:u.id,w:Date.now()});const e=wq();let n=0;
+ return new Promise(res=>{const iv=setInterval(async()=>{if(++n%6===0)c=await cfg();const s=gs(),pos=s.w.findIndex(x=>x.id===u.id)+1||1;
+  if(s.act<c.max&&s.w[0]&&s.w[0].id===u.id){clearInterval(iv);trk({id:u.id,t:Date.now()});e.remove();res(true);return}
+  e.querySelector(".qp").textContent="Aapka number: "+pos+" · Online: "+s.act+"/"+c.max},3000);
+  e.querySelector("button").onclick=async()=>{clearInterval(iv);e.remove();tf(()=>GCH.untrack());await sb.auth.signOut();showAuth();res(false)}})}
+const _en=enter;
+enter=async function(u){if(!await gate(u))return;const r=await _en(u);tf(()=>sb.from("login_log").insert({user_id:u.id,name:myName(),username:(S.me&&S.me.username)||"",device:dev()}).then(()=>{},()=>{}));return r};
+startLive=function(){};
+setInterval(()=>{if(!S.user)return;const s=gs();if(s.act)S.live=Math.max(1,s.act);const e=$("liveN");if(e)e.textContent=S.live+(S.live===1?" person":" people")+" online"},2000);
+const _lo=logout;logout=async function(){tf(()=>GCH&&GCH.untrack());return _lo.apply(this,arguments)};
+["bS","bG"].forEach(id=>{const f=$(id).onclick;$(id).onclick=async function(){const c=await cfg();if(!c.open&&Date.now()>c.by){amsg("Abhi naye users ke liye entry band hai. Thodi der baad try karo.","e");return}return f.apply(this,arguments)}});
+const _os=onSig;
+onSig=function(p){if(p&&p.type==="kick"){if(S.user)sb.from("app_ban").select("user_id").eq("user_id",S.user.id).maybeSingle().then(r=>{if(r&&r.data){toast("Aapka account block kar diya gaya");logout()}},()=>{});return}return _os(p)};
+/* admin button + panel (owner only) */
+const _rs=renderSettings;
+PG.settings=renderSettings=function(){const r=_rs.apply(this,arguments);tf(()=>{if(!own(S.user))return;const b=D.querySelector("#main .pg>button.red");if(!b||$("nxAdB"))return;b.insertAdjacentHTML("beforebegin",'<button id="nxAdB" class="btn red wide" style="margin-bottom:12px" onclick="nxAdm()">🔴 Server load</button>');cfg().then(c=>{const s=gs(),e=$("nxAdB");if(e)e.textContent=(s.act>=c.max?"🔴 Limit exceeding · ":"🔴 Server load · ")+s.act+"/"+c.max})});return r};
+window.nxCfg=async o=>{const r=await sb.from("app_config").upsert({id:1,...o});if(r.error)return toast("Save nahi hua. Supabase SQL chalaya?");toast("Saved ✓");nxAdm()};
+window.nxBan=async(id,nm2,on)=>{const r=on?await sb.from("app_ban").upsert({user_id:id,name:nm2}):await sb.from("app_ban").delete().eq("user_id",id);if(r.error)return toast("Nahi hua: "+r.error.message.slice(0,50));if(on)sig({type:"kick",to:id});toast(on?"Blocked":"Unblocked");nxAdm()};
+window.nxAdm=async()=>{if(!own(S.user))return;const c=await cfg(),s=gs(),by=c.by>Date.now();let acc="?",lg=[],pf={},bn=new Set();
+ tf(async()=>{});try{const r=await sb.from("profiles").select("id",{count:"exact",head:true});if(r.count!=null)acc=r.count}catch(_){}
+ try{await sb.from("login_log").delete().lt("at",new Date(Date.now()-7*864e5).toISOString())}catch(_){}
+ try{lg=(await sb.from("login_log").select("*").order("at",{ascending:false}).limit(80)).data||[];const ids=[...new Set(lg.map(x=>x.user_id))];if(ids.length)((await sb.from("profiles").select("id,online,last_seen").in("id",ids)).data||[]).forEach(p=>pf[p.id]=p);((await sb.from("app_ban").select("user_id")).data||[]).forEach(b=>bn.add(b.user_id))}catch(_){}
+ const seen=new Set(),rows=lg.filter(x=>!seen.has(x.user_id)&&seen.add(x.user_id)).map(x=>{const p=pf[x.user_id]||{},b=bn.has(x.user_id);return'<div class="pr"><div class="t"><b>'+esc(x.name||"User")+'</b><small>@'+esc(x.username||"")+' · '+esc(x.device||"")+'</small><small>Aaya: '+ft(x.at)+' · '+(p.online?"online abhi":"Gaya: "+ft(p.last_seen))+'</small></div><button class="btn '+(b?"":"red")+'" style="min-height:38px" onclick="nxBan(\''+esc(x.user_id)+'\',\''+esc(x.name||"")+'\','+(b?"false":"true")+')">'+(b?"Unblock":"Block")+'</button></div>'}).join("");
+ openModal('<h3>'+(s.act>=c.max?"🔴 Limit exceeding":"🟢 Server load")+'</h3><p class="sub">Online abhi <b>'+s.act+'</b> / limit <b>'+c.max+'</b> · Waiting <b>'+s.w.length+'</b> · Total accounts <b>'+acc+'</b></p><div class="lbl">Naye users</div><div class="seg"><button class="'+(c.open?"on":"")+'" onclick="nxCfg({signups_open:true})">ON</button><button class="'+(!c.open?"on":"")+'" onclick="nxCfg({signups_open:false})">OFF</button></div><div class="grid" style="margin-top:8px"><button class="btn" onclick="nxCfg({signups_open:false,bypass_until:new Date(Date.now()+6e5).toISOString()})">Bypass 10 min</button><button class="btn" onclick="nxCfg({signups_open:false,bypass_until:new Date(Date.now()+18e5).toISOString()})">Bypass 30 min</button></div>'+(by?'<div class="pw" style="margin-top:6px">Bypass chal raha hai, '+ft(c.by)+' tak</div>':'')+'<div class="lbl">User limit</div><div style="display:flex;gap:8px"><input id="nxMx" type="number" min="5" value="'+c.max+'" style="margin:0;flex:1"><button class="btn pri" onclick="nxCfg({max_users:+$(\'nxMx\').value||40})">Save</button></div><div class="lbl">Pichle 7 din ke users</div>'+(rows||'<div class="pw">Abhi koi log nahi</div>')+'<button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>')};
+/* sync button for online games */
+const RR=()=>S.room&&S.room.started?S.room:LR&&LR.started?LR:UR&&UR.started?UR:null;
+const lsnap=()=>({seq:L.seq,turn:L.turn,sx:L.sixes,t:L.players.map(p=>p.tokens.slice())});
+window.nxSync=()=>{const R=RR();if(!R)return toast("Game abhi online nahi hai");NXF=true;
+ try{if(R===UR){if(R.host&&U&&U.online)uSend();else{if(U)U.busy=false;R.tx({t:"need"})}}
+  else if(R===LR){if(R.host&&L&&L.mode==="online")R.tx({t:"snap",s:lsnap()});else if(L){L.busy=false;L.rolling=false;L.dice=null;L.seq=-1;R.tx({t:"need"})}}
+  else if(typeof CH!=="undefined"&&CH){R.tx({t:"hs",h:CH.hist});R.tx({t:"need"})}
+  else if(typeof CG!=="undefined"&&CG){if(R.host)crSnap(0);else R.tx({t:"need"})}
+  else{R.slow=false;if(R.host&&R.G)R.tx({t:"snap",g:R.G,f:Date.now()});else R.tx({t:"need"});if(R.G)view(R)}}
+ finally{NXF=false}toast("Sync ho raha hai…");vib(15)};
+const _lm=lMsg;lMsg=function(R,m){if(m&&m.t==="need"&&LR===R&&R.host&&L&&L.mode==="online"&&m.from!==S.user.id){NXF=true;try{R.tx({t:"snap",s:lsnap()})}finally{NXF=false}return}return _lm(R,m)};
+const _um=uMsg;uMsg=function(R,m){if(m&&m.t==="need"&&UR===R&&R.host&&U&&U.online&&m.from!==S.user.id){NXF=true;try{uSend()}finally{NXF=false}return}return _um(R,m)};
+const _cm=carMsg;carMsg=function(R,m){if(m&&m.t==="need"&&S.room===R&&R.host&&CG&&CG.mode==="online"&&m.from!==S.user.id){NXF=true;try{crSnap(0)}finally{NXF=false}return}return _cm(R,m)};
+setInterval(()=>{if(!S.user||!RR())return;D.querySelectorAll(".gmic").forEach(b=>{const p=b.previousElementSibling;if(p&&p.classList.contains("nxsy"))return;b.insertAdjacentHTML("beforebegin",'<button class="ib nxsy" onclick="nxSync()" aria-label="Sync game">🔄</button>')})},700);
+/* tic-tac-toe: resend a lost move */
+const _tp=tap;tap=function(i){const R=S.room,G=R&&R.G,g=S.g,ok=g&&g.mode==="online"&&!R.host&&G&&!G.over&&G.t===g.me&&!G.b[i],s=G&&G.seq;_tp(i);
+ if(ok)[1200,2800].forEach(d=>setTimeout(()=>{const r=S.room;if(r===R&&r.G&&r.G.seq===s&&!r.G.over&&!r.left){r.tx({t:"mv",i,s});r.tx({t:"need"})}},d))};
+/* fewer realtime messages: slower heartbeat, no identical repeat snapshots */
+tf(()=>{const c0=sb.channel("nx-probe"),P=Object.getPrototypeOf(c0);sb.removeChannel(c0);const os=P.send;if(!os||P._nx)return;P._nx=1;
+ P.send=function(m,o){const p=m&&m.payload;if(!NXF&&p&&typeof p.t==="string"){const n=Date.now();
+  if(p.t==="hb"){if(n-(this._h||0)<8000)return Promise.resolve("ok");this._h=n}
+  else if(p.t==="snap"||p.t==="sn"){const k=JSON.stringify(p),q=p.to||"",o2=(this._sk=this._sk||{});if(o2[q]&&o2[q].k===k&&n-o2[q].t<9000)return Promise.resolve("ok");o2[q]={k,t:n}}}
+ return os.call(this,m,o)}});
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#nxwq{position:fixed;inset:0;z-index:9990;display:grid;place-items:center;padding:20px;background:#070a10}#nxwq .wc{width:min(380px,100%);text-align:center}#nxwq h3{font-size:24px;margin:0 0 8px}#nxwq p{color:var(--mu);margin:0 0 16px}#nxwq .qp{font-weight:800;font-size:18px;margin-bottom:18px}.nxsy{font-size:16px}"}));
+})();
+</script>
+<script>
+/* NX-CALL-PRO-PATCH v1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(_){}},UA=navigator.userAgent,AND=/Android/i.test(UA),IOS=/iPhone|iPad|iPod/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1),md=navigator.mediaDevices;
+/* 1. never ask the camera for more than 30 fps, default quality 1080p */
+tf(()=>{const o=MediaStreamTrack.prototype.applyConstraints;MediaStreamTrack.prototype.applyConstraints=function(c){try{const f=c&&c.frameRate,v=f&&typeof f==="object"?(f.ideal||f.exact||f.max):f;if(this.kind==="video"&&v>30)c={...c,frameRate:{ideal:30}}}catch(_){}return o.call(this,c)}});
+tf(()=>{if(localStorage.nx_q3)return;localStorage.nx_q3="1";const t=toast;toast=function(){};try{window.setHq("1080")}finally{toast=t}});
+/* 2. iPhone/iPad: call camera always starts on the FRONT camera */
+if(IOS&&md&&md.getUserMedia){const g=md.getUserMedia;md.getUserMedia=async function(c){
+ try{if(c&&c.video&&typeof c.video==="object"&&c.audio===undefined&&c.video.facingMode==="user"&&!c.video.deviceId)return await g.call(md,{...c,video:{...c.video,facingMode:{exact:"user"}}})}catch(_){}
+ return g.apply(md,arguments)}}
+/* 3. FPS first on iPhone/iPad/desktop: if fps drops, lower resolution, keep 30 fps (Android already does this) */
+setInterval(async()=>{const c=C;if(!c||c.st!=="on"||!c.camS||!c.pc)return;const s=c.camS;if(!s.track||s.track.readyState!=="live")return;
+ let n=s._nx;if(!n&&!AND){n=s._nx={maxFramerate:30,maxBitrate:6e6,scaleResolutionDownBy:1};s._b=0;s._g=0}
+ if(!n)return;if(n.maxFramerate>30)n.maxFramerate=30;if(AND)return;
+ let fps=0,rs="none",lost=0,av=0;
+ try{(await s.getStats()).forEach(x=>{if(x.type==="outbound-rtp"&&x.kind==="video"){fps=x.framesPerSecond||0;rs=x.qualityLimitationReason||"none"}if(x.type==="remote-inbound-rtp")lost=x.fractionLost||0});
+  (await c.pc.getStats()).forEach(x=>{if(x.type==="candidate-pair"&&x.nominated&&x.availableOutgoingBitrate)av=x.availableOutgoingBitrate})}catch(_){return}
+ const bad=(fps>1&&fps<26)||rs==="cpu"||lost>.06;
+ if(bad){s._g=0;if(++s._b>=2){s._b=0;if(n.scaleResolutionDownBy<3)n.scaleResolutionDownBy=+(n.scaleResolutionDownBy*1.25).toFixed(2)}}
+ else if(fps>=29&&rs==="none"&&lost<.02){s._b=0;if(++s._g>=6){s._g=0;if(n.scaleResolutionDownBy>1)n.scaleResolutionDownBy=Math.max(1,+(n.scaleResolutionDownBy/1.25).toFixed(2))}}
+ if(av)n.maxBitrate=Math.max(8e5,Math.min(av*.85,12e6));
+ try{const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];await s.setParameters(p)}catch(_){}},2000);
+/* 4. main call screen: lens (Front / Back / Wide) and quality chips */
+let cur={id:null,f:"user"},LN=null,LNc=null;
+const cc=D.createElement("div");cc.id="nxcc";cc.className="h";
+cc.innerHTML='<div class="nxg2" id="nxl"><button data-k="user">Front</button><button data-k="back">Back</button><button data-k="wide" class="h">Wide</button></div><div class="nxg2" id="nxq"><button data-q="720">720p</button><button data-q="1080">1080p</button><button data-q="1440">2K</button></div>';
+$("call").querySelector(".cbs").before(cc);
+async function lenses(){let d=[];try{d=(await md.enumerateDevices()).filter(x=>x.kind==="videoinput")}catch(_){}
+ const t=x=>x.label||"",bk=d.filter(x=>/back|rear|environment/i.test(t(x)));
+ return{user:d.find(x=>/front|user|facetime/i.test(t(x))),wide:bk.find(x=>/ultra/i.test(t(x))),back:bk.find(x=>!/ultra|tele|zoom/i.test(t(x)))||bk[0]}}
+const req=()=>Object.assign({facingMode:cur.f},cur.id?{deviceId:{exact:cur.id}}:{});
+async function lens(k){const c=C;if(!c||!c.cam)return;const L=await lenses(),x=L[k],f=k==="user"?"user":"environment";cur={id:x?x.deviceId:null,f};face=f;await newCam(req())}
+function qual(q){window.setHq(q);if(C&&C.cam)newCam(req())}
+cc.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.k)lens(b.dataset.k);else if(b.dataset.q)qual(b.dataset.q)});
+setInterval(async()=>{const c=C,on=!!c&&c.st==="on"&&!!c.cam&&!$("call").classList.contains("mn");cc.classList.toggle("h",!on);if(!on){LNc=null;return}
+ if(LNc!==c){LNc=c;cur={id:null,f:face==="environment"?"environment":"user"};LN=await lenses();$("nxl").querySelector('[data-k="wide"]').classList.toggle("h",!LN.wide)}
+ if((face==="environment")!==(cur.f==="environment"))cur={id:null,f:face==="environment"?"environment":"user"};
+ const w=cur.f==="environment"&&cur.id&&LN&&LN.wide&&cur.id===LN.wide.deviceId,k=cur.f!=="environment"?"user":w?"wide":"back";
+ [...$("nxl").children].forEach(b=>b.classList.toggle("on",b.dataset.k===k));[...$("nxq").children].forEach(b=>b.classList.toggle("on",b.dataset.q===hq))},600);
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#nxcc{position:relative;z-index:2;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}.nxg2{display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.14)}.nxg2 button{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700;color:#dfe5ff}.nxg2 button.on{background:#fff;color:#000}#call.cuh>#nxcc{opacity:0;pointer-events:none}#call.mn #nxcc{display:none}@media(orientation:landscape) and (max-height:600px){#nxcc{position:absolute;left:14px;bottom:10px;margin:0;flex-direction:column;align-items:flex-start}}"}));
 })();
 </script>
 <script>setTimeout(function(){var q=function(i){return document.getElementById(i)},sp=q("splash");if(sp&&!sp.classList.contains("out"))sp.classList.add("out");if(q("auth")&&q("shell")&&q("auth").classList.contains("h")&&q("shell").classList.contains("h"))q("auth").classList.remove("h")},6000)</script></body></html>
