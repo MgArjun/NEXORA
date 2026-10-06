@@ -6619,4 +6619,120 @@ setInterval(()=>{const b=$$("nxbb");if(!b)return;
  if(!dg&&b.style.left){const c=clampP(b,b.offsetLeft,b.offsetTop);if(Math.abs(c.x-b.offsetLeft)>1||Math.abs(c.y-b.offsetTop)>1)place(b,c.x,c.y)}},400);
 })();
 </script>
+<script>
+/* NX-ONLINE-INVITE-PATCH v1 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("nx-oi",e)}catch(_){}}},$$=i=>D.getElementById(i),PT=1791279784447;
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const on=()=>!!PR.xf,old=()=>{try{const c=Date.parse(S.user.created_at);return !!c&&c<PT}catch(_){return false}};
+tf(()=>localStorage.setItem("nx_xfh","1"));
+/* tips only for accounts created after this patch */
+tf(()=>{const g=Storage.prototype.getItem;Storage.prototype.getItem=function(k){if(typeof k==="string"&&k.indexOf("nx_tip_")===0&&old())return "1";return g.apply(this,arguments)}});
+/* ---- English text + rename ---- */
+const M=[[/Watch Together/g,"Enjoy Together"],
+[/Admin ne favourite ki permission nahi di/,"Admin permission required"],
+[/Pehle Supabase SQL chalao/,"Run the Supabase SQL first"],
+[/^Nahi hua: /,"Failed: "],[/^Nahi hua$/,"Failed"],
+[/Pehle koi link chalao/,"Play a link first"],
+[/Is link ka naam \(zaroori\)/,"Name for this link (required)"],
+[/Naam likhna zaroori hai/,"A name is required"],
+[/Limit 30 poori ho gayi/,"Limit of 30 reached"],
+[/Favourite me add ho gaya/,"Added to favourites"],
+[/^Naam$/,"Name"],[/^Hata diya$/,"Removed"],[/^Remove ho gaya$/,"Removed"],
+[/Abhi kuch nahi hai/,"Nothing here yet"],
+[/Sirf host gaana badal sakta hai/,"Only the host can change songs"],
+[/Sirf host control kar sakta hai/,"Only the host can control playback"],
+[/Poora link daalo/,"Enter the full link"],
+[/Playlist load ho rahi hai\.\.\./,"Loading playlist..."],
+[/Playlist nahi padh paye/,"Could not read this playlist"],
+[/YouTube ya direct audio link do/,"Use a YouTube link or a direct audio link"],
+[/Ye link audio ki tarah nahi khula/,"This link did not open as audio"],
+[/Koi gaana nahi/,"No song"],
+[/Dost ka intezar/,"Waiting for your friend"],
+[/Dost abhi room me nahi aaya/,"Your friend is not in the room yet"],
+[/ ke saath$/,""],
+[/Phone ko landscape me ghumao/,"Rotate your phone to landscape"],
+[/Rematch request bheji/,"Rematch request sent"],
+[/Phone (.+?) ko do\. Baaki log screen na dekhein\./,"Pass the phone to $1. Others should not look at the screen."],
+[/Output badal diya/,"Output changed"],[/Awaaz kahan se aaye\?/,"Where should the audio play?"],
+[/Audio refresh ho gaya\.[^]*$/,"Audio refreshed."],
+[/Watch alone \(friends can ask to join\)/,"Start a room (friends can request to join)"],
+[/^Ask to join$/,"Request to join"],
+[/Room ready\. Friends can ask to join from your chat/,"Room created. Friends can request to join from your chat."],
+[/^Room ready\s*\S*$/,"Room created"],
+[/^(Invite sent|Request sent)\s+\S+$/,"$1"]];
+const tr=s=>{for(const[r,v]of M)s=s.replace(r,v);return s};
+const skip=n=>{const p=n.parentElement;return !p||p.closest("#cb,#gcl,#wtL,.rq,textarea,script,style")};
+function fx(n){const v=n.nodeValue;if(!v||v.length>300||skip(n))return;let o=tr(v);
+ if(o===v&&v.trim()==="Watch"){const p=n.parentElement;if(p&&(p.tagName==="B"||p.classList.contains("pab")))o=v.replace("Watch","Enjoy")}
+ if(o!==v)n.nodeValue=o}
+function wk(r){if(r.nodeType===3)return fx(r);if(r.nodeType!==1)return;const w=D.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))fx(n);
+ [r,...r.querySelectorAll("[placeholder],[aria-label]")].forEach(e=>["placeholder","aria-label"].forEach(a=>{const v=e.getAttribute&&e.getAttribute(a);if(v){const o=tr(v);if(o!==v)e.setAttribute(a,o)}}))}
+const q=new Set();let raf=0;
+const flush=()=>{raf=0;const l=[...q];q.clear();l.forEach(n=>{if(n.isConnected)tf(()=>wk(n))});if(old()){const h=$$("nxh2");if(h)h.remove()}};
+new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==="characterData")q.add(m.target);else m.addedNodes.forEach(n=>q.add(n))});if(!raf)raf=requestAnimationFrame(flush)}).observe(D.body,{childList:true,subtree:true,characterData:true});
+tf(()=>wk(D.body));
+const _t=toast;toast=function(m){return _t.call(this,typeof m==="string"?tr(m):m)};
+/* ---- online: invite friends (default) + random player (Extra features) ---- */
+HG.carrom=HG.carrom||{t:"Carrom",i:"carrom",a:"#d98b3a",b:"#8a4a1c",mx:2};
+HG.chess=HG.chess||{t:"Chess",i:"chess",a:"#4a5270",b:"#1a1f33",mx:2};
+const INV={k:"ludo",tab:"i",sel:new Set(),fr:null,rb:0};
+const card=(t,s,f,i)=>'<button class="card hc" onclick="'+f+'">'+gi(i[0],i[1],i[2])+'<span class="t"><b>'+t+'</b><small>'+s+'</small></span></button>';
+function invPage(k,tab){
+ if(!tab){INV.sel=new Set();INV.fr=null;INV.tab="i"}else INV.tab=tab;
+ INV.k=k;if(!on())INV.tab="i";
+ const g=HG[k],mp=g.mx-1,gm=k==="carrom"||k==="chess",back=gm?"go('games')":"hub('"+k+"')";
+ S.page="hub";S.hub={k,m:"inv"};
+ const tabs=on()?'<div class="seg" style="margin-bottom:6px"><button class="'+(INV.tab==="i"?"on":"")+'" onclick="ivA(\'tab\',\'i\')">Invite friends</button><button class="'+(INV.tab==="r"?"on":"")+'" onclick="ivA(\'tab\',\'r\')">Random player</button></div>':"";
+ let body;
+ if(INV.tab==="r")body=(g.mx>2?'<div class="lbl">Robots</div><div class="seg">'+[0,1,2].map(n=>'<button class="'+(INV.rb===n?"on":"")+'" onclick="ivA(\'rb\','+n+')">'+(n||"None")+'</button>').join("")+'</div>':"")+'<div class="lbl">Match</div>'+card("Find random player","Matched with another player who is searching now","ivA('find')",[I.connect,"#5b8cff","#7a6bff"]);
+ else body='<div class="lbl">Invite friends</div><div class="pw" id="ivn" style="text-align:left;margin:0 4px 8px"></div><div id="ivl"><div class="pw">Loading...</div></div><button class="btn pri wide" id="ivs" style="margin-top:12px" onclick="ivA(\'send\')" disabled>Send invite</button><div class="lbl">Have a room code?</div><div style="display:flex;gap:8px"><input id="jc" style="margin:0;flex:1;text-transform:uppercase" maxlength="6" placeholder="Room code"><button class="btn" onclick="ivA(\'join\')">Join</button></div>';
+ $$("main").innerHTML='<section class="pg st"><div><button class="btn" onclick="'+back+'">\u2039 '+(gm?"Games":g.t)+'</button></div><div style="display:flex;align-items:center;gap:14px;margin:14px 0 18px">'+gi(I[g.i],g.a,g.b)+'<div><h2 style="margin:0">'+g.t+'</h2><div class="sub" style="margin:2px 0 0">Play online</div></div></div>'+tabs+'<div class="fi">'+body+'</div></section>';
+ if(INV.tab==="i")loadFr()}
+function paintFr(){const el=$$("ivl");if(!el)return;const l=INV.fr||[],mp=HG[INV.k].mx-1,n=INV.sel.size;
+ el.innerHTML=l.length?l.map(p=>{const nn=dn(p.id,nm(p));return'<button class="card row ivr'+(INV.sel.has(p.id)?" on":"")+'" onclick="ivA(\'tg\',\''+E(p.id)+'\')"><div class="av">'+E(ini(nn))+'</div><div class="t"><b>'+E(nn)+'</b><small>@'+E(p.username)+' \u00b7 '+(p.online?"online":"offline")+'</small></div><i class="ivc"></i></button>'}).join(""):'<div class="card empty">No friends yet. Add friends from Connect.</div>';
+ $$("ivn").textContent=mp>1?"Select up to "+mp+" friends. Selected: "+n:"Select a friend to invite.";
+ const b=$$("ivs");b.disabled=!n;b.textContent=n>1?"Send "+n+" invites":"Send invite"}
+async function loadFr(){if(INV.fr)return paintFr();
+ try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or("requester_id.eq."+S.user.id+",addressee_id.eq."+S.user.id);
+  const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);let ps=[];
+  if(ids.length)ps=(await sb.from("profiles").select("id,username,display_name,online,last_seen").in("id",ids)).data||[];
+  ps.forEach(p=>reg(p));ps.sort((a,b)=>(b.online?1:0)-(a.online?1:0)||nm(a).localeCompare(nm(b)));INV.fr=ps}
+ catch(_){INV.fr=[];toast("Could not load friends")}
+ paintFr()}
+async function send(){const k=INV.k,ids=[...INV.sel],fr=ids.map(id=>(INV.fr||[]).find(p=>p.id===id)).filter(Boolean);if(!fr.length)return toast("Select at least one friend");
+ if(HG[k].mx===2)return inviteGame(fr[0].id,dn(fr[0].id,nm(fr[0])),k);
+ HS.p=ids.length+1;LNb=0;UNb=0;
+ if(k==="ludo")await hostLudo();else await hostUno();
+ const R=k==="ludo"?LR:UR;if(!R||!R.code)return;W.__rm={k,code:R.code};
+ ids.forEach(id=>sig({type:"greq",to:id,code:R.code,game:k,name:myName()}));toast("Invites sent")}
+W.ivA=(a,v)=>{const k=INV.k;
+ if(a==="tab")return invPage(k,v);
+ if(a==="tg"){const mp=HG[k].mx-1;if(INV.sel.has(v))INV.sel.delete(v);else{if(mp===1)INV.sel.clear();else if(INV.sel.size>=mp)return toast("You can invite up to "+mp+" friends");INV.sel.add(v)}return paintFr()}
+ if(a==="rb"){INV.rb=v;return invPage(k,"r")}
+ if(a==="find"){if(k==="ludo"||k==="uno"){LNb=INV.rb;UNb=INV.rb}return matchmake(k)}
+ if(a==="join"){const c=($$("jc").value||"").trim().toUpperCase();return({ludo:()=>joinLudo(c),uno:()=>joinUno(c),ttt:()=>joinTTT(c),carrom:()=>carJoin(c),chess:()=>chJoin(c)})[k]()}
+ if(a==="send")return send()};
+const _hub=hub;
+hub=function(k,m){
+ if(m==="inv"||m==="online"||m==="on2"||m==="room")return invPage(k);
+ if(k==="carrom"||k==="chess"){go("games");return}
+ const r=_hub.apply(this,arguments);
+ if(!m)tf(()=>{const f=D.querySelector("#main .fi");if(!f)return;f.querySelectorAll(".hc").forEach(c=>{if(/online|on2/.test(c.getAttribute("onclick")||""))c.remove()});
+  f.insertAdjacentHTML("afterbegin",card("Play online","Invite friends"+(on()?" or find a random player":""),"hub('"+k+"','inv')",[I.connect,"#5b8cff","#7a6bff"]))});
+ return r};
+function addInv(k){const m=$$("md");if(!m||m.querySelector(".ivb"))return;const p=m.querySelector("p.sub")||m.querySelector("h3");
+ if(p)p.insertAdjacentHTML("afterend",'<button class="btn pri wide ivb" style="margin:10px 0 2px" onclick="closeModal();hub(\''+k+'\',\'inv\')">Play online with friends</button>')}
+const _c1=carromMenu;carromMenu=function(){const r=_c1.apply(this,arguments);tf(()=>addInv("carrom"));return r};
+const _c2=chessMenu;chessMenu=function(){const r=_c2.apply(this,arguments);tf(()=>addInv("chess"));return r};
+/* ---- plain small popups (text only) ---- */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.ivr{cursor:pointer;text-align:left}.ivc{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:grid;place-items:center}
+.ivr.on{border-color:#8fa2f0}.ivr.on .ivc{background:linear-gradient(135deg,#6a7fd6,#8b78d2);border-color:#fff}.ivr.on .ivc::after{content:"\\2713";font-size:14px;color:#fff}
+html body #toast,html body #nxtip,html body #nxxh,html body #nxh2,html body #nxpop{background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font-size:12.5px!important;font-weight:500!important;letter-spacing:0!important;color:#e9edff;text-shadow:0 1px 3px #000,0 0 12px rgba(0,0,0,.9)}
+html body #nxtip .tt{text-align:center}html body #nxtip .tn,html body #nxxh b{color:#aab8ff;font-size:11px}
+html body #nxpop small{display:inline!important;font-size:12px!important;margin-left:6px}#nxh2 i{display:none}`}));
+})();
+
+</script>
 </body></html>
