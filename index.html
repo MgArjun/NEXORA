@@ -5857,4 +5857,94 @@ new MutationObserver(()=>{if(bq)return;bq=requestAnimationFrame(()=>{bq=0;bt()})
 })();
 
 </script>
+<script>
+
+/* NX-LISTEN-QUEUE v1 */
+(()=>{
+const D=document,AU=/^https?:\/\/\S+\.(mp3|m4a|aac|wav|ogg|opus|flac|mp4|webm)(\?|#|$)/i,TT={};
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#lq{max-height:260px;overflow:auto}
+.lqh{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 8px}
+.lqh .btn{min-height:34px;padding:0 14px;font-size:13px;margin-left:6px}
+.lqi{display:flex;align-items:center;gap:10px;padding:8px 6px;border-top:1px solid var(--ln);cursor:pointer}
+.lqi.on{background:rgba(125,144,214,.16);border-radius:10px}
+.lqi span{width:22px;text-align:center;color:#8e9cff;font-size:12px;flex:none}
+.lqi b{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lqi button{min-width:34px;min-height:34px;color:#ff8a98}`}));
+const plId=u=>{const m=/[?&]list=([\w-]+)/.exec(u);return m?m[1]:null};
+function title(u){if(TT[u])return TT[u];
+ if(!ytId(u)){try{return decodeURIComponent(u.split("?")[0].split("/").pop())||u}catch(_){return u}}
+ TT[u]="YouTube video";
+ fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent(u)).then(r=>r.json()).then(j=>{if(j&&j.title){TT[u]=j.title;rq()}}).catch(()=>{});
+ return TT[u]}
+function rq(){const W=WT,e=$("lq"),pb=$("wtU")&&$("wtU").nextElementSibling;
+ if(!e)return;const L=!!W&&W.mode==="listen";if(pb)pb.textContent=L?"Add":"Play";
+ if(!L){e.style.display="none";return}
+ const q=W.q||[],i=W.qi==null?-1:W.qi;e.style.display="block";
+ e.innerHTML='<div class="lqh"><b>Queue ('+q.length+')</b><span><button class="btn" data-a="p">Prev</button><button class="btn" data-a="n">Next</button></span></div>'
+ +(q.length?q.map((x,k)=>'<div class="lqi'+(k===i?" on":"")+'" data-k="'+k+'"><span>'+(k===i?"\u25B6":k+1)+'</span><b>'+esc(title(x.u))+'</b><button data-x="'+k+'">\u2715</button></div>').join(""):'<div class="pw" style="padding:10px">Add a YouTube link, a YouTube playlist link or an audio link (.mp3) with Add. Songs play one after another.</div>')}
+const qTx=()=>{const W=WT;if(W)W.tx({t:"q",q:W.q,i:W.qi})};
+function tryPlay(W,u){let n=0;const iv=setInterval(()=>{if(WT!==W||W.src!==u||++n>16)return clearInterval(iv);try{if(W.pl){if(W.pl.playing())return clearInterval(iv);W.pl.play()}}catch(_){}},400)}
+function meta(x){const ms=navigator.mediaSession;if(!ms)return;try{ms.metadata=new MediaMetadata({title:title(x.u),artist:"Listen Together"});ms.setActionHandler("nexttrack",()=>qGo(1,1));ms.setActionHandler("previoustrack",()=>qGo(-1,1))}catch(_){}}
+const _wl2=wtLoad;
+async function playCur(){const W=WT;if(!W)return;rq();const x=W.q&&W.q[W.qi];if(!x)return;
+ const u=x.u,b=$("wtV"),a=b&&b.querySelector("audio");
+ if(AU.test(u)&&a&&W.pl){W.src=u;W.srcs=W.srcs||{};W.srcs.listen=u;a.src=u;const p=a.play();p&&p.catch&&p.catch(()=>{})}
+ else await _wl2.call(null,u,0);
+ tryPlay(W,u);meta(x)}
+function qGo(d,send){const W=WT;if(!W||!W.q||!W.q.length)return;if(wtLock(W))return toast("Only the host can change songs");
+ const n=(W.qi==null?-1:W.qi)+d;if(n<0||n>=W.q.length)return d>0&&toast("End of queue");W.qi=n;playCur();if(send!==0)qTx()}
+function ended(){const W=WT;if(!W||W.mode!=="listen"||!W.q||W.qi==null||W.qi<0)return;const i=W.qi;
+ const go=()=>{if(WT===W&&W.qi===i&&i+1<W.q.length){W.qi=i+1;playCur();qTx()}};
+ if(W.host)go();else setTimeout(go,2500)}
+D.addEventListener("ended",e=>{if(e.target&&e.target.tagName==="AUDIO"&&e.target.closest&&e.target.closest("#wtV"))ended()},true);
+/* YouTube: know when a video ends */
+function hookYT(){if(!(window.YT&&YT.Player)||YT._nq)return;YT._nq=1;const P0=YT.Player;
+ YT.Player=function(el,o){o=o||{};const ev=o.events=o.events||{},os=ev.onStateChange;ev.onStateChange=e=>{if(os)os(e);if(e.data===0)ended()};return new P0(el,o)};YT.Player.prototype=P0.prototype}
+let cb=null;
+Object.defineProperty(window,"onYouTubeIframeAPIReady",{configurable:true,get(){return cb},set(v){cb=typeof v==="function"?function(){try{hookYT()}catch(_){}return v.apply(this,arguments)}:v}});
+setInterval(hookYT,1000);
+/* playlist link -> list of videos */
+async function expand(id){await ytLoad();hookYT();
+ return new Promise(res=>{const d=D.createElement("div");d.style.cssText="position:fixed;left:-9999px;top:0;width:10px;height:10px";D.body.appendChild(d);let done=0,n=0,p;
+  const fin=l=>{if(done)return;done=1;try{p&&p.destroy()}catch(_){}d.remove();res(l||[])};
+  p=new YT.Player(d,{width:"10",height:"10",playerVars:{listType:"playlist",list:id},events:{onReady:e=>{const t=setInterval(()=>{let l=null;try{l=e.target.getPlaylist()}catch(_){}
+   if(l&&l.length){clearInterval(t);fin(l)}else if(++n>16){clearInterval(t);fin([])}},500)},onError:()=>fin([])}});
+  setTimeout(()=>fin([]),12000)})}
+async function qAdd(u){const W=WT;if(!W)return;u=String(u||"").trim();
+ if(!/^https?:\/\//i.test(u))return toast("Enter the full link (https://...)");
+ if(wtLock(W))return toast("Only the host can change songs");
+ const pl=plId(u);let items=[{u}];
+ if(pl&&!ytId(u)){toast("Loading playlist...");const ids=await expand(pl);if(!ids.length)return toast("Could not read this playlist (private or empty)");items=ids.slice(0,50).map(i=>({u:"https://youtu.be/"+i}))}
+ else if(!ytId(u)&&!AU.test(u))return toast("Use a YouTube link or a direct audio link (.mp3)");
+ W.q=W.q||[];const first=W.q.length===0||W.qi==null||W.qi<0;
+ W.q=W.q.concat(items).slice(0,60);if(first)W.qi=0;
+ const inp=$("wtU");if(inp)inp.value="";rq();qTx();if(first)playCur();
+ toast(items.length>1?items.length+" songs added":"Added to queue")}
+function qDel(k){const W=WT;if(!W||!W.q||wtLock(W))return;const was=k===W.qi;W.q.splice(k,1);
+ if(k<W.qi)W.qi--;else if(was&&W.qi>=W.q.length)W.qi=W.q.length-1;
+ if(was){if(W.q.length)playCur();else{try{W.pl&&W.pl.kill()}catch(_){}W.pl=null;W.src=null;W.qi=-1;const b=$("wtV");if(b)b.innerHTML='<span class="pw">Queue is empty</span>'}}
+ rq();qTx()}
+/* in Listen mode the Play box adds to the queue */
+wtLoad=function(url,send){if(WT&&WT.mode==="listen"&&send)return qAdd(url);return _wl2.apply(this,arguments)};
+D.addEventListener("click",e=>{if(!WT)return;const b=e.target.closest&&e.target.closest("#lq");if(!b)return;
+ const x=e.target.closest("[data-x]");if(x)return qDel(+x.dataset.x);
+ const a=e.target.closest("[data-a]");if(a)return qGo(a.dataset.a==="n"?1:-1,1);
+ const i=e.target.closest("[data-k]");if(i&&!wtLock(WT)){WT.qi=+i.dataset.k;playCur();qTx()}});
+D.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#ltab button"))setTimeout(rq,60)});
+/* messages between the two phones */
+const _wm=wtMsg;
+wtMsg=function(W,m){
+ if(WT===W&&m&&m.from!==S.user.id&&m.t==="q"){const old=W.qi,x0=m.q&&m.q[m.i];W.q=m.q||[];W.qi=m.i==null?-1:m.i;
+  W.srcs=W.srcs||{};if(x0)W.srcs.listen=x0.u;rq();
+  if(W.mode==="listen"&&W.qi>=0&&x0&&(W.qi!==old||W.src!==x0.u))playCur();return}
+ const r=_wm(W,m);
+ if(WT===W&&m&&m.from!==S.user.id){
+  if(W.host&&(m.t==="join"||m.t==="need")){setTimeout(()=>{if(WT===W){W.tx({t:"mode",m:W.mode||"watch"});if(W.q&&W.q.length)qTx()}},900)}
+  if(m.t==="mode")setTimeout(rq,60)}
+ return r};
+new MutationObserver(()=>{if($("wtS")&&!$("lq")){$("wtS").insertAdjacentHTML("afterend",'<div id="lq" class="card" style="display:none;padding:10px;margin-top:12px"></div>');rq()}}).observe($("main"),{childList:true});
+})();
+
+</script>
 </body></html>
