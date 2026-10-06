@@ -5876,7 +5876,7 @@ const _wm=wtMsg;
 wtMsg=function(W,m){if(m&&m.t==="mode"&&WT===W&&m.from!==S.user.id){setMode(m.m,0);return}return _wm(W,m)};
 D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#ltab button");if(b)setMode(b.dataset.m,1)});
 let sx=0,sy=0,sk=0;
-D.addEventListener("touchstart",e=>{sk=S.page==="watch"&&WT&&!e.target.closest("#wtV,#wzo,input,textarea,.md,#wtL");const t=e.touches[0];sx=t.clientX;sy=t.clientY},{passive:true});
+D.addEventListener("touchstart",e=>{sk=S.page==="watch"&&WT&&!!e.target.closest("#ltab");const t=e.touches[0];sx=t.clientX;sy=t.clientY},{passive:true});
 D.addEventListener("touchend",e=>{if(!sk)return;sk=0;const t=e.changedTouches[0],dx=t.clientX-sx;if(Math.abs(dx)<70||Math.abs(t.clientY-sy)>50)return;setMode(dx>0?"listen":"watch",1)},{passive:true});
 
 /* ---- hide any Bluetooth option ---- */
@@ -6370,11 +6370,11 @@ async function lsPlay(u){const w=WT;if(!w)return;lsKill();w.pl=null;w.src=u;w.sr
   const yp=new YT.Player(d,{width:"200",height:"200",videoId:id,playerVars:{playsinline:1,rel:0},events:{
    onReady:()=>{w.rdy=1;vol();w.pend&&wtApply(w,w.pend);tf(()=>yp.playVideo())},
    onStateChange:e=>{if(e.data===0){const i=w.qi;w.qi=-1;setTimeout(()=>{w.qi=i;lsEnd()},0)}else if(!w.ap&&(e.data===1||e.data===2))wtSend(w)}}});
-  w.pl={play:()=>yp.playVideo(),pause:()=>yp.pauseVideo(),seek:t=>yp.seekTo(t,true),time:()=>yp.getCurrentTime?yp.getCurrentTime():0,playing:()=>{const s=yp.getPlayerState&&yp.getPlayerState();return s===1||s===3},vol:v=>tf(()=>yp.setVolume(v*100)),kill:()=>{try{yp.destroy()}catch(_){}}}}
+  w.pl={play:()=>yp.playVideo(),pause:()=>yp.pauseVideo(),seek:t=>yp.seekTo(t,true),time:()=>yp.getCurrentTime?yp.getCurrentTime():0,playing:()=>{const s=yp.getPlayerState&&yp.getPlayerState();return s===1||s===3},dur:()=>tf(()=>yp.getDuration())||0,vol:v=>tf(()=>yp.setVolume(v*100)),kill:()=>{try{yp.destroy()}catch(_){}}}}
  else{const a=D.createElement("audio");a.src=u;a.setAttribute("playsinline","");b.appendChild(a);
   ["play","pause","seeked"].forEach(k=>a.addEventListener(k,()=>{if(!w.ap)wtSend(w)}));a.onended=lsEnd;a.onerror=()=>toast("Ye link audio ki tarah nahi khula");
   a.addEventListener("loadedmetadata",()=>w.pend&&wtApply(w,w.pend));a.play().catch(()=>{});
-  w.pl={play:()=>a.play().catch(()=>{}),pause:()=>a.pause(),seek:t=>{a.currentTime=t},time:()=>a.currentTime||0,playing:()=>!a.paused,vol:v=>{a.volume=v},kill:()=>{a.pause();a.removeAttribute("src");a.load()}};vol()}
+  w.pl={play:()=>a.play().catch(()=>{}),pause:()=>a.pause(),seek:t=>{a.currentTime=t},time:()=>a.currentTime||0,playing:()=>!a.paused,dur:()=>isFinite(a.duration)?a.duration:0,vol:v=>{a.volume=v},kill:()=>{a.pause();a.removeAttribute("src");a.load()}};vol()}
  paintQ()}
 function lsEnd(){const w=WT;if(!w||w.mode!=="listen")return;const i=w.qi,go=()=>{if(WT===w&&w.qi===i&&w.q&&i+1<w.q.length){w.qi=i+1;lsPlay(w.q[w.qi].u);w.tx({t:"q",q:w.q,i:w.qi})}};w.host?go():setTimeout(go,2500)}
 function lsGo(d){const w=WT;if(!w||!w.q||!w.q.length)return;if(wtLock(w))return toast("Sirf host gaana badal sakta hai");const n=(w.qi==null?-1:w.qi)+d;if(n<0||n>=w.q.length)return;w.qi=n;lsPlay(w.q[n].u);w.tx({t:"q",q:w.q,i:n})}
@@ -6594,7 +6594,7 @@ function mount(){const w=WT,v=$$("wtV");let e=$$("nxls");
  if(!e){wrap.insertAdjacentHTML("afterend",'<div id="nxls" class="card" style="padding:10px 12px;margin-top:10px"><div class="nxlr"><button id="nxlb" aria-label="Back 10 seconds">-10</button><span id="nxlc">0:00</span><input id="nxlsr" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><span id="nxld">0:00</span><button id="nxlf" aria-label="Forward 10 seconds">+10</button></div></div>');e=$$("nxls");bind()}
  else if(e.previousElementSibling!==wrap)wrap.after(e);
  e.style.display="";
- const d=dur(),r=$$("nxlsr"),c=now();
+ const d=dur()||tf(()=>w.pl&&w.pl.dur&&w.pl.dur())||0,r=$$("nxlsr"),c=now();
  $$("nxld").textContent=d?fmt(d):"--:--";
  if(!sk)$$("nxlc").textContent=fmt(c);
  r.disabled=!d||!w.pl;
@@ -7245,7 +7245,7 @@ D.addEventListener("input",e=>{if(e.target&&e.target.id==="nxvv"){X.vv=+e.target
 const dk=[0,1].map(i=>({i,g:0,tg:null,st:0,kill:0,hold:0,xo:null,xms:0,f:null,yp:null,yr:0,pend:null,t0:0,au:new Audio()}));
 dk.forEach(d=>d.au.setAttribute("playsinline",""));
 let A=0;const act=()=>dk[A],isY=f=>!!(f&&ytId(f.url));
-function vol(d){const v=Math.round(X.vol*Math.max(0,Math.min(1,d.g)));tf(()=>d.au.volume=v/100);if(d.yr)tf(()=>d.yp.setVolume(v))}
+function vol(d){const v=Math.round(X.vol*Math.sin(Math.max(0,Math.min(1,d.g))*Math.PI/2));tf(()=>d.au.volume=v/100);if(d.yr)tf(()=>d.yp.setVolume(v))}
 const yPl=d=>{const s=tf(()=>d.yp.getPlayerState());return s===1||s===3};
 const playing=d=>!!d.f&&(isY(d.f)?(d.yr&&yPl(d)):!d.au.paused);
 const time=d=>tf(()=>isY(d.f)?d.yp.getCurrentTime():d.au.currentTime)||0;
@@ -7290,7 +7290,7 @@ setInterval(()=>{if(!S.user){if(X.cur)fadeStop(200);return}
  if(X.sl&&Date.now()>=X.sl){X.sl=0;X.slm=0;toast("Sleep timer: music stopped");fadeStop(4000)}
  const d=act();if(!d.f||!X.want||d.hold)return;const p=playing(d);if(p)X.bad=0;
  const du=dur(d),t=time(d);
- if(p&&du>8&&du-t<=3&&!X.lk){X.lk=1;setTimeout(()=>X.lk=0,4500);if(X.rp===2)go(d.f,2500);else nxt(1,2500);return}
+ if(p&&du>8&&du-t<=5&&!X.lk){X.lk=1;setTimeout(()=>X.lk=0,7000);if(X.rp===2)go(d.f,4500);else nxt(1,4500);return}
  if(!p&&Date.now()-d.t0>1500&&Date.now()-d.t0<12000)rs(d)},250);
 async function load(){let r;try{r=await sb.from("nx_fav").select("*").eq("kind","listen").order("created_at",{ascending:false}).limit(1000)}catch(e){r={error:e}}
  X.err=!!r.error;X.all=r.error?[]:(r.data||[]);X.lt=Date.now();
@@ -7347,7 +7347,7 @@ D.addEventListener("click",e=>{const t=e.target;if(!t||!t.closest)return;
  if(c==="tab"){X.tab=v;return paint()}
  if(c==="ty"){X.ty=v;paint();if(S.page==="xmus"){X.mode="r";if(!pool().length)return toast("No songs of this type yet");if(!X.cur||(v&&String(X.cur.song_type)!==v))nxt(1,1500)}return}
  if(c==="row"){const f=X.all.find(x=>String(x.id)===v);if(!f)return;X.mode="l";X.q=lst();X.hist=[];go(f,1200);W.nxMusic()}});
-addEventListener("popstate",e=>{if(S.user&&(S.page==="xmus"||S.page==="xall")){e.stopImmediatePropagation();history.pushState({n:1},"");S.page==="xall"?W.nxMusic():go("connect")}},true);
+addEventListener("popstate",e=>{if(S.user&&(S.page==="xmus"||S.page==="xall")){e.stopImmediatePropagation();history.pushState({n:1},"");S.page==="xall"?W.nxMusic():W.nxGoBack()}},true);
 
 /* ---- floating music button (drag anywhere): note icon in games, 3 dots when music is on ---- */
 function place(b,x,y){const w=b.offsetWidth||54,h=b.offsetHeight||54;b.style.left=Math.max(4,Math.min(innerWidth-w-4,x))+"px";b.style.top=Math.max(4,Math.min(innerHeight-h-4,y))+"px";b.style.right="auto";b.style.bottom="auto"}
@@ -7410,5 +7410,60 @@ tf(()=>{const _ad=addMedia;addMedia=function(m){tf(()=>{const x=String(m&&m.cont
  return _ad.apply(this,arguments)}});
 console.log("[NX-MUSIC2-PATCH v1] ready");
 })();
+</script>
+<script>
+
+/* NX-FIX-V43 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+/* 1. music back */
+W.nxGoBack=()=>{tf(()=>go("connect"))};
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#xm [data-m="back"]');if(b){e.stopImmediatePropagation();e.preventDefault();W.nxGoBack()}},true);
+/* 2. landscape controls: -10, +10, speed, stop */
+let SP=1,lastI=0;const SPS=[1,1.5,2];
+const wrap=()=>{const b=$$("wtV");return b&&b.parentElement};
+function rate(){const b=$$("wtV");if(!b)return;const v=b.querySelector("video");if(v&&v.playbackRate!==SP)tf(()=>{v.playbackRate=SP});
+ const p=W.__nxYP;if(p&&b.querySelector("iframe"))tf(()=>{if(p.getPlaybackRate()!==SP)p.setPlaybackRate(SP)})}
+function locked(){if(tf(()=>wtLock(WT))){toast("Only the host can control the video");return true}return false}
+function seekBy(d){const w=WT;if(!w||!w.pl||locked())return;const t=Math.max(0,(tf(()=>w.pl.time())||0)+d);tf(()=>w.pl.seek(t));w.lt=null;tf(()=>w.tx({t:"st",p:w.pl.playing()?1:0,time:t,h:0}))}
+function stopV(){const w=WT;if(!w||!w.pl||locked())return;tf(()=>w.pl.pause());tf(()=>w.pl.seek(0));w.lt=null;tf(()=>w.tx({t:"st",p:0,time:0,h:1}));tf(()=>$$("nzx").click())}
+function mount(){if(!$$("nzb")||!$$("nzt")||$$("nz2")||!$$("nzpp")||!$$("nzdur")||!$$("nzfit"))return;
+ $$("nzpp").insertAdjacentHTML("afterend",'<button class="nzc" id="nz2" data-nz="-10">-10</button><button class="nzc" data-nz="10">+10</button>');
+ $$("nzdur").insertAdjacentHTML("afterend",'<button class="nzc" id="nzsp" data-nz="sp">'+SP+'x</button>');
+ $$("nzfit").insertAdjacentHTML("beforebegin",'<button class="nzc" data-nz="stop">Stop</button>')}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-nz]");if(!b)return;e.stopImmediatePropagation();e.preventDefault();lastI=Date.now();
+ const a=b.dataset.nz;if(a==="-10")seekBy(-10);else if(a==="10")seekBy(10);else if(a==="stop")stopV();
+ else if(a==="sp"){SP=SPS[(SPS.indexOf(SP)+1)%SPS.length];b.textContent=SP+"x";rate()}},true);
+D.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest(".nzbar"))lastI=Date.now()},true);
+setInterval(()=>{tf(mount);const w=wrap();if(w&&w.classList.contains("nzfs")&&Date.now()-lastI<4000)w.classList.add("nzshow")},150);
+setInterval(()=>tf(rate),1200);
+/* 3. offline files: server par rakho, friend online aaye to dekhe, chat chhodte hi delete */
+const SH=new Map();let cur=null,warned=0;
+async function pullF(){if(!S.user)return;
+ try{const r=await sb.from("chat_files").select("*").eq("receiver_id",S.user.id).order("created_at",{ascending:true}).limit(100);if(r.error||!r.data)return;
+  const inC=S.page==="chat"&&S.chat,nk=K("nx_cfn"),seen=LS(nk,[]);
+  r.data.forEach(row=>{
+   if(inC&&row.sender_id===S.chat.uid){if(!SH.has(row.id)){SH.set(row.id,{from:row.sender_id,p:row.path});tf(()=>addMedia({id:row.id,sender_id:row.sender_id,content:row.payload,created_at:row.created_at}))}}
+   else if(!seen.includes(row.id)){seen.push(row.id);tf(()=>banner(dn(row.sender_id,P[row.sender_id]?nm(P[row.sender_id]):"Friend"),"Sent you a file",()=>{const q=P[row.sender_id];if(q)openChat("",row.sender_id,q.username,nm(q))}))}});
+  localStorage[nk]=JSON.stringify(seen.slice(-200))}catch(_){}}
+function flush(uid){const ids=[],ps=[];SH.forEach((v,id)=>{if(v.from===uid){ids.push(id);if(v.p)ps.push(v.p);SH.delete(id)}});if(!ids.length)return;
+ tf(()=>sb.from("chat_files").delete().in("id",ids).then(()=>{},()=>{}));
+ if(ps.length)tf(()=>{const s=sb.storage.from(MB);delete s.remove;s.remove(ps).then(()=>{},()=>{})});
+ tf(()=>{const k=K("nx_gone"),g=new Set(LS(k,[]));ps.forEach(p=>g.add(p));localStorage[k]=JSON.stringify([...g].slice(-500))})}
+setInterval(()=>{const u=S.user&&S.page==="chat"&&S.chat?S.chat.uid:null;if(cur&&cur!==u)flush(cur);cur=u},800);
+addEventListener("pagehide",()=>{if(cur)flush(cur)});
+setInterval(()=>{if(S.user&&!D.hidden)pullF()},5000);
+const _oc=openChat;
+openChat=function(){const r=_oc.apply(this,arguments);setTimeout(pullF,500);setTimeout(pullF,1800);return r};
+const _sm=sendMedia;
+sendMedia=async function(f){const c=S.chat,ch=S.cch,o=ch&&ch.send;let cap=null;
+ if(ch&&o)ch.send=function(x){try{if(x&&x.event==="m"&&x.payload&&String(x.payload.text).indexOf("NXM:")===0&&!cap)cap=x.payload}catch(_){}return o.apply(this,arguments)};
+ try{await _sm.apply(this,arguments)}finally{if(ch&&o)ch.send=o}
+ if(!cap||!c)return;let p=null;try{p=JSON.parse(cap.text.slice(4)).p}catch(_){}if(!p)return;
+ try{const r=await sb.from("chat_files").insert({conversation_id:c.cid,sender_id:S.user.id,receiver_id:c.uid,payload:cap.text,path:p});
+  if(r.error&&!warned){warned=1;toast("Offline delivery ke liye Supabase SQL chalao")}}catch(_){}};
+tf(()=>sb.rpc("nx_cf_cleanup").then(()=>{},()=>{}));
+})();
+
 </script>
 </body></html>
