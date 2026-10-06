@@ -6451,4 +6451,109 @@ console.log("[NX-V41-FAV-LISTEN] ready");
 })();
 
 </script>
+<script>
+/* NX-XF-PATCH v1 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("nx-xf",e)}catch(_){}}};
+const $$=i=>D.getElementById(i);
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const on=()=>!!PR.xf;
+const OFFMSG="Turn on Extra features in Settings > Advanced";
+
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.xfr{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--ln)}
+.xfr b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nxxh{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 84px);transform:translate(-50%,-10px);z-index:9400;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(92vw,420px);padding:12px 18px;border-radius:18px;background:rgba(14,19,38,.92);border:1px solid rgba(255,255,255,.16);color:#f2f5ff;font-size:14px;line-height:1.35;opacity:0;transition:opacity .4s,transform .5s cubic-bezier(.22,1,.36,1)}
+#nxxh.on{opacity:1;transform:translate(-50%,0)}
+#nxxh b{flex:none;font-size:11px;color:#ffd84a;letter-spacing:.5px}`}));
+
+/* ---------- 1. Connect page: hide Random chat and Random call ---------- */
+const _rc=renderConnect;
+PG.connect=renderConnect=function(){const r=_rc.apply(this,arguments);
+ tf(()=>{if(on())return;
+  D.querySelectorAll('#main [onclick^="matchmake("]').forEach(b=>{const g=b.parentElement;b.remove();if(g&&g.classList.contains("grid")&&!g.children.length)g.remove()})});
+ return r};
+
+/* ---------- 2. Random matching (chat, call, every game) only when the feature is on ---------- */
+const _mm=matchmake;
+matchmake=function(k){if(!on()){toast(OFFMSG);return}return _mm.apply(this,arguments)};
+
+/* ---------- 3. Games: Play online -> two options (random/robots, room with friends) ---------- */
+const card=(t,s,f,i)=>'<button class="card hc" onclick="'+f+'">'+gi(i[0],i[1],i[2])+'<span class="t"><b>'+t+'</b><small>'+s+'</small></span></button>';
+function shell(k,m,back,sub,body){const g=HG[k];S.page="hub";S.hub={k,m};
+ $("main").innerHTML='<section class="pg st"><div><button class="btn" onclick="'+back+'">\u2039 '+g.t+'</button></div><div style="display:flex;align-items:center;gap:14px;margin:14px 0 18px">'+gi(I[g.i],g.a,g.b)+'<div><h2 style="margin:0">'+g.t+'</h2><div class="sub" style="margin:2px 0 0">'+sub+'</div></div></div><div class="fi">'+body+'</div></section>'}
+function chooser(k){
+ shell(k,"on2","hub('"+k+"')","Play online",
+  card("Random player or robots","Find a random player, add robots","hub('"+k+"','online')",[I.connect,"#5b8cff","#7a6bff"])
+  +card("Room with friends","Pick players, invite from your friend list","hub('"+k+"','room')",[I.users,"#2fd6a0","#2f9fd6"]))}
+function roomPage(k){const g=HG[k];
+ const seg=g.mx>2?'<div class="lbl">Players</div><div class="seg">'+[...Array(g.mx-1)].map((_,i)=>i+2).map(x=>'<button class="'+(HS.p===x?"on":"")+'" onclick="hs(\'p\','+x+')">'+x+'</button>').join("")+'</div><div class="pw" style="text-align:left;margin:10px 4px 0">'+HS.p+' players in the room. No robots.</div>':'<div class="pw" style="text-align:left;margin:0 4px">2 players</div>';
+ shell(k,"room","hub('"+k+"','on2')","Room with friends",
+  seg+'<div class="lbl">Start</div>'+card("Create room","Then invite friends from your friend list","nxRoom('"+k+"')",[I.plus,"#9a6bff","#d26bff"]))}
+const _hub=hub;
+hub=function(k,m){
+ if(m==="on2"){if(!on())return _hub(k);return chooser(k)}
+ if(m==="room"){if(!on())return _hub(k);return roomPage(k)}
+ if(m==="online"&&!on())return _hub(k);
+ const r=_hub(k,m);
+ if(!m)tf(()=>{const c=D.querySelector('#main .fi .hc[onclick*="online"]');if(!c)return;if(on())c.setAttribute("onclick","hub('"+k+"','on2')");else c.remove()});
+ return r};
+
+/* ---------- 4. Room with friends: create room, then invite from the friend list ---------- */
+W.nxRoom=async k=>{if(!on())return toast(OFFMSG);
+ LNb=0;UNb=0;
+ try{if(k==="ludo")await hostLudo();else if(k==="uno")await hostUno();else await hostTTT()}catch(_){}
+ const R=k==="ludo"?LR:k==="uno"?UR:S.room;if(!R||!R.code)return;
+ W.__rm={k,code:R.code};
+ const m=$("md");if(!m||$("ov").classList.contains("h"))return;
+ const html='<div class="lbl">Invite friends</div><div id="nxrf"><div class="pw" style="text-align:left">Loading\u2026</div></div>',c=m.querySelector(".btn.red");
+ if(c)c.insertAdjacentHTML("beforebegin",html);else m.insertAdjacentHTML("beforeend",html);
+ loadRF()};
+async function loadRF(){const el=$$("nxrf");if(!el)return;
+ try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or("requester_id.eq."+S.user.id+",addressee_id.eq."+S.user.id);
+  const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);
+  if(!$$("nxrf"))return;
+  if(!ids.length){$$("nxrf").innerHTML='<div class="pw" style="text-align:left">No friends yet. Add friends from Connect.</div>';return}
+  const{data:ps}=await sb.from("profiles").select("id,username,display_name").in("id",ids);
+  if(!$$("nxrf"))return;
+  $$("nxrf").innerHTML=(ps||[]).map(p=>{reg(p);return'<div class="xfr"><b>'+E(dn(p.id,nm(p)))+'</b><button class="btn pri" style="min-height:36px;padding:0 16px" data-rinv="'+E(p.id)+'">Invite</button></div>'}).join("")}
+ catch(_){if($$("nxrf"))$$("nxrf").innerHTML='<div class="pw" style="text-align:left">Could not load friends.</div>'}}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#nxrf [data-rinv]");if(!b||b.disabled)return;const r=W.__rm;if(!r)return;
+ sig({type:"greq",to:b.dataset.rinv,code:r.code,game:r.k,name:myName()});
+ b.disabled=true;b.textContent="Sent";toast("Request sent");
+ setTimeout(()=>{if(b.isConnected){b.disabled=false;b.textContent="Invite"}},20000)});
+const _os=onSig;
+onSig=function(p){
+ if(p&&W.__rm&&p.code===W.__rm.code){
+  if(p.type==="gacc"){toast("Your friend accepted");return}
+  if(p.type==="gdec"){toast("Your friend declined");return}}
+ return _os.apply(this,arguments)};
+
+/* ---------- 5. Carrom and Chess menus: hide random + room code unless the feature is on ---------- */
+const strip=()=>{const m=$("md");if(!m)return;const kids=[...m.children];
+ kids.forEach((e,i)=>{if(!e.classList||!e.classList.contains("pw"))return;const t=e.textContent;
+  if(/Random online/.test(t)){e.remove();kids[i+1]&&kids[i+1].remove()}
+  else if(/Friend \(room code\)/.test(t)){e.remove();kids[i+1]&&kids[i+1].remove();kids[i+2]&&kids[i+2].remove()}})};
+const _cmn=carromMenu;carromMenu=function(){const r=_cmn.apply(this,arguments);if(!on())tf(strip);return r};
+const _chm=chessMenu;chessMenu=function(){const r=_chm.apply(this,arguments);if(!on())tf(strip);return r};
+
+/* ---------- 6. Settings > Advanced: the on/off switch ---------- */
+W.nxXf=b=>{PR.xf=!PR.xf;savePr();b.classList.toggle("on",!!PR.xf);try{localStorage.setItem("nx_xfh","1")}catch(_){}toast(PR.xf?"Extra features on":"Extra features off");sfx("up")};
+const _ss=W.stSub;
+W.stSub=function(k){const r=_ss.apply(this,arguments);
+ if(k==="adv")tf(()=>{const h=D.querySelector("#main .pg .sth");if(!h||$$("nxxf"))return;
+  h.insertAdjacentHTML("afterend",'<div class="card stc" id="nxxf"><div class="pr"><div class="t"><b>Extra features</b><small>Random chat, random call, online games with random players or robots, and rooms with friend requests</small></div><button class="tg2 '+(PR.xf?"on":"")+'" onclick="nxXf(this)" aria-label="Extra features"><i></i></button></div></div><p class="stn">Off = these stay hidden everywhere.</p>')});
+ return r};
+
+/* ---------- 7. One-time hint (shown only once on this phone) ---------- */
+let hh=0;
+setInterval(()=>{if(hh||!S.user)return;const sh=$$("shell");if(!sh||sh.classList.contains("h")||$$("nxs3")||$$("nxsp2"))return;hh=1;
+ let seen=null;try{seen=localStorage.getItem("nx_xfh")}catch(_){}
+ if(seen||on())return;
+ try{localStorage.setItem("nx_xfh","1")}catch(_){}
+ setTimeout(()=>{D.body.insertAdjacentHTML("beforeend",'<div id="nxxh"><b>NEW</b><span>Random chat, random call and online games are now in Settings &gt; Advanced &gt; Extra features.</span></div>');
+  const e=$$("nxxh");requestAnimationFrame(()=>requestAnimationFrame(()=>e.classList.add("on")));
+  const x=()=>{e.classList.remove("on");setTimeout(()=>e.remove(),500)};e.onclick=x;setTimeout(x,8000)},1500)},1000);
+})();
+</script>
 </body></html>
