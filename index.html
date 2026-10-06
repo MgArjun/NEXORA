@@ -4944,7 +4944,7 @@ let SUB=null;
 const trow=(k,t,d)=>'<div class="pr"><div class="t"><b>'+t+'</b><small>'+d+'</small></div><button class="tg2 '+(PR[k]?"on":"")+'" onclick="tog(\''+k+'\',this)" aria-label="'+t+'"><i></i></button></div>';
 const LKI=IC('<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>'),SNI=IC('<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/>'),DBI=IC('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>'),INI=IC('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),SHI=IC('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>');
 const STC=()=>[["acc","Account","Photo, name, username, password",I.users,"#5b8cff","#7a6bff"],["prv","Privacy","Last seen, game invites",LKI,"#9a6bff","#d26bff"],["snd","Sound and alerts","Sounds and vibration",SNI,"#ff8a5b","#ff5b8a"],["cal","Calls and video","Incoming calls, video quality",I.phone,"#2fd6a0","#2f9fd6"],["dat","Storage and data","Data saver, cached chats",DBI,"#3e8ea3","#3b6ea5"],["adv","Advanced","Call server",I.gear,"#4a5270","#2a3050"],["adm","Admin panel","Users, limits, status",SHI,"#ef5368","#c21f35"],["abt","About","Version",INI,"#7d90d6","#8b78d2"]];
-function stMain(){SUB=null;const me=S.me||{},n=myName(),rows=STC().filter(r=>r[0]!=="adm"||isA()).map(r=>'<button class="str" onclick="'+(r[0]==="adm"?"nxAdm()":"stSub(\''+r[0]+'\')")+'">'+gi(r[3],r[4],r[5])+'<span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><i>&rsaquo;</i></button>').join("");
+function stMain(){SUB=null;const me=S.me||{},n=myName(),rows=STC().filter(r=>r[0]!=="adm"||isA()).map(r=>'<button class="str" onclick="'+(r[0]==="adm"?"nxAdm()":"stSub('"+r[0]+"')")+'">'+gi(r[3],r[4],r[5])+'<span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><i>&rsaquo;</i></button>').join("");
  page('<h2>Settings</h2><button class="card stp" onclick="stSub(\'acc\')">'+mineAv(n)+'<span class="t"><b>'+esc(n)+'</b><small>'+esc(me.uid?"UID "+me.uid:"@"+(me.username||""))+'</small></span><i>&rsaquo;</i></button><div class="card stl">'+rows+'</div><button class="btn red wide" onclick="logout()">Log out</button>')}
 const VQL=[["720","720p"],["1080","1080p"],["1440","2K"],["2160","4K"]];
 const SBD={
@@ -4971,381 +4971,7 @@ if(S.user)tf(paintMine);
 })();
 </script>
 
-<script>
 
-/* NX-FIX-V1 */
-(()=>{
-const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-fix",e)}catch(_){}}};
-const ADMIN_EMAIL="surajpurve078@gmail.com";
-const isAdmin=()=>S&&S.user&&(S.user.email||"").toLowerCase()===ADMIN_EMAIL;
-
-/* 1. Stop message bar / input bar shaking */
-tf(()=>{
- const st=D.createElement("style");
- st.id="nx-fix-shake";
- st.textContent=`
- .cp, .cp input, .snd, #main .pg.chat .cp {
-   animation: none !important;
-   transform: none !important;
-   transition: none !important;
- }
- .cp { will-change: auto !important; }
- `;
- if(!D.getElementById("nx-fix-shake")) D.head.appendChild(st);
-});
-
-/* 2. Smooth DP zoom / enlarge */
-tf(()=>{
- const st=D.createElement("style");
- st.id="nx-fix-dpzoom";
- st.textContent=`
- .dpv, .dpv canvas, #dpc {
-   transition: transform .35s cubic-bezier(.22,1,.36,1) !important;
- }
- .hasdp, .av.hasdp, .stav {
-   transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s !important;
- }
- .av.hasdp:active, .stav:active {
-   transform: scale(1.08);
- }
- /* full screen DP preview smooth */
- #nxDpBig {
-   position: fixed; inset: 0; z-index: 9900;
-   background: rgba(0,0,0,.92);
-   display: grid; place-items: center;
-   animation: nxdpIn .35s cubic-bezier(.22,1,.36,1) both;
- }
- #nxDpBig img {
-   max-width: 92vw; max-height: 80vh;
-   border-radius: 12px;
-   transition: transform .4s cubic-bezier(.22,1,.36,1);
-   transform-origin: center;
- }
- @keyframes nxdpIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
- `;
- if(!D.getElementById("nx-fix-dpzoom")) D.head.appendChild(st);
-
- // Click on avatar in chat header → big smooth preview
- D.addEventListener("click", e => {
-   const av = e.target.closest && e.target.closest(".ch .av, .ch .hasdp, .pg.chat .av");
-   if(!av) return;
-   const url = av.dataset.dp || av.style.backgroundImage.replace(/url\\(["']?|["']?\\)/g,"");
-   if(!url || url.length < 5) return;
-   e.stopPropagation();
-   const o = D.createElement("div");
-   o.id = "nxDpBig";
-   o.innerHTML = '<img src="'+url.replace(/"/g,"&quot;")+'" alt="DP">';
-   o.onclick = () => o.remove();
-   D.body.appendChild(o);
- }, true);
-});
-
-/* 3. Fix Settings not opening (stSub / categories) */
-tf(()=>{
- // Re-bind PG.settings safely
- if(typeof stMain === "function"){
-   PG.settings = renderSettings = function(){ try{ stMain(); }catch(e){ console.warn(e); } };
- }
- // Force click handlers for settings rows if broken
- D.addEventListener("click", e => {
-   const btn = e.target.closest && e.target.closest(".str, .stp");
-   if(!btn) return;
-   // if onclick already works, leave it
-   if(btn.onclick) return;
-   const oc = btn.getAttribute("onclick");
-   if(oc){
-     e.preventDefault();
-     try{ (new Function(oc))(); }catch(_){}
-   }
- }, true);
-});
-
-/* 4. Basic Status section entry + admin permission */
-tf(()=>{
- // Add Status button in chat list area (top) when on recent/chats
- const oldGo = window.go;
- if(oldGo){
-   window.go = function(p){
-     const r = oldGo.apply(this, arguments);
-     tf(()=>{
-       if(p === "recent" || p === "home"){
-         setTimeout(()=>{
-           if(D.querySelector("#nxStatBar")) return;
-           const main = $("main");
-           if(!main) return;
-           const bar = D.createElement("div");
-           bar.id = "nxStatBar";
-           bar.style.cssText = "padding:10px 14px;display:flex;gap:10px;overflow-x:auto;border-bottom:1px solid var(--ln)";
-           bar.innerHTML = '<button class="btn" style="flex:none;min-height:36px;padding:0 14px" onclick="nxOpenStatus()">Status</button>'
-             + (isAdmin() ? '<button class="btn pri" style="flex:none;min-height:36px;padding:0 14px" onclick="nxAddStatus()">+ Add Status</button>' : '');
-           const first = main.querySelector(".pg");
-           if(first) first.insertAdjacentElement("afterbegin", bar);
-         }, 300);
-       }
-     });
-     return r;
-   };
- }
-
- window.nxOpenStatus = function(){
-   openModal(`<h3>Status</h3>
-     <p class="sub">24 hours • Sirf admin permission se add ho sakta hai</p>
-     <div class="card empty" style="margin:12px 0">Abhi koi status nahi (Storage setup ke baad full aayega)</div>
-     <button class="btn wide" onclick="closeModal()">Close</button>`);
- };
-
- window.nxAddStatus = function(){
-   if(!isAdmin()) return toast("Sirf Admin status laga sakta hai");
-   openModal(`<h3>Add Status</h3>
-     <p class="sub">Admin only</p>
-     <input type="file" id="nxStF" accept="image/*,video/*" style="margin:10px 0">
-     <button class="btn pri wide" onclick="toast('Status upload ke liye Storage setup chahiye');closeModal()">Upload (soon)</button>
-     <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>`);
- };
-});
-
-/* 5. DP change also in chat settings (chMore) */
-tf(()=>{
- const oldMore = window.chMore;
- if(oldMore){
-   window.chMore = function(){
-     oldMore.apply(this, arguments);
-     tf(()=>{
-       const m = $("md");
-       if(!m || m.querySelector("#nxChatDp")) return;
-       const h = m.querySelector("h3");
-       if(h){
-         h.insertAdjacentHTML("afterend",
-           '<button id="nxChatDp" class="btn wide" style="margin-bottom:10px" onclick="closeModal();nxDpSheet&&nxDpSheet()">Change Profile Photo</button>');
-       }
-     });
-   };
- }
-});
-
-console.log("%c[NX-FIX-V1] loaded","color:#6dffb0");
-})();
-
-</script>
-
-<script>
-
-/* NX-SETSTAT-FIX-V1 */
-(()=>{
-const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-ss",e)}catch(_){}}};
-const ADMIN_EMAIL="surajpurve078@gmail.com";
-const isAdmin=()=>S&&S.user&&(S.user.email||"").toLowerCase()===ADMIN_EMAIL;
-
-/* ========== 1. FORCE SETTINGS TO WORK ========== */
-tf(()=>{
-  // Make sure the categorized Settings is the final one
-  if(typeof stMain === "function"){
-    PG.settings = renderSettings = function(){
-      try{ stMain(); }catch(e){ console.warn("stMain",e); }
-    };
-  }
-
-  // Global click fallback so .str / .stp always work even if onclick is broken
-  D.addEventListener("click", function(e){
-    const btn = e.target.closest && e.target.closest("button.str, button.stp, .str, .stp");
-    if(!btn) return;
-
-    // Prefer existing onclick
-    if(typeof btn.onclick === "function") return;
-
-    const oc = btn.getAttribute("onclick");
-    if(oc){
-      e.preventDefault();
-      e.stopPropagation();
-      try{ (new Function(oc))(); }catch(err){ console.warn("settings click",err); }
-      return;
-    }
-
-    // Fallback by text
-    const t = (btn.textContent||"").toLowerCase();
-    if(t.includes("account") || btn.classList.contains("stp")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("acc");
-    } else if(t.includes("privacy")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("prv");
-    } else if(t.includes("sound")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("snd");
-    } else if(t.includes("call")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("cal");
-    } else if(t.includes("storage") || t.includes("data")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("dat");
-    } else if(t.includes("advanced")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("adv");
-    } else if(t.includes("about")){
-      e.preventDefault();
-      if(typeof stSub === "function") stSub("abt");
-    } else if(t.includes("admin")){
-      e.preventDefault();
-      if(typeof nxAdm === "function") nxAdm();
-    }
-  }, true);
-
-  // Also re-bind after any page render
-  const _go = window.go;
-  if(_go){
-    window.go = function(p){
-      const r = _go.apply(this, arguments);
-      if(p === "settings"){
-        setTimeout(()=>{
-          if(typeof stMain === "function" && S.page === "settings") stMain();
-        }, 50);
-      }
-      return r;
-    };
-  }
-});
-
-/* ========== 2. REMOVE wrong Status bar from Recent ========== */
-tf(()=>{
-  // Kill any previous nxStatBar that was put on recent/home
-  const kill = () => {
-    const b = D.getElementById("nxStatBar");
-    if(b) b.remove();
-  };
-  kill();
-  // Keep killing if something re-adds it on recent
-  new MutationObserver(()=>{
-    if(S && (S.page === "recent" || S.page === "home")){
-      const b = D.getElementById("nxStatBar");
-      if(b) b.remove();
-    }
-  }).observe(D.body, {childList:true, subtree:true});
-});
-
-/* ========== 3. RIGHT-SWIPE on Chats page → Status view ========== */
-tf(()=>{
-  let statusMode = false;
-  let startX = 0, startY = 0, tracking = false;
-
-  function showStatusView(){
-    statusMode = true;
-    const pg = D.querySelector("#main .pg");
-    if(!pg) return;
-
-    // Change title if exists
-    const h2 = pg.querySelector("h2");
-    if(h2) h2.textContent = "Status";
-
-    // Hide normal chat list rows temporarily
-    pg.querySelectorAll(".row, .nrw, .card.row").forEach(el => {
-      el.dataset.nxhide = "1";
-      el.style.display = "none";
-    });
-
-    // Add status panel if not present
-    let panel = D.getElementById("nxStatusPanel");
-    if(!panel){
-      panel = D.createElement("div");
-      panel.id = "nxStatusPanel";
-      panel.style.cssText = "padding:16px 12px;";
-      panel.innerHTML = `
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-          <div id="nxMyStat" style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#697cff,#a26cff);display:grid;place-items:center;font-weight:900;font-size:18px;position:relative;flex:none">
-            ${((S.me&&(S.me.display_name||S.me.username))||"N").trim().slice(0,1).toUpperCase()}
-            <span style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:#3fd68f;border:2px solid #0b1020;display:grid;place-items:center;font-size:14px;color:#000">+</span>
-          </div>
-          <div>
-            <b style="display:block">My status</b>
-            <small style="color:var(--mu)">${isAdmin() ? "Tap to add status" : "Only admin can add status"}</small>
-          </div>
-        </div>
-        <div class="card empty" style="text-align:center;padding:28px 16px">
-          No status found
-        </div>
-        <button class="btn wide" style="margin-top:16px" id="nxBackChats">← Back to Chats</button>
-      `;
-      pg.appendChild(panel);
-
-      const my = panel.querySelector("#nxMyStat");
-      if(my){
-        my.onclick = () => {
-          if(!isAdmin()) return toast("Sirf Admin status laga sakta hai");
-          openModal(`<h3>Add Status</h3>
-            <p class="sub">Admin only • 24 hours</p>
-            <input type="file" accept="image/*,video/*" style="margin:12px 0">
-            <button class="btn pri wide" onclick="toast('Full status upload ke liye Storage setup chahiye');closeModal()">Upload</button>
-            <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>`);
-        };
-      }
-      const back = panel.querySelector("#nxBackChats");
-      if(back) back.onclick = hideStatusView;
-    }
-    panel.style.display = "block";
-  }
-
-  function hideStatusView(){
-    statusMode = false;
-    const pg = D.querySelector("#main .pg");
-    if(!pg) return;
-    const h2 = pg.querySelector("h2");
-    if(h2) h2.textContent = "Chats";
-    pg.querySelectorAll("[data-nxhide]").forEach(el => {
-      el.style.display = "";
-      delete el.dataset.nxhide;
-    });
-    const panel = D.getElementById("nxStatusPanel");
-    if(panel) panel.style.display = "none";
-  }
-
-  // Touch handlers only when on chats-like page
-  D.addEventListener("touchstart", e => {
-    if(!S || S.page === "chat" || S.page === "settings" || S.page === "games") return;
-    // only when we are on a list page that has "Chats" title or recent chats list
-    const h2 = D.querySelector("#main .pg h2");
-    if(!h2) return;
-    const title = (h2.textContent||"").toLowerCase();
-    if(title !== "chats" && title !== "status" && !title.includes("chat")) return;
-
-    if(e.touches.length !== 1) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    tracking = true;
-  }, {passive:true});
-
-  D.addEventListener("touchend", e => {
-    if(!tracking) return;
-    tracking = false;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-    if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.4) return;
-
-    // right swipe (finger moves right) → Status
-    if(dx > 60 && !statusMode){
-      showStatusView();
-    }
-    // left swipe → back to Chats
-    if(dx < -60 && statusMode){
-      hideStatusView();
-    }
-  }, {passive:true});
-
-  // Also clean status panel when leaving page
-  const _go2 = window.go;
-  if(_go2){
-    window.go = function(p){
-      statusMode = false;
-      const panel = D.getElementById("nxStatusPanel");
-      if(panel) panel.remove();
-      return _go2.apply(this, arguments);
-    };
-  }
-});
-
-console.log("%c[NX-SETSTAT-FIX-V1] Settings + Status swipe ready","color:#6dffb0");
-})();
-
-</script>
 
 <script>
 /* NX-ADMIN-PRO-V1 */
@@ -6130,6 +5756,104 @@ tf(()=>{const md=navigator.mediaDevices;if(!md||!md.addEventListener)return;let 
   fix(true);if(tf(()=>S.page)==="watch"||tf(()=>!!C))T("Audio device badla, awaaz dobara set ki")},700)})});
 
 setInterval(()=>{panel();apply();note()},500);
+})();
+
+</script>
+<script>
+
+/* NX-WATCH-ZOOM v2 + LISTEN + CLEANUP */
+(()=>{
+const D=document;let z=1,tx=0,ty=0,zm=false,fs=false,real=false;
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.cp,.cp input,.snd{animation:none!important;transform:none!important;transition:none!important}
+#wtV>iframe,#wtV>video,#wtV>div{width:100%;height:100%;transform:translate(var(--tx,0px),var(--ty,0px)) scale(var(--z,1));transform-origin:0 0}
+.wzw.wzfs{position:fixed!important;inset:0;z-index:9000;background:#000;width:100vw;height:100dvh}
+.wzw.wzfs #wtV{aspect-ratio:auto!important;width:100%;height:100%;border-radius:0;border:0}
+.wzw.lst #wtV{aspect-ratio:auto!important;height:150px}
+.wzw.lst #wzb,.wzw.lst #wzo{display:none!important}
+#wzb{position:absolute;top:8px;right:8px;z-index:6;display:flex;gap:6px;align-items:center;padding:4px;border-radius:999px;background:rgba(0,0,0,.55)}
+#wzb button{min-width:34px;height:34px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:700;color:#fff}
+#wzb button.on{background:#fff;color:#000}
+#wzb .wzc{display:none;align-items:center;gap:4px}#wzb.zc .wzc{display:flex}
+#wzb b{font-size:12px;min-width:40px;text-align:center;color:#fff}
+#wzo{position:absolute;inset:0;z-index:4;display:none;touch-action:none}#wzo.on{display:block}`}));
+const box=()=>$("wtV"),wrap=()=>box()&&box().parentElement;
+function paint(){const b=box();if(!b)return;const w=b.clientWidth,h=b.clientHeight;z=Math.max(1,Math.min(5,z));
+ tx=Math.min(0,Math.max(w-w*z,tx));ty=Math.min(0,Math.max(h-h*z,ty));if(z===1)tx=ty=0;
+ b.style.setProperty("--z",z);b.style.setProperty("--tx",tx+"px");b.style.setProperty("--ty",ty+"px");const l=$("wzl");if(l)l.textContent=Math.round(z*100)+"%"}
+function zoomAt(f,px,py){const z2=Math.max(1,Math.min(5,z*f)),k=z2/z;tx=px-(px-tx)*k;ty=py-(py-ty)*k;z=z2;paint()}
+function mid(f){const b=box();if(b)zoomAt(f,b.clientWidth/2,b.clientHeight/2)}
+function bindOv(o){const P=new Map();let d0=0,lt=0,lx=0,ly=0;
+ const pos=e=>{const r=o.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+ o.onpointerdown=e=>{try{o.setPointerCapture(e.pointerId)}catch(_){}const p=pos(e);P.set(e.pointerId,p);
+  if(P.size===2){const[a,b]=[...P.values()];d0=Math.hypot(a.x-b.x,a.y-b.y)}
+  else{const n=Date.now();if(n-lt<300&&Math.hypot(p.x-lx,p.y-ly)<30){if(z>1.05){z=1;tx=ty=0;paint()}else zoomAt(2.2,p.x,p.y);lt=0}else{lt=n;lx=p.x;ly=p.y}}};
+ o.onpointermove=e=>{if(!P.has(e.pointerId))return;const p=pos(e),old=P.get(e.pointerId);P.set(e.pointerId,p);
+  if(P.size===2){const[a,b]=[...P.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(d0>0&&d>0)zoomAt(d/d0,(a.x+b.x)/2,(a.y+b.y)/2);d0=d}
+  else if(z>1){tx+=p.x-old.x;ty+=p.y-old.y;paint()}};
+ const up=e=>{P.delete(e.pointerId);d0=0};o.onpointerup=up;o.onpointercancel=up;
+ o.onwheel=e=>{e.preventDefault();const p=pos(e);zoomAt(e.deltaY<0?1.15:1/1.15,p.x,p.y)}}
+function setZm(on){zm=on;const o=$("wzo");if(o)o.classList.toggle("on",on);const m=$("wzm");if(m)m.classList.toggle("on",on);const b=$("wzb");if(b)b.classList.toggle("zc",on||z>1)}
+async function fsOn(){const w=wrap();if(!w)return;w.classList.add("wzfs");fs=true;const r=w.requestFullscreen||w.webkitRequestFullscreen;
+ if(r){try{await r.call(w,{navigationUI:"hide"});real=true}catch(_){}}
+ try{await screen.orientation.lock("landscape")}catch(_){}setTimeout(paint,250)}
+function fsOff(){const w=wrap();if(w)w.classList.remove("wzfs");if(real&&(D.fullscreenElement||D.webkitFullscreenElement))try{(D.exitFullscreen||D.webkitExitFullscreen).call(D)}catch(_){}
+ try{screen.orientation.unlock()}catch(_){}fs=false;real=false;z=1;tx=ty=0;setZm(false);paint()}
+function setup(){const b=box();if(!b)return;const w=b.parentElement;if(w.dataset.wz)return;w.dataset.wz=1;w.classList.add("wzw");z=1;tx=ty=0;fs=false;real=false;zm=false;
+ w.insertAdjacentHTML("beforeend",'<div id="wzo"></div><div id="wzb"><button id="wzf">Full</button><button id="wzm">Zoom</button><span class="wzc"><button id="wzd">\u2212</button><b id="wzl">100%</b><button id="wzu">+</button><button id="wzr">Fit</button></span></div>');
+ bindOv($("wzo"));
+ $("wzf").onclick=()=>fs?fsOff():fsOn();
+ $("wzm").onclick=()=>setZm(!zm);
+ $("wzu").onclick=()=>{$("wzb").classList.add("zc");mid(1.3)};$("wzd").onclick=()=>{$("wzb").classList.add("zc");mid(1/1.3)};
+ $("wzr").onclick=()=>{z=1;tx=ty=0;paint()};
+ const t=D.querySelector("#main h2");
+ if(t&&!$("ltab"))t.insertAdjacentHTML("beforebegin",'<div class="seg" id="ltab" style="margin-bottom:10px"><button class="on" data-m="watch">Watch</button><button data-m="listen">Listen</button></div>');
+ paint()}
+new MutationObserver(()=>{if(box())setup();else if(fs)fsOff()}).observe($("main"),{childList:true});
+D.addEventListener("fullscreenchange",()=>{if(real&&fs&&!(D.fullscreenElement||D.webkitFullscreenElement))fsOff()});
+addEventListener("resize",()=>setTimeout(paint,150));
+addEventListener("popstate",e=>{if(fs){e.stopImmediatePropagation();history.pushState({n:1},"");fsOff()}},true);
+
+/* ---- Listen Together ---- */
+function lAudio(W,url,send){W.src=url;W.srcs=W.srcs||{};W.srcs.listen=url;if(send)W.tx({t:"load",u:url});const b=$("wtV");if(!b)return;
+ try{W.pl&&W.pl.kill()}catch(_){}W.pl=null;W.lt=null;b.innerHTML="";
+ const a=D.createElement("audio");a.src=url;a.controls=true;a.preload="auto";a.setAttribute("playsinline","");a.style.cssText="width:92%";b.appendChild(a);
+ ["play","pause","seeked"].forEach(k=>a.addEventListener(k,()=>{if(!W.ap)wtSend(W)}));
+ a.addEventListener("loadedmetadata",()=>W.pend&&wtApply(W,W.pend));
+ a.addEventListener("error",()=>toast("This link did not open as audio"));
+ W.pl={play:()=>{const p=a.play();p&&p.catch&&p.catch(()=>toast("Press play"))},pause:()=>a.pause(),seek:t=>{a.currentTime=t},time:()=>a.currentTime||0,playing:()=>!a.paused,kill:()=>{a.pause();a.removeAttribute("src");a.load()}};
+ const ms=navigator.mediaSession;if(ms){try{ms.metadata=new MediaMetadata({title:"Listen Together",artist:W.oppName||"Friend"});
+  ms.setActionHandler("play",()=>a.play());ms.setActionHandler("pause",()=>a.pause());
+  ms.setActionHandler("seekbackward",()=>{a.currentTime=Math.max(0,a.currentTime-10)});ms.setActionHandler("seekforward",()=>{a.currentTime+=10})}catch(_){}}
+ const n=$("wtN");if(n)n.textContent="Direct audio links keep playing with the screen locked."}
+const _wl=wtLoad;
+wtLoad=async function(url,send){const W=WT;url=String(url||"").trim();
+ if(W&&W.mode==="listen"&&/^https?:\/\/\S+\.(mp3|m4a|aac|wav|ogg|opus|flac|mp4|webm)(\?|#|$)/i.test(url)){if(send&&wtLock(W))return toast("Only the host can change the link");return lAudio(W,url,send)}
+ const r=await _wl.call(this,url,send);
+ if(W){W.srcs=W.srcs||{};if(W.src)W.srcs[W.mode||"watch"]=W.src;
+  if(W.mode==="listen"&&ytId(url)){const n=$("wtN");if(n)n.textContent="YouTube pauses when the screen locks on most phones. For lock-screen listening use a direct .mp3 link."}}
+ return r};
+function setMode(m,send){const W=WT;if(!W||(W.mode||"watch")===m)return;W.mode=m;
+ try{W.pl&&W.pl.kill()}catch(_){}W.pl=null;W.src=null;W.lt=null;z=1;tx=ty=0;paint();
+ const wr=wrap();if(wr)wr.classList.toggle("lst",m==="listen");
+ const h=D.querySelector("#main h2");if(h)h.textContent=m==="listen"?"Listen Together":"Watch Together";
+ D.querySelectorAll("#ltab button").forEach(x=>x.classList.toggle("on",x.dataset.m===m));
+ const b=$("wtV");if(b)b.innerHTML='<span class="pw">Paste a link below and press Play</span>';
+ const n=$("wtN");if(n)n.textContent=m==="listen"?"Audio only. Direct .mp3 links keep playing with the screen locked.":"";
+ const u=$("wtU");if(u)u.placeholder=m==="listen"?"YouTube or audio link (.mp3)":"YouTube or video link";
+ const s=W.srcs&&W.srcs[m];if(s)wtLoad(s,0);
+ if(send)W.tx({t:"mode",m})}
+const _wm=wtMsg;
+wtMsg=function(W,m){if(m&&m.t==="mode"&&WT===W&&m.from!==S.user.id){setMode(m.m,0);return}return _wm(W,m)};
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#ltab button");if(b)setMode(b.dataset.m,1)});
+let sx=0,sy=0,sk=0;
+D.addEventListener("touchstart",e=>{sk=S.page==="watch"&&WT&&!e.target.closest("#wtV,#wzo,input,textarea,.md,#wtL");const t=e.touches[0];sx=t.clientX;sy=t.clientY},{passive:true});
+D.addEventListener("touchend",e=>{if(!sk)return;sk=0;const t=e.changedTouches[0],dx=t.clientX-sx;if(Math.abs(dx)<70||Math.abs(t.clientY-sy)>50)return;setMode(dx>0?"listen":"watch",1)},{passive:true});
+
+/* ---- hide any Bluetooth option ---- */
+let bq=0;
+const bt=()=>D.querySelectorAll("#main .str,#main .pr,#main .pkv,#main .pls,#md .pr,#md .btn").forEach(e=>{if(/bluetooth/i.test(e.textContent)&&e.textContent.length<160)e.remove()});
+new MutationObserver(()=>{if(bq)return;bq=requestAnimationFrame(()=>{bq=0;bt()})}).observe(D.body,{childList:true,subtree:true});
 })();
 
 </script>
