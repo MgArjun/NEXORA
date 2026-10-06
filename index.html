@@ -6292,4 +6292,163 @@ setInterval(()=>{const k=cur();if(k===lastK)return;if(tipOn)hideTip();lastK=k;if
 })();
 
 </script>
+<script>
+
+/* NX-V41-FAV-LISTEN */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("v41",e)}catch(_){}}},$$=i=>D.getElementById(i);
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ME=()=>S.user&&S.user.id,ADM=()=>!!(S.user&&S.user.email&&S.user.email.toLowerCase()==="surajpurve078@gmail.com");
+const SQLM=m=>toast(/relation|does not exist|schema cache/i.test(m||"")?"Pehle Supabase SQL chalao":"Nahi hua: "+String(m||"").slice(0,40));
+let PERM=null,FV=[],FT="g",NAV=0,LV=(s=>s==null?100:+s)(localStorage.nx_lv);
+const AUR=/\.(mp3|m4a|aac|wav|ogg|opus|flac|mp4|webm)(\?|#|$)/i;
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#nxlp{position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:-1;overflow:hidden}
+#lq{display:none!important}
+body[data-wtm=listen] #nzf,body[data-wtm=listen] #nzo{display:none!important}
+#nxmb{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin:8px 0}
+.nxmr{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.nxmc{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.nxmc .av{width:34px;height:34px;font-size:12px}.nxmc em{font-style:normal;font-size:11px;color:var(--mu)}
+#nxpt{margin:12px 0}#nxpt button{font-size:12px}
+.nxfr{display:flex;align-items:center;gap:8px;padding:10px 4px;border-top:1px solid var(--ln)}
+.nxfr b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.nxfr small{color:var(--mu);font-weight:400}
+.nxnp{display:grid;place-items:center;align-content:center;gap:6px;width:100%;height:100%;padding:10px;text-align:center;background:linear-gradient(135deg,#1c2268,#3b2a70)}
+.nxnp span{font-size:38px}.nxnp small{color:#b6c0ee}
+#nxbb{position:fixed;right:14px;bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:8450;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#6a7fd6,#8b78d2);color:#fff;font-size:24px;box-shadow:0 12px 26px -8px rgba(110,120,220,.8)}
+#nxbb.pl{animation:nxsp 3s linear infinite}@keyframes nxsp{to{transform:rotate(360deg)}}
+#nxwa .nxwr:first-child,#nxwcv{display:none!important}`}));
+
+/* ================= FAVOURITES ================= */
+async function perm(){if(ADM())return PERM={allowed:true,unlimited:true,can_global:true};try{const r=await sb.from("nx_fav_perm").select("*").eq("user_id",ME()).maybeSingle();PERM=r.data||{allowed:false}}catch(_){PERM={allowed:false}}return PERM}
+async function loadFav(){try{const r=await sb.from("nx_fav").select("*").order("created_at",{ascending:false}).limit(400);if(r.error)return SQLM(r.error.message);FV=r.data||[]}catch(_){FV=[]}paintFav()}
+const kind=()=>WT&&WT.mode==="listen"?"listen":"watch";
+function favHTML(){const me=ME(),l=FV.filter(f=>f.kind===kind()&&(FT==="g"?f.scope==="global":f.owner===me));
+ return'<div class="seg"><button class="'+(FT==="g"?"on":"")+'" data-fv="tg">Global</button><button class="'+(FT!=="g"?"on":"")+'" data-fv="tm">Mine</button></div>'
+ +(l.length?l.map(f=>'<div class="nxfr"><b data-fv="play" data-id="'+f.id+'">'+E(f.name)+'</b>'+(f.owner===me?'<button class="ib" data-fv="edit" data-id="'+f.id+'" aria-label="Edit">\u270E</button>':'')+'</div>').join(""):'<div class="pw" style="padding:12px">Abhi kuch nahi hai</div>')}
+function paintFav(){const e=$$("nxfp");if(e)e.innerHTML=favHTML()}
+const cgOk=()=>ADM()||(PERM&&PERM.can_global);
+W.nxFavAdd=async()=>{const p=await perm();if(!p.allowed)return toast("Admin ne favourite ki permission nahi di");
+ const u=(WT&&WT.src)||(($$("wtU")||{}).value||"").trim();if(!u||!/^https?:/i.test(u))return toast("Pehle koi link chalao");W.__fu=u;
+ openModal('<h3>Add to favourites</h3><input id="nxfn" maxlength="60" placeholder="Is link ka naam (zaroori)"><div class="seg" id="nxfs"><button class="on" data-s="private">Private</button>'+(cgOk()?'<button data-s="global">Global</button>':'')+'</div><button class="btn pri wide" style="margin-top:12px" onclick="nxFA()">Save</button><button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>')};
+W.nxFA=async()=>{const n=($$("nxfn").value||"").trim(),s=tf(()=>$$("nxfs").querySelector(".on").dataset.s)||"private";if(!n)return toast("Naam likhna zaroori hai");
+ if(!FV.length)await loadFav();if(!ADM()&&PERM&&!PERM.unlimited&&FV.filter(f=>f.owner===ME()).length>=30)return toast("Limit 30 poori ho gayi");
+ const r=await sb.from("nx_fav").insert({owner:ME(),kind:kind(),scope:s,name:n.slice(0,60),url:W.__fu});if(r.error)return SQLM(r.error.message);closeModal();toast("Favourite me add ho gaya");loadFav()};
+W.nxFE=id=>{const f=FV.find(x=>x.id===id);if(!f)return;W.__fe=f;
+ openModal('<h3>Favourite</h3><input id="nxfn" maxlength="60" value="'+E(f.name)+'" placeholder="Naam"><div class="seg" id="nxfs"><button data-s="private" class="'+(f.scope!=="global"?"on":"")+'">Private</button>'+(cgOk()||f.scope==="global"?'<button data-s="global" class="'+(f.scope==="global"?"on":"")+'">Global</button>':'')+'</div><div class="grid" style="margin-top:12px"><button class="btn red" onclick="nxFD()">Delete</button><button class="btn pri" onclick="nxFS()">Save</button></div><button class="btn wide" style="margin-top:8px" onclick="closeModal()">Close</button>')};
+W.nxFS=async()=>{const f=W.__fe,n=($$("nxfn").value||"").trim(),s=tf(()=>$$("nxfs").querySelector(".on").dataset.s)||f.scope;if(!n)return toast("Naam likhna zaroori hai");
+ const r=await sb.from("nx_fav").update({name:n.slice(0,60),scope:s}).eq("id",f.id);if(r.error)return SQLM(r.error.message);closeModal();loadFav()};
+W.nxFD=async()=>{const r=await sb.from("nx_fav").delete().eq("id",W.__fe.id);if(r.error)return SQLM(r.error.message);closeModal();toast("Hata diya");loadFav()};
+D.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#nxfs button");if(t)t.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===t));
+ const b=e.target.closest&&e.target.closest("#nxfp [data-fv]");if(!b)return;const a=b.dataset.fv;
+ if(a==="tg"||a==="tm"){FT=a==="tg"?"g":"m";return paintFav()}
+ if(a==="edit")return nxFE(b.dataset.id);
+ if(a==="play"){const f=FV.find(x=>x.id===b.dataset.id);if(f&&WT)wtLoad(f.url,1)}});
+
+/* ---- admin: per-user favourite control ---- */
+let AU=null;
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#nxadm2 [data-a=open]");if(b)AU=b.dataset.id},true);
+const admH=(p,l)=>'<div class="a2g">Favourites</div><div class="card a2d"><div class="pr"><div class="t"><b>Favourite allowed</b></div><button class="tg2'+(p.allowed?" on":"")+'" data-af="allowed" aria-label="Allowed"><i></i></button></div><div class="seg" style="margin:8px 0"><button class="'+(p.unlimited?"on":"")+'" data-af="unl1">Unlimited</button><button class="'+(!p.unlimited?"on":"")+'" data-af="unl0">Limit 30</button></div><div class="pr"><div class="t"><b>Can make Global</b></div><button class="tg2'+(p.can_global?" on":"")+'" data-af="can_global" aria-label="Global"><i></i></button></div>'
+ +l.map(f=>'<div class="nxfr"><b>'+E(f.name)+' <small>'+f.scope+' / '+f.kind+'</small></b><button class="ib del" data-af="rm" data-id="'+f.id+'" aria-label="Remove">\u2715</button></div>').join("")+'</div>';
+async function admFav(){const box=D.querySelector("#nxadm2 .a2b"),d=box&&box.querySelector(".a2d");if(!box||!AU||!d||$$("nxaf"))return;
+ const el=D.createElement("div");el.id="nxaf";el.dataset.u=AU;d.after(el);let p={allowed:false,unlimited:true,can_global:false},l=[];
+ try{p=Object.assign(p,(await sb.from("nx_fav_perm").select("*").eq("user_id",AU).maybeSingle()).data||{});l=(await sb.from("nx_fav").select("*").eq("owner",AU)).data||[]}catch(_){}
+ el._p=p;el._l=l;el.innerHTML=admH(p,l)}
+D.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#nxaf [data-af]");if(!b)return;const box=$$("nxaf"),u=box.dataset.u,a=b.dataset.af;
+ if(a==="rm"){const r=await sb.from("nx_fav").delete().eq("id",b.dataset.id);if(r.error)return toast("Nahi hua");box._l=box._l.filter(f=>f.id!==b.dataset.id);box.innerHTML=admH(box._p,box._l);return toast("Remove ho gaya")}
+ const p=box._p;if(a==="unl1")p.unlimited=true;else if(a==="unl0")p.unlimited=false;else p[a]=!p[a];
+ const r=await sb.from("nx_fav_perm").upsert({user_id:u,allowed:!!p.allowed,unlimited:!!p.unlimited,can_global:!!p.can_global,updated_at:new Date().toISOString()});
+ if(r.error)return SQLM(r.error.message);toast("Saved");box.innerHTML=admH(p,box._l)});
+let aq=0;new MutationObserver(()=>{if(aq||!$$("nxadm2"))return;aq=requestAnimationFrame(()=>{aq=0;tf(admFav)})}).observe(D.body,{childList:true,subtree:true});
+
+/* ================= LISTEN ENGINE (keeps playing in background) ================= */
+const box=()=>$$("nxlp")||(D.body.insertAdjacentHTML("beforeend",'<div id="nxlp"></div>'),$$("nxlp"));
+const TT={};const ttl=u=>{if(TT[u])return TT[u];TT[u]=ytId(u)?"YouTube video":(u.split("?")[0].split("/").pop()||u);if(ytId(u))fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent(u)).then(r=>r.json()).then(j=>{if(j&&j.title)TT[u]=j.title}).catch(()=>{});return TT[u]};
+function lsKill(){tf(()=>WT&&WT.pl&&WT.pl.kill());const b=$$("nxlp");if(b)b.innerHTML=""}
+const vol=()=>tf(()=>WT&&WT.pl&&WT.pl.vol&&WT.pl.vol(LV/100));
+async function lsPlay(u){const w=WT;if(!w)return;lsKill();w.pl=null;w.src=u;w.srcs=w.srcs||{};w.srcs.listen=u;const b=box(),id=ytId(u);
+ if(id){await ytLoad();if(WT!==w||!(W.YT&&YT.Player))return;const d=D.createElement("div");b.appendChild(d);
+  const yp=new YT.Player(d,{width:"200",height:"200",videoId:id,playerVars:{playsinline:1,rel:0},events:{
+   onReady:()=>{w.rdy=1;vol();w.pend&&wtApply(w,w.pend);tf(()=>yp.playVideo())},
+   onStateChange:e=>{if(e.data===0){const i=w.qi;w.qi=-1;setTimeout(()=>{w.qi=i;lsEnd()},0)}else if(!w.ap&&(e.data===1||e.data===2))wtSend(w)}}});
+  w.pl={play:()=>yp.playVideo(),pause:()=>yp.pauseVideo(),seek:t=>yp.seekTo(t,true),time:()=>yp.getCurrentTime?yp.getCurrentTime():0,playing:()=>{const s=yp.getPlayerState&&yp.getPlayerState();return s===1||s===3},vol:v=>tf(()=>yp.setVolume(v*100)),kill:()=>{try{yp.destroy()}catch(_){}}}}
+ else{const a=D.createElement("audio");a.src=u;a.setAttribute("playsinline","");b.appendChild(a);
+  ["play","pause","seeked"].forEach(k=>a.addEventListener(k,()=>{if(!w.ap)wtSend(w)}));a.onended=lsEnd;a.onerror=()=>toast("Ye link audio ki tarah nahi khula");
+  a.addEventListener("loadedmetadata",()=>w.pend&&wtApply(w,w.pend));a.play().catch(()=>{});
+  w.pl={play:()=>a.play().catch(()=>{}),pause:()=>a.pause(),seek:t=>{a.currentTime=t},time:()=>a.currentTime||0,playing:()=>!a.paused,vol:v=>{a.volume=v},kill:()=>{a.pause();a.removeAttribute("src");a.load()}};vol()}
+ paintQ()}
+function lsEnd(){const w=WT;if(!w||w.mode!=="listen")return;const i=w.qi,go=()=>{if(WT===w&&w.qi===i&&w.q&&i+1<w.q.length){w.qi=i+1;lsPlay(w.q[w.qi].u);w.tx({t:"q",q:w.q,i:w.qi})}};w.host?go():setTimeout(go,2500)}
+function lsGo(d){const w=WT;if(!w||!w.q||!w.q.length)return;if(wtLock(w))return toast("Sirf host gaana badal sakta hai");const n=(w.qi==null?-1:w.qi)+d;if(n<0||n>=w.q.length)return;w.qi=n;lsPlay(w.q[n].u);w.tx({t:"q",q:w.q,i:n})}
+function lsDel(k){const w=WT;if(!w||wtLock(w))return;const was=k===w.qi;w.q.splice(k,1);if(k<w.qi)w.qi--;else if(was&&w.qi>=w.q.length)w.qi=w.q.length-1;
+ if(was){if(w.q.length)lsPlay(w.q[w.qi].u);else{lsKill();w.pl=null;w.src=null;w.qi=-1}}w.tx({t:"q",q:w.q,i:w.qi});paintQ()}
+async function expand(id){await ytLoad();return new Promise(res=>{const d=D.createElement("div");d.style.cssText="position:fixed;left:-9999px;width:10px;height:10px";D.body.appendChild(d);let done=0,n=0,p;
+ const fin=l=>{if(done)return;done=1;try{p&&p.destroy()}catch(_){}d.remove();res(l||[])};
+ p=new YT.Player(d,{width:"10",height:"10",playerVars:{listType:"playlist",list:id},events:{onReady:e=>{const t=setInterval(()=>{let l=null;try{l=e.target.getPlaylist()}catch(_){}if(l&&l.length){clearInterval(t);fin(l)}else if(++n>16){clearInterval(t);fin([])}},500)},onError:()=>fin([])}});setTimeout(()=>fin([]),12000)})}
+async function lsAdd(u){const w=WT;if(!w)return;u=String(u||"").trim();if(!/^https?:\/\//i.test(u))return toast("Poora link daalo (https://...)");if(wtLock(w))return toast("Sirf host gaana badal sakta hai");
+ let items=[{u}];const m=/[?&]list=([\w-]+)/.exec(u);
+ if(m&&!ytId(u)){toast("Playlist load ho rahi hai...");const ids=await expand(m[1]);if(!ids.length)return toast("Playlist nahi padh paye");items=ids.slice(0,50).map(i=>({u:"https://youtu.be/"+i}))}
+ else if(!ytId(u)&&!AUR.test(u))return toast("YouTube ya direct audio link do");
+ w.q=(w.q||[]).concat(items).slice(0,60);const first=w.qi==null||w.qi<0;if(first)w.qi=0;w.tx({t:"q",q:w.q,i:w.qi});if(first)lsPlay(w.q[0].u);paintQ();const i=$$("wtU");if(i)i.value=""}
+const _wl=wtLoad;
+wtLoad=function(u,send){const w=WT;if(w&&w.mode==="listen"){if(send)return lsAdd(u);if(w.pl&&w.src===u)return;return lsPlay(u)}return _wl.apply(this,arguments)};
+const _wm=wtMsg;
+wtMsg=function(w,m){if(WT===w&&m&&m.from!==S.user.id&&m.t==="q"){const o=w.qi,x=m.q&&m.q[m.i];w.q=m.q||[];w.qi=m.i==null?-1:m.i;paintQ();if(w.mode==="listen"&&x&&(w.qi!==o||w.src!==x.u||!w.pl))lsPlay(x.u);return}return _wm.apply(this,arguments)};
+const _wc=wtClose;
+wtClose=function(){if(NAV)return;const had=!!(WT&&WT.mode==="listen");const r=_wc.apply(this,arguments);if(had)lsKill();return r};
+const _go=go;
+go=function(p){NAV=(p!=="watch"&&WT&&WT.mode==="listen"&&WT.pl&&WT.pl.playing())?1:0;try{return _go.apply(this,arguments)}finally{NAV=0}};
+
+/* ---- floating music bubble ---- */
+function bub(){let b=$$("nxbb");const on=!!(WT&&WT.mode==="listen"&&WT.pl&&S.page!=="watch"&&S.user);
+ if(!on){if(b)b.remove();return}
+ if(!b){D.body.insertAdjacentHTML("beforeend",'<button id="nxbb" aria-label="Music">\u266A</button>');b=$$("nxbb");b.onclick=()=>{const w=WT;if(!w)return;
+  openModal('<h3>Listen Together</h3><p class="sub">'+E(ttl(w.src||""))+'</p><div class="grid"><button class="btn pri" onclick="nxBb(\'pp\')">Pause / Play</button><button class="btn" onclick="nxBb(\'n\')">Next</button></div><button class="btn wide" style="margin-top:10px" onclick="nxBb(\'o\')">Open room</button><button class="btn red wide" style="margin-top:10px" onclick="nxBb(\'x\')">Stop and remove</button><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>')}}
+ b.classList.toggle("pl",!!tf(()=>WT.pl.playing()))}
+W.nxBb=a=>{const w=WT;if(!w)return closeModal();
+ if(a==="pp"){closeModal();if(wtLock(w))return toast("Sirf host control kar sakta hai");tf(()=>w.pl&&(w.pl.playing()?w.pl.pause():w.pl.play()))}
+ else if(a==="n"){closeModal();lsGo(1)}
+ else if(a==="o"){closeModal();wtView(w)}
+ else if(a==="x"){closeModal();tf(()=>w.pl&&w.pl.pause());lsKill();w.pl=null;w.src=null;tf(()=>w.tx({t:"st",p:0,time:0,h:1}));bub()}};
+
+/* ================= WATCH / LISTEN PAGE (organised) ================= */
+const mem=()=>{const w=WT,c=(n,b)=>'<span class="nxmc"><i class="av">'+E(ini(n))+'</i>'+E(n)+'<em>'+b+'</em></span>';
+ return'<div class="nxmr">'+c(myName(),w.host?"You \u00b7 Host":"You")+(w.joined?c(w.oppName||"Friend",w.host?"Guest":"Host"):'<span class="pw">Dost ka intezar\u2026</span>')+'</div><button class="ib gmic" onclick="nxConn()" aria-label="Connect">'+micI()+'</button>'};
+W.nxConn=()=>{const w=WT;if(!w||!w.joined)return toast("Dost abhi room me nahi aaya");if(C&&C.st==="on")return toggleMute();
+ openModal('<h3>Connect</h3><p class="sub">'+E(w.oppName)+' ke saath</p><div class="grid"><button class="btn pri" onclick="nxCv()">Voice</button><button class="btn" onclick="nxCc()">Video</button></div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>')};
+W.nxCv=()=>{closeModal();if(WT)startCall(WT.oppId,WT.oppName,false,true)};
+W.nxCc=()=>{closeModal();if(WT)vidCall(WT.oppId,WT.oppName)};
+const _oo=onOffer;
+onOffer=function(p){const w=WT;if(p&&p.auto&&w&&w.joined&&w.oppId===p.from&&!C&&PR.calls&&!isEnded(p.id)){const c=C={id:p.id,uid:p.from,name:p.name||"Caller",st:"ringing",sdp:p.sdp,q:PRE[p.id]||[]};delete PRE[p.id];sig({type:"ring",to:p.from,id:c.id});c.auto=true;c.to=setTimeout(()=>{if(C===c&&c.st==="ringing"){sig({type:"end",to:c.uid,id:c.id});endCall(1)}},12e4);autoJoin(c);return}return _oo.apply(this,arguments)};
+function showP(k){const t=$$("nxpt"),p=$$("nxpn");if(!t||!p)return;t.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.pn===k));p.querySelectorAll("[data-p]").forEach(d=>d.style.display=d.dataset.p===k?"":"none");if(k==="f"){paintFav();loadFav();perm()}}
+D.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#nxpt [data-pn]");if(t)showP(t.dataset.pn)});
+function org(){if(S.page!=="watch"||!WT){delete D.body.dataset.wtm;return}const pg=D.querySelector("#main .pg");if(!pg||!$$("wtS")||!$$("wtU")||!$$("wtL"))return;
+ D.body.dataset.wtm=WT.mode||"watch";
+ const h2=pg.querySelector("h2");if(h2&&!$$("nxmb"))h2.insertAdjacentHTML("afterend",'<div id="nxmb" class="card"></div>');
+ const mb=$$("nxmb"),hh=mem();if(mb&&mb._h!==hh){mb._h=hh;mb.innerHTML=hh}
+ const row=$$("wtU").parentElement;
+ if(!$$("nxfb"))row.insertAdjacentHTML("beforeend",'<button class="ib" id="nxfb" onclick="nxFavAdd()" aria-label="Add to favourites">\u2605</button>');
+ if(!$$("nxpn")){const chat=$$("wtL").closest(".card");
+  row.insertAdjacentHTML("afterend",'<div class="seg" id="nxpt"><button data-pn="c" class="on">Chat</button><button data-pn="f">Favourites</button><button data-pn="r">Room</button><button data-pn="s">Settings</button></div><div id="nxpn"><div data-p="c"></div><div data-p="f" id="nxfp" style="display:none"></div><div data-p="r" style="display:none"></div><div data-p="s" style="display:none"></div></div>');
+  const q=k=>$$("nxpn").querySelector('[data-p="'+k+'"]');q("c").appendChild(chat);
+  q("r").innerHTML='<div class="card" style="padding:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px"><span>Room code <b style="letter-spacing:4px">'+E(WT.code)+'</b></span><button class="btn" onclick="wtAddUI()">Invite</button></div><div class="lbl">Who can control</div><div id="nxrc"></div><button class="btn red wide" style="margin-top:12px" onclick="wtClose();go(\'connect\')">Leave room</button>';
+  q("r").querySelector("#nxrc").appendChild($$("wtS"));
+  q("s").innerHTML='<div class="card" style="padding:14px;margin-bottom:10px"><div class="lbl" style="margin-top:0">Song volume (Listen)</div><input id="nxlv" type="range" min="0" max="100" value="'+LV+'" style="padding:0;height:30px;margin:0" aria-label="Song volume"></div>';
+  $$("nxlv").oninput=e=>{LV=+e.target.value;try{localStorage.nx_lv=LV}catch(_){}vol()}}
+ const wa=$$("nxwa"),sp=$$("nxpn")&&$$("nxpn").querySelector('[data-p="s"]');if(wa&&sp&&!wa.dataset.mv){wa.dataset.mv=1;sp.appendChild(wa)}
+ const wrap=$$("wtV")&&$$("wtV").parentElement;if(wrap)wrap.classList.toggle("lst",WT.mode==="listen")}
+function paintNow(){const v=$$("wtV");if(!v||!WT||WT.mode!=="listen")return;const w=WT,q=w.q||[],x=q[w.qi==null?-1:w.qi],
+ h='<div class="nxnp"><span>\u266A</span><b>'+E(x?ttl(x.u):"Koi gaana nahi")+'</b><small>'+(w.pl&&w.pl.playing()?"Playing":"Add a link and press Add")+'</small></div>';if(v._np!==h){v._np=h;v.innerHTML=h}}
+function paintQ(){let e=$$("nxq");const w=WT;if(!w||S.page!=="watch"||w.mode!=="listen"){if(e)e.remove();return}
+ if(!e){const n=$$("wtN");if(!n)return;n.insertAdjacentHTML("beforebegin",'<div id="nxq" class="card" style="padding:10px;margin-top:10px;max-height:240px;overflow:auto"></div>');e=$$("nxq")}
+ const q=w.q||[],i=w.qi==null?-1:w.qi,h='<div class="lqh"><b>Queue ('+q.length+')</b><span><button class="btn" data-q="p">Prev</button><button class="btn" data-q="pp">Play/Pause</button><button class="btn" data-q="n">Next</button></span></div>'
+  +q.map((x,k)=>'<div class="lqi'+(k===i?" on":"")+'" data-k="'+k+'"><span>'+(k===i?"\u25B6":k+1)+'</span><b>'+E(ttl(x.u))+'</b><button data-x="'+k+'" aria-label="Remove">\u2715</button></div>').join("");
+ if(e._h!==h){e._h=h;e.innerHTML=h}}
+D.addEventListener("click",e=>{const z=e.target.closest&&e.target.closest("#nxq");if(!z||!WT)return;
+ const x=e.target.closest("[data-x]");if(x)return lsDel(+x.dataset.x);
+ const a=e.target.closest("[data-q]");if(a){const d=a.dataset.q;if(d==="n")return lsGo(1);if(d==="p")return lsGo(-1);if(wtLock(WT))return toast("Sirf host control kar sakta hai");return tf(()=>WT.pl&&(WT.pl.playing()?WT.pl.pause():WT.pl.play()))}
+ const k=e.target.closest("[data-k]");if(k&&!wtLock(WT)){WT.qi=+k.dataset.k;lsPlay(WT.q[WT.qi].u);WT.tx({t:"q",q:WT.q,i:WT.qi})}});
+setInterval(()=>{if(!S.user)return;tf(org);tf(paintNow);tf(paintQ);tf(bub)},600);
+console.log("[NX-V41-FAV-LISTEN] ready");
+})();
+
+</script>
 </body></html>
