@@ -6067,4 +6067,59 @@ D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
 console.log("[NX-WATCH-NZ-V1] ready");
 })();
 </script>
+
+<script>
+/* NX-WATCH-SOLO-PATCH v1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-wsolo",e)}catch(_){}}};
+let PCH=null,PST={},HOST=false;const ASK={};
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#wtb{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--ln);background:linear-gradient(90deg,rgba(255,91,138,.16),rgba(255,138,91,.1));flex:none}#wtb .wtd{width:10px;height:10px;border-radius:50%;background:#ff5b8a;box-shadow:0 0 10px #ff5b8a;flex:none;animation:bl 1.6s infinite}#wtb .wtt{flex:1;min-width:0}#wtb .wtt b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#wtb .wtt small{color:var(--mu);font-size:12px}#wtb .btn{min-height:36px;padding:0 14px;font-size:13px}"}));
+
+/* 1. presence: "I am in Watch Together" (only name + id, room code stays private) */
+function adv(on){HOST=!!on;if(!PCH)return;tf(()=>{Promise.resolve(on?PCH.track({id:S.user.id,name:myName(),t:Date.now()}):PCH.untrack()).catch(()=>{})})}
+function startP(){if(!S.user||PCH)return;const ch=PCH=sb.channel("nx-wt-live",{config:{presence:{key:S.user.id}}});
+ ch.on("presence",{event:"sync"},()=>{const m={};Object.values(ch.presenceState()).flat().forEach(x=>{if(x&&x.id&&x.id!==S.user.id)m[x.id]=x});PST=m;paint()});
+ ch.subscribe(s=>{if(s==="SUBSCRIBED"&&HOST)adv(true)})}
+function stopP(){if(!PCH)return;tf(()=>sb.removeChannel(PCH));PCH=null;PST={};paint()}
+setInterval(()=>{if(S.user&&!PCH)startP();else if(!S.user&&PCH)stopP()},1500);
+
+/* 2. host side: advertise while a Watch Together room is open */
+const _wo=wtOpen;
+wtOpen=async function(code,host){const r=await _wo.apply(this,arguments);if(host&&WT&&WT.code===code)adv(true);return r};
+const _wc=wtClose;
+wtClose=function(){const r=_wc.apply(this,arguments);adv(false);return r};
+
+/* 3. solo button in the Watch Together menu */
+window.nxWtSolo=()=>{closeModal();const code=Math.random().toString(36).slice(2,8).toUpperCase();wtOpen(code,true);toast("Room ready. Friends can ask to join from your chat")};
+const _wm=wtMenu;
+wtMenu=function(){_wm.apply(this,arguments);tf(()=>{const m=$("md"),p=m&&m.querySelector("p.sub");if(p&&!m.querySelector(".nxsolo"))p.insertAdjacentHTML("afterend",'<button class="btn pri wide nxsolo" style="margin-bottom:10px" onclick="nxWtSolo()">Watch alone (friends can ask to join)</button>')})};
+
+/* 4. friend side: banner inside the chat + Ask to join */
+function paint(){let b=$("wtb");const c=(S.page==="chat"&&S.chat)?S.chat:null,p=c&&PST[c.uid];
+ if(!p||WT){if(b)b.remove();return}
+ const h=D.querySelector("#main .pg.chat .ch");if(!h){if(b)b.remove();return}
+ const sent=!!(ASK[c.uid]&&Date.now()-ASK[c.uid]<30000),k=c.uid+(sent?"1":"0");
+ if(b&&b.dataset.k===k&&b.previousElementSibling===h)return;if(b)b.remove();
+ h.insertAdjacentHTML("afterend",'<div id="wtb" data-k="'+k+'"><i class="wtd"></i><div class="wtt"><b>'+esc(dn(c.uid,c.name))+'</b><small>is in Watch Together</small></div><button class="btn pri" '+(sent?"disabled":"")+' onclick="nxWtAsk()">'+(sent?"Request sent":"Ask to join")+'</button></div>')}
+setInterval(()=>{if(S.user)paint()},1000);
+window.nxWtAsk=()=>{const c=S.chat;if(!c)return;if(!PST[c.uid])return toast("Your friend is not in Watch Together now");
+ ASK[c.uid]=Date.now();sig({type:"wtjreq",to:c.uid,name:myName()});toast("Request sent");paint()};
+
+/* 5. host side: accept / decline, then the friend enters */
+window.nxWtAcc=ok=>{const p=S.wjr;S.wjr=null;closeModal();if(!p)return;const W=WT;
+ if(!ok||!W||!W.host||W.joined){sig({type:"wtjdec",to:p.from,why:(ok&&W&&W.joined)?"busy":""});return}
+ sig({type:"wtjacc",to:p.from,code:W.code,name:myName()});W.oppId=p.from;W.oppName=p.name||"Friend";toast((p.name||"Friend")+" is joining")};
+const _os=onSig;
+onSig=function(p){if(p){
+ if(p.type==="wtjreq"){
+  if(!WT||!WT.host||!PR.inv||WT.joined){sig({type:"wtjdec",to:p.from,why:(WT&&WT.joined)?"busy":""});return}
+  S.wjr=p;sfx("ring");vib([80,40,80]);
+  openModal('<h3>Watch Together</h3><p class="sub">'+esc(p.name||"A friend")+' wants to join your Watch Together.</p><div class="grid"><button class="btn" onclick="nxWtAcc(0)">Decline</button><button class="btn pri" onclick="nxWtAcc(1)">Accept</button></div>');return}
+ if(p.type==="wtjacc"){
+  if(!ASK[p.from]||WT)return;delete ASK[p.from];closeModal();wtOpen(p.code,false,{id:p.from,name:p.name||"Friend"});toast("Joining Watch Together");return}
+ if(p.type==="wtjdec"){delete ASK[p.from];toast(p.why==="busy"?"The room already has 2 people":"Request declined");paint();return}}
+ return _os.apply(this,arguments)};
+})();
+
+</script>
 </body></html>
