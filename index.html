@@ -6556,4 +6556,67 @@ setInterval(()=>{if(hh||!S.user)return;const sh=$$("shell");if(!sh||sh.classList
   const x=()=>{e.classList.remove("on");setTimeout(()=>e.remove(),500)};e.onclick=x;setTimeout(x,8000)},1500)},1000);
 })();
 </script>
+<script>
+/* NX-LISTEN-SEEK-PATCH v1 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("nx-seek",e)}catch(_){}}};
+const $$=i=>D.getElementById(i);
+const fmt=s=>{s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),c=String(s%60).padStart(2,"0");return h?h+":"+String(m).padStart(2,"0")+":"+c:m+":"+c};
+
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#nxls .nxlr{display:flex;align-items:center;gap:8px}
+#nxls button{flex:none;min-width:48px;min-height:38px;padding:0 10px;border-radius:12px;background:#182234;border:1px solid var(--ln);color:#dfe5ff;font-weight:800;font-size:13px}
+#nxls button:active{transform:scale(.95)}
+#nxls span{flex:none;min-width:40px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums;color:#c3cadd}
+#nxls input[type=range]{flex:1;min-width:0;margin:0;padding:0;height:30px;border:0;background:transparent;accent-color:#8fa2f0}
+#nxbb{touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab}`}));
+
+/* ---------- 1. Listen: seek slider with time and +/-10 s ---------- */
+/* capture the hidden YouTube player so we can read its length */
+setInterval(()=>{if(W.YT&&YT.Player&&!YT._xs){YT._xs=1;const P0=YT.Player,F=function(el,o){const p=new P0(el,o);try{if(el&&el.closest&&el.closest("#nxlp"))W.__nxLP=p}catch(_){}return p};F.prototype=P0.prototype;YT.Player=F}},700);
+const audioEl=()=>{const b=$$("nxlp");return b&&b.querySelector("audio")};
+function dur(){const a=audioEl();if(a)return isFinite(a.duration)?a.duration:0;const p=W.__nxLP;try{const d=p&&p.getDuration&&p.getDuration();return d>0?d:0}catch(_){return 0}}
+function seekTo(t){const w=WT;if(!w||!w.pl)return;
+ if(tf(()=>wtLock(w)))return toast("Only the host can change the time");
+ const d=dur();t=Math.max(0,d?Math.min(d-.5,t):t);
+ tf(()=>w.pl.seek(t));w.lt=null;
+ tf(()=>w.tx({t:"st",p:w.pl.playing()?1:0,time:t,h:0}))}
+const now=()=>tf(()=>WT.pl.time())||0;
+let sk=0;
+function bind(){const r=$$("nxlsr");
+ r.oninput=()=>{sk=1;$$("nxlc").textContent=fmt(+r.value)};
+ r.onchange=()=>{seekTo(+r.value);sk=0};
+ $$("nxlb").onclick=()=>seekTo(now()-10);
+ $$("nxlf").onclick=()=>seekTo(now()+10)}
+function mount(){const w=WT,v=$$("wtV");let e=$$("nxls");
+ if(!w||S.page!=="watch"||w.mode!=="listen"||!v){if(e)e.style.display="none";return}
+ const wrap=v.parentElement;if(!wrap)return;
+ if(!e){wrap.insertAdjacentHTML("afterend",'<div id="nxls" class="card" style="padding:10px 12px;margin-top:10px"><div class="nxlr"><button id="nxlb" aria-label="Back 10 seconds">-10</button><span id="nxlc">0:00</span><input id="nxlsr" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><span id="nxld">0:00</span><button id="nxlf" aria-label="Forward 10 seconds">+10</button></div></div>');e=$$("nxls");bind()}
+ else if(e.previousElementSibling!==wrap)wrap.after(e);
+ e.style.display="";
+ const d=dur(),r=$$("nxlsr"),c=now();
+ $$("nxld").textContent=d?fmt(d):"--:--";
+ if(!sk)$$("nxlc").textContent=fmt(c);
+ r.disabled=!d||!w.pl;
+ if(d){r.max=d;if(!sk)r.value=c}}
+setInterval(()=>{if(S.user)tf(mount)},400);
+
+/* ---------- 2. Music bubble: drag it anywhere on the screen ---------- */
+let dg=null,lastDrag=0;
+const bbPos=()=>{try{return JSON.parse(localStorage.getItem("nx_bbp"))}catch(_){return null}};
+const clampP=(b,x,y)=>{const w=b.offsetWidth||54,h=b.offsetHeight||54,m=4;return{x:Math.max(m,Math.min(innerWidth-w-m,x)),y:Math.max(m,Math.min(innerHeight-h-m,y))}};
+function place(b,x,y){const p=clampP(b,x,y);b.style.left=p.x+"px";b.style.top=p.y+"px";b.style.right="auto";b.style.bottom="auto";return p}
+D.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest("#nxbb");if(!b)return;
+ dg={b,id:e.pointerId,sx:e.clientX,sy:e.clientY,ox:b.offsetLeft,oy:b.offsetTop,m:0};try{b.setPointerCapture(e.pointerId)}catch(_){}},true);
+D.addEventListener("pointermove",e=>{if(!dg||e.pointerId!==dg.id)return;const dx=e.clientX-dg.sx,dy=e.clientY-dg.sy;
+ if(!dg.m&&Math.hypot(dx,dy)<6)return;dg.m=1;if(e.cancelable)e.preventDefault();place(dg.b,dg.ox+dx,dg.oy+dy)},true);
+const end=e=>{if(!dg||e.pointerId!==dg.id)return;const g=dg;dg=null;
+ if(g.m){lastDrag=Date.now();try{localStorage.setItem("nx_bbp",JSON.stringify({x:g.b.offsetLeft,y:g.b.offsetTop}))}catch(_){}}};
+["pointerup","pointercancel"].forEach(v=>D.addEventListener(v,end,true));
+D.addEventListener("click",e=>{if(Date.now()-lastDrag<400&&e.target.closest&&e.target.closest("#nxbb")){e.stopImmediatePropagation();e.preventDefault()}},true);
+setInterval(()=>{const b=$$("nxbb");if(!b)return;
+ if(!b.dataset.xp){b.dataset.xp=1;const p=bbPos();if(p)place(b,p.x,p.y);return}
+ if(!dg&&b.style.left){const c=clampP(b,b.offsetLeft,b.offsetTop);if(Math.abs(c.x-b.offsetLeft)>1||Math.abs(c.y-b.offsetTop)>1)place(b,c.x,c.y)}},400);
+})();
+</script>
 </body></html>
