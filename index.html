@@ -6964,4 +6964,260 @@ console.log("[NX-MUSIC-PATCH v1] ready");
 })();
 
 </script>
+<script>
+
+/* NX-PATCH-V42 MUSIC-STORAGE-FILES */
+(()=>{
+const D=document,W=window,$$=i=>D.getElementById(i),tf=f=>{try{return f()}catch(e){try{console.warn("v42",e)}catch(_){}}};
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ME=()=>S.user&&S.user.id,ADM=()=>!!(S.user&&S.user.email&&S.user.email.toLowerCase()==="surajpurve078@gmail.com");
+const fmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const hint=m=>/relation|does not exist|schema cache|policy|permission|column|function|admin only/i.test(m||"")?"Run the Supabase SQL first":String(m||"Failed").slice(0,60);
+const sz=n=>n>=1073741824?(n/1073741824).toFixed(2)+" GB":(n/1048576).toFixed(1)+" MB";
+const TY=[["","All"],["1","Soothing"],["2","Vibe"],["3","Energetic"]],TFULL={1:"Soothing / Peaceful",2:"Vibe / Chill",3:"Energetic / Hype"};
+const PLY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>',PAU='<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/></svg>';
+const lab=t=>{t=String(t||"");if(t.indexOf("NXM:")!==0)return t;try{const o=JSON.parse(t.slice(4)),n=String(o.n||"");if(/^OT\d+_/.test(n))return"One-time "+(o.k==="vid"?"video":"photo");return({img:"Photo",vid:"Video",gif:"GIF",aud:/voice_/.test(n)?"Voice message":"Audio",pdf:"PDF"})[o.k]||"File"}catch(_){return"Media"}};
+
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.orbs{display:none!important}
+.qc .gi,.pri::after,.top::after,.live i{animation:none!important}
+#nxwa,.card:has(#nxlv){display:none!important}
+.mp2r{display:flex;align-items:center;gap:8px}.mp2c{display:flex;flex-direction:column;gap:8px;flex:none}
+.mp2b{padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800;background:#182234;border:1px solid var(--ln);color:#c3cadd;white-space:nowrap}
+.mp2b.on{background:linear-gradient(135deg,#6a7fd6,#8b78d2);color:#fff;border-color:transparent}
+.mp2h{display:flex;gap:8px;overflow-x:auto;margin:10px 0}
+#mp2art .mpcd{width:min(46vw,210px)}
+.mmr{padding:10px 0;border-top:1px solid var(--ln)}.mmr b{display:block}.mmr small{color:var(--mu)}
+.mmt{display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap}
+.mmt button{min-width:34px;height:34px;padding:0 10px;border-radius:10px;background:#182234;border:1px solid var(--ln);font-size:12px;font-weight:800;color:#dfe5ff}
+.mmt .on{background:#6a7fd6;color:#fff}.mmt .rd{color:#ff8a98}
+.nxbar{height:10px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin:6px 0 4px}.nxbar i{display:block;height:100%;background:linear-gradient(90deg,#63c29c,#6a7fd6)}.nxbar.hi i{background:#ff6377}
+#nxmbb{position:fixed;right:14px;bottom:calc(214px + env(safe-area-inset-bottom,0px));z-index:8450;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1db97a,#2f9fd6);color:#fff;font-size:24px;box-shadow:0 12px 26px -8px rgba(30,150,200,.8)}
+#nxmbb.pl{animation:nxsp 3s linear infinite}
+#nxvol .nxvr{display:flex;align-items:center;gap:10px;padding:2px 0}#nxvol .nxvr span{width:46px;font-size:13px;font-weight:700}
+#nxvol input{flex:1;margin:0;padding:0;height:28px;border:0;background:transparent;accent-color:#8fa2f0}#nxvol b{width:40px;text-align:right;font-size:12px;color:#aab3ff}
+.qfc{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}`}));
+
+/* ================= 1. MUSIC (random player + View all + background play) ================= */
+const M={all:[],tab:"g",ty:"",mode:"r",q:[],hist:[],cur:null,want:false,t0:0,vol:+(localStorage.nx_mpv||80),names:{},err:"",ps:null,sk:0,yr:0,pend:null,bc:0,lt:0,yp:null};
+M.au=new Audio();M.au.setAttribute("playsinline","");
+const isY=f=>!!ytId(f.url);
+const pool=()=>M.all.filter(f=>(f.scope==="global"||f.owner===ME())&&(!M.ty||String(f.song_type)===M.ty));
+const lst=()=>M.all.filter(f=>(M.tab==="g"?f.scope==="global":M.tab==="m"?(f.owner===ME()&&f.scope!=="global"):(f.scope!=="global"&&f.owner!==ME()))&&(!M.ty||String(f.song_type)===M.ty));
+const yPl=()=>{const s=tf(()=>M.yp.getPlayerState());return s===1||s===3};
+const playing=()=>!!M.cur&&(isY(M.cur)?yPl():!M.au.paused);
+async function load(){let r;try{r=await sb.from("nx_fav").select("*").eq("kind","listen").order("created_at",{ascending:false}).limit(1000)}catch(e){r={error:e}}
+ M.err=r.error?String(r.error.message||"error"):"";M.all=r.error?[]:(r.data||[]);
+ const ids=[...new Set(M.all.filter(f=>f.owner!==ME()).map(f=>f.owner))];
+ if(ADM()&&ids.length)try{((await sb.from("profiles").select("id,username,display_name").in("id",ids)).data||[]).forEach(p=>M.names[p.id]=p.display_name||p.username)}catch(_){}
+ paintL();paintArt()}
+function ensureYP(){if(M.yp||!(W.YT&&YT.Player))return;
+ if(!$$("nxmp2"))D.body.insertAdjacentHTML("beforeend",'<div id="nxmp2" style="position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:-1;overflow:hidden"><div id="nxmpy"></div></div>');
+ M.yp=new YT.Player("nxmpy",{width:"200",height:"200",playerVars:{playsinline:1,rel:0},events:{
+  onReady:()=>{M.yr=1;tf(()=>M.yp.setVolume(M.vol));if(M.pend){const p=M.pend;M.pend=null;tf(()=>M.yp.loadVideoById(p))}},
+  onStateChange:e=>{if(e.data===0)nav(1);else if((e.data===5||e.data===2||e.data===-1)&&M.want&&Date.now()-M.t0<5000)tf(()=>M.yp.playVideo())},
+  onError:()=>bad()}})}
+function bad(){toast("This song could not play");if(++M.bc<5)setTimeout(()=>nav(1),700)}
+function meta(f){const ms=navigator.mediaSession;if(!ms)return;tf(()=>{ms.metadata=new MediaMetadata({title:f.name,artist:"ZNEXORA Music"});ms.setActionHandler("play",()=>tog());ms.setActionHandler("pause",()=>tog());ms.setActionHandler("nexttrack",()=>nav(1));ms.setActionHandler("previoustrack",()=>nav(-1))})}
+function kick(f){let n=0;const iv=setInterval(()=>{if(M.cur!==f||!M.want||++n>14)return clearInterval(iv);if(playing())return clearInterval(iv);tf(()=>isY(f)?(M.yr&&M.yp.playVideo()):M.au.play().catch(()=>{}))},500)}
+async function load1(f){M.cur=f;M.want=true;M.t0=Date.now();
+ tf(()=>WT&&WT.pl&&WT.pl.playing()&&WT.pl.pause());
+ if(isY(f)){M.au.pause();await ytLoad();if(M.cur!==f)return;ensureYP();const id=ytId(f.url);if(M.yr)tf(()=>M.yp.loadVideoById(id));else M.pend=id}
+ else{M.pend=null;tf(()=>M.yr&&M.yp.pauseVideo());M.au.onended=()=>nav(1);M.au.onerror=()=>bad();M.au.src=f.url;M.au.volume=M.vol/100;M.au.play().catch(()=>{})}
+ meta(f);paintArt();kick(f)}
+function nav(d){const l=M.mode==="r"?pool():M.q;if(!l.length)return toast("No songs yet");let f;
+ if(M.mode==="r"){if(d<0&&M.hist.length)f=M.hist.pop();else{if(M.cur&&d>0){M.hist.push(M.cur);if(M.hist.length>50)M.hist.shift()}const c=l.filter(x=>!M.cur||x.id!==M.cur.id),a=c.length?c:l;f=a[Math.floor(Math.random()*a.length)]}}
+ else{let i=l.findIndex(x=>M.cur&&x.id===M.cur.id)+d;if(i>=l.length)i=0;if(i<0)i=l.length-1;f=l[i]}
+ load1(f)}
+function tog(){if(!M.cur)return nav(1);if(playing()){M.want=false;tf(()=>isY(M.cur)?M.yp.pauseVideo():M.au.pause())}else{M.want=true;tf(()=>isY(M.cur)?M.yp.playVideo():M.au.play())}}
+function stop(){M.want=false;tf(()=>M.au.pause());tf(()=>M.yr&&M.yp.pauseVideo());M.cur=null;paintArt()}
+function slide(d){const el=$$("mp2art");if(!el)return nav(d);
+ el.style.transition="transform .18s ease,opacity .18s ease";el.style.transform="translateY("+(-d*38)+"px)";el.style.opacity="0";
+ setTimeout(()=>{nav(d);const e=$$("mp2art");if(!e)return;e.style.transition="none";e.style.transform="translateY("+(d*38)+"px)";void e.offsetWidth;e.style.transition="transform .3s cubic-bezier(.22,1,.36,1),opacity .3s ease";e.style.transform="";e.style.opacity="1"},190)}
+function build(){S.page="music2";
+ page(`<div class="mpx" id="mpx2"><button class="btn" data-m2="back">\u2039 Connect</button><h2 style="margin:12px 0 10px">Music</h2>
+<div class="mp2r"><div class="mpar" id="mp2a" style="flex:1;min-width:0"><div id="mp2art"><div class="mpcd" id="mp2cd"><div class="mpi" id="mp2i"></div></div><div class="mpt" id="mp2t"></div><div class="mps" id="mp2s"></div></div></div><div class="mp2c" id="mp2ty"></div></div>
+<div class="mph">Swipe up for next, down for previous</div>
+<div class="mpk"><span id="mp2c">0:00</span><input id="mp2sk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><span id="mp2d">0:00</span></div>
+<div class="mpc" style="justify-content:center;gap:26px"><button data-m2="p" aria-label="Previous">${IC('<path d="M6 5v14M19 5L9 12l10 7z"/>')}</button><button class="big" id="mp2pp" data-m2="pp" aria-label="Play or pause">${PLY}</button><button data-m2="n" aria-label="Next">${IC('<path d="M18 5v14M5 5l10 7-10 7z"/>')}</button></div>
+<div class="mpv">${IC('<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7"/>')}<input id="mp2v" type="range" min="0" max="100" value="${M.vol}" aria-label="Volume"></div>
+<div class="grid"><button class="btn pri" data-m2="all">View all</button><button class="btn" data-m2="inv">Listen with a friend</button></div></div>`);
+ const a=$$("mp2a"),s=$$("mp2sk"),v=$$("mp2v");let y0=null;
+ a.addEventListener("touchstart",e=>{y0=e.touches[0].clientY},{passive:true});
+ a.addEventListener("touchend",e=>{if(y0==null)return;const d=e.changedTouches[0].clientY-y0;y0=null;if(Math.abs(d)>50)slide(d<0?1:-1)},{passive:true});
+ a.addEventListener("wheel",e=>{e.preventDefault();if(Math.abs(e.deltaY)>20&&!a._w){a._w=1;setTimeout(()=>a._w=0,500);slide(e.deltaY>0?1:-1)}},{passive:false});
+ s.oninput=()=>{M.sk=1;$$("mp2c").textContent=fmt(+s.value)};
+ s.onchange=()=>{const t=+s.value;if(M.cur)tf(()=>isY(M.cur)?M.yp.seekTo(t,true):(M.au.currentTime=t));M.sk=0};
+ v.oninput=()=>{M.vol=+v.value;try{localStorage.nx_mpv=M.vol}catch(_){}tf(()=>M.au.volume=M.vol/100);tf(()=>M.yr&&M.yp.setVolume(M.vol))};
+ M.ps=null;paintArt()}
+function paintArt(){const t=$$("mp2t");if(!t)return;const f=M.cur;
+ t.textContent=f?f.name:"Nothing playing";
+ $$("mp2s").textContent=f?((f.scope==="global"?"Global":"Private")+(f.song_type?" \u00b7 "+TFULL[f.song_type]:"")+(ADM()&&M.names[f.owner]?" \u00b7 "+M.names[f.owner]:"")):"Press play for a random song";
+ const id=f&&ytId(f.url);$$("mp2i").style.backgroundImage=id?'url("https://i.ytimg.com/vi/'+id+'/hqdefault.jpg")':"";
+ const c=$$("mp2ty");if(c)c.innerHTML=TY.map(([v,n])=>`<button class="mp2b${M.ty===v?" on":""}" data-m2="ty:${v}">${n}</button>`).join("")}
+function viewAll(){S.page="music3";const tabs=[["g","Global"],["m","Private"]];if(ADM())tabs.push(["a","All private"]);
+ page(`<div class="mpx" id="mpx3"><button class="btn" data-m2="player">\u2039 Player</button><h2 style="margin:12px 0 10px">All songs</h2><div class="seg" id="mp2tb">${tabs.map(t=>`<button data-m2="tab:${t[0]}" data-t="${t[0]}">${t[1]}</button>`).join("")}</div><div class="mp2h" id="mp2h"></div><div id="mp2l"></div></div>`);paintL()}
+function paintL(){const el=$$("mp2l");if(!el)return;
+ D.querySelectorAll("#mp2tb button").forEach(b=>b.classList.toggle("on",b.dataset.t===M.tab));
+ $$("mp2h").innerHTML=TY.map(([v,n])=>`<button class="mp2b${M.ty===v?" on":""}" data-m2="ty:${v}">${n}</button>`).join("");
+ if(M.err){el.innerHTML='<div class="pw" style="padding:14px">Could not load songs. Run the Supabase SQL first.</div>';return}
+ const l=lst();
+ el.innerHTML=l.length?l.map((f,k)=>'<div class="mpr'+(M.cur&&M.cur.id===f.id?" on":"")+'" role="button" data-m2="row:'+E(f.id)+'"><span class="n">'+(k+1)+'</span><span class="t"><b>'+E(f.name)+'</b><small>'+(TFULL[f.song_type]||"No type")+(M.tab==="a"?" \u00b7 "+E(M.names[f.owner]||"User"):"")+'</small></span></div>').join(""):'<div class="pw" style="padding:14px">No songs here yet.</div>'}
+W.nxMusic=()=>{S.page="music2";S.chat=null;D.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.p==="connect"));build();if(!M.all.length||Date.now()-M.lt>3e4){M.lt=Date.now();load()}};
+async function inv(){openModal('<h3>Invite a friend</h3><p class="sub">You will listen together and stay in sync.</p><div id="mpfl2" class="pw">Loading...</div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>');
+ try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or("requester_id.eq."+S.user.id+",addressee_id.eq."+S.user.id);
+  const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);if(!$$("mpfl2"))return;
+  if(!ids.length){$$("mpfl2").textContent="No friends yet. Add friends from Connect.";return}
+  const ps=(await sb.from("profiles").select("id,username,display_name").in("id",ids)).data||[];ps.forEach(p=>reg(p));
+  $$("mpfl2").outerHTML='<div id="mpfl2">'+ps.map(p=>'<div class="mpf"><b>'+E(dn(p.id,nm(p)))+'</b><button class="btn pri" style="min-height:36px;padding:0 16px" data-mi2="'+E(p.id)+'">Invite</button></div>').join("")+'</div>'}
+ catch(_){if($$("mpfl2"))$$("mpfl2").textContent="Could not load friends."}}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#mpfl2 [data-mi2]");if(!b)return;const id=b.dataset.mi2,p=P[id],name=p?nm(p):"Friend";
+ const first=M.cur,rest=pool().filter(x=>!first||x.id!==first.id).sort(()=>Math.random()-.5).slice(0,20),q=(first?[first]:[]).concat(rest);
+ closeModal();stop();wtInvite(id,name);
+ setTimeout(()=>{const t=D.querySelector('#ltab button[data-m="listen"]');if(t)t.click();setTimeout(()=>{const w=WT;if(!w||!q.length)return;w.q=q.map(f=>({u:f.url}));w.qi=0;w.tx({t:"q",q:w.q,i:0});wtLoad(q[0].url,0)},600)},1800)});
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#mpx2 [data-m2],#mpx3 [data-m2]");if(!b)return;
+ const a=b.dataset.m2,i=a.indexOf(":"),c=i<0?a:a.slice(0,i),v=i<0?"":a.slice(i+1);
+ if(c==="back")return go("connect");if(c==="player")return W.nxMusic();if(c==="all")return viewAll();
+ if(c==="pp")return tog();if(c==="n")return slide(1);if(c==="p")return slide(-1);if(c==="inv")return inv();
+ if(c==="tab"){M.tab=v;return paintL()}
+ if(c==="ty"){M.ty=v;M.mode="r";if(S.page==="music3")return paintL();paintArt();
+  if(!pool().length)return toast("No songs of this type yet");if(!M.cur||(v&&String(M.cur.song_type)!==v))nav(1);return}
+ if(c==="row"){const f=M.all.find(x=>String(x.id)===v);if(!f)return;M.mode="l";M.q=lst();M.hist=[];load1(f);W.nxMusic()}});
+function bubMenu(){const f=M.cur;if(!f)return;openModal('<h3>Music</h3><p class="sub">'+E(f.name)+'</p><div class="grid"><button class="btn pri" data-bm="pp">Pause / Play</button><button class="btn" data-bm="n">Next</button></div><button class="btn wide" style="margin-top:10px" data-bm="o">Open player</button><button class="btn red wide" style="margin-top:10px" data-bm="x">Stop and remove</button><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>')}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#md [data-bm]");if(!b)return;const a=b.dataset.bm;closeModal();if(a==="pp")tog();else if(a==="n")nav(1);else if(a==="o")W.nxMusic();else stop()});
+addEventListener("popstate",e=>{if(S.user&&(S.page==="music2"||S.page==="music3")){e.stopImmediatePropagation();history.pushState({n:1},"");S.page==="music3"?W.nxMusic():go("connect")}},true);
+setInterval(()=>{const pl=!!playing();if(pl)M.bc=0;
+ const show=!!(M.cur&&S.user&&S.page!=="music2"&&S.page!=="music3"),bb=$$("nxmbb");
+ if(show&&!bb){D.body.insertAdjacentHTML("beforeend",'<button id="nxmbb" aria-label="Music">\u266A</button>');$$("nxmbb").onclick=bubMenu}else if(!show&&bb)bb.remove();
+ const b2=$$("nxmbb");if(b2)b2.classList.toggle("pl",pl);
+ if(!S.user&&M.cur)stop();
+ if(S.page!=="music2"||!$$("mp2sk"))return;
+ let t=0,d=0;if(M.cur){t=tf(()=>isY(M.cur)?M.yp.getCurrentTime():M.au.currentTime)||0;d=tf(()=>isY(M.cur)?M.yp.getDuration():(isFinite(M.au.duration)?M.au.duration:0))||0}
+ const s=$$("mp2sk");s.disabled=!d;if(d){s.max=d;if(!M.sk)s.value=t}if(!M.sk)$$("mp2c").textContent=fmt(t);$$("mp2d").textContent=d?fmt(d):"0:00";
+ $$("mp2cd").classList.toggle("on",pl);if(M.ps!==pl){M.ps=pl;$$("mp2pp").innerHTML=pl?PAU:PLY}},300);
+
+/* ================= 2. FAVOURITES: quick add (star) + separate list ================= */
+const oldView=W.nxFavAdd;
+W.nxFavView=function(){return oldView&&oldView.apply(this,arguments)};
+async function perm(){if(ADM())return{allowed:true,unlimited:true,can_global:true};try{const r=await sb.from("nx_fav_perm").select("*").eq("user_id",ME()).maybeSingle();return r.data||{allowed:false}}catch(_){return{allowed:false}}}
+W.nxFavAdd=async function(){const w=WT,u=((w&&w.src)||($$("wtU")&&$$("wtU").value)||"").trim();
+ if(!/^https?:\/\//i.test(u))return toast("Play a link first, then tap the star");
+ const k=(w&&w.mode==="listen")?"listen":"watch",p=await perm();if(!p.allowed)return toast("Admin permission required");
+ W.__qf={u,k,p,sc:p.can_global?"global":"private",ty:""};
+ openModal('<h3>Add to favourites</h3><input id="qfn" maxlength="60" placeholder="Name"><div class="lbl">Save as</div><div class="qfc"><button class="mp2b'+(p.can_global?" on":"")+'" data-qf="sc:global"'+(p.can_global?"":" disabled")+'>Global</button><button class="mp2b'+(p.can_global?"":" on")+'" data-qf="sc:private">Private</button></div>'
+  +(k==="listen"?'<div class="lbl">Type of song</div><div class="qfc"><button class="mp2b" data-qf="ty:1">Soothing / Peaceful</button><button class="mp2b" data-qf="ty:2">Vibe / Chill</button><button class="mp2b" data-qf="ty:3">Energetic / Hype</button></div>':'')
+  +'<button class="btn pri wide" style="margin-top:12px" data-qf="save">Save</button><button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>');
+ if(ytId(u))fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent(u)).then(r=>r.json()).then(j=>{const i=$$("qfn");if(i&&!i.value&&j&&j.title)i.value=String(j.title).slice(0,60)}).catch(()=>{})};
+D.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#md [data-qf]");if(!b||!W.__qf)return;e.stopPropagation();const q=W.__qf,a=b.dataset.qf,i=a.indexOf(":"),c=i<0?a:a.slice(0,i),v=i<0?"":a.slice(i+1);
+ if(c==="sc"||c==="ty"){if(b.disabled)return;if(c==="ty"&&q.ty===v){q.ty="";b.classList.remove("on");return}q[c]=v;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));return}
+ if(c!=="save")return;const n=(($$("qfn").value)||"").trim();if(!n)return toast("A name is required");
+ if(!ADM()&&!q.p.unlimited){const r=await sb.from("nx_fav").select("id",{count:"exact",head:true}).eq("owner",ME());if((r.count||0)>=30)return toast("Limit of 30 reached")}
+ const row={owner:ME(),kind:q.k,scope:q.sc,name:n.slice(0,60),url:q.u};if(q.k==="listen"&&q.ty)row.song_type=+q.ty;
+ let r=await sb.from("nx_fav").insert(row);
+ if(r.error&&row.song_type){delete row.song_type;r=await sb.from("nx_fav").insert(row)}
+ if(r.error)return toast(hint(r.error.message));closeModal();toast("Added to favourites");M.lt=0},true);
+setInterval(()=>{const b=$$("nxfb");if(b&&!$$("nxfv"))b.insertAdjacentHTML("afterend",'<button class="ib" id="nxfv" onclick="nxFavView()" aria-label="Favourites list">\u2630</button>')},800);
+
+/* ================= 3. WATCH: voice + media volume sliders, smoother sync ================= */
+const VV=Object.assign({v:100,m:100},tf(()=>JSON.parse(localStorage.nx_wv))||{});
+const vsave=()=>{try{localStorage.nx_wv=JSON.stringify(VV)}catch(_){}};
+function volApply(){const a=$$("ra");if(a&&Math.abs(a.volume-VV.v/100)>.01)tf(()=>a.volume=VV.v/100);
+ const w=WT;if(!w)return;const box=$$("wtV"),vid=box&&box.querySelector("video");
+ if(vid&&Math.abs(vid.volume-VV.m/100)>.01)tf(()=>vid.volume=VV.m/100);
+ if(w.pl&&w.pl.vol)tf(()=>w.pl.vol(VV.m/100));
+ const f=box&&box.querySelector("iframe");if(f&&w.src&&ytId(w.src)&&Date.now()-(f._np||0)>2500){f._np=Date.now();tf(()=>f.contentWindow.postMessage(JSON.stringify({event:"command",func:"setVolume",args:[VV.m]}),"*"))}}
+setInterval(()=>{if(!S.user)return;tf(volApply);
+ if(S.page!=="watch"||!WT)return;const mb=$$("nxmb");if(!mb||$$("nxvol"))return;
+ mb.insertAdjacentHTML("afterend",'<div id="nxvol" class="card" style="padding:10px 14px;margin:8px 0"><div class="nxvr"><span>Voice</span><input id="nxvv" type="range" min="0" max="100" value="'+VV.v+'" aria-label="Voice volume"><b id="nxvvl">'+VV.v+'%</b></div><div class="nxvr"><span id="nxvml">Video</span><input id="nxvm" type="range" min="0" max="100" value="'+VV.m+'" aria-label="Media volume"><b id="nxvmv">'+VV.m+'%</b></div></div>');
+ $$("nxvv").oninput=e=>{VV.v=+e.target.value;$$("nxvvl").textContent=VV.v+"%";vsave();volApply()};
+ $$("nxvm").oninput=e=>{VV.m=+e.target.value;$$("nxvmv").textContent=VV.m+"%";vsave();volApply()}},800);
+setInterval(()=>{const l=$$("nxvml");if(l&&WT){const t=WT.mode==="listen"?"Song":"Video";if(l.textContent!==t)l.textContent=t}},1000);
+wtApply=function(W2,m){if(!W2.pl){W2.pend=m;return}W2.pend=null;W2.rs={p:m.p,time:m.time,at:Date.now()};const tg=m.time+(m.p?.2:0),th=m.h?4:2.5;W2.ap=1;
+ try{if(Math.abs(W2.pl.time()-tg)>th){W2.pl.seek(tg);W2.lt=null}const pl=W2.pl.playing();if(m.p&&!pl)W2.pl.play();else if(!m.p&&pl)W2.pl.pause()}catch(_){}
+ clearTimeout(W2.apT);W2.apT=setTimeout(()=>{if(WT===W2)W2.ap=0},2500)};
+
+/* ================= 4. FILES: offline delivery + admin max size ================= */
+let MAXMB=50,mt=0;
+async function getMax(f){if(!f&&Date.now()-mt<6e4)return;mt=Date.now();try{const r=await sb.from("app_config").select("max_file_mb").eq("id",1).maybeSingle();if(r.data&&+r.data.max_file_mb>0)MAXMB=+r.data.max_file_mb}catch(_){}}
+async function persist(c,p){try{await sb.from("messages").insert({id:p.id,conversation_id:c.cid,sender_id:S.user.id,content:p.text})}catch(_){}tf(()=>deliver(c.uid,p.text))}
+async function big(f,c){const t=f.type||"",x=(f.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"bin";
+ const k=t.startsWith("video/")?"vid":t.startsWith("audio/")?"aud":(t==="application/pdf"||x==="pdf")?"pdf":t.startsWith("image/")?"img":null;
+ if(!k)return toast("You can send photos, GIFs, videos, audio and PDF files.");
+ toast("Sending large file...");const path=S.user.id+"/"+Date.now()+"_"+Math.random().toString(36).slice(2,7)+"."+x;
+ const r=await sb.storage.from(MB).upload(path,f,{contentType:t||"application/octet-stream",cacheControl:"3600"});
+ if(r.error)return toast("Upload failed: "+String(r.error.message).slice(0,70));
+ if(S.chat!==c)return;
+ const u=sb.storage.from(MB).getPublicUrl(path).data.publicUrl,id=crypto.randomUUID(),at=new Date().toISOString(),text="NXM:"+JSON.stringify({k,u,p:path,n:f.name||"file."+x,z:f.size});
+ addMedia({id,sender_id:S.user.id,content:text,created_at:at});
+ tf(()=>S.cch&&S.cch.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}));
+ persist(c,{id,text});sfx("send");rec(c.uid,c.un,c.name,"Media")}
+const _sm=sendMedia;
+sendMedia=async function(f){const c=S.chat;if(!c||!f)return _sm.apply(this,arguments);
+ await getMax(1);if(f.size>MAXMB*1048576)return toast("File is larger than "+MAXMB+" MB (admin limit)");
+ if(f.size>50*1048576)return big(f,c);
+ let cap=null;const ch=S.cch,o=ch&&ch.send;
+ if(ch)ch.send=function(x){try{if(x&&x.event==="m"&&x.payload&&String(x.payload.text).indexOf("NXM:")===0&&!cap)cap=x.payload}catch(_){}return o.apply(this,arguments)};
+ try{await _sm.apply(this,arguments)}finally{if(ch&&o)ch.send=o}
+ if(cap)persist(c,cap)};
+const _cm=cacheMsg;
+cacheMsg=function(c,m){const r=_cm.apply(this,arguments);tf(()=>{const t=String((m&&(m.content??m.body??m.text))||"");if(t.indexOf("NXM:")===0){const k=hk(c),o=LS(k,[]),n=o.filter(x=>String(x.x).indexOf("NXM:")!==0);if(n.length!==o.length)localStorage[k]=JSON.stringify(n)}});return r};
+const _rec=rec;rec=function(u,un,n,last){if(typeof last==="string"&&last.indexOf("NXM:")===0)last=lab(last);return _rec.call(this,u,un,n,last)};
+const _bn=banner;banner=function(t,x,f){if(typeof x==="string"&&x.indexOf("NXM:")===0)x=lab(x);return _bn.call(this,t,x,f)};
+const _en=enter;enter=async function(){const r=await _en.apply(this,arguments);getMax(1);return r};
+
+/* ================= 5. SMOOTH ZOOM for DP / photos (GPU, pinch + drag + double tap) ================= */
+function bindZ(im){if(im._z)return;im._z=1;let z=1,tx=0,ty=0,raf=0,d0=0,z0=1,lt=0,lx=0,ly=0;const P=new Map();
+ im.style.transition="none";im.style.touchAction="none";im.style.willChange="transform";
+ const clamp=()=>{const mx=Math.max(0,(im.offsetWidth*z-innerWidth)/2),my=Math.max(0,(im.offsetHeight*z-innerHeight)/2);tx=Math.max(-mx,Math.min(mx,tx));ty=Math.max(-my,Math.min(my,ty));if(z<=1.001){z=1;tx=ty=0}};
+ const draw=()=>{raf=0;clamp();im.style.transform=z===1?"":"translate3d("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px,0) scale("+z.toFixed(3)+")"};
+ const sched=()=>{if(!raf)raf=requestAnimationFrame(draw)};
+ const zoomAt=(nz,fx,fy)=>{nz=Math.max(1,Math.min(6,nz));const r=im.getBoundingClientRect(),cx=r.left+r.width/2-tx,cy=r.top+r.height/2-ty,k=nz/z;tx=(fx-cx)-k*((fx-cx)-tx);ty=(fy-cy)-k*((fy-cy)-ty);z=nz};
+ im.addEventListener("pointerdown",e=>{try{im.setPointerCapture(e.pointerId)}catch(_){}P.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(P.size===2){const[a,b]=[...P.values()];d0=Math.hypot(a.x-b.x,a.y-b.y)||1;z0=z}
+  else{const n=Date.now();if(n-lt<300&&Math.hypot(e.clientX-lx,e.clientY-ly)<40){im.style.transition="transform .25s cubic-bezier(.22,1,.36,1)";if(z>1.05){z=1;tx=ty=0}else zoomAt(2.5,e.clientX,e.clientY);draw();setTimeout(()=>im.style.transition="none",280);lt=0}else{lt=n;lx=e.clientX;ly=e.clientY}}});
+ im.addEventListener("pointermove",e=>{const p=P.get(e.pointerId);if(!p)return;const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;
+  if(P.size===2){const[a,b]=[...P.values()],d=Math.hypot(a.x-b.x,a.y-b.y);zoomAt(z0*d/d0,(a.x+b.x)/2,(a.y+b.y)/2);sched()}
+  else if(z>1){tx+=e.clientX-ox;ty+=e.clientY-oy;sched()}});
+ const up=e=>{P.delete(e.pointerId)};im.addEventListener("pointerup",up);im.addEventListener("pointercancel",up);
+ im.addEventListener("wheel",e=>{e.preventDefault();zoomAt(z*(e.deltaY<0?1.15:1/1.15),e.clientX,e.clientY);sched()},{passive:false})}
+setInterval(()=>D.querySelectorAll("#nxdpv img,#nxv img,#mvw img").forEach(bindZ),300);
+D.addEventListener("click",e=>{const t=e.target;if(t&&t.tagName==="IMG"&&t._z){e.stopImmediatePropagation();e.preventDefault()}},true);
+
+/* ================= 6. ADMIN: storage, music manager, max file size ================= */
+setInterval(()=>{const b=D.querySelector("#nxadm2 .a2b");if(!b||$$("nxax")||!b.querySelector(".a2t"))return;
+ b.insertAdjacentHTML("afterbegin",'<div id="nxax" class="card a2d" style="padding:12px"><div class="a2ac"><button class="btn" data-ax="st">Storage</button><button class="btn" data-ax="mm">Music manager</button><button class="btn" data-ax="fs">File size</button></div></div>')},600);
+async function stor(){openModal('<h3>Storage</h3><div id="nxst2" class="pw">Loading...</div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+ let r;try{r=await sb.rpc("nx_usage")}catch(e){r={error:e}}const el=$$("nxst2");if(!el)return;
+ if(r.error||!r.data){el.textContent="Run the Supabase SQL (nx_usage) first.";return}
+ const d=Array.isArray(r.data)?r.data[0]:r.data,db=+d.db_bytes||0,st=+d.storage_bytes||0,L1=500*1048576,L2=1073741824;
+ const bar=(n,u,l)=>{const p=Math.min(100,u/l*100);return'<div class="lbl">'+n+'</div><div class="nxbar'+(p>80?" hi":"")+'"><i style="width:'+p.toFixed(1)+'%"></i></div><div class="pw" style="text-align:left">'+sz(u)+' of '+sz(l)+' ('+p.toFixed(1)+'%)</div>'};
+ el.outerHTML='<div id="nxst2">'+bar("Database",db,L1)+bar("File storage",st,L2)+'<div class="pw" style="text-align:left;margin-top:10px">Files stored: '+(+d.files||0)+'. Limits are for the Supabase free plan.</div></div>'}
+function fsz(){openModal('<h3>Max file size</h3><p class="sub">Photos, videos, audio and PDFs sent in chat. Default 50 MB.</p><input id="nxfm" type="number" min="1" value="'+MAXMB+'"><div class="pw" style="text-align:left;margin:4px 2px 10px">Supabase free plan cannot store files above 50 MB. Larger values work only on a paid plan.</div><button class="btn pri wide" data-ax="fsv">Save</button><button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>')}
+const MMS={tab:"g",l:[],nm:{}};
+async function mmOpen(){openModal('<h3>Music manager</h3><div id="mmb" class="pw">Loading...</div>');
+ let r;try{r=await sb.from("nx_fav").select("*").eq("kind","listen").order("created_at",{ascending:false}).limit(1000)}catch(e){r={error:e}}
+ if(r.error){const b=$$("mmb");if(b)b.textContent=hint(r.error.message);return}
+ MMS.l=r.data||[];MMS.nm={};const ids=[...new Set(MMS.l.map(f=>f.owner))];
+ if(ids.length)try{((await sb.from("profiles").select("id,username,display_name").in("id",ids)).data||[]).forEach(p=>MMS.nm[p.id]=p.display_name||p.username)}catch(_){}
+ mmPaint()}
+function mmPaint(){const m=$$("md");if(!m)return;const g=MMS.l.filter(f=>f.scope==="global"),pv=MMS.l.filter(f=>f.scope!=="global"),l=MMS.tab==="g"?g:pv;
+ m.innerHTML='<h3>Music manager</h3><div class="seg" style="margin-bottom:8px"><button class="'+(MMS.tab==="g"?"on":"")+'" data-mm="tab:g">Global ('+g.length+')</button><button class="'+(MMS.tab!=="g"?"on":"")+'" data-mm="tab:p">Private ('+pv.length+')</button></div><div style="max-height:56dvh;overflow:auto">'
+ +(l.length?l.map(f=>{const id=E(f.id);return'<div class="mmr"><b>'+E(f.name)+'</b><small>'+E(MMS.nm[f.owner]||"User")+' \u00b7 '+(TFULL[f.song_type]||"No type")+'</small><div class="mmt">'+["","1","2","3"].map(v=>'<button class="'+(String(f.song_type||"")===v?"on":"")+'" data-mm="t:'+id+':'+v+'">'+(v||"\u2013")+'</button>').join("")+'<span style="flex:1"></span><button data-mm="sc:'+id+'">'+(f.scope==="global"?"Make Private":"Make Global")+'</button><button class="rd" data-mm="rm:'+id+'">Remove</button></div></div>'}).join(""):'<div class="pw" style="padding:12px">No songs</div>')
+ +'</div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>'}
+D.addEventListener("click",async e=>{
+ const x=e.target.closest&&e.target.closest("[data-ax]");
+ if(x){const a=x.dataset.ax;if(a==="st")return stor();if(a==="mm")return mmOpen();if(a==="fs"){await getMax(1);return fsz()}
+  if(a==="fsv"){const v=Math.max(1,Math.floor(+$$("nxfm").value||50));const r=await sb.from("app_config").upsert({id:1,max_file_mb:v});if(r.error)return toast(hint(r.error.message));MAXMB=v;closeModal();toast("Max file size: "+v+" MB")}return}
+ const b=e.target.closest&&e.target.closest("#md [data-mm]");if(!b)return;e.stopPropagation();
+ const p=b.dataset.mm.split(":"),c=p[0],id=p[1],v=p[2];
+ if(c==="tab"){MMS.tab=id;return mmPaint()}
+ const f=MMS.l.find(y=>String(y.id)===id);if(!f)return;let r;
+ if(c==="t"){r=await sb.from("nx_fav").update({song_type:v?+v:null}).eq("id",f.id);if(r.error)return toast(hint(r.error.message));f.song_type=v?+v:null}
+ else if(c==="sc"){const n=f.scope==="global"?"private":"global";r=await sb.from("nx_fav").update({scope:n}).eq("id",f.id);if(r.error)return toast(hint(r.error.message));f.scope=n}
+ else if(c==="rm"){if(!confirm("Remove this song for everyone?"))return;r=await sb.from("nx_fav").delete().eq("id",f.id);if(r.error)return toast(hint(r.error.message));MMS.l=MMS.l.filter(y=>y!==f);M.lt=0}
+ mmPaint()},true);
+console.log("[NX-PATCH-V42] ready");
+})();
+
+</script>
 </body></html>
