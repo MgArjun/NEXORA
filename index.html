@@ -6735,4 +6735,80 @@ html body #nxpop small{display:inline!important;font-size:12px!important;margin-
 })();
 
 </script>
+<script>
+/* NX-FAV-SHEET-V1 */
+(()=>{
+const D=document,W=window,$$=i=>D.getElementById(i),tf=f=>{try{return f()}catch(e){try{console.warn("nx-favsheet",e)}catch(_){}}};
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ME=()=>S.user&&S.user.id,ADM=()=>!!(S.user&&S.user.email&&S.user.email.toLowerCase()==="surajpurve078@gmail.com");
+const ST={k:"watch",sc:"m",q:"",list:[],err:"",perm:null,u:"",k0:"watch",edit:null,sel:"private"};
+const mode=()=>(WT&&WT.mode==="listen")?"listen":"watch";
+const hint=m=>/relation|does not exist|schema cache|policy|permission|column/i.test(m||"")?"Run the Supabase SQL first":String(m||"Failed").slice(0,60);
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.nfr{display:flex;align-items:center;gap:8px;padding:10px 2px;border-top:1px solid var(--ln)}
+.nfr b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-weight:700}
+.nfr small{color:var(--mu);font-size:11px;font-weight:600;flex:none}
+.nfr .ib{width:38px;height:38px;flex:none}
+#nxmb .gmic{width:auto!important;padding:0 14px;display:flex!important;align-items:center;gap:8px;flex:none}
+#nxmb .gmic::after{content:"Call";font-size:13px;font-weight:700}
+body[data-wtm=listen] #nxwa{display:none!important}
+body[data-wtm=watch] .card:has(#nxlv){display:none!important}`}));
+async function perm(){if(ADM())return ST.perm={allowed:true,unlimited:true,can_global:true};
+ try{const r=await sb.from("nx_fav_perm").select("*").eq("user_id",ME()).maybeSingle();ST.perm=r.data||{allowed:false}}catch(_){ST.perm={allowed:false}}return ST.perm}
+async function load(){ST.err="";
+ try{const r=await sb.from("nx_fav").select("*").order("created_at",{ascending:false}).limit(500);if(r.error)ST.err=r.error.message||"error";else ST.list=r.data||[]}catch(e){ST.err=String(e&&e.message||e)}
+ paintList()}
+function rows(){const me=ME(),q=ST.q.trim().toLowerCase();
+ return ST.list.filter(f=>f.kind===ST.k&&(ST.sc==="g"?f.scope==="global":f.owner===me)&&(!q||String(f.name).toLowerCase().includes(q)))}
+function paintList(){const el=$$("nfl");if(!el)return;
+ if(ST.err){el.innerHTML='<div class="pw" style="padding:14px;text-align:left">Could not load favourites: '+E(hint(ST.err))+'</div>';return}
+ const l=rows();
+ el.innerHTML=l.length?l.map(f=>{const id=E(f.id),own=f.owner===ME()||ADM();return'<div class="nfr"><b data-nf="play:'+id+'">'+E(f.name)+'</b>'+(f.scope==="global"&&ST.sc==="m"?'<small>Global</small>':'')+'<button class="ib" data-nf="play:'+id+'" aria-label="Play">\u25B6</button>'+(own?'<button class="ib" data-nf="edit:'+id+'" aria-label="Edit">\u270E</button>':'')+'</div>'}).join(""):'<div class="pw" style="padding:14px;text-align:left">'+(ST.q?"No match for this search":"Nothing here yet. Use Add current link.")+'</div>'}
+function sheet(){
+ openModal('<h3>Favourites</h3><div class="seg" style="margin-bottom:8px"><button class="'+(ST.k==="watch"?"on":"")+'" data-nf="k:watch">Videos</button><button class="'+(ST.k==="listen"?"on":"")+'" data-nf="k:listen">Songs</button></div>'
+ +'<div class="seg" style="margin-bottom:8px"><button class="'+(ST.sc==="m"?"on":"")+'" data-nf="s:m">Mine</button><button class="'+(ST.sc==="g"?"on":"")+'" data-nf="s:g">Global</button></div>'
+ +'<input id="nfq" placeholder="Search by name" autocomplete="off" value="'+E(ST.q)+'" style="margin-bottom:6px"><div id="nfl" style="max-height:38dvh;overflow:auto"></div>'
+ +'<button class="btn pri wide" style="margin-top:10px" data-nf="add">+ Add current link</button><button class="btn wide" style="margin-top:8px" data-nf="close">Close</button>');
+ paintList()}
+W.nxFavAdd=async()=>{ST.k=mode();ST.k0=ST.k;ST.sc="m";ST.q="";ST.u=((WT&&WT.src)||($$("wtU")&&$$("wtU").value)||"").trim();sheet();await Promise.all([load(),perm()])};
+function form(f){ST.edit=f||null;ST.sel=f?f.scope:"private";
+ openModal('<h3>'+(f?"Edit favourite":"Add to favourites")+'</h3><input id="nfn" maxlength="60" placeholder="Name (required)" value="'+E(f?f.name:"")+'">'
+ +'<div class="lbl">Save as</div><div class="seg"><button data-nf="v:private" class="'+(ST.sel==="private"?"on":"")+'">Private</button><button data-nf="v:global" class="'+(ST.sel==="global"?"on":"")+'">Global</button></div>'
+ +'<div class="pw" style="text-align:left;margin:6px 2px 0">Private = only you. Global = everyone can see it.</div>'
+ +(f?'<div class="grid" style="margin-top:12px"><button class="btn red" data-nf="del">Delete</button><button class="btn pri" data-nf="save">Save</button></div>':'<button class="btn pri wide" style="margin-top:12px" data-nf="save">Save</button>')
+ +'<button class="btn wide" style="margin-top:8px" data-nf="back">Back</button>')}
+async function save(){const n=($$("nfn").value||"").trim(),sc=ST.sel;if(!n)return toast("A name is required");
+ const p=ST.perm||await perm();if(!ADM()){if(!p.allowed)return toast("Admin permission required");if(sc==="global"&&!p.can_global)return toast("Admin permission required for Global");
+  if(!ST.edit&&!p.unlimited&&ST.list.filter(f=>f.owner===ME()).length>=30)return toast("Limit of 30 reached")}
+ let r;
+ if(ST.edit)r=await sb.from("nx_fav").update({name:n.slice(0,60),scope:sc}).eq("id",ST.edit.id);
+ else{if(!/^https?:\/\//i.test(ST.u))return toast("Play a link first, then add it");r=await sb.from("nx_fav").insert({owner:ME(),kind:ST.k0,scope:sc,name:n.slice(0,60),url:ST.u})}
+ if(r.error)return toast(hint(r.error.message));
+ toast("Saved");ST.k=ST.edit?ST.edit.kind:ST.k0;ST.sc=sc==="global"?"g":"m";ST.q="";sheet();load()}
+async function del(){const f=ST.edit;if(!f)return;const r=await sb.from("nx_fav").delete().eq("id",f.id);if(r.error)return toast(hint(r.error.message));toast("Removed");sheet();load()}
+function play(f){const w=WT;if(!w)return toast("Open a room first");if(tf(()=>wtLock(w)))return toast("Only the host can change this");
+ closeModal();let delay=0;
+ if((w.mode||"watch")!==f.kind){const b=D.querySelector('#ltab button[data-m="'+f.kind+'"]');if(b){b.click();delay=500}}
+ setTimeout(()=>{const w2=WT;if(!w2)return;
+  if(f.kind==="listen"){w2.q=w2.q||[];const at=(w2.qi==null||w2.qi<0)?w2.q.length:w2.qi+1;w2.q.splice(at,0,{u:f.url});w2.qi=at;w2.tx({t:"q",q:w2.q,i:at});wtLoad(f.url,0)}
+  else wtLoad(f.url,1)},delay)}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#md [data-nf]");if(!b)return;e.stopPropagation();
+ const a=b.dataset.nf,i=a.indexOf(":"),c=i<0?a:a.slice(0,i),v=i<0?"":a.slice(i+1);
+ if(c==="k"){ST.k=v;return sheet()}
+ if(c==="s"){ST.sc=v;return sheet()}
+ if(c==="play"){const f=ST.list.find(x=>String(x.id)===v);return f&&play(f)}
+ if(c==="edit"){const f=ST.list.find(x=>String(x.id)===v);return f&&form(f)}
+ if(c==="add"){if(!ST.perm||!ST.perm.allowed)return toast("Admin permission required");if(!/^https?:\/\//i.test(ST.u))return toast("Play a link first, then add it");return form(null)}
+ if(c==="v"){ST.sel=v;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));return}
+ if(c==="save")return save();
+ if(c==="del")return del();
+ if(c==="back")return sheet();
+ if(c==="close")return closeModal()},true);
+D.addEventListener("input",e=>{if(e.target&&e.target.id==="nfq"){ST.q=e.target.value;paintList()}});
+setInterval(()=>{D.querySelectorAll("#nxwa .nxwr b").forEach(b=>{if(b.textContent==="Media volume")b.textContent="Video volume"});
+ const l=$$("nxlv");if(l){const t=l.parentElement&&l.parentElement.querySelector(".lbl");if(t&&/Song volume/.test(t.textContent))t.textContent="Song volume"}},700);
+console.log("[NX-FAV-SHEET-V1] ready");
+})();
+
+</script>
 </body></html>
