@@ -6159,4 +6159,100 @@ if(n)n.innerHTML=[..."NEXORA"].map((c,i)=>'<span class="ch" style="--d:'+(3.7+i*
 })();
 
 </script>
+
+<script>
+/* NX-PLAYLISTS-PATCH v1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("nx-pl",e)}catch(_){}}};
+const AU=/^https?:\/\/\S+\.(mp3|m4a|aac|wav|ogg|opus|flac|mp4|webm)(\?|#|$)/i,TT={};
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#lq{display:none!important}#nxpl{padding:12px;margin-top:12px}.plh{display:flex;align-items:center;gap:8px;margin-bottom:10px}.plh b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.plh .btn{min-height:38px;padding:0 14px;font-size:13px}.plg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.plc{display:grid;gap:4px;text-align:left;padding:14px;border-radius:18px;background:linear-gradient(145deg,#1b2244,#10162a);border:1px solid var(--ln);min-height:84px;position:relative;color:inherit}.plc b{font-size:15px}.plc small{color:var(--mu);font-size:12px}.plc.on{border-color:#8fa2f0;box-shadow:0 0 18px -6px #8fa2f0}.plc.nw{place-content:center;text-align:center;color:#aab8ff;font-weight:700;border-style:dashed}.plb{position:absolute;right:10px;top:10px;font-size:10px;font-weight:800;color:#7ce3ae}.pli{display:flex;align-items:center;gap:10px;padding:9px 6px;border-top:1px solid var(--ln);cursor:pointer}.pli.on{background:rgba(125,144,214,.16);border-radius:10px}.pli span{width:22px;text-align:center;color:#8e9cff;font-size:12px;flex:none}.pli b{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pli button{min-width:34px;min-height:34px;color:#ff8a98}.plt{display:flex;gap:8px;margin-bottom:8px}.plt .btn{flex:1;min-height:38px;font-size:13px}"}));
+
+function ens(W){if(!W.pls){W.pls=[1,2,3].map(n=>({n:"Playlist "+n,q:[]}));W.pi=-1;if(W.q&&W.q.length){W.pls[0].q=W.q.slice();W.pi=0}}}
+function title(u){if(TT[u])return TT[u];
+ if(!ytId(u)){try{return decodeURIComponent(u.split("?")[0].split("/").pop())||u}catch(_){return u}}
+ TT[u]="YouTube video";
+ fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent(u)).then(r=>r.json()).then(j=>{if(j&&j.title)TT[u]=j.title}).catch(()=>{});
+ return TT[u]}
+function sendPls(){const W=WT;if(!W)return;W.tx({t:"pls",pls:W.pls,pi:W.pi,q:W.q||[],qi:W.qi==null?-1:W.qi})}
+const lock=()=>{if(wtLock(WT)){toast("Only the host can change songs");return true}return false};
+
+/* real playback of song k of playlist v (reuses the existing Listen queue player on both phones) */
+function playAt(v,k){const W=WT;if(!W)return;ens(W);const P=W.pls[v];if(!P||!P.q[k]||lock())return;
+ W.pi=v;const q=P.q.slice();
+ W.tx({t:"pls",pls:W.pls,pi:v,q:W.q||[],qi:W.qi==null?-1:W.qi});
+ wtMsg(W,{t:"q",q,i:k,from:"nxlocal"});W.tx({t:"q",q,i:k});paint()}
+
+async function expand(id){await ytLoad();
+ return new Promise(res=>{const d=D.createElement("div");d.style.cssText="position:fixed;left:-9999px;top:0;width:10px;height:10px";D.body.appendChild(d);let done=0,n=0,p;
+  const fin=l=>{if(done)return;done=1;try{p&&p.destroy()}catch(_){}d.remove();res(l||[])};
+  p=new YT.Player(d,{width:"10",height:"10",playerVars:{listType:"playlist",list:id},events:{onReady:e=>{const t=setInterval(()=>{let l=null;try{l=e.target.getPlaylist()}catch(_){}
+   if(l&&l.length){clearInterval(t);fin(l)}else if(++n>16){clearInterval(t);fin([])}},500)},onError:()=>fin([])}});
+  setTimeout(()=>fin([]),12000)})}
+
+async function plAdd(u){const W=WT;if(!W)return;ens(W);u=String(u||"").trim();
+ if(W.vi==null)return toast("Pehle ek playlist kholo, phir link paste karo");
+ if(!/^https?:\/\//i.test(u))return toast("Enter the full link (https://...)");
+ if(lock())return;
+ const v=W.vi,pl=/[?&]list=([\w-]+)/.exec(u);let items=[{u}];
+ if(pl&&!ytId(u)){toast("Loading playlist...");const ids=await expand(pl[1]);if(WT!==W)return;if(!ids.length)return toast("Could not read this playlist (private or empty)");items=ids.slice(0,50).map(i=>({u:"https://youtu.be/"+i}))}
+ else if(!ytId(u)&&!AU.test(u))return toast("Use a YouTube link or a direct audio link (.mp3)");
+ const P=W.pls[v];if(!P)return;const was=P.q.length;P.q=P.q.concat(items).slice(0,60);
+ const inp=$("wtU");if(inp)inp.value="";
+ if(!W.src)return playAt(v,Math.min(was,P.q.length-1));
+ if(W.pi===v)W.q=P.q.slice();
+ sendPls();paint();toast(items.length>1?items.length+" songs added":"Added to "+P.n)}
+function delItem(k){const W=WT,v=W.vi;if(!W||v==null||lock())return;const P=W.pls[v];if(!P)return;const playing=W.pi===v,cur=W.qi;
+ P.q.splice(k,1);
+ if(playing){if(k===cur&&P.q.length)return playAt(v,Math.min(cur,P.q.length-1));
+  W.q=P.q.slice();W.qi=!P.q.length?-1:(k<cur?cur-1:cur)}
+ sendPls();paint()}
+function clr(){const W=WT,v=W.vi;if(!W||v==null||lock())return;const P=W.pls[v];P.q=[];if(W.pi===v){W.q=[];W.qi=-1}sendPls();paint()}
+function step(d){const W=WT,v=W.vi;if(!W||v==null)return;const P=W.pls[v],i=(W.pi===v?W.qi:-1)+d;
+ if(i<0||i>=P.q.length)return toast(d>0?"End of playlist":"Start of playlist");playAt(v,i)}
+
+/* panel */
+function paint(){const W=WT,on=!!W&&S.page==="watch"&&W.mode==="listen";let box=$("nxpl");
+ if(!on){if(box)box.style.display="none";return}
+ ens(W);
+ if(!box){const s=$("wtS");if(!s)return;s.insertAdjacentHTML("afterend",'<div id="nxpl" class="card"></div>');box=$("nxpl")}
+ box.style.display="";
+ const u=$("wtU");if(u){const t=W.vi==null?"Open a playlist, then paste a link":"Add to "+W.pls[W.vi].n+" (YouTube / audio link)";if(u.placeholder!==t)u.placeholder=t}
+ let h;
+ if(W.vi==null||!W.pls[W.vi]){W.vi=null;
+  h='<div class="plh"><b>Playlists</b><span class="pw">Tap one to open it</span></div><div class="plg">'
+  +W.pls.map((p,i)=>'<button class="plc'+(W.pi===i?" on":"")+'" data-o="'+i+'">'+(W.pi===i?'<em class="plb">PLAYING</em>':"")+'<b>'+esc(p.n)+'</b><small>'+p.q.length+' song'+(p.q.length===1?"":"s")+'</small></button>').join("")
+  +(W.pls.length<5?'<button class="plc nw" data-a="new">+ New playlist</button>':"")+'</div>'}
+ else{const v=W.vi,P=W.pls[v],pl=W.pi===v;
+  h='<div class="plh"><button class="btn" data-a="back">\u2039 Playlists</button><b>'+esc(P.n)+'</b><button class="btn" data-a="ren">Rename</button></div>'
+  +'<div class="plt"><button class="btn" data-a="prev">Prev</button><button class="btn" data-a="next">Next</button><button class="btn" data-a="clr">Clear</button>'+(v>=3?'<button class="btn" data-a="del">Delete</button>':"")+'</div>'
+  +(P.q.length?P.q.map((x,k)=>{const cur=pl&&W.qi===k;return'<div class="pli'+(cur?" on":"")+'" data-p="'+k+'"><span>'+(cur?"\u25B6":k+1)+'</span><b>'+esc(title(x.u))+'</b><button data-x="'+k+'" aria-label="Remove">\u2715</button></div>'}).join(""):'<div class="pw" style="padding:10px">Is playlist me abhi koi song nahi hai. Upar link paste karke Add dabao. Link isi playlist me jayega.</div>')}
+ if(box._h!==h){box._h=h;box.innerHTML=h}}
+setInterval(()=>tf(paint),500);
+
+D.addEventListener("click",e=>{const box=e.target.closest&&e.target.closest("#nxpl");if(!box||!WT)return;const W=WT;ens(W);
+ const x=e.target.closest("[data-x]");if(x)return delItem(+x.dataset.x);
+ const o=e.target.closest("[data-o]");if(o){W.vi=+o.dataset.o;return paint()}
+ const p=e.target.closest("[data-p]");if(p&&W.vi!=null)return playAt(W.vi,+p.dataset.p);
+ const a=e.target.closest("[data-a]");if(!a)return;const k=a.dataset.a;
+ if(k==="back"){W.vi=null;return paint()}
+ if(k==="new"){if(lock())return;if(W.pls.length>=5)return toast("Maximum 5 playlists");W.pls.push({n:"Playlist "+(W.pls.length+1),q:[]});W.vi=W.pls.length-1;sendPls();return paint()}
+ if(k==="prev")return step(-1);if(k==="next")return step(1);if(k==="clr")return clr();
+ if(k==="del"){if(lock()||W.vi<3)return;const v=W.vi;W.pls.splice(v,1);if(W.pi===v)W.pi=-1;else if(W.pi>v)W.pi--;W.vi=null;sendPls();return paint()}
+ if(k==="ren"){const P=W.pls[W.vi];if(!P||lock())return;openModal('<h3>Rename playlist</h3><input id="plrn" maxlength="24" value="'+esc(P.n)+'"><div class="grid"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="nxPlRn()">Save</button></div>')}});
+window.nxPlRn=()=>{const W=WT;if(!W||W.vi==null)return;const v=($("plrn").value||"").trim().slice(0,24);closeModal();if(!v)return;W.pls[W.vi].n=v;sendPls();paint()};
+
+/* "Add" in Listen mode now adds to the opened playlist */
+const _wl=wtLoad;
+wtLoad=function(url,send){if(WT&&WT.mode==="listen"&&send)return plAdd(url);return _wl.apply(this,arguments)};
+
+/* keep both phones in sync */
+const _wm=wtMsg;
+wtMsg=function(W,m){
+ if(WT===W&&m&&m.t==="pls"&&m.from!==S.user.id){W.pls=m.pls||W.pls;W.pi=m.pi==null?-1:m.pi;if(m.q){W.q=m.q;W.qi=m.qi==null?-1:m.qi}if(W.vi!=null&&!(W.pls&&W.pls[W.vi]))W.vi=null;paint();return}
+ const r=_wm.apply(this,arguments);
+ if(WT===W&&m&&m.from!==S.user.id&&W.host&&(m.t==="join"||m.t==="need"))setTimeout(()=>{if(WT===W){ens(W);sendPls()}},1300);
+ return r};
+})();
+
+</script>
 </body></html>
