@@ -6811,4 +6811,157 @@ console.log("[NX-FAV-SHEET-V1] ready");
 })();
 
 </script>
+<script>
+
+/* NX-MUSIC-PATCH v1 */
+(()=>{
+const D=document,W=window,$$=i=>D.getElementById(i),tf=f=>{try{return f()}catch(e){try{console.warn("nx-mp",e)}catch(_){}}};
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ME=()=>S.user&&S.user.id,ADM=()=>!!(S.user&&S.user.email&&S.user.email.toLowerCase()==="surajpurve078@gmail.com");
+const fmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const M={tab:"g",all:[],q:[],i:-1,sh:true,rp:0,vol:+(localStorage.nx_mpv||80),pl:null,hist:[],tok:0,names:{},err:"",ps:null,sk:0};
+const ic=d=>IC(d);
+const PLY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>',PAU='<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/></svg>';
+const MI=ic('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>');
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.mpx{max-width:520px;margin:auto}
+.mpar{touch-action:none;-webkit-user-select:none;user-select:none;text-align:center;padding:6px 0 2px}
+.mpcd{position:relative;width:min(66vw,250px);aspect-ratio:1;margin:8px auto 14px;border-radius:50%;background:conic-gradient(from 20deg,#252a49,#6a7fd6,#252a49,#8b78d2,#252a49,#63c29c,#252a49);box-shadow:0 26px 44px -16px #000,0 0 0 1px rgba(255,255,255,.14);animation:mpsp 7s linear infinite;animation-play-state:paused}
+.mpcd.on{animation-play-state:running}
+.mpcd::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 5px,rgba(0,0,0,.14) 5px 6px)}
+.mpcd::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(115deg,rgba(255,255,255,.28),transparent 38%,transparent 62%,rgba(255,255,255,.14))}
+.mpi{position:absolute;inset:29%;border-radius:50%;background:#10162a center/cover;border:3px solid rgba(255,255,255,.25);z-index:1}
+.mpi::after{content:"";position:absolute;left:50%;top:50%;width:16%;height:16%;transform:translate(-50%,-50%);border-radius:50%;background:#070a10;box-shadow:0 0 0 3px rgba(255,255,255,.3)}
+@keyframes mpsp{to{transform:rotate(360deg)}}
+.mpt{font-size:20px;font-weight:800;padding:0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mps{color:var(--mu);font-size:13px;margin-top:2px;min-height:18px}
+.mph{font-size:12px;color:var(--mu);text-align:center;margin:2px 0 8px}
+.mpk{display:flex;align-items:center;gap:10px;margin:6px 0}
+.mpk span{font-size:12px;min-width:38px;text-align:center;font-variant-numeric:tabular-nums;color:#c3cadd}
+.mpk input[type=range]{flex:1;min-width:0;margin:0;padding:0;height:30px;border:0;background:transparent;accent-color:#8fa2f0}
+.mpc{display:flex;align-items:center;justify-content:space-between;margin:6px 4px 10px}
+.mpc button{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#dfe5ff}
+.mpc button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mpc .big{width:68px;height:68px;background:linear-gradient(135deg,#6a7fd6,#8b78d2);color:#fff;box-shadow:0 14px 26px -10px rgba(110,120,220,.8)}
+.mpc .big svg{width:30px;height:30px}
+.mpc button.on{color:#7ce3ae}
+.mpc button[data-r="2"]::after{content:"1";position:absolute;font-size:10px;font-weight:900;margin:-14px -22px 0 0}
+.mpc button[data-r="1"]{color:#7ce3ae}
+.mpv{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#c3cadd}
+.mpv svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.mpv input{flex:1;margin:0;padding:0;height:28px;border:0;background:transparent;accent-color:#8fa2f0}
+.mpr{display:flex;align-items:center;gap:12px;padding:10px 6px;border-top:1px solid var(--ln);cursor:pointer;width:100%;text-align:left}
+.mpr.on{background:rgba(125,144,214,.16);border-radius:12px}
+.mpr .n{width:22px;text-align:center;font-size:12px;color:#8e9cff;flex:none}
+.mpr .t{flex:1;min-width:0}.mpr .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}.mpr .t small{color:var(--mu);font-size:12px}
+.mpr .btn{min-height:34px;padding:0 12px;font-size:12px;flex:none}
+.mpf{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}.mpf b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+`}));
+/* ---------- data ---------- */
+const list=()=>{const me=ME();return M.all.filter(f=>M.tab==="g"?f.scope==="global":M.tab==="m"?(f.owner===me&&f.scope!=="global"):(f.scope!=="global"&&f.owner!==me))};
+async function load(){let r;try{r=await sb.from("nx_fav").select("*").eq("kind","listen").order("created_at",{ascending:false}).limit(500)}catch(e){r={error:e}}
+ if(r.error){M.err=String(r.error.message||"error");M.all=[]}else{M.err="";M.all=r.data||[]}
+ if(ADM()){const ids=[...new Set(M.all.filter(f=>f.scope!=="global"&&f.owner!==ME()).map(f=>f.owner))];if(ids.length)try{((await sb.from("profiles").select("id,username,display_name").in("id",ids)).data||[]).forEach(p=>M.names[p.id]=p.display_name||p.username)}catch(_){}}
+ paintList()}
+/* ---------- engine ---------- */
+function stopEng(){M.tok++;tf(()=>M.pl&&M.pl.kill());M.pl=null;const b=$$("nxmpb");if(b)b.innerHTML=""}
+function meta(f){const ms=navigator.mediaSession;if(!ms)return;tf(()=>{ms.metadata=new MediaMetadata({title:f.name,artist:"ZNEXORA Music"});ms.setActionHandler("play",()=>tog());ms.setActionHandler("pause",()=>tog());ms.setActionHandler("nexttrack",()=>nav(1));ms.setActionHandler("previoustrack",()=>nav(-1))})}
+async function play(i){const f=M.q[i];if(!f)return;stopEng();M.i=i;update();
+ if(WT&&WT.pl&&tf(()=>WT.pl.playing()))tf(()=>WT.pl.pause());
+ const box=$$("nxmpb")||(D.body.insertAdjacentHTML("beforeend",'<div id="nxmpb" style="position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:-1;overflow:hidden"></div>'),$$("nxmpb")),id=ytId(f.url),tok=M.tok;
+ const bad=()=>{toast("This song could not play");if(M.tok===tok)setTimeout(()=>{if(M.tok===tok)nav(1)},800)};
+ if(id){await ytLoad();if(M.tok!==tok||!(W.YT&&YT.Player))return;const d=D.createElement("div");box.appendChild(d);
+  const yp=new YT.Player(d,{width:"200",height:"200",videoId:id,playerVars:{playsinline:1,rel:0},events:{onReady:()=>{tf(()=>yp.setVolume(M.vol));yp.playVideo()},onStateChange:e=>{if(e.data===0&&M.tok===tok)end()},onError:bad}});
+  M.pl={play:()=>yp.playVideo(),pause:()=>yp.pauseVideo(),seek:t=>yp.seekTo(t,true),time:()=>yp.getCurrentTime?yp.getCurrentTime():0,dur:()=>yp.getDuration?yp.getDuration():0,playing:()=>{const s=yp.getPlayerState&&yp.getPlayerState();return s===1||s===3},vol:v=>yp.setVolume(v),kill:()=>{try{yp.destroy()}catch(_){}}}}
+ else{const a=new Audio();a.src=f.url;a.setAttribute("playsinline","");a.volume=M.vol/100;a.onended=()=>{if(M.tok===tok)end()};a.onerror=bad;a.play().catch(()=>{});
+  M.pl={play:()=>a.play().catch(()=>{}),pause:()=>a.pause(),seek:t=>{a.currentTime=t},time:()=>a.currentTime||0,dur:()=>isFinite(a.duration)?a.duration:0,playing:()=>!a.paused,vol:v=>{a.volume=v/100},kill:()=>{a.pause();a.removeAttribute("src")}}}
+ meta(f)}
+function end(){if(M.rp===2&&M.pl){tf(()=>{M.pl.seek(0);M.pl.play()});return}nav(1)}
+function nav(d){if(!M.q.length)return;let n;
+ if(M.sh&&M.q.length>1){if(d>0){M.hist.push(M.i);do{n=Math.floor(Math.random()*M.q.length)}while(n===M.i)}else n=M.hist.length?M.hist.pop():M.i}
+ else{n=M.i+d;if(n>=M.q.length){if(M.rp===1||M.sh)n=0;else{stopEng();update();return}}if(n<0)n=M.q.length-1}
+ play(n)}
+function start(){M.q=list();if(!M.q.length)return toast("No songs here yet");M.hist=[];play(M.sh?Math.floor(Math.random()*M.q.length):0)}
+function tog(){if(!M.pl)return start();tf(()=>M.pl.playing()?M.pl.pause():M.pl.play())}
+function slide(d){const el=$$("mpart");if(!el||!M.q.length)return nav(d);
+ el.style.transition="transform .18s ease,opacity .18s ease";el.style.transform="translateY("+(-d*38)+"px)";el.style.opacity="0";
+ setTimeout(()=>{nav(d);const e=$$("mpart");if(!e)return;e.style.transition="none";e.style.transform="translateY("+(d*38)+"px)";void e.offsetWidth;e.style.transition="transform .3s cubic-bezier(.22,1,.36,1),opacity .3s ease";e.style.transform="";e.style.opacity="1"},190)}
+/* ---------- page ---------- */
+function build(){const tabs=[["g","Global"],["m","My songs"]];if(ADM())tabs.push(["a","All private"]);
+ page('<div class="mpx" id="mpx"><button class="btn" data-mp="back">\u2039 Connect</button><h2 style="margin:12px 0 10px">Music</h2>'
+ +'<div class="seg">'+tabs.map(t=>'<button class="'+(M.tab===t[0]?"on":"")+'" data-mp="tab:'+t[0]+'">'+t[1]+'</button>').join("")+'</div>'
+ +'<div class="mpar" id="mparea"><div id="mpart"><div class="mpcd" id="mpcd"><div class="mpi" id="mpi"></div></div><div class="mpt" id="mpt"></div><div class="mps" id="mps"></div></div></div>'
+ +'<div class="mph">Swipe up for next song, down for previous</div>'
+ +'<div class="mpk"><span id="mpc">0:00</span><input id="mpsk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><span id="mpd">0:00</span></div>'
+ +'<div class="mpc"><button data-mp="sh" id="mpsh" aria-label="Shuffle">'+ic('<path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>')+'</button><button data-mp="p" aria-label="Previous">'+ic('<path d="M6 5v14M19 5L9 12l10 7z"/>')+'</button><button class="big" data-mp="pp" id="mppp" aria-label="Play or pause">'+PLY+'</button><button data-mp="n" aria-label="Next">'+ic('<path d="M18 5v14M5 5l10 7-10 7z"/>')+'</button><button data-mp="rp" id="mprp" aria-label="Repeat">'+ic('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 01-3 3H3"/>')+'</button></div>'
+ +'<div class="mpv">'+ic('<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7"/>')+'<input id="mpvl" type="range" min="0" max="100" value="'+M.vol+'" aria-label="Volume"></div>'
+ +'<button class="btn pri wide" data-mp="inv">Invite a friend to listen together</button>'
+ +'<div class="lbl" id="mph2"></div><div id="mpl"></div></div>');
+ const a=$$("mparea"),s=$$("mpsk"),v=$$("mpvl");let y0=null;
+ a.addEventListener("touchstart",e=>{y0=e.touches[0].clientY},{passive:true});
+ a.addEventListener("touchend",e=>{if(y0==null)return;const d=e.changedTouches[0].clientY-y0;y0=null;if(Math.abs(d)>50)slide(d<0?1:-1)},{passive:true});
+ a.addEventListener("wheel",e=>{e.preventDefault();if(Math.abs(e.deltaY)>20&&!a._w){a._w=1;setTimeout(()=>a._w=0,500);slide(e.deltaY>0?1:-1)}},{passive:false});
+ s.oninput=()=>{M.sk=1;$$("mpc").textContent=fmt(+s.value)};s.onchange=()=>{tf(()=>M.pl&&M.pl.seek(+s.value));M.sk=0};
+ v.oninput=()=>{M.vol=+v.value;try{localStorage.nx_mpv=M.vol}catch(_){}tf(()=>M.pl&&M.pl.vol(M.vol))};
+ update();paintList()}
+function update(){const f=M.q[M.i],t=$$("mpt");if(!t)return;
+ t.textContent=f?f.name:"Nothing playing";$$("mps").textContent=f?((f.scope==="global"?"Global":"Private")+(M.names[f.owner]?" \u00b7 "+M.names[f.owner]:"")):"Press play to shuffle Global songs";
+ const id=f&&ytId(f.url);$$("mpi").style.backgroundImage=id?'url("https://i.ytimg.com/vi/'+id+'/hqdefault.jpg")':"";
+ $$("mpsh").classList.toggle("on",M.sh);$$("mprp").dataset.r=M.rp;
+ D.querySelectorAll("#mpl .mpr").forEach(r=>r.classList.toggle("on",!!f&&r.dataset.id===String(f.id)))}
+function paintList(){const el=$$("mpl");if(!el)return;const l=list();$$("mph2").textContent=(M.tab==="g"?"Global songs":M.tab==="m"?"My songs":"Private songs of all users")+" ("+l.length+")";
+ if(M.err){el.innerHTML='<div class="pw" style="padding:14px;text-align:left">Could not load songs. Run the Supabase SQL first.</div>';return}
+ el.innerHTML=l.length?l.map((f,k)=>'<div class="mpr" role="button" data-mp="row:'+E(f.id)+'" data-id="'+E(f.id)+'"><span class="n">'+(k+1)+'</span><span class="t"><b>'+E(f.name)+'</b>'+(M.tab==="a"?'<small>'+E(M.names[f.owner]||"User")+'</small>':'')+'</span>'+(ADM()&&f.scope!=="global"?'<button class="btn" data-mp="mg:'+E(f.id)+'">Make Global</button>':'')+'</div>').join(""):'<div class="pw" style="padding:14px;text-align:left">No songs here yet. In Enjoy Together > Listen, play a link and tap the star to save it.</div>';
+ update()}
+W.nxMusic=()=>{S.page="music";build();load()};
+setInterval(()=>{if(S.page!=="music"||!$$("mpsk"))return;const p=M.pl;let t=0,d=0,pl=false;
+ if(p){t=tf(()=>p.time())||0;d=tf(()=>p.dur())||0;pl=!!tf(()=>p.playing())}
+ const s=$$("mpsk");s.disabled=!d;if(d){s.max=d;if(!M.sk)s.value=t}if(!M.sk)$$("mpc").textContent=fmt(t);$$("mpd").textContent=d?fmt(d):"0:00";
+ $$("mpcd").classList.toggle("on",pl);if(M.ps!==pl){M.ps=pl;$$("mppp").innerHTML=pl?PAU:PLY}},300);
+D.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#mpx [data-mp]");if(!b)return;const a=b.dataset.mp,i=a.indexOf(":"),c=i<0?a:a.slice(0,i),v=i<0?"":a.slice(i+1);
+ if(c==="back")return go("connect");
+ if(c==="tab"){M.tab=v;build();return}
+ if(c==="pp")return tog();if(c==="n")return slide(1);if(c==="p")return slide(-1);
+ if(c==="sh"){M.sh=!M.sh;update();return toast(M.sh?"Shuffle on":"Shuffle off")}
+ if(c==="rp"){M.rp=(M.rp+1)%3;update();return toast(["Repeat off","Repeat all","Repeat one"][M.rp])}
+ if(c==="inv")return inv();
+ if(c==="row"){const l=list(),k=l.findIndex(f=>String(f.id)===v);if(k<0)return;M.q=l;M.hist=[];return play(k)}
+ if(c==="mg"){e.stopPropagation();if(!ADM())return;const f=M.all.find(x=>String(x.id)===v);if(!f)return;
+  const r=await sb.from("nx_fav").update({scope:"global"}).eq("id",f.id);if(r.error)return toast("Not saved. Run the Supabase SQL first");f.scope="global";toast("Now Global");paintList()}});
+/* ---------- invite friend ---------- */
+async function inv(){openModal('<h3>Invite a friend</h3><p class="sub">You will listen together and stay in sync.</p><div id="mpfl" class="pw">Loading...</div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>');
+ try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or("requester_id.eq."+S.user.id+",addressee_id.eq."+S.user.id);
+  const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);if(!$$("mpfl"))return;
+  if(!ids.length){$$("mpfl").textContent="No friends yet. Add friends from Connect.";return}
+  const ps=(await sb.from("profiles").select("id,username,display_name,online").in("id",ids)).data||[];ps.forEach(p=>reg(p));
+  $$("mpfl").outerHTML='<div id="mpfl">'+ps.map(p=>'<div class="mpf"><b>'+E(dn(p.id,nm(p)))+'</b><button class="btn pri" style="min-height:36px;padding:0 16px" data-mpi="'+E(p.id)+'">Invite</button></div>').join("")+'</div>'}
+ catch(_){if($$("mpfl"))$$("mpfl").textContent="Could not load friends."}}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#mpfl [data-mpi]");if(!b)return;const id=b.dataset.mpi,p=P[id],name=p?nm(p):"Friend";
+ const q=M.q.length?M.q:list(),i=M.i>=0?M.i:0;closeModal();stopEng();M.pl=null;wtInvite(id,name);
+ setTimeout(()=>{const t=D.querySelector('#ltab button[data-m="listen"]');if(t)t.click();setTimeout(()=>{const w=WT;if(!w||!q.length)return;w.q=q.map(f=>({u:f.url}));w.qi=i;w.tx({t:"q",q:w.q,i});wtLoad(q[i].url,0)},600)},1600)});
+/* ---------- Connect card, back, leaving ---------- */
+const _rc=renderConnect;
+PG.connect=renderConnect=function(){const r=_rc.apply(this,arguments);tf(()=>{const wt=D.querySelector('#main .hc[onclick="wtMenu()"]');if(wt&&!$$("nxmpc"))wt.insertAdjacentHTML("afterend",'<button id="nxmpc" class="card hc" onclick="nxMusic()">'+gi(MI,"#1db97a","#2f9fd6")+'<span class="t"><b>Music</b><small>Global songs, shuffle, listen with friends</small></span></button>')});return r};
+const _g=go;go=function(p){if(S.page==="music"&&p!=="music"){stopEng();M.q=[];M.i=-1}return _g.apply(this,arguments)};
+addEventListener("popstate",e=>{if(S.page==="music"&&S.user){e.stopImmediatePropagation();history.pushState({n:1},"");go("connect")}},true);
+/* ---------- room stays after closing the app; friend sees Offline ---------- */
+const RK=()=>K("nx_wtroom"),OFFMS=14000;
+const _wc=wtClose;
+wtClose=function(){const had=!!WT;const r=_wc.apply(this,arguments);if(had&&!WT)tf(()=>localStorage.removeItem(RK()));return r};
+const _wm=wtMsg;
+wtMsg=function(w,m){if(WT===w&&m&&m.from!==S.user.id){const was=w.fs&&Date.now()-w.fs>OFFMS;w.fs=Date.now();if(was&&!w.host)tf(()=>w.tx({t:"need"}))}return _wm.apply(this,arguments)};
+setInterval(()=>{const w=WT;if(!w||!S.user)return;
+ if(w.joined&&w.ch&&w.ch.state==="joined")tf(()=>w.tx({t:"hb2"}));
+ tf(()=>localStorage.setItem(RK(),JSON.stringify({code:w.code,host:!!w.host,oppId:w.oppId||null,oppName:w.oppName||"Friend",t:Date.now()})));
+ if(w.rs&&!w.host&&!w.fs&&Date.now()-w.rs>25000){w.rs=0;toast("Room is not active anymore");wtClose();go("connect")}},4000);
+setInterval(()=>{const w=WT;if(!w||!w.joined||S.page!=="watch")return;const off=!!(w.fs&&Date.now()-w.fs>OFFMS),c=D.querySelectorAll("#nxmb .nxmc");
+ if(c[1]){const em=c[1].querySelector("em");if(em){const t=off?"Offline":(w.host?"Guest":"Host");if(em.textContent!==t){em.textContent=t;em.style.color=off?"#ff8a98":""}}}},1000);
+function restore(){if(WT||!S.user)return;let o=null;try{o=JSON.parse(localStorage.getItem(RK()))}catch(_){}
+ if(!o||!o.code||Date.now()-o.t>216e5)return;
+ wtOpen(o.code,!!o.host,o.oppId?{id:o.oppId,name:o.oppName}:null);if(WT)WT.rs=Date.now();toast("Back in your room")}
+const _en=enter;enter=async function(u){const r=await _en.apply(this,arguments);setTimeout(restore,3500);return r};
+console.log("[NX-MUSIC-PATCH v1] ready");
+})();
+
+</script>
 </body></html>
