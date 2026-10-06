@@ -6122,4 +6122,41 @@ onSig=function(p){if(p){
 })();
 
 </script>
+
+<script>
+/* NX-SPLASH-3D-PATCH v1 */
+(()=>{
+const D=document,el=D.getElementById("nxs3");if(!el)return;
+const st=D.createElement("style");
+st.textContent=`
+html body #nxs3 .s2{animation:none!important;opacity:1!important;transform:none!important}
+html body #nxs3 .ch{display:inline-block;opacity:0;animation:nx3c .75s cubic-bezier(.22,1,.36,1) var(--d) both}
+html body #nxs3 .z .ch{animation-name:nx3z;animation-duration:1s;text-shadow:1px 1px 0 #8a96ff,2px 2px 0 #7885f5,3px 3px 0 #6673e6,4px 4px 0 #5561d0,5px 5px 0 #444fb5,6px 6px 0 #343d96,7px 7px 0 #262d76,8px 8px 0 #1b2058,0 16px 26px rgba(0,0,0,.55)}
+html body #nxs3 .n .ch{text-shadow:1px 1px 0 #5560c0,2px 2px 0 #3b45a0,3px 3px 0 #2a3280,0 7px 12px rgba(0,0,0,.45)}
+html body #nxs3 .pb{animation:nxs-i .7s 4.7s ease both!important}
+html body #nxs3 .s1 svg{animation:nx3t 3.1s cubic-bezier(.22,1,.36,1) both;transform-origin:50% 50%;overflow:visible}
+.mgl{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:1;animation:nx3d 1.5s cubic-bezier(.5,0,.2,1) forwards;animation-delay:var(--d)}
+@keyframes nx3d{to{stroke-dashoffset:0}}
+@keyframes nx3c{from{opacity:0;transform:translateY(34px) rotateX(-80deg) scale(.6);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes nx3z{from{opacity:0;transform:scale(.3) rotateY(-110deg)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes nx3t{from{transform:perspective(800px) rotateY(-40deg) rotateX(16deg) scale(.9)}to{transform:perspective(800px) rotateY(-10deg) rotateX(5deg) scale(1)}}
+`;
+D.body.appendChild(st);
+/* 3D MG logo: stacked layers make the depth */
+const M="M24 128V36L82 96L140 36V128",G="M249 52A46 46 0 1 0 260 82H216",N=16;
+let s='<svg viewBox="0 0 284 175"><defs><linearGradient id="mgf" gradientUnits="userSpaceOnUse" x1="24" y1="30" x2="260" y2="135"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#eef1ff"/><stop offset="1" stop-color="#ffd96b"/></linearGradient></defs>';
+const parts=[[M,0],[G,.8]];
+for(let i=N;i>=1;i--){const k=i/N,c="rgb("+Math.round(70-50*k)+","+Math.round(86-60*k)+","+Math.round(210-130*k)+")";
+ parts.forEach(([d,b])=>{s+='<path class="mgl" pathLength="1" style="--d:'+(b+.2+(N-i)*.012).toFixed(3)+'s;stroke:'+c+';stroke-width:11;transform:translate('+(i*.55).toFixed(2)+'px,'+(i*.75).toFixed(2)+'px)" d="'+d+'"/>'})}
+parts.forEach(([d,b])=>{s+='<path class="mgl" pathLength="1" style="--d:'+(b+.45).toFixed(2)+'s;stroke:url(#mgf);stroke-width:11" d="'+d+'"/>'});
+parts.forEach(([d,b])=>{s+='<path class="mgl" pathLength="1" style="--d:'+(b+.5).toFixed(2)+'s;stroke:rgba(255,255,255,.75);stroke-width:2.4;transform:translate(-2px,-2px)" d="'+d+'"/>'});
+s+='</svg>';
+const s1=el.querySelector(".s1");if(s1)s1.innerHTML=s;
+/* letters come one by one */
+const z=el.querySelector(".z"),n=el.querySelector(".n");
+if(z)z.innerHTML='<span class="ch" style="--d:3.15s">Z</span>';
+if(n)n.innerHTML=[..."NEXORA"].map((c,i)=>'<span class="ch" style="--d:'+(3.7+i*.13).toFixed(2)+'s">'+c+'</span>').join("");
+})();
+
+</script>
 </body></html>
