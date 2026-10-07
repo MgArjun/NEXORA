@@ -6446,7 +6446,7 @@ D.addEventListener("click",e=>{const z=e.target.closest&&e.target.closest("#nxq"
  const x=e.target.closest("[data-x]");if(x)return lsDel(+x.dataset.x);
  const a=e.target.closest("[data-q]");if(a){const d=a.dataset.q;if(d==="n")return lsGo(1);if(d==="p")return lsGo(-1);if(wtLock(WT))return toast("Sirf host control kar sakta hai");return tf(()=>WT.pl&&(WT.pl.playing()?WT.pl.pause():WT.pl.play()))}
  const k=e.target.closest("[data-k]");if(k&&!wtLock(WT)){WT.qi=+k.dataset.k;lsPlay(WT.q[WT.qi].u);WT.tx({t:"q",q:WT.q,i:WT.qi})}});
-setInterval(()=>{if(!S.user)return;tf(org);tf(paintNow);tf(paintQ);tf(bub)},600);
+setInterval(()=>{if(!S.user)return;tf(org);tf(paintNow);tf(paintQ);tf(bub)},600);new MutationObserver(()=>{if(S.user){tf(org);tf(paintNow)}}).observe(document.getElementById("main"),{childList:true});
 console.log("[NX-V41-FAV-LISTEN] ready");
 })();
 
@@ -7714,7 +7714,7 @@ function reorg(){
  let at=stp||made[0][1];
  made.slice(1).forEach(([lb,c])=>{at.after(lb,c);at=c});
 }
-setInterval(()=>tf(reorg),300);
+setInterval(()=>tf(reorg),300);new MutationObserver(()=>tf(reorg)).observe(document.getElementById("main"),{childList:true});
 
 /* ---- Enjoy Together page (only shortcuts to what already exists) ---- */
 function row(fn,k,t,s){return '<button class="str" onclick="'+fn+'">'+icon(k)+'<span class="t"><b>'+t+'</b><small>'+s+'</small></span><i>&rsaquo;</i></button>'}
@@ -8070,6 +8070,20 @@ rf.onclick=()=>{const n=Date.now();rf.classList.remove("sp");void rf.offsetWidth
  tf(()=>ensureSig());tf(()=>AC&&AC.resume());tf(()=>pullInbox());tf(()=>renderHome());
  toast("Refreshed. Tap again to fully reload")};
 console.log("[NX-PATCH-V44] ready");
+})();
+</script>
+<script>
+/* NX-PATCH-V45-NO-FLASH */
+(()=>{
+const m=document.getElementById("main");if(!m)return;
+/* safety net: if the Settings list is not grouped yet, keep it hidden for a moment instead of showing the old order */
+new MutationObserver(ms=>{ms.forEach(r=>r.addedNodes.forEach(p=>{
+ if(p.nodeType!==1||!p.classList.contains("pg"))return;
+ if(typeof S==="undefined"||S.page!=="settings")return;
+ if(!p.querySelector(".stp")||p.querySelector(".sth")||p.dataset.p3)return;
+ p.style.visibility="hidden";const t0=performance.now();
+ const w=()=>{if(!p.isConnected||p.dataset.p3||performance.now()-t0>600){p.style.visibility="";return}requestAnimationFrame(w)};
+ requestAnimationFrame(w)}))}).observe(m,{childList:true});
 })();
 </script>
 </body></html>
