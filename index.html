@@ -7995,4 +7995,81 @@ W.atSheet=()=>openModal('<h3>Send</h3><div class="atg">'
  +'</div><button class="btn wide" onclick="closeModal()">Close</button>');
 })();
 </script>
+<script>
+/* NX-PATCH-V44-PLAYER-FIX */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const box=()=>$$("wtV"),ifr=()=>{const b=box();return b&&b.querySelector("iframe")};
+const cmd=(f,a)=>tf(()=>ifr().contentWindow.postMessage(JSON.stringify({event:"command",func:f,args:a||[]}),"*"));
+/* 1. YouTube: real duration so the seek bar moves and drag-seek works */
+let DU=0,SRC="",RT=1;
+addEventListener("message",e=>{const f=ifr();if(!f||e.source!==f.contentWindow)return;let d=e.data;if(typeof d==="string"){try{d=JSON.parse(d)}catch(_){return}}
+ const i=d&&d.info;if(i&&i.duration>0)DU=i.duration});
+const shim={_s:1,getDuration:()=>DU,isMuted:()=>false,unMute:()=>cmd("unMute"),setVolume:v=>cmd("setVolume",[v]),getPlaybackRate:()=>RT,setPlaybackRate:r=>{RT=r;cmd("setPlaybackRate",[r])},getIframe:()=>ifr()};
+setInterval(()=>{const w=tf(()=>WT),f=ifr();if(!w||!f)return;const s=w.src||"";if(s!==SRC){SRC=s;DU=0}
+ if(!tf(()=>ytId(s)))return;
+ const p=W.__nxYP;let real=false;try{real=p&&!p._s&&p.getIframe()===f}catch(e){}
+ if(!real&&p!==shim)W.__nxYP=shim;
+ if(!DU)tf(()=>f.contentWindow.postMessage(JSON.stringify({event:"listening",id:1,channel:"widget"}),"*"))},1500);
+/* 2. Volume (right) and brightness (left): swipe on the video or use the side bars */
+const BRK="nx_p4br";let BR=cl(parseFloat(tf(()=>localStorage.getItem(BRK)))||1,.15,1),G=null,raf=0,lastSync=0;
+const getVol=()=>{const s=$$("nxvm");return s?cl(+s.value/100,0,1):1};
+function pill(t){const p=$$("p4p");if(!p)return;p.textContent=t;p.classList.add("on");clearTimeout(pill.t);pill.t=setTimeout(()=>p.classList.remove("on"),800)}
+function setVol(v,sync){const b=box(),vd=b&&b.querySelector("video");if(vd)vd.volume=v;if(ifr())cmd("setVolume",[Math.round(v*100)]);
+ const s=$$("nxvm");if(s){s.value=Math.round(v*100);if(sync)s.dispatchEvent(new Event("input"))}}
+function setBr(v){BR=cl(v,.15,1);const o=$$("p4br");if(o)o.style.opacity=((1-BR)*.85).toFixed(2)}
+function fillBar(id,v){const i=D.querySelector("#"+id+" i");if(i)i.style.height=(v*100)+"%"}
+function frame(){raf=0;if(!G||G.v==null)return;const v=G.v;
+ if(G.k==="v"){const sy=Date.now()-lastSync>150;if(sy)lastSync=Date.now();setVol(v,sy);fillBar("p4R",v);pill("Volume "+Math.round(v*100)+"%")}
+ else{setBr(v);fillBar("p4L",v);pill("Brightness "+Math.round(v*100)+"%")}}
+const sched=()=>{if(!raf)raf=requestAnimationFrame(frame)};
+D.addEventListener("pointerdown",e=>{const t=e.target;if(!t||!t.closest||G)return;
+ const sl=t.closest("#p4L,#p4R"),o=t.closest("#p4o"),b=box();if(!b||(!sl&&!o))return;
+ if(sl){e.stopImmediatePropagation();tf(()=>sl.setPointerCapture(e.pointerId));sl.classList.add("act");
+  const r=sl.getBoundingClientRect();G={k:sl.id==="p4R"?"v":"b",sl,r,id:e.pointerId,v:cl(1-(e.clientY-r.top)/r.height,0,1)};
+  if(G.k==="v"&&ifr())cmd("unMute");sched();return}
+ const z=parseFloat(b.style.getPropertyValue("--p4z"))||1,zone=z>1.01?.18:.4,x=e.clientX,
+  k=x>innerWidth*(1-zone)?"v":x<innerWidth*zone?"b":null;if(!k)return;
+ G={k,id:e.pointerId,x0:x,y0:e.clientY,v0:k==="v"?getVol():BR,lock:0,v:null}},true);
+D.addEventListener("pointermove",e=>{if(!G||e.pointerId!==G.id)return;
+ if(G.sl){e.stopImmediatePropagation();G.v=cl(1-(e.clientY-G.r.top)/G.r.height,0,1);return sched()}
+ const dx=e.clientX-G.x0,dy=e.clientY-G.y0;
+ if(!G.lock){if(Math.abs(dy)>12&&Math.abs(dy)>1.3*Math.abs(dx)){G.lock=1;if(G.k==="v"&&ifr())cmd("unMute")}else return}
+ else e.stopImmediatePropagation();
+ G.v=cl(G.v0-dy/(innerHeight*.55),G.k==="b"?.15:0,1);sched()},true);
+const end=e=>{if(!G||e.pointerId!==G.id)return;const g=G;G=null;
+ if(g.sl){e.stopImmediatePropagation();g.sl.classList.remove("act")}
+ if(g.v!=null){if(g.k==="v")setVol(g.v,true);else tf(()=>localStorage.setItem(BRK,BR))}};
+["pointerup","pointercancel"].forEach(v=>D.addEventListener(v,end,true));
+setInterval(()=>{if(G)return;const o=$$("p4br");if(o){const t=((1-BR)*.85).toFixed(2);if(o.style.opacity!==t)o.style.opacity=t;fillBar("p4L",BR);fillBar("p4R",getVol())}},300);
+/* 3. Controls can never go outside the screen + quick "Fit" button while zoomed */
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.nzw.nzfs{overflow:hidden!important}
+.nzw.nzfs #wtV{isolation:isolate;z-index:0!important;clip-path:inset(0)}
+.nzw.nzfs #p4o{z-index:2147482000!important}
+.nzw.nzfs #p4c{z-index:2147483000!important}
+.nzw.nzfs #p4c *{max-width:100vw}
+#p4rs{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);z-index:2147483200;padding:8px 20px;border-radius:999px;background:rgba(0,0,0,.72);color:#fff;font-weight:800;font-size:13px;border:1px solid rgba(255,255,255,.3);display:none}
+#p4rs.on{display:block}
+#nxrf{position:fixed;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);z-index:8400;width:36px;height:36px;border-radius:50%;display:none;place-items:center;padding:0;color:#cfd6ff;background:rgba(20,26,50,.6);border:1px solid rgba(255,255,255,.12);opacity:.45}
+#nxrf.on{display:grid}#nxrf:active{opacity:.9}
+#nxrf svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#nxrf.sp svg{animation:nxrfs .8s linear}@keyframes nxrfs{to{transform:rotate(360deg)}}`}));
+D.body.insertAdjacentHTML("beforeend",'<button id="p4rs">Back to Fit</button>');
+$$("p4rs").onclick=()=>{const m=$$("p4m");if(!m)return;for(let i=0;i<3&&!/height="12"/.test(m.innerHTML);i++)m.click();const c=$$("p4c");if(c)c.classList.remove("h")};
+setInterval(()=>{const b=box(),c=$$("p4c"),z=b?parseFloat(b.style.getPropertyValue("--p4z"))||1:1;$$("p4rs").classList.toggle("on",!!c&&z>1.01)},300);
+/* 4. Refresh button on Home (soft repair, tap again within 4 sec = full reload) */
+D.body.insertAdjacentHTML("beforeend",'<button id="nxrf" aria-label="Refresh"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/></svg></button>');
+const rf=$$("nxrf");let lt=0;
+setInterval(()=>{rf.classList.toggle("on",!!(tf(()=>S.user)&&S.page==="home"&&!$$("nxs3")&&!$$("nxsp2")&&$$("ov").classList.contains("h")))},700);
+rf.onclick=()=>{const n=Date.now();rf.classList.remove("sp");void rf.offsetWidth;rf.classList.add("sp");
+ if(n-lt<4000&&!tf(()=>C)){location.reload();return}lt=n;
+ tf(()=>closeModal());
+ ["nxdpv","nxsv2","nxsc","mvw","otv","nxv","nxs3","nxsp2","nxcam","nxlv","nxtip","nxpop"].forEach(i=>{const e=$$(i);if(e)e.remove()});
+ ["nxh","nx-sel","nx-pfs","nzbody"].forEach(c=>D.body.classList.remove(c));
+ tf(()=>ensureSig());tf(()=>AC&&AC.resume());tf(()=>pullInbox());tf(()=>renderHome());
+ toast("Refreshed. Tap again to fully reload")};
+console.log("[NX-PATCH-V44] ready");
+})();
+</script>
 </body></html>
