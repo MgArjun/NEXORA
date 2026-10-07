@@ -7184,7 +7184,7 @@ const NOTE=S2('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><cir
 const DOTS='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="2" fill="currentColor" stroke="none"/></svg>';
 const CLK=S2('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),LST=S2('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>');
 const PLY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>',PAU='<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/></svg>';
-const X={all:[],tab:"g",ty:"",mode:"r",q:[],hist:[],cur:null,want:false,sh:true,rp:0,vol:+ld("nx_mpv",80),vv:+ld("nx_xv",ld("nx_wv",{}).v==null?100:ld("nx_wv",{}).v),sl:0,slm:0,lt:0,sk:0,lk:0,busy:0,bad:0,names:{}};
+const X=window.NXX={all:[],tab:"g",ty:"",mode:"r",q:[],hist:[],cur:null,want:false,sh:true,rp:0,vol:+ld("nx_mpv",80),vv:+ld("nx_xv",ld("nx_wv",{}).v==null?100:ld("nx_wv",{}).v),sl:0,slm:0,lt:0,sk:0,lk:0,busy:0,bad:0,names:{}};
 
 /* ---- call voice volume (one place controls it) ---- */
 tf(()=>{const g=Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype,"volume");Object.defineProperty(HTMLMediaElement.prototype,"volume",{configurable:true,get(){return g.get.call(this)},set(v){g.set.call(this,this.id==="ra"?X.vv/100:v)}})});
@@ -7211,13 +7211,13 @@ async function start(d,f){d.f=f;d.g=0;d.tg=null;d.kill=0;d.t0=Date.now();
  else{d.pend=null;tf(()=>d.yr&&d.yp.pauseVideo());d.au.onended=()=>over(d);d.au.onerror=()=>bad(d);d.au.src=f.url;d.au.play().catch(()=>{})}
  vol(d)}
 function halt(d){d.f=null;d.pend=null;d.tg=null;d.kill=0;d.hold=0;d.xo=null;d.g=0;tf(()=>d.au.pause());tf(()=>d.au.removeAttribute("src"));tf(()=>d.yr&&d.yp.stopVideo())}
-function fade(d,to,ms,kill){d.tg=to;d.st=(Math.abs(to-d.g)*50/Math.max(80,ms))||1;d.kill=kill?1:0}
+function fade(d,to,ms,kill){d.fa=d.g;d.ft=to;d.f0=performance.now();d.fms=Math.max(400,ms);d.tg=to;d.st=.01;d.kill=kill?1:0}
 setInterval(()=>{dk.forEach(d=>{
- if(d.hold){if(playing(d)||Date.now()-d.t0>8000){d.hold=0;if(d.xo){fade(d.xo,0,d.xms,1);d.xo=null}}else return}
+ if(d.hold){if(playing(d)||Date.now()-d.t0>8000){d.hold=0;d.f0=performance.now();if(d.xo){fade(d.xo,0,d.xms,1);d.xo=null}}else return}
  if(d.tg==null)return;const df=d.tg-d.g;
- if(Math.abs(df)<=d.st){d.g=d.tg;d.tg=null;vol(d);if(d.kill&&d.g===0)halt(d);return}
+ if(d.fms){const p=Math.min(1,(performance.now()-d.f0)/d.fms),e=p*p*(3-2*p);if(p<1){d.g=d.fa+(d.ft-d.fa)*e;vol(d);return}d.fms=0;d.st=9}if(Math.abs(df)<=d.st){d.g=d.tg;d.tg=null;vol(d);if(d.kill&&d.g===0)halt(d);return}
  d.g+=Math.sign(df)*d.st;vol(d)})},50);
-function go(f,ms){ms=ms||2200;tf(()=>WT&&WT.pl&&WT.pl.playing()&&WT.pl.pause());
+function go(f,ms){ms=Math.max(ms||0,4500);tf(()=>WT&&WT.pl&&WT.pl.playing()&&WT.pl.pause());
  const old=act(),nw=dk[1-A];if(nw.f)halt(nw);
  X.cur=f;X.want=true;A=1-A;start(nw,f);nw.hold=1;nw.xo=old.f?old:null;nw.xms=ms;fade(nw,1,ms);
  meta(f);paint()}
@@ -7226,7 +7226,7 @@ function bad(d){if(d!==act()||!X.want)return;toast("This song could not play");i
 function over(d){if(d!==act()||!d.f||!X.want)return;if(X.rp===2)go(d.f,600);else nxt(1,900)}
 const pool=()=>X.all.filter(f=>(f.scope==="global"||f.owner===ME())&&(!X.ty||String(f.song_type)===X.ty));
 function lst(){return X.all.filter(f=>(X.tab==="g"?f.scope==="global":X.tab==="m"?(f.owner===ME()&&f.scope!=="global"):(f.scope!=="global"&&f.owner!==ME()))&&(!X.ty||String(f.song_type)===X.ty))}
-function nxt(d,ms){const l=X.mode==="r"?pool():X.q;if(!l.length)return toast("No songs yet");const c=X.cur,i=c?l.findIndex(x=>x.id===c.id):-1;let f;
+window.NXN=(d,ms)=>nxt(d,ms);function nxt(d,ms){if(d>0&&X.uq&&X.uq.length)return go(X.uq.shift(),ms);const l=X.mode==="r"?pool():X.q;if(!l.length)return toast("No songs yet");const c=X.cur,i=c?l.findIndex(x=>x.id===c.id):-1;let f;
  if(X.sh){if(d<0&&X.hist.length)f=X.hist.pop();else{if(c){X.hist.push(c);if(X.hist.length>50)X.hist.shift()}f=window.nxBag?window.nxBag(l,c):l[Math.floor(Math.random()*l.length)]}}
  else{let k=i+d;if(k>=l.length){if(X.rp===1||X.mode==="r")k=0;else return fadeStop(1500)}if(k<0)k=l.length-1;f=l[k]}
  go(f,ms)}
@@ -7270,7 +7270,7 @@ function paint(){const t=$$("xt");if(t){const f=X.cur;t.textContent=f?f.name:"No
   $$("xsh").classList.toggle("on",X.sh);const r=$$("xrp");r.dataset.r=X.rp;r.classList.toggle("on",X.rp>0);$$("xty").innerHTML=chips()}
  const l=$$("xl");if(l){D.querySelectorAll("#xtb button").forEach(b=>b.classList.toggle("on",b.dataset.t===X.tab));$$("xch").innerHTML=chips();
   const a=lst();l.innerHTML=X.err?'<div class="pw" style="padding:14px">Could not load songs. Run the Supabase SQL first.</div>':a.length?a.map((f,k)=>'<div class="mpr'+(X.cur&&X.cur.id===f.id?" on":"")+'" role="button" data-m="row:'+E(f.id)+'"><span class="n">'+(k+1)+'</span><span class="t"><b>'+E(f.name)+'</b><small>'+(TF[f.song_type]||"No type")+(X.tab==="a"?" \u00b7 "+E(X.names[f.owner]||"User"):"")+'</small></span></div>').join(""):'<div class="pw" style="padding:14px">No songs here yet.</div>'}}
-function viewAll(){S.page="xall";const t=[["g","Global"],["m","Private"]];if(ADM())t.push(["a","All private"]);
+window.NXV=()=>viewAll();function viewAll(){S.page="xall";const t=[["g","Global"],["m","Private"]];if(ADM())t.push(["a","All private"]);
  page('<div class="xm" id="xa"><div class="xmh"><button class="ib" data-m="player" aria-label="Back">'+I.back+'</button><h2>All songs</h2></div><div class="seg" id="xtb" style="margin:10px 0">'+t.map(x=>'<button data-t="'+x[0]+'" data-m="tab:'+x[0]+'">'+x[1]+'</button>').join("")+'</div><div class="xty" id="xch"></div><div id="xl" style="flex:1;overflow:auto"></div></div>');paint()}
 W.nxMusic=()=>{build();if(!X.all.length||Date.now()-X.lt>3e4)load()};
 function setM(v){X.vol=v;sv("nx_mpv",v);dk.forEach(vol);const a=$$("xvl"),b=$$("xmm");if(a&&+a.value!==v)a.value=v;if(b&&+b.value!==v)b.value=v;const l=$$("xmml");if(l)l.textContent=v+"%"}
@@ -8049,6 +8049,78 @@ rf.onclick=()=>{
  tf(()=>{if(S.page==="home")renderHome();else if(S.page==="recent")renderRecent()});
  tf(()=>toast("Page refreshed"));
 };
+})();
+</script>
+<script>
+/* NX-PATCH-V47 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ADM=()=>!!(S.user&&S.user.email&&S.user.email.toLowerCase()==="surajpurve078@gmail.com"),ME=()=>S.user&&S.user.id;
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+.xar #xart,#mp2art{width:100%;display:flex;flex-direction:column;align-items:center}
+.xar .mpcd,#mp2art .mpcd{flex:none;margin-left:auto!important;margin-right:auto!important;transform-origin:50% 50%}
+.nzw.nzfs .p4v{background:#12182c!important}
+.nxyc{position:absolute;left:0;right:0;z-index:1;background:#000;opacity:0;transition:opacity .25s;pointer-events:none}
+.nxyc.on{opacity:1}#nxyt{top:0;height:17%}#nxyb{bottom:0;height:27%}`}));
+
+/* 1. Admin: change any user's username */
+let AU=null;
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#nxadm2 [data-a=open]");if(b)AU=b.dataset.id},true);
+setInterval(()=>{const d=D.querySelector("#nxadm2 .a2d");if(!d||!AU||$$("nxun")||!ADM())return;
+ d.insertAdjacentHTML("beforeend",'<div id="nxun" style="margin-top:12px"><div class="a2g" style="margin:0 0 6px">Change username</div><div style="display:flex;gap:8px"><input id="nxunv" maxlength="20" placeholder="new username" autocapitalize="off" autocomplete="off" style="margin:0;flex:1"><button class="btn pri" id="nxuns">Save</button></div></div>');
+ const id=AU;tf(()=>sb.from("profiles").select("username").eq("id",id).maybeSingle().then(r=>{const i=$$("nxunv");if(i&&r.data&&!i.value)i.value=r.data.username||""}))},500);
+D.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#nxuns");if(!b||!AU)return;
+ const un=($$("nxunv").value||"").trim().toLowerCase();
+ if(!/^[a-z0-9_]{3,20}$/.test(un))return toast("Username: 3 to 20 characters, a-z 0-9 _");
+ b.disabled=true;
+ try{const t=await sb.from("profiles").select("id").ilike("username",un.replace(/_/g,"\\_")).neq("id",AU).limit(1);
+  if(t.data&&t.data.length){b.disabled=false;return toast("That username is taken")}
+  const r=await sb.from("profiles").update({username:un}).eq("id",AU).select("id,username");
+  if(r.error||!(r.data&&r.data.length)){b.disabled=false;return toast("Could not change. Run the Supabase admin policy first")}
+  if(P[AU])P[AU].username=un;toast("Username updated");
+  const rf=D.querySelector("#nxadm2 [data-a=ref]");if(rf)rf.click()}
+ catch(_){toast("Could not change username")}
+ b.disabled=false},true);
+
+/* 2. Music disc always centered (stuck slide reset) */
+let tAt=0,TC=0;
+["touchstart","wheel","click"].forEach(n=>D.addEventListener(n,()=>{tAt=Date.now()},true));
+D.addEventListener("touchstart",()=>{TC=1},true);["touchend","touchcancel"].forEach(n=>D.addEventListener(n,()=>{TC=0;tAt=Date.now()},true));
+setInterval(()=>{if(TC||Date.now()-tAt<1800)return;D.querySelectorAll("#xart,#mp2art").forEach(a=>{if(a.style.transform||a.style.opacity==="0"){a.style.transition="none";a.style.transform="";a.style.opacity="1"}})},700);
+
+/* 3. Landscape: YouTube screen never shows behind */
+let fsT=0,was=false;
+setInterval(()=>{const b=$$("wtV"),w=b&&b.parentElement,on=!!(w&&w.classList.contains("nzfs")),yt=on&&!!b.querySelector("iframe");
+ if(on&&!was)fsT=Date.now();was=on;
+ ["nxyt","nxyb"].forEach(id=>{let e=$$(id);if(!yt){if(e)e.remove();return}
+  if(!e){w.insertAdjacentHTML("beforeend",'<i id="'+id+'" class="nxyc"></i>');e=$$(id)}
+  const pl=!!tf(()=>WT.pl.playing());e.classList.toggle("on",!pl||Date.now()-fsT<6000)})},250);
+
+/* 4. Music songs: add to queue, edit, delete */
+setInterval(()=>{if(!W.NXX||S.page!=="xall")return;D.querySelectorAll("#xl .mpr").forEach(r=>{if(r.querySelector(".nxdt"))return;
+ r.insertAdjacentHTML("beforeend",'<button class="ib nxdt" aria-label="More" style="width:36px;height:36px;flex:none">&#8942;</button>')})},400);
+function menu(f){W.__nq=f;const X=W.NXX,mine=f.owner===ME()||ADM(),q=(X.uq||[]).length;
+ openModal('<h3>'+E(f.name)+'</h3><div style="display:grid;gap:10px"><button class="btn pri" data-nq="q">Add to queue'+(q?" ("+q+" waiting)":"")+'</button>'+(mine?'<button class="btn" data-nq="e">Edit</button><button class="btn red" data-nq="d">Delete</button>':"")+'</div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>')}
+function edit(f){const TY=[["","None"],["1","Soothing"],["2","Vibe"],["3","Energetic"]];
+ openModal('<h3>Edit song</h3><input id="nqn" maxlength="60" value="'+E(f.name)+'"><div class="lbl">Save as</div><div class="seg" id="nqs"><button data-sc="private" class="'+(f.scope!=="global"?"on":"")+'">Private</button><button data-sc="global" class="'+(f.scope==="global"?"on":"")+'">Global</button></div><div class="lbl">Type</div><div class="seg" id="nqt">'+TY.map(t=>'<button data-ty="'+t[0]+'" class="'+(String(f.song_type||"")===t[0]?"on":"")+'">'+t[1]+'</button>').join("")+'</div><button class="btn pri wide" style="margin-top:12px" data-nq="s">Save</button><button class="btn wide" style="margin-top:8px" onclick="closeModal()">Cancel</button>')}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".nxdt");if(!b)return;e.stopImmediatePropagation();e.preventDefault();
+ const id=b.closest(".mpr").dataset.m.slice(4),f=W.NXX.all.find(x=>String(x.id)===id);if(f)menu(f)},true);
+D.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest("#md [data-nq],#nqs button,#nqt button");if(!t)return;const f=W.__nq,X=W.NXX;if(!f||!X)return;
+ if(!t.dataset.nq){t.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===t));return}
+ const a=t.dataset.nq;
+ if(a==="q"){X.uq=X.uq||[];X.uq.push(f);closeModal();toast("Added to queue");if(!X.cur)tf(()=>W.NXN(1,900));return}
+ if(a==="e")return edit(f);
+ if(a==="d")return openModal('<h3>Delete song?</h3><p class="sub">'+E(f.name)+' will be removed. A song that is playing keeps playing.</p><div class="grid"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" data-nq="dd">Delete</button></div>');
+ if(a==="dd"){const r=await sb.from("nx_fav").delete().eq("id",f.id);if(r.error)return toast("Could not delete: "+String(r.error.message).slice(0,50));
+  X.all=X.all.filter(x=>x.id!==f.id);X.uq=(X.uq||[]).filter(x=>x.id!==f.id);closeModal();toast("Deleted");tf(()=>W.NXV());return}
+ if(a==="s"){const n=($$("nqn").value||"").trim();if(!n)return toast("A name is required");
+  const sc=tf(()=>$$("nqs").querySelector(".on").dataset.sc)||f.scope,ty=tf(()=>$$("nqt").querySelector(".on").dataset.ty)||"",row={name:n.slice(0,60),scope:sc,song_type:ty?+ty:null};
+  let r=await sb.from("nx_fav").update(row).eq("id",f.id);
+  if(r.error){delete row.song_type;r=await sb.from("nx_fav").update(row).eq("id",f.id)}
+  if(r.error)return toast("Could not save: "+String(r.error.message).slice(0,50));
+  Object.assign(f,row);closeModal();toast("Saved");tf(()=>W.NXV())}},true);
+console.log("[NX-PATCH-V47] ready");
 })();
 </script>
 </body></html>
