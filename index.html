@@ -7583,4 +7583,163 @@ setInterval(()=>{const w=wrap(),on=!!(w&&w.classList.contains("nzfs"));if(!on){i
 })();
 
 </script>
+<script>
+/* NX-PATCH-P3 SETTINGS-PRO */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("p3",e)}catch(_){}}};
+const $$=i=>D.getElementById(i);
+
+/* ================= 1. CSS: premium sliders + settings look ================= */
+D.head.appendChild(Object.assign(D.createElement("style"),{id:"nx-p3-css",textContent:`
+html body input[type=range]:not(#crX){-webkit-appearance:none;appearance:none;height:32px!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;cursor:pointer;--p:50%;-webkit-tap-highlight-color:transparent}
+html body input[type=range]:not(#crX)::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(90deg,#8fa2ff 0,#b88cff var(--p),rgba(255,255,255,.1) var(--p));box-shadow:inset 0 1px 3px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.1),0 0 16px -5px rgba(143,162,255,.5)}
+html body input[type=range]:not(#crX)::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-7px;border-radius:50%;border:2px solid #fff;background:radial-gradient(circle at 35% 30%,#fff,#d3dbff 55%,#9aabff);box-shadow:0 0 0 4px rgba(143,162,255,.18),0 5px 12px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s}
+html body input[type=range]:not(#crX):active::-webkit-slider-thumb{transform:scale(1.2);box-shadow:0 0 0 8px rgba(143,162,255,.22),0 0 20px rgba(143,162,255,.75),0 5px 12px rgba(0,0,0,.55)}
+html body input[type=range]:not(#crX):focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 6px rgba(143,162,255,.4),0 5px 12px rgba(0,0,0,.55)}
+html body input[type=range]:not(#crX)::-moz-range-track{height:8px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+html body input[type=range]:not(#crX)::-moz-range-progress{height:8px;border-radius:999px;background:linear-gradient(90deg,#8fa2ff,#b88cff)}
+html body input[type=range]:not(#crX)::-moz-range-thumb{width:18px;height:18px;border-radius:50%;border:2px solid #fff;background:radial-gradient(circle at 35% 30%,#fff,#d3dbff 55%,#9aabff);box-shadow:0 0 0 4px rgba(143,162,255,.18),0 5px 12px rgba(0,0,0,.55)}
+html body input[type=range]:not(#crX):disabled{opacity:.45;cursor:default}
+.card.stl.nxe{border-radius:22px;padding:4px;margin-bottom:0;overflow:hidden}
+.nxe .str{border-radius:18px;padding:12px;transition:background .2s}
+.nxe .str:active{background:rgba(255,255,255,.06)}
+.nxe .str+.str{border-top:0}
+.nxe .str .t b{font-size:16px;font-weight:700}
+.nxe .str .t small{font-size:12.5px;margin-top:1px}
+.nxe .str i{opacity:.7}
+.nxe .str .gi{width:44px;height:44px;border-radius:14px}
+.nxe .str .gi svg{width:23px;height:23px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nxw{display:inline-grid;place-items:center;vertical-align:-.22em}
+.nxw svg{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+`}));
+
+/* ================= 2. Slider fill (glass track) ================= */
+function fill(e){const mn=+e.min||0,hasMax=e.getAttribute("max")!==null,mx=hasMax?+e.max:100,v=+e.value,p=mx>mn?Math.max(0,Math.min(100,(v-mn)/(mx-mn)*100)):0,s=p.toFixed(1)+"%";if(e.style.getPropertyValue("--p")!==s)e.style.setProperty("--p",s)}
+D.addEventListener("input",ev=>{const t=ev.target;if(t&&t.type==="range")fill(t)},true);
+D.addEventListener("change",ev=>{const t=ev.target;if(t&&t.type==="range")fill(t)},true);
+setInterval(()=>{D.querySelectorAll("input[type=range]").forEach(fill)},250);
+
+/* ================= 3. Professional icons instead of leftover emoji ================= */
+const EM={
+"\uD83C\uDFAE":'<path d="M6 8h12a4 4 0 014 4v2.5a3.5 3.5 0 01-6.2 2.2L14.5 15h-5l-1.3 1.7A3.5 3.5 0 012 14.5V12a4 4 0 014-4z"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r=".8"/><circle cx="18" cy="13.5" r=".8"/>',
+"\uD83C\uDFB2":'<rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="8.5" cy="8.5" r=".9"/><circle cx="15.5" cy="8.5" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="8.5" cy="15.5" r=".9"/><circle cx="15.5" cy="15.5" r=".9"/>',
+"\uD83C\uDCCF":'<rect x="4" y="5" width="11" height="15" rx="2.2"/><rect x="9" y="3" width="11" height="15" rx="2.2"/>',
+"\uD83E\uDD16":'<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4.5V8M9 13h.01M15 13h.01M9.5 16.5h5"/><circle cx="12" cy="3.5" r="1"/>',
+"\uD83C\uDF10":'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>',
+"\uD83D\uDC65":'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M16 4.5a3.5 3.5 0 010 7M22 20c0-3-2-5-5-5.7"/>',
+"\uD83D\uDCF1":'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>',
+"\u26A1":'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+"\uD83D\uDD01":'<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 01-3 3H3"/>',
+"\u23F3":'<path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/>',
+"\uD83C\uDFAF":'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+"\uD83D\uDCDE":'<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.8 2z"/>',
+"\u274C":'<path d="M6 6l12 12M18 6L6 18"/>',
+"\u265F":'<circle cx="12" cy="7" r="3"/><path d="M8.5 20c0-4 1-6 3.5-8 2.5 2 3.5 4 3.5 8zM6 20h12"/>',
+"\u2605":'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="currentColor" fill-opacity=".25"/>',
+"\u2630":'<path d="M4 6h16M4 12h16M4 18h16"/>',
+"\u25B6":'<path d="M8 5v14l11-7z" fill="currentColor"/>',
+"\u270E":'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>'
+};
+const RE=new RegExp("("+Object.keys(EM).join("|")+")\\uFE0F?","g");
+const SKIP=".uc,.cell,.cs,.ep,.eb,#cb,.m,.nm,textarea,.pc,script,style";
+function cvt(root){
+ if(!root||root.nodeType!==1)return;
+ const els=[];if(root.matches&&root.matches("button,h3"))els.push(root);
+ if(root.querySelectorAll)els.push(...root.querySelectorAll("button,h3"));
+ els.forEach(b=>{
+  if(b.closest(SKIP))return;
+  const w=D.createTreeWalker(b,NodeFilter.SHOW_TEXT),ns=[];let n;while((n=w.nextNode()))ns.push(n);
+  ns.forEach(t=>{
+   const v=t.nodeValue;RE.lastIndex=0;if(!RE.test(v))return;RE.lastIndex=0;
+   const f=D.createDocumentFragment();let last=0,m;
+   while((m=RE.exec(v))){
+    if(m.index>last)f.appendChild(D.createTextNode(v.slice(last,m.index)));
+    const s=D.createElement("span");s.className="nxw";s.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+EM[m[1]]+'</svg>';f.appendChild(s);last=RE.lastIndex;
+   }
+   if(last<v.length)f.appendChild(D.createTextNode(v.slice(last)));
+   t.replaceWith(f);
+  });
+ });
+}
+let q=[],raf=0;
+new MutationObserver(ms=>{
+ ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)q.push(n)}));
+ if(!raf)raf=requestAnimationFrame(()=>{raf=0;const l=q;q=[];l.forEach(n=>tf(()=>cvt(n)))});
+}).observe(D.body,{childList:true,subtree:true});
+tf(()=>cvt(D.body));
+
+/* ================= 4. Settings: categories, Enjoy Together on top ================= */
+const keyOf=r=>{const d=r.dataset&&r.dataset.fs;if(d&&d!=="out")return d;const oc=r.getAttribute("onclick")||"",m=/stSub\('(\w+)'/.exec(oc);return m?m[1]:(/nxAdm/.test(oc)?"adm":null)};
+const ICO={
+ enj:['<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5z"/><path d="M8 21h8"/>',"#ff5b8a","#ff8a5b"],
+ acc:['<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/>',"#5b8cff","#7a6bff"],
+ prv:['<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>',"#9a6bff","#d26bff"],
+ snd:['<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/>',"#ff8a5b","#ff5b8a"],
+ cal:['<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.8 2z"/>',"#2fd6a0","#2f9fd6"],
+ dat:['<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',"#3e8ea3","#3b6ea5"],
+ adv:['<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',"#6a7399","#3a4268"],
+ adm:['<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',"#ef5368","#c21f35"],
+ abt:['<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',"#7d90d6","#8b78d2"]
+};
+const icon=k=>{const i=ICO[k];return i?gi(IC(i[0]),i[1],i[2]):""};
+function enjRow(){
+ const b=D.createElement("button");b.className="str";b.setAttribute("onclick","stSub('enj')");
+ b.innerHTML=icon("enj")+'<span class="t"><b>Enjoy Together</b><small>Watch, listen, music and favourites</small></span><i>&rsaquo;</i>';
+ return b;
+}
+const GROUPS=[["Enjoy Together",["enj"]],["Account and privacy",["acc","prv"]],["Calls and sound",["cal","snd"]],["Storage and system",["dat","adv"]],["Administration",["adm"]],["About",["abt"]]];
+function reorg(){
+ if(!S.user||S.page!=="settings")return;
+ const pg=D.querySelector("#main .pg");
+ if(!pg||pg.dataset.p3||pg.querySelector("#nxEnjP")||!pg.querySelector(".nxsec"))return;
+ const map={};
+ pg.querySelectorAll(".str").forEach(r=>{const k=keyOf(r);if(k&&!map[k])map[k]=r});
+ if(!map.acc&&!map.prv&&!map.cal)return;
+ pg.dataset.p3="1";
+ const oldL=[...pg.querySelectorAll(".nxsl")],oldC=[...pg.querySelectorAll(".card.stl")];
+ const made=[];
+ GROUPS.forEach(([name,keys])=>{
+  const rs=keys.map(k=>k==="enj"?enjRow():map[k]).filter(Boolean);
+  if(!rs.length)return;
+  const lb=D.createElement("div");lb.className="nxsl";lb.textContent=name;
+  const c=D.createElement("div");c.className="card stl nxsec";
+  rs.forEach(r=>{if(!r.querySelector(".gi")){const k=keyOf(r);if(k&&ICO[k])r.insertAdjacentHTML("afterbegin",icon(k))}c.appendChild(r)});
+  made.push([lb,c]);
+ });
+ oldL.forEach(x=>x.remove());
+ oldC.forEach(c=>{if(!c.querySelector(".str"))c.remove()});
+ if(!made.length)return;
+ const h=pg.querySelector(":scope>h2"),stp=pg.querySelector(".stp");
+ if(h)h.after(made[0][0],made[0][1]);else pg.prepend(made[0][0],made[0][1]);
+ let at=stp||made[0][1];
+ made.slice(1).forEach(([lb,c])=>{at.after(lb,c);at=c});
+}
+setInterval(()=>tf(reorg),300);
+
+/* ---- Enjoy Together page (only shortcuts to what already exists) ---- */
+function row(fn,k,t,s){return '<button class="str" onclick="'+fn+'">'+icon(k)+'<span class="t"><b>'+t+'</b><small>'+s+'</small></span><i>&rsaquo;</i></button>'}
+function enjPage(){
+ S.page="settings";
+ const play=gi(IC('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5z"/><path d="M8 21h8"/>'),"#ff5b8a","#ff8a5b");
+ const note=gi(IC('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>'),"#1db97a","#2f9fd6");
+ const star=gi(IC('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'),"#ffc93c","#ff8a5b");
+ const r=(fn,ic,t,s)=>'<button class="str" onclick="'+fn+'">'+ic+'<span class="t"><b>'+t+'</b><small>'+s+'</small></span><i>&rsaquo;</i></button>';
+ page('<div class="sth"><button class="ib" onclick="stSub()" aria-label="Back">'+I.back+'</button><h2>Enjoy Together</h2></div>'
+ +'<div id="nxEnjP"></div><div class="card stl nxe">'
+ +r("wtMenu()",play,"Enjoy Together","Create or join a room to watch or listen")
+ +r("nxMusic()",note,"Music","Shuffle songs, swipe for next and previous")
+ +r("nxFavView()",star,"Favourites","Your saved videos and songs")
+ +'</div><p class="stn">Volume sliders for voice, video and music are inside the room and the music player.</p>');
+}
+const _ss=W.stSub;
+W.stSub=function(k){if(k==="enj")return enjPage();return typeof _ss==="function"?_ss.apply(this,arguments):undefined};
+addEventListener("popstate",e=>{
+ if(S.user&&S.page==="settings"&&D.querySelector("#nxEnjP")&&$$("ov").classList.contains("h")){
+  e.stopImmediatePropagation();tf(()=>history.pushState({n:1},""));W.stSub();
+ }
+},true);
+
+console.log("[NX-PATCH-P3] ready");
+})();
+</script>
 </body></html>
