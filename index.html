@@ -8123,4 +8123,56 @@ D.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest(
 console.log("[NX-PATCH-V47] ready");
 })();
 </script>
+<script>
+/* NX-PATCH-V48 ADMIN-TABS-PLAYER */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#nxyt,#nxyb{display:none!important}
+html body .nzw.nzfs #wtV>iframe{top:-15%!important;height:130%!important}
+#nxadm2 .a2b{display:flex;flex-direction:column}
+#nxadm2 .a2b>*{flex:none}
+#nxat{order:-3;position:sticky;top:0;z-index:5;margin-bottom:12px;background:#070a10}
+#nxat button{font-size:12.5px;padding:0 4px}
+#nxpn{order:-2}#nxax{order:-1}
+#nxpn>div{display:none}
+#nxadm2[data-nt=ov] #nxpn .s-ov,#nxadm2[data-nt=mu] #nxpn .s-mu,#nxadm2[data-nt=ct] #nxpn .s-ct{display:block}
+#nxadm2[data-nt=us] #nxpn,#nxadm2[data-nt=us] #nxax,#nxadm2[data-nt=ov] #nxax{display:none}
+#nxadm2[data-nt=ov] .a2t,#nxadm2[data-nt=ov] .a2q,#nxadm2[data-nt=ov] #a2l,#nxadm2[data-nt=mu] .a2t,#nxadm2[data-nt=mu] .a2q,#nxadm2[data-nt=mu] #a2l,#nxadm2[data-nt=ct] .a2t,#nxadm2[data-nt=ct] .a2q,#nxadm2[data-nt=ct] #a2l{display:none}
+#nxadm2[data-nt=mu] [data-ax=st],#nxadm2[data-nt=mu] [data-ax=fs],#nxadm2[data-nt=ct] [data-ax=mm]{display:none}
+#nxpn .ng{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#nxpn .ng .card{padding:14px 6px;text-align:center;border-radius:18px}
+#nxpn .ng b{display:block;font-size:24px}#nxpn .ng small{color:var(--mu)}
+#nxpn .nt{padding:4px 2px 12px;color:var(--mu);font-size:13px}`}));
+let NT="ov";
+const TB=[["ov","Overview"],["us","Users"],["mu","Music"],["ct","Controls"]];
+const num=t=>{const m=/\((\d+)\)/.exec(t||"");return m?m[1]:"-"};
+function ensure(){const el=$$("nxadm2");if(!el){NT="ov";return}
+ const b=el.querySelector(".a2b");if(!b||!b.querySelector(".a2t"))return;
+ el.dataset.nt=NT;
+ if(!$$("nxat"))b.insertAdjacentHTML("afterbegin",'<div class="seg" id="nxat">'+TB.map(t=>'<button data-t="'+t[0]+'" class="'+(t[0]===NT?"on":"")+'">'+t[1]+'</button>').join("")+'</div><div id="nxpn"><div class="s-ov"></div><div class="s-mu"><div class="nt">Songs manage karne ke liye neeche button dabao. Har user ka favourite permission: Users tab me user kholo.</div></div><div class="s-ct"><div class="nt">Sign-ups, user limit, status, bypass</div><button class="btn pri wide" data-go="ctl" style="margin-bottom:10px">Open controls</button></div></div>');
+ const bs=b.querySelectorAll(".a2t button"),h='<div class="ng"><div class="card"><b>'+num(bs[1]&&bs[1].textContent)+'</b><small>Total users</small></div><div class="card"><b>'+((typeof S!=="undefined"&&S.live)||0)+'</b><small>Online</small></div><div class="card"><b>'+num(bs[0]&&bs[0].textContent)+'</b><small>Last 24h</small></div></div>',o=$$("nxpn").querySelector(".s-ov");
+ if(o._h!==h){o._h=h;o.innerHTML=h}}
+setInterval(()=>tf(ensure),300);
+D.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#nxat button,[data-go]");if(!t)return;
+ if(t.dataset.go){const c=D.querySelector("#nxadm2 [data-a=ctl]");if(c)c.click();return}
+ NT=t.dataset.t;const el=$$("nxadm2");if(el)el.dataset.nt=NT;
+ D.querySelectorAll("#nxat button").forEach(x=>x.classList.toggle("on",x===t))},true);
+/* play / pause (own, reliable) */
+let YS=-1;
+const ifr=()=>{const b=$$("wtV");return b&&b.querySelector("iframe")};
+const cmd=fn=>tf(()=>ifr().contentWindow.postMessage(JSON.stringify({event:"command",func:fn,args:[]}),"*"));
+addEventListener("message",e=>{const f=ifr();if(!f||e.source!==f.contentWindow)return;let d=e.data;if(typeof d==="string"){try{d=JSON.parse(d)}catch(_){return}}const i=d&&d.info;if(i&&i.playerState!=null)YS=i.playerState});
+setInterval(()=>{const f=ifr();if(f&&S.page==="watch")tf(()=>f.contentWindow.postMessage(JSON.stringify({event:"listening",id:1,channel:"widget"}),"*"))},2500);
+function toggle(){const w=WT;if(!w||!w.pl)return;
+ if(tf(()=>wtLock(w)))return toast("Only the host can control the video");
+ const b=$$("wtV"),v=b&&b.querySelector("video"),f=ifr();let pl;
+ if(v)pl=!v.paused;else if(f&&(YS===1||YS===3))pl=true;else if(f&&(YS===2||YS===0||YS===5))pl=false;else pl=!!tf(()=>w.pl.playing());
+ if(pl){if(v)tf(()=>v.pause());else cmd("pauseVideo");tf(()=>w.pl.pause())}
+ else{if(v)tf(()=>{const p=v.play();p&&p.catch&&p.catch(()=>{})});else cmd("playVideo");tf(()=>w.pl.play())}
+ YS=pl?2:1;
+ setTimeout(()=>{if(WT===w)tf(()=>w.tx({t:"st",p:pl?0:1,time:w.pl.time()||0,h:0}))},80)}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#p4pp");if(!b)return;e.stopImmediatePropagation();e.preventDefault();toggle()},true);
+})();
+</script>
 </body></html>
