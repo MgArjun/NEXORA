@@ -7278,7 +7278,7 @@ function over(d){if(d!==act()||!d.f||!X.want)return;if(X.rp===2)go(d.f,600);else
 const pool=()=>X.all.filter(f=>(f.scope==="global"||f.owner===ME())&&(!X.ty||String(f.song_type)===X.ty));
 function lst(){return X.all.filter(f=>(X.tab==="g"?f.scope==="global":X.tab==="m"?(f.owner===ME()&&f.scope!=="global"):(f.scope!=="global"&&f.owner!==ME()))&&(!X.ty||String(f.song_type)===X.ty))}
 function nxt(d,ms){const l=X.mode==="r"?pool():X.q;if(!l.length)return toast("No songs yet");const c=X.cur,i=c?l.findIndex(x=>x.id===c.id):-1;let f;
- if(X.sh){if(d<0&&X.hist.length)f=X.hist.pop();else{if(c){X.hist.push(c);if(X.hist.length>50)X.hist.shift()}const o=l.filter(x=>!c||x.id!==c.id),a=o.length?o:l;f=a[Math.floor(Math.random()*a.length)]}}
+ if(X.sh){if(d<0&&X.hist.length)f=X.hist.pop();else{if(c){X.hist.push(c);if(X.hist.length>50)X.hist.shift()}f=window.nxBag?window.nxBag(l,c):l[Math.floor(Math.random()*l.length)]}}
  else{let k=i+d;if(k>=l.length){if(X.rp===1||X.mode==="r")k=0;else return fadeStop(1500)}if(k<0)k=l.length-1;f=l[k]}
  go(f,ms)}
 const pz=d=>tf(()=>isY(d.f)?d.yp.pauseVideo():d.au.pause()),rs=d=>tf(()=>isY(d.f)?d.yp.playVideo():d.au.play());
@@ -7876,5 +7876,123 @@ setInterval(()=>{const w=wrap(),on=!!(w&&w.classList.contains("nzfs"));
 console.log("[NX-PATCH-P4] ready");
 })();
 
+</script>
+
+<style id="nx-p5-css">
+/* NX-PATCH-P5 POLISH-V1 */
+.card.nxsec:has(.str[onclick*="'enj'"]){display:none!important}
+.nxsl:has(+ .card.nxsec .str[onclick*="'enj'"]){display:none!important}
+html body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html body .card{border-radius:20px!important;box-shadow:0 8px 20px -14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)!important}
+html body .btn{font-weight:650;letter-spacing:.1px}
+html body .md h3{font-size:19px;letter-spacing:-.3px}
+html body #main .pg>h2{letter-spacing:-.8px}
+html body .nxsl{font-size:11px;letter-spacing:1.4px;margin:20px 8px 8px;opacity:.9}
+html body .nxsec .str{padding:13px 14px;gap:14px}
+html body .nxsec .str .t b{font-size:15.5px;font-weight:650;letter-spacing:-.1px}
+html body .nxsec .str .t small{font-size:12.5px;opacity:.85;margin-top:2px}
+html body .nxsec .str .gi{width:40px;height:40px;border-radius:13px}
+html body .nxsec .str .gi svg{width:21px;height:21px}
+html body .nxsec .str i{font-size:22px;opacity:.5}
+html body .nav button{font-size:10.5px;font-weight:600;letter-spacing:.2px}
+html body .str,html body .hc,html body .row{transition:background-color .2s,transform .2s cubic-bezier(.22,1,.36,1)}
+html body .cb .m{border-radius:14px}
+html body .pr{padding:13px 0}
+.atg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 6px;margin:12px 0 16px}
+.att{display:grid;justify-items:center;gap:8px;font-size:12.5px;font-weight:650;color:#d8defa;background:none;border:0;padding:4px 0;transition:transform .2s cubic-bezier(.22,1,.36,1)}
+.att:active{transform:scale(.92)}
+.att .gi{width:56px;height:56px;border-radius:19px}
+.att .gi svg{width:26px;height:26px}
+#nxiv{position:fixed;inset:0;z-index:9750;background:rgba(0,0,0,0);touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;transition:background .28s ease}
+#nxiv.on{background:rgba(0,0,0,.94)}
+#nxiv .ivt{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 16px;background:linear-gradient(rgba(0,0,0,.6),transparent);opacity:0;transition:opacity .28s;color:#fff}
+#nxiv.on .ivt{opacity:1}
+#nxiv .ivt b{font-size:17px;font-weight:650}
+#nxiv .ivs{position:absolute;inset:0;display:grid;place-items:center;touch-action:none}
+#nxiv img{transform-origin:50% 50%;opacity:0;will-change:transform;-webkit-user-drag:none;-webkit-touch-callout:none;transition:opacity .28s;max-width:none}
+#nxiv.on img{opacity:1}
+#nxiv img.tr{transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .28s}
+</style>
+<script>
+/* NX-PATCH-P5 POLISH-V1 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("p5",e)}catch(_){}}},$$=i=>D.getElementById(i);
+
+/* 1. offline delivery error popups are not shown */
+tf(()=>{const _t=toast;toast=function(m){if(typeof m==="string"&&/offline delivery/i.test(m))return;return _t.apply(this,arguments)}});
+
+/* 2. page never zooms by pinch (only photos zoom, inside the viewer) */
+tf(()=>{const m=D.querySelector('meta[name=viewport]');if(m&&!/user-scalable/.test(m.content))m.content+=",maximum-scale=1,user-scalable=no"});
+["gesturestart","gesturechange","gestureend"].forEach(n=>D.addEventListener(n,e=>e.preventDefault(),{passive:false}));
+
+/* 3. music: every song once, then a fresh shuffled round */
+let bag=[],sg="";
+W.nxBag=(l,c)=>{const ids=l.map(x=>x.id),s=ids.slice().sort().join("|");
+ if(s!==sg){sg=s;bag=[]}
+ bag=bag.filter(id=>ids.indexOf(id)>-1);
+ const gen=cur=>{const b=ids.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=b[i];b[i]=b[j];b[j]=t}if(cur&&b.length>1&&b[0]===cur.id)b.push(b.shift());return b};
+ if(!bag.length)bag=gen(c);else if(c)bag=bag.filter(id=>id!==c.id);
+ if(!bag.length)bag=gen(c);
+ const id=bag.shift();return l.find(x=>x.id===id)||l[0]};
+
+/* 4. smooth photo viewer (GPU zoom: pinch, drag, double tap) */
+const bgUrl=el=>{const b=(el&&el.style&&el.style.backgroundImage)||"",m=/url\(["']?(.*?)["']?\)/.exec(b);return m?m[1].replace(/&quot;/g,'"'):null};
+function viewer(url,name){
+ const old=$$("nxiv");if(old)old.remove();
+ const v=D.createElement("div");v.id="nxiv";
+ v.innerHTML='<div class="ivt"><b></b><button class="ib" aria-label="Close"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="ivs"><img alt="" draggable="false"></div>';
+ v.querySelector("b").textContent=name||"";
+ const ivs=v.querySelector(".ivs"),im=v.querySelector("img");
+ v._pg=S.page;v._hp=!!$$("pinf");
+ let z=1,tx=0,ty=0,raf=0,nw=0,nh=0;
+ const fit=()=>{if(!nw)return;const k=Math.min(innerWidth/nw,innerHeight*.92/nh);im.style.width=Math.round(nw*k)+"px";im.style.height=Math.round(nh*k)+"px"};
+ const lim=()=>[Math.max(0,(im.offsetWidth*z-innerWidth)/2),Math.max(0,(im.offsetHeight*z-innerHeight)/2)];
+ const draw=()=>{raf=0;if(z<=1.001){z=1;tx=ty=0}else{const l=lim();tx=Math.max(-l[0],Math.min(l[0],tx));ty=Math.max(-l[1],Math.min(l[1],ty))}im.style.transform="translate3d("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px,0) scale("+z.toFixed(4)+")"};
+ const sch=()=>{if(!raf)raf=requestAnimationFrame(draw)};
+ let st=0;const smooth=fn=>{im.classList.add("tr");fn();draw();clearTimeout(st);st=setTimeout(()=>im.classList.remove("tr"),360)};
+ const close=()=>{if(v._c)return;v._c=1;removeEventListener("resize",fit);v.classList.remove("on");im.classList.add("tr");im.style.transform="scale(.94)";setTimeout(()=>v.remove(),280)};
+ v._close=close;
+ im.onload=()=>{nw=im.naturalWidth||512;nh=im.naturalHeight||512;fit()};
+ im.onerror=()=>{close();toast("Photo could not open")};
+ im.src=url;addEventListener("resize",fit);
+ v.querySelector(".ib").onclick=close;
+ const P=new Map();let g=null,pinch=null,lt=0,lx=0,ly=0,tm=0;
+ ivs.addEventListener("pointerdown",e=>{try{ivs.setPointerCapture(e.pointerId)}catch(_){}
+  P.set(e.pointerId,{x:e.clientX,y:e.clientY});im.classList.remove("tr");
+  if(P.size===1)g={t:Date.now(),x:e.clientX,y:e.clientY,m:0,bgd:e.target===ivs};
+  else if(P.size===2){const a=[...P.values()];pinch={d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,z:z,tx:tx,ty:ty,mx:(a[0].x+a[1].x)/2-innerWidth/2,my:(a[0].y+a[1].y)/2-innerHeight/2};if(g)g.m=1}});
+ ivs.addEventListener("pointermove",e=>{const p=P.get(e.pointerId);if(!p)return;const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;
+  if(P.size>=2&&pinch){const a=[...P.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),nz=Math.max(1,Math.min(6,pinch.z*d/pinch.d)),mx=(a[0].x+a[1].x)/2-innerWidth/2,my=(a[0].y+a[1].y)/2-innerHeight/2;
+   tx=mx-((pinch.mx-pinch.tx)/pinch.z)*nz;ty=my-((pinch.my-pinch.ty)/pinch.z)*nz;z=nz;sch();return}
+  if(g&&!g.m&&Math.hypot(e.clientX-g.x,e.clientY-g.y)>8)g.m=1;
+  if(P.size===1&&z>1&&g&&g.m){tx+=e.clientX-ox;ty+=e.clientY-oy;sch()}});
+ const up=e=>{if(!P.has(e.pointerId))return;const was=P.size;P.delete(e.pointerId);
+  if(was>=2){pinch=null;if(P.size===1){const r=[...P.values()][0];g={t:Date.now(),x:r.x,y:r.y,m:1,bgd:false}}if(z<1.05)smooth(()=>{z=1;tx=ty=0});return}
+  if(g&&!g.m&&Date.now()-g.t<300&&e.type==="pointerup"){const n=Date.now();
+   if(n-lt<300&&Math.hypot(e.clientX-lx,e.clientY-ly)<45){clearTimeout(tm);lt=0;const mx=e.clientX-innerWidth/2,my=e.clientY-innerHeight/2;
+    smooth(()=>{if(z>1.05){z=1;tx=ty=0}else{const nz=2.5;tx=mx-((mx-tx)/z)*nz;ty=my-((my-ty)/z)*nz;z=nz}})}
+   else{lt=n;lx=e.clientX;ly=e.clientY;const bgd=g.bgd;clearTimeout(tm);tm=setTimeout(()=>{lt=0;if(bgd&&z===1)close()},300)}}
+  if(!P.size)g=null};
+ ivs.addEventListener("pointerup",up);ivs.addEventListener("pointercancel",up);
+ ivs.addEventListener("wheel",e=>{e.preventDefault();im.classList.remove("tr");const nz=Math.max(1,Math.min(6,z*(e.deltaY<0?1.15:1/1.15))),mx=e.clientX-innerWidth/2,my=e.clientY-innerHeight/2;
+  tx=mx-((mx-tx)/z)*nz;ty=my-((my-ty)/z)*nz;z=nz;sch()},{passive:false});
+ im.style.transform="scale(.92)";D.body.appendChild(v);
+ requestAnimationFrame(()=>{im.classList.add("tr");v.classList.add("on");z=1;draw();setTimeout(()=>im.classList.remove("tr"),360)})}
+/* contact photo and DP popups use the new viewer */
+W.pPhoto=()=>{const u=bgUrl(D.querySelector("#pinf .pbig"));if(!u)return;const h=D.querySelector("#pinf h2");viewer(u,h?h.textContent:"")};
+new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.id==="nxdpv"){const im=n.querySelector("img"),b=n.querySelector(".dpt b"),u=im&&im.getAttribute("src"),nm=b?b.textContent:"";n.remove();if(u)viewer(u,nm)}}))}).observe(D.body,{childList:true});
+setInterval(()=>{const v=$$("nxiv");if(!v||v._c)return;if((v._pg&&S.page!==v._pg)||(v._hp&&!$$("pinf")))v._close()},300);
+
+/* 5. chat attach sheet: clean icon tiles */
+const T=(ic,a,b,fn,t)=>'<button class="att" onclick="'+fn+'">'+gi(IC(ic),a,b)+'<span>'+t+'</span></button>';
+W.atSheet=()=>openModal('<h3>Send</h3><div class="atg">'
+ +T('<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',"#5b8cff","#7a6bff","atPick(\'g\')","Gallery")
+ +T('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',"#ff5b8a","#ff8a5b","atPick(\'c\')","Camera")
+ +T('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>',"#2fd6a0","#2f9fd6","atPick(\'f\')","File")
+ +T('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',"#ffc93c","#ff8a5b","nxAud()","Audio")
+ +T('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',"#ef5368","#c21f35","nxRec()","Record")
+ +T('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 5v14M16 5v14M3 10h5M3 14h5M16 10h5M16 14h5"/>',"#9a6bff","#d26bff","closeModal();nxVid()","Video to GIF")
+ +'</div><button class="btn wide" onclick="closeModal()">Close</button>');
+})();
 </script>
 </body></html>
