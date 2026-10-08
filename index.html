@@ -8265,4 +8265,114 @@ console.log("[NX-PATCH-V48] ready");
 })();
 
 </script>
+<style>
+
+/* NX-PATCH-V49 MUSIC-ROOM-FIXES */
+#msb{padding:12px 14px;margin:10px 0}
+#msb .btn{min-height:36px;padding:0 14px;font-size:13px;width:auto;margin:0}
+#msb .msm{display:flex;flex-direction:column;gap:5px;max-height:150px;overflow:auto;margin:10px 0 8px}
+#msb .msm .m{max-width:85%}
+#msb .msi{display:flex;gap:8px}
+#msb .msi input{margin:0;flex:1;height:44px}
+
+</style>
+<script>
+
+/* NX-PATCH-V49 MUSIC-ROOM-FIXES */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){try{console.warn("v49",e)}catch(_){}}},$$=i=>D.getElementById(i);
+const MAXP=5;
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* 1. after login the app never opens Music / Enjoy Together by itself */
+const _en=enter;
+enter=async function(){const r=await _en.apply(this,arguments);tf(()=>localStorage.removeItem(K("nx_wtroom")));return r};
+
+/* 2. Enjoy Together: no invite popup by itself (you may want to watch or listen alone) */
+W.wtMenu=function(){
+ openModal('<h3>Enjoy Together</h3><p class="sub">Watch or listen with up to '+MAXP+' friends. Start alone and invite friends only when you want.</p>'
+  +(WT?'<button class="btn pri wide" style="margin-bottom:10px" onclick="closeModal();wtView(WT)">Open my room</button>':'<button class="btn pri wide" style="margin-bottom:10px" onclick="closeModal();nxWtSolo()">Create room</button>')
+  +(C&&C.st==="on"?'<button class="btn wide" style="margin-bottom:10px" onclick="wtCallInv()">Invite '+E(C.name)+' (call)</button>':'')
+  +'<button class="btn wide" onclick="closeModal()">Close</button>')};
+
+/* 3. UID shows MG1001 everywhere (never NX-1001) */
+const fx=s=>typeof s==="string"?s.replace(/\bNX-(\d+)/gi,"MG$1"):s;
+const skip=n=>{const p=n.parentElement;return !p||p.closest("#cb,.m,textarea,input,script,style")};
+function fixNode(n){if(n.nodeType!==3||!n.nodeValue||n.nodeValue.indexOf("NX-")<0||skip(n))return;const v=fx(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}
+function scan(r){if(r.nodeType===3)return fixNode(r);if(r.nodeType!==1)return;const w=D.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))fixNode(n)}
+new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==="characterData")fixNode(m.target);else m.addedNodes.forEach(scan)})}).observe(D.body,{childList:true,subtree:true,characterData:true});
+tf(()=>scan(D.body));
+const _cp=W.nxCp;if(typeof _cp==="function")W.nxCp=t=>_cp(fx(t));
+setInterval(()=>{if(S.me&&S.me.uid)S.me.uid=fx(S.me.uid)},800);
+
+/* 4. Music has its own room: invite, chat and listen without leaving Music */
+let SS=null;
+const slim=f=>({id:f.id,name:f.name,url:f.url,scope:f.scope,song_type:f.song_type,owner:f.owner});
+const live=s=>{const n=Date.now();Object.keys(s.mb).forEach(k=>{if(n-s.mb[k].t>14000)delete s.mb[k]});return s.mb};
+const tx=m=>{if(SS)SS.ch.send({type:"broadcast",event:"m",payload:{...m,from:S.user.id}}).catch(()=>{})};
+async function open(code,host){close(true);const ch=sb.channel("msc-"+code),s=SS={code,host,ch,mb:{},chat:[],last:null,lw:null,ap:0,joined:!!host};
+ ch.on("broadcast",{event:"m"},({payload:m})=>onMsg(s,m));
+ await new Promise(r=>{ch.subscribe(st=>{if(st==="SUBSCRIBED")r()});setTimeout(r,6000)});
+ if(SS!==s)return;
+ if(!host){let n=0;const iv=setInterval(()=>{if(SS!==s||s.joined||++n>15)return clearInterval(iv);tx({t:"join",name:myName()})},1200);tx({t:"join",name:myName()})}
+ s.hb=setInterval(()=>{if(SS!==s)return clearInterval(s.hb);if(s.joined)tx({t:"mb",name:myName(),host:!!s.host})},4000)}
+function close(quiet){const s=SS;if(!s)return;if(!quiet&&s.joined)tx({t:"bye"});SS=null;clearInterval(s.hb);tf(()=>sb.removeChannel(s.ch));const b=$$("msb");if(b)b.remove()}
+function seekTo(t){[2500,4500].forEach(d=>setTimeout(()=>{const k=$$("xsk");if(k&&!k.disabled){k.value=t;k.dispatchEvent(new Event("change"))}},d))}
+function applySong(s,m){const X=W.NXX;if(!X||!m.f)return;s.ap=Date.now();s.last=m.f.id;s.lw=true;X.uq=[m.f];W.NXN(1,900);if(m.time>3)seekTo(m.time)}
+function onMsg(s,m){if(SS!==s||!m||m.from===S.user.id)return;const X=W.NXX;
+ if(m.t==="join"&&s.host){const nw=!s.mb[m.from];if(nw&&Object.keys(live(s)).length>=MAXP-1){tx({t:"full",to:m.from});return}
+  s.mb[m.from]={name:m.name||"Friend",t:Date.now(),host:false};if(nw)toast((m.name||"A friend")+" joined");
+  tx({t:"hi",name:myName()});tx({t:"mb",name:myName(),host:true});
+  if(X&&X.cur){const k=$$("xsk");tx({t:"song",f:slim(X.cur),p:X.want,time:k?+k.value||0:0})}return}
+ if(m.t==="full"){if(m.to===S.user.id){toast("This room is full (max "+MAXP+" people)");close(true)}return}
+ if(m.t==="hi"){s.joined=true;s.mb[m.from]={name:m.name||"Host",t:Date.now(),host:true};return}
+ if(m.t==="mb"){const nw=!s.mb[m.from];s.mb[m.from]={name:m.name||"Friend",t:Date.now(),host:!!m.host};if(nw&&s.joined)setTimeout(()=>tx({t:"mb",name:myName(),host:!!s.host}),120+Math.random()*350);return}
+ if(m.t==="song"){applySong(s,m);return}
+ if(m.t==="st"){if(X&&X.cur&&X.want!==m.p){s.ap=Date.now();s.lw=m.p;const b=$$("xpp");if(b)b.click()}return}
+ if(m.t==="chat"){s.chat.push({n:m.n||"Friend",x:String(m.x||"").slice(0,300),me:false});if(!tf(()=>$$("msp").style.display!=="none"))toast((m.n||"Friend")+": "+String(m.x||"").slice(0,40));sfx("recv");return}
+ if(m.t==="bye"){const h=s.mb[m.from];delete s.mb[m.from];if(h)toast((h.name||"A friend")+" left")}}
+setInterval(()=>{const s=SS,X=W.NXX;if(!s||!s.joined||!X||!X.cur||Date.now()-s.ap<2500)return;
+ if(X.cur.id!==s.last){s.last=X.cur.id;s.lw=X.want;tx({t:"song",f:slim(X.cur),p:X.want,time:0});return}
+ if(X.want!==s.lw){s.lw=X.want;tx({t:"st",p:X.want})}},500);
+/* bar inside the Music page */
+function bar(){const s=SS;let e=$$("msb");
+ if(!s||S.page!=="xmus"||!$$("xm")){if(e&&S.page!=="xmus")e.remove();return}
+ if(!e){const h=D.querySelector("#xm .xmh");if(!h)return;h.insertAdjacentHTML("afterend",'<div id="msb" class="card"><div class="m5h"><b>Listening together</b><span id="msn"></span><span style="flex:1"></span><button class="btn" onclick="msA(\'chat\')">Chat</button><button class="btn" onclick="msA(\'inv\')">Invite</button><button class="btn red" onclick="msA(\'leave\')">Leave</button></div><div class="m5r" id="msr"></div><div id="msp" style="display:none"><div class="msm" id="msm"></div><div class="msi"><input id="msi" maxlength="300" placeholder="Message" autocomplete="off"><button class="snd" onclick="msA(\'send\')" aria-label="Send">'+I.send+'</button></div></div></div>');e=$$("msb");
+  $$("msi").addEventListener("keydown",ev=>{if(ev.key==="Enter")msA("send")})}
+ const mb=live(s),list=[{name:myName()+" (You)",host:!!s.host}].concat(Object.keys(mb).map(id=>({name:mb[id].name,host:mb[id].host}))),h=list.map(x=>x.name+(x.host?1:0)).join("|");
+ if(e._h!==h){e._h=h;$$("msn").textContent=list.length+" / "+MAXP;$$("msr").innerHTML=list.map(x=>'<div class="m5c"><i class="av">'+E(ini(x.name.replace(" (You)","")))+'</i><b>'+E(x.name)+'</b>'+(x.host?'<em>Host</em>':'')+'</div>').join("")}
+ const c=s.chat.length+"|"+(s.chat[s.chat.length-1]||{}).x;
+ if(e._c!==c){e._c=c;const m=$$("msm");m.innerHTML=s.chat.map(x=>'<div class="m '+(x.me?"me":"th")+'">'+(x.me?"":'<b style="display:block;font-size:12px;color:#c9d0ff">'+E(x.n)+'</b>')+E(x.x)+'</div>').join("");m.scrollTop=m.scrollHeight}}
+setInterval(()=>tf(bar),600);
+W.msA=a=>{const s=SS;if(!s)return;
+ if(a==="chat"){const p=$$("msp");p.style.display=p.style.display==="none"?"block":"none";return}
+ if(a==="inv")return pick();
+ if(a==="leave"){close();toast("You left the music room");return}
+ if(a==="send"){const i=$$("msi"),x=(i.value||"").trim();if(!x)return;i.value="";s.chat.push({n:myName(),x,me:true});tx({t:"chat",n:myName(),x});sfx("send")}};
+async function pick(){openModal('<h3>Invite to Music</h3><p class="sub">Your friends join this music room.</p><div id="mpl5" class="pw">Loading...</div><button class="btn wide" style="margin-top:10px" onclick="closeModal()">Close</button>');
+ try{const{data:f}=await sb.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or("requester_id.eq."+S.user.id+",addressee_id.eq."+S.user.id);
+  const ids=(f||[]).map(x=>x.requester_id===S.user.id?x.addressee_id:x.requester_id);if(!$$("mpl5"))return;
+  if(!ids.length){$$("mpl5").textContent="No friends yet. Add friends from Connect.";return}
+  const ps=(await sb.from("profiles").select("id,username,display_name").in("id",ids)).data||[];ps.forEach(p=>reg(p));
+  $$("mpl5").outerHTML='<div id="mpl5">'+ps.map(p=>'<div class="mpf"><b>'+E(dn(p.id,nm(p)))+'</b><button class="btn pri" style="min-height:36px;padding:0 16px" data-mi5="'+E(p.id)+'">Invite</button></div>').join("")+'</div>'}
+ catch(_){if($$("mpl5"))$$("mpl5").textContent="Could not load friends."}}
+D.addEventListener("click",async e=>{const t=e.target;if(!t||!t.closest)return;
+ const b=t.closest("#mpl5 [data-mi5]");
+ if(b){if(b.disabled)return;if(SS&&Object.keys(live(SS)).length>=MAXP-1)return toast("Room is full (max "+MAXP+" people)");
+  if(!SS){const code=Math.random().toString(36).slice(2,8).toUpperCase();await open(code,true)}
+  sig({type:"mreq",to:b.dataset.mi5,code:SS.code,name:myName()});b.disabled=true;b.textContent="Sent";toast("Invite sent");
+  setTimeout(()=>{if(b.isConnected){b.disabled=false;b.textContent="Invite"}},20000);return}
+ const i=t.closest('#xm [data-m="inv"]');
+ if(i){e.stopImmediatePropagation();e.preventDefault();pick()}},true);
+const _os=onSig;
+onSig=function(p){
+ if(p&&p.type==="mreq"){if(!PR.inv||SS||WT)return;S.mj=p;sfx("ring");vib([80,40,80]);
+  openModal('<h3>Music</h3><p class="sub">'+E(p.name||"A friend")+' invites you to listen together.</p><div class="grid"><button class="btn" onclick="closeModal()">Decline</button><button class="btn pri" onclick="msAcc()">Join</button></div>');return}
+ return _os.apply(this,arguments)};
+W.msAcc=()=>{const p=S.mj;S.mj=null;closeModal();if(!p)return;open(p.code,false);W.nxMusic()};
+const _lo=logout;logout=async function(){close(true);return _lo.apply(this,arguments)};
+console.log("[NX-PATCH-V49] ready");
+})();
+
+</script>
 </body></html>
