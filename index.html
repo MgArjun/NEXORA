@@ -8375,4 +8375,47 @@ console.log("[NX-PATCH-V49] ready");
 })();
 
 </script>
+<style>
+
+/* NX-PATCH-V50 UID-SLIDER-FIX */
+#nxvol .nxvr:first-child{display:none}
+body.nx-incall #nxvol .nxvr:first-child{display:flex}
+#nxpt [data-pn="s"]{display:none!important}
+
+</style>
+<script>
+
+/* NX-PATCH-V50 UID-SLIDER-FIX */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){try{console.warn("v50",e)}catch(_){}}},$$=i=>D.getElementById(i);
+
+/* 1. UID: any NX-1001 / MMG1001 / MGNX-1001 becomes MG1001 (data level + screen level) */
+const RX=/\b(?:MG)?(?:NX|M{1,3}G)-?(\d{3,})\b/gi;
+const fx=s=>typeof s==="string"?s.replace(RX,(m,d)=>"MG"+d):s;
+tf(()=>{let p=Object.getPrototypeOf(sb.from("profiles").select("id"));
+ while(p&&!Object.prototype.hasOwnProperty.call(p,"then"))p=Object.getPrototypeOf(p);
+ if(p&&!p._nx50){p._nx50=1;const ot=p.then;
+  p.then=function(a,b){return ot.call(this,r=>{tf(()=>{const d=r&&r.data;(Array.isArray(d)?d:d?[d]:[]).forEach(x=>{if(x&&typeof x.uid==="string")x.uid=fx(x.uid)})});return a?a(r):r},b)}}});
+tf(()=>{if(S.me&&S.me.uid)S.me.uid=fx(S.me.uid)});
+const skip=n=>{const p=n.parentElement;return !p||p.closest("#cb,.m,textarea,input,script,style")};
+function fixNode(n){if(n.nodeType!==3||!n.nodeValue||skip(n))return;const v=fx(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}
+function scan(r){if(r.nodeType===3)return fixNode(r);if(r.nodeType!==1)return;const w=D.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))fixNode(n)}
+new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==="characterData")fixNode(m.target);else m.addedNodes.forEach(scan)})}).observe(D.body,{childList:true,subtree:true,characterData:true});
+tf(()=>scan(D.body));
+const _c=window.nxCp;if(typeof _c==="function")window.nxCp=t=>_c(fx(t));
+setInterval(()=>{if(S.me&&S.me.uid)S.me.uid=fx(S.me.uid)},500);
+
+/* 2. Enjoy Together: steady layout (members, then volume), Voice slider only in a call */
+setInterval(()=>{
+ D.body.classList.toggle("nx-incall",!!(C&&C.st==="on"));
+ const a=$$("nxmb"),b=$$("nxm5"),c=$$("nxvol");
+ if(a&&b&&a.nextElementSibling!==b)a.after(b);
+ if(b&&c&&b.nextElementSibling!==c)b.after(c);
+ else if(a&&c&&!b&&a.nextElementSibling!==c)a.after(c);
+ const l=$$("nxvml");if(l&&WT){const t=WT.mode==="listen"?"Song":"Video";if(l.textContent!==t)l.textContent=t}
+},150);
+console.log("[NX-PATCH-V50] ready");
+})();
+
+</script>
 </body></html>
