@@ -8418,4 +8418,50 @@ console.log("[NX-PATCH-V50] ready");
 })();
 
 </script>
+
+<style>
+/* NX-FIX-PATCH1 */
+#msb:not(:has(#msr .m5c:nth-child(2))){display:none!important}
+html body #main>.pg{transition:opacity .22s ease}
+html body.nxcl #main>.pg{opacity:0!important;pointer-events:none!important}
+</style>
+<script>
+/* NX-FIX-PATCH1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+/* 1. UID: NX-MG1001 -> MG1001 */
+const UX=s=>typeof s==="string"?s.replace(/\bNX-?(?=MG\d)/gi,"").replace(/\bNX-(\d{3,})/gi,"MG$1"):s;
+tf(()=>{let p=Object.getPrototypeOf(sb.from("profiles").select("id"));
+ while(p&&!Object.prototype.hasOwnProperty.call(p,"then"))p=Object.getPrototypeOf(p);
+ if(p&&!p._nxp1){p._nxp1=1;const ot=p.then;
+  p.then=function(a,b){return ot.call(this,r=>{tf(()=>{const d=r&&r.data;(Array.isArray(d)?d:d?[d]:[]).forEach(x=>{if(x&&typeof x.uid==="string")x.uid=UX(x.uid)})});return a?a(r):r},b)}}});
+const skip=n=>{const p=n.parentElement;return !p||p.closest("#cb,.m,textarea,input,script,style")};
+function fixNode(n){if(n.nodeType!==3||!n.nodeValue||n.nodeValue.indexOf("NX")<0||skip(n))return;const v=UX(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}
+function scan(r){if(r.nodeType===3)return fixNode(r);if(r.nodeType!==1)return;const w=D.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))fixNode(n)}
+new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==="characterData")fixNode(m.target);else m.addedNodes.forEach(scan)})}).observe(D.body,{childList:true,subtree:true,characterData:true});
+tf(()=>scan(D.body));
+tf(()=>{const c=window.nxCp;if(typeof c==="function")window.nxCp=t=>c(UX(t))});
+setInterval(()=>{if(S.me&&S.me.uid)S.me.uid=UX(S.me.uid)},500);
+tf(()=>{const _fu=findUser;
+ findUser=async function(){const q=($$("us").value||"").trim().replace(/^@/,""),m=/^(?:nx-?)?(?:mg|nx)?-?\s?(\d{3,})$/i.exec(q);
+  if(m){const n=m[1],{data}=await sb.from("profiles").select("*").in("uid",["MG"+n,"NX-"+n,"NX-MG"+n]).neq("id",S.user.id).limit(5);
+   $$("sr").innerHTML=(data||[]).length?data.map(p=>prow(p,1)).join(""):'<div class="card empty" style="margin-bottom:12px">No one found.</div>';return}
+  return _fu.apply(this,arguments)}});
+/* 2. Music / Listen / Watch: hide the page until the final layout is ready */
+let kind="",t0=0,mx=0;
+const cls=D.body.classList;
+function ready(){
+ if(kind==="t")return Date.now()-t0>650;
+ if(kind==="w"){const a=$$("nxmb"),b=$$("nxm5"),c=$$("nxvol"),L=WT&&WT.mode==="listen";
+  return !!(a&&b&&c&&$$("nxpt")&&a.nextElementSibling===b&&b.nextElementSibling===c&&(!L||($$("nxls")&&$$("nxq"))))}
+ if(kind==="m"){const t=$$("xt");return !!(t&&t.textContent&&t.textContent!=="Nothing playing")}
+ return true}
+function on(k,m){kind=k;t0=Date.now();mx=m;cls.add("nxcl")}
+setInterval(()=>{if(!cls.contains("nxcl"))return;
+ if((kind==="w"&&S.page!=="watch")||(kind==="m"&&S.page!=="xmus")||ready()||Date.now()-t0>mx)cls.remove("nxcl")},60);
+new MutationObserver(ms=>{if(!ms.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&n.classList.contains("pg"))))return;
+ if(S.page==="watch")on("w",1800);else if(S.page==="xmus")on("m",2000);else cls.remove("nxcl")}).observe($$("main"),{childList:true});
+D.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#ltab button"))on("t",900)},true);
+})();
+</script>
 </body></html>
