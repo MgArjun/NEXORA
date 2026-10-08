@@ -1420,15 +1420,6 @@ function addMedia(m){const b=$("cb");if(!b||!S.chat)return;const id=m.id||"";if(
  const mine=m.sender_id===S.user.id,d=document.createElement("div");d.className="m mm "+(mine?"me":"th");d.dataset.id=id;d.dataset.s=m.sender_id;d.dataset.u=o.u;d.dataset.n=o.n||"nexora";
  d.innerHTML=(o.k==="vid"?'<video src="'+esc(o.u)+'" controls playsinline preload="metadata"></video>':'<img src="'+esc(o.u)+'" alt="">')+'<div class="mf"><button class="msv">⬇ Save</button><small style="margin:0">'+tm(m.created_at||Date.now())+'</small></div>';
  b.appendChild(d);b.scrollTop=b.scrollHeight;if(!mine){MP.push({path:o.p});sfx("recv");vib(15);rec(S.chat.uid,S.chat.un,S.chat.name,"📎 Media")}}
-async function shrink(f){try{const bm=await createImageBitmap(f),k=Math.min(1,2048/Math.max(bm.width,bm.height));if(k===1&&f.size<2e6)return f;const c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(x=>r(x||f),"image/jpeg",.88))}catch(_){return f}}
-async function sendMedia(f){const c=S.chat;if(!c||!f)return;const v=f.type.startsWith("video/"),g=f.type==="image/gif";
- if(!v&&!f.type.startsWith("image/"))return toast("You can send photos, GIFs and videos only");if(f.size>50*1048576)return toast("File is larger than 50 MB");
- toast("Sending…");const bl=(v||g)?f:await shrink(f),ext=bl!==f?"jpg":((f.name.split(".").pop()||(v?"mp4":"jpg")).toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"bin"),path=S.user.id+"/"+Date.now()+"_"+Math.random().toString(36).slice(2,7)+"."+ext;
- const r=await sb.storage.from(MB).upload(path,bl,{contentType:bl.type||f.type,cacheControl:"3600"});
- if(r.error)return toast(/not found/i.test(r.error.message)?"Create a chat-media bucket in Supabase":"Upload fail: "+r.error.message.slice(0,60));
- if(S.chat!==c){sb.storage.from(MB).remove([path]);return}
- const u=sb.storage.from(MB).getPublicUrl(path).data.publicUrl,id=crypto.randomUUID(),at=new Date().toISOString(),text="NXM:"+JSON.stringify({k:v?"vid":g?"gif":"img",u,p:path,n:f.name||"media."+ext});
- MP.push({path});addMedia({id,sender_id:S.user.id,content:text,created_at:at});if(S.cch)S.cch.send({type:"broadcast",event:"m",payload:{id,from:S.user.id,text,at}}).catch(()=>{});sfx("send");rec(c.uid,c.un,c.name,"📎 Media")}
 async function msave(u,n){try{const r=await fetch(u),b=await r.blob(),f=new File([b],n||"nexora",{type:b.type});
  if(/iPhone|iPad|iPod/.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}
  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n||"nexora";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);toast("Saved ✓")}catch(e){if(!e||e.name!=="AbortError")toast("Could not save")}}
@@ -2655,7 +2646,7 @@ const _rl=renderL;renderL=function(){noF=1;try{return _rl.apply(this,arguments)}
 const fsE=()=>D.fullscreenElement||D.webkitFullscreenElement;
 const keep=i=>{if(!fsE())return;const back=()=>{if(fsE())return;const e=D.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;try{const p=r&&r.call(e,{navigationUI:"hide"});p&&p.catch&&p.catch(()=>{})}catch(_){}};["change","cancel"].forEach(v=>i.addEventListener(v,back));addEventListener("focus",back,{once:true});[500,1500].forEach(t=>setTimeout(back,t))};
 /* attach sheet: gallery / camera / file */
-window.atSheet=()=>openModal('<h3>Send</h3><div class="grid" style="grid-template-columns:repeat(3,1fr)"><button class="btn" onclick="atPick(\'g\')">🖼<br><small>Gallery</small></button><button class="btn" onclick="atPick(\'c\')">📷<br><small>Camera</small></button><button class="btn" onclick="atPick(\'f\')">📄<br><small>File</small></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+
 window.atPick=t=>{closeModal();const i=D.createElement("input");i.type="file";i.accept=t==="f"?"application/pdf,.pdf,audio/*":"image/*,video/*";if(t==="c")i.setAttribute("capture","environment");else i.multiple=true;
  i.onchange=async()=>{for(const f of [...i.files])await sendMedia(f)};keep(i);i.click()};
 /* video call quality: settings + chat menu */
@@ -2664,7 +2655,7 @@ try{const q=localStorage.nx_hq;if(q&&VQ[q])hq=q}catch(_){}
 const seg=()=>'<div class="seg" id="vqg">'+VQL.map(([k,n])=>'<button class="'+(hq===k?"on":"")+'" onclick="setHq(\''+k+'\')">'+n+'</button>').join("")+'</div>';
 window.setHq=k=>{hq=k;try{localStorage.nx_hq=k}catch(_){}D.querySelectorAll("#vqg button").forEach((b,i)=>b.classList.toggle("on",VQL[i][0]===k));const c=C;if(c){if(c.cam)c.cam.applyConstraints(vcons()).catch(()=>{});tuneAll(c)}toast("Video quality: "+VQL.find(x=>x[0]===k)[1])};
 
-window.chMore=()=>{const c=S.chat;if(!c)return;window.__cm=c;openModal('<h3>More</h3><button class="btn wide" style="margin-bottom:14px" onclick="closeModal();wtInvite(__cm.uid,__cm.name)">🎬 Watch together</button><b>Video call quality</b><div style="margin:8px 0 14px">'+seg()+'</div><div class="pr"><div class="t"><b>Data saver for files</b><small>On = compress before sending</small></div><button class="tg2 '+(PR.ds?"on":"")+'" onclick="tog(\'ds\',this)" aria-label="Data saver"><i></i></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>')};
+
 /* chat header, multi-line input, attach button */
 const _oc=openChat;openChat=function(a,b,c,d){const r=_oc(a,b,c,d);try{
  const h=D.querySelector(".ch");if(h&&S.chat&&S.chat.uid===b&&!h.querySelector(".xmr")){
@@ -2845,7 +2836,7 @@ window.nxGifOpen=()=>{const m=$("main");if(!S.chat||$("gfp"))return;const p=D.cr
  q.oninput=()=>{clearTimeout(tm);tm=setTimeout(()=>load(q.value.trim()),400)};
  g.onclick=e=>{const i=e.target.dataset&&e.target.dataset.i;if(i==null)return;const x=list[i];if(!x)return;p.remove();sendGif((x.images.downsized_medium&&x.images.downsized_medium.url)||x.images.original.url)};
  p.querySelector("#gfx").onclick=()=>p.remove();p.querySelector("#gfv").onclick=()=>{p.remove();pickVid()};load("")};
-window.atSheet=()=>openModal('<h3>Send</h3><div class="grid"><button class="btn" onclick="atPick(\'g\')">🖼<br><small>Gallery</small></button><button class="btn" onclick="atPick(\'c\')">📷<br><small>Camera</small></button><button class="btn" onclick="atPick(\'f\')">📄<br><small>File</small></button><button class="btn" onclick="closeModal();nxVid()">🎞<br><small>Video to GIF</small></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+
 const _oc=openChat;
 openChat=function(a,b,c,d){const r=_oc(a,b,c,d);try{
  const p=D.querySelector(".cp");if(p&&S.chat&&S.chat.uid===b&&!p.querySelector(".xgf")){const at=p.querySelector(".xat"),x=D.createElement("button");x.className="ib xgf";x.textContent="GIF";x.setAttribute("aria-label","GIF");x.onclick=window.nxGifOpen;if(at){at.after(x);at.onclick=window.atSheet}else p.prepend(x)}
@@ -3039,7 +3030,7 @@ window.nxRec=async()=>{closeModal();let st;try{st=await navigator.mediaDevices.g
  openModal('<h3>🎙 Recording…</h3><div id="nrt" style="font-size:34px;font-weight:900;text-align:center;margin:14px 0">0:00</div><div class="grid"><button class="btn red" id="nrc">Cancel</button><button class="btn pri" id="nrs">Send</button></div>',()=>{if(mr.state!=="inactive"){cancel=true;mr.stop()}});
  mr.start();iv=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000),e=$("nrt");if(e)e.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")},500);
  $("nrc").onclick=()=>closeModal();$("nrs").onclick=()=>{onClose=null;closeModal();mr.stop()}};
-window.atSheet=()=>openModal('<h3>Send</h3><div class="grid"><button class="btn" onclick="atPick(\'g\')">🖼<br><small>Gallery</small></button><button class="btn" onclick="atPick(\'c\')">📷<br><small>Camera</small></button><button class="btn" onclick="atPick(\'f\')">📄<br><small>File</small></button><button class="btn" onclick="nxAud()">🎵<br><small>Audio file</small></button><button class="btn" onclick="nxRec()">🎙<br><small>Record</small></button><button class="btn" onclick="closeModal();nxVid()">🎞<br><small>Video to GIF</small></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>');
+
 D.head.appendChild(Object.assign(D.createElement("style"),{textContent:".m.nm{padding:6px;max-width:86%;white-space:normal}.nm .gif,.nm .ph{display:block;width:min(230px,62vw);height:auto;border-radius:14px;animation:nxr .4s ease both}.nm .ph{cursor:zoom-in}.nm .gif{max-height:300px;object-fit:contain}.bl{position:relative;overflow:hidden;border-radius:14px;cursor:pointer;min-width:120px}.bl img{display:block;width:min(230px,62vw);height:auto}.bl .tb0{height:150px;background:linear-gradient(135deg,#222c55,#3a2a60)}.nm.th .bl:not(.rv):not(.mn) img{filter:blur(8px);transform:scale(1.06)}.bl.rv img.rvl{animation:nxr .6s cubic-bezier(.22,1,.36,1) both}.chip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.6);font-size:13px;font-weight:800;white-space:nowrap}.bl.vd .chip{top:auto;bottom:8px;left:8px;transform:none}.bl .pl{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55)}@keyframes nxr{from{opacity:.5;filter:blur(14px);transform:scale(.94)}}.nr{display:flex;gap:8px;margin-top:6px}.nr .btn,.nr a{flex:1;min-height:38px;display:grid;place-items:center;text-decoration:none;color:#fff;font-size:13px}.vm{display:flex;align-items:center;gap:10px;min-width:200px;padding:4px 6px}.vp{width:40px;height:40px;border-radius:50%;flex:none;background:rgba(255,255,255,.22);font-size:16px}.vbr{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}.vbr i{display:block;height:100%;width:0;background:#fff}.vt{font-size:12px;opacity:.85;white-space:nowrap}#nxv{position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.94);display:grid;place-items:center;animation:nxvi .32s cubic-bezier(.22,1,.36,1)}#nxv.out{opacity:0;transition:opacity .25s}#nxv img,#nxv video{max-width:100%;max-height:100%;animation:nxzm .45s cubic-bezier(.22,1,.36,1)}.nvb{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;background:linear-gradient(#000a,transparent)}@keyframes nxvi{from{opacity:0}}@keyframes nxzm{from{opacity:0;transform:scale(.8)}}"}));
 })();
 
@@ -4415,7 +4406,7 @@ window.nxLk=()=>{const c=S.chat;if(!c)return;const cur=TS()[c.cid]||{};if(cur.lk
 window.themeUI=()=>{const c=S.chat;if(!c)return;const cur=TS()[c.cid]||{},lock=cur.lk&&cur.lk!==S.user.id,mine=cur.lk===S.user.id;
  openModal('<h3>Chat theme</h3><p class="sub">Both of you will see the same theme.</p>'+(lock?'<div class="pw" style="text-align:left;margin-bottom:8px">Your friend locked the theme. You cannot change it now.</div>':'')+'<div class="thg'+(lock?" off":"")+'">'+TH.map(t=>'<button class="ths'+((cur.th||"")===t[0]?" on":"")+'" onclick="nxTh(\''+t[0]+'\')"><i style="background:linear-gradient(135deg,'+t[2]+','+t[3]+');--d:'+t[4]+'"></i><span>'+t[1]+'</span></button>').join("")+'</div>'+(lock?"":'<div class="pr"><div class="t"><b>Lock theme</b><small>On = only you can change the theme</small></div><button class="tg2 '+(mine?"on":"")+'" onclick="nxLk()" aria-label="Lock theme"><i></i></button></div>')+'<button class="btn wide" style="margin-top:12px" onclick="closeModal()">Done</button>')};
 const _cm=window.chMore;
-window.chMore=function(){_cm.apply(this,arguments);tf(()=>{const m=$("md"),h=m&&m.querySelector("h3");if(h&&!m.querySelector(".thb"))h.insertAdjacentHTML("afterend",'<button class="btn wide thb" style="margin-bottom:10px" onclick="themeUI()">Chat theme</button>')})};
+
 /* ---------- signals + hooks ---------- */
 const _os=onSig;
 onSig=function(p){if(p){
@@ -4793,7 +4784,7 @@ function hdrFix(uid){const c=S.chat;if(!c||c.uid!==uid)return;const h=D.querySel
 const _oc=openChat;
 openChat=function(a,b,c,d){RP=null;const r=_oc.apply(this,arguments);tf(()=>hdrFix(b));return r};
 const _cm=window.chMore;
-if(_cm)window.chMore=function(){_cm.apply(this,arguments);tf(()=>{const m=$("md"),h=m&&m.querySelector("h3"),c=S.chat;if(h&&c&&!m.querySelector(".gmb"))h.insertAdjacentHTML("afterend",'<button class="btn wide gmb" style="margin-bottom:10px" onclick="closeModal();gamePick(\''+esc(c.uid)+'\',\''+esc(c.name).replace(/\\/g,"")+'\')">Play a game</button>')})};
+
 
 /* ================= contact info page ================= */
 window.pOpen=uid=>{const c=S.chat;uid=uid||(c&&c.uid);if(!uid||$("pinf"))return;const el=D.createElement("div");el.id="pinf";D.body.appendChild(el);pRender(uid);loadP([uid],true).then(()=>pRender(uid))};
@@ -8084,4 +8075,5 @@ D.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#ltab butt
 })();
 </script>
 <!-- NX-CLEAN-B5 -->
+<!-- NX-CLEAN-B6 -->
 </body></html>
