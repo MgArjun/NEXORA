@@ -2625,7 +2625,7 @@ mview=function(){const o=window.__mv;if(!o)return;let v=$("mvw");if(v)v.remove()
  $("mvx").onclick=close;$("mvs").onclick=()=>msave(o.u,o.n);
  let lt=0;im.onclick=e=>{const n=Date.now();if(n-lt<300){z=!z;im.style.transformOrigin=(e.offsetX/im.clientWidth*100)+"% "+(e.offsetY/im.clientHeight*100)+"%";im.style.transform=z?"scale(2.4)":"none"}else v.classList.toggle("bars");lt=n}};
 const _oc=openChat;openChat=function(a,b,c,d){const r=_oc(a,b,c,d);const i=document.querySelector(".xfi");if(i)i.setAttribute("accept","image/*,video/*,audio/*,application/pdf,.pdf");return r};
-const _rs=renderSettings;PG.settings=renderSettings=function(){_rs();const p=document.querySelector("#main .pr");if(p&&p.parentElement)p.parentElement.insertAdjacentHTML("beforeend",`<div class="pr"><div class="t"><b>Data saver for files</b><small>Off = original quality (up to 50 MB). On = compress photos and large videos before sending</small></div><button class="tg2 ${PR.ds?"on":""}" onclick="tog('ds',this)" aria-label="Data saver"><i></i></button></div>`)};
+
 document.head.appendChild(Object.assign(document.createElement("style"),{textContent:`
 .mm{padding:6px!important;max-width:86%!important}
 .mmw{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.05);min-height:120px}
@@ -2663,7 +2663,7 @@ const VQL=[["720","720p"],["1080","1080p"],["1440","2K"],["2160","4K"]];
 try{const q=localStorage.nx_hq;if(q&&VQ[q])hq=q}catch(_){}
 const seg=()=>'<div class="seg" id="vqg">'+VQL.map(([k,n])=>'<button class="'+(hq===k?"on":"")+'" onclick="setHq(\''+k+'\')">'+n+'</button>').join("")+'</div>';
 window.setHq=k=>{hq=k;try{localStorage.nx_hq=k}catch(_){}D.querySelectorAll("#vqg button").forEach((b,i)=>b.classList.toggle("on",VQL[i][0]===k));const c=C;if(c){if(c.cam)c.cam.applyConstraints(vcons()).catch(()=>{});tuneAll(c)}toast("Video quality: "+VQL.find(x=>x[0]===k)[1])};
-const _rs=renderSettings;PG.settings=renderSettings=function(){_rs();const b=D.querySelector("#main .pg>button.red");if(b)b.insertAdjacentHTML("beforebegin",'<div class="card" style="padding:16px;margin-bottom:14px"><b>Video call quality</b><div class="pw" style="text-align:left;margin:4px 0 10px">Higher = sharper, more data</div>'+seg()+'</div>')};
+
 window.chMore=()=>{const c=S.chat;if(!c)return;window.__cm=c;openModal('<h3>More</h3><button class="btn wide" style="margin-bottom:14px" onclick="closeModal();wtInvite(__cm.uid,__cm.name)">🎬 Watch together</button><b>Video call quality</b><div style="margin:8px 0 14px">'+seg()+'</div><div class="pr"><div class="t"><b>Data saver for files</b><small>On = compress before sending</small></div><button class="tg2 '+(PR.ds?"on":"")+'" onclick="tog(\'ds\',this)" aria-label="Data saver"><i></i></button></div><button class="btn wide" style="margin-top:12px" onclick="closeModal()">Close</button>')};
 /* chat header, multi-line input, attach button */
 const _oc=openChat;openChat=function(a,b,c,d){const r=_oc(a,b,c,d);try{
@@ -3354,8 +3354,7 @@ vset=async function(){await _vs.apply(this,arguments);tf(()=>{const m=D.getEleme
 window.nxTurnSave=()=>{const a=$("nxTa").value.trim().replace(/^https?:\/\//,"").replace(/\.metered\.live.*$/,""),k=$("nxTk").value.trim();
  localStorage.nx_turn=JSON.stringify({app:a,key:k});ICE_C=null;ICE_T=0;toast(a&&k?"Call server saved":"Call server cleared")};
 const _rs=renderSettings;
-PG.settings=renderSettings=function(){const r=_rs.apply(this,arguments);tf(()=>{const b=D.querySelector("#main .pg>button.red");if(!b||$("nxTa"))return;const t=LS("nx_turn",{});
- b.insertAdjacentHTML("beforebegin",'<div class="card" style="padding:16px;margin-bottom:14px"><b>Call server (optional)</b><div class="pw" style="text-align:left;margin:4px 0 10px">Makes calls smoother on weak networks. Make a free account at metered.ca, open TURN, then paste the app name and API key.</div><input id="nxTa" placeholder="App name" value="'+esc(t.app||"")+'" autocapitalize="off" autocomplete="off"><input id="nxTk" placeholder="API key" value="'+esc(t.key||"")+'" autocapitalize="off" autocomplete="off"><button class="btn pri wide" onclick="nxTurnSave()">Save</button></div>')});return r};
+
 /* 10. hooks: auto voice enhance on connect, clean up on end, mic switch */
 const _pc=paintCall;paintCall=function(){const r=_pc.apply(this,arguments);tf(()=>{const c=C;if(c&&c.st==="on"&&NX.ve&&!c.vx&&!c.vxT){c.vxT=1;voice(true)}});return r};
 const _ec=endCall;endCall=function(){const c=C;if(c&&c.vx){const x=c.vx;c.vx=null;tf(()=>x.out.stop());tf(()=>x.ctx.close())}return _ec.apply(this,arguments)};
@@ -3704,7 +3703,7 @@ const _os=onSig;
 onSig=function(p){if(p&&p.type==="kick"){if(S.user)sb.from("app_ban").select("user_id").eq("user_id",S.user.id).maybeSingle().then(r=>{if(r&&r.data){toast("Your account has been blocked");logout()}},()=>{});return}return _os(p)};
 /* admin button + panel (owner only) */
 const _rs=renderSettings;
-PG.settings=renderSettings=function(){const r=_rs.apply(this,arguments);tf(()=>{if(!own(S.user))return;const b=D.querySelector("#main .pg>button.red");if(!b||$("nxAdB"))return;b.insertAdjacentHTML("beforebegin",'<button id="nxAdB" class="btn red wide" style="margin-bottom:12px" onclick="nxAdm()">🔴 Server load</button>');cfg().then(c=>{const s=gs(),e=$("nxAdB");if(e)e.textContent=(s.act>=c.max?"🔴 Limit exceeding · ":"🔴 Server load · ")+s.act+"/"+c.max})});return r};
+
 window.nxCfg=async o=>{const r=await sb.from("app_config").upsert({id:1,...o});if(r.error)return toast("Could not save. Supabase SQL chalaya?");toast("Saved ✓");nxAdm()};
 window.nxBan=async(id,nm2,on)=>{const r=on?await sb.from("app_ban").upsert({user_id:id,name:nm2}):await sb.from("app_ban").delete().eq("user_id",id);if(r.error)return toast("Nahi hua: "+r.error.message.slice(0,50));if(on)sig({type:"kick",to:id});toast(on?"Blocked":"Unblocked");nxAdm()};
 window.nxAdm=async()=>{if(!own(S.user))return;const c=await cfg(),s=gs(),by=c.by>Date.now();let acc="?",lg=[],pf={},bn=new Set();
@@ -4183,13 +4182,7 @@ tf(()=>{
 /* 5. Settings: call server card goes inside "Advanced" */
 tf(()=>{
  const _s=PG.settings;
- PG.settings=renderSettings=function(){const r=_s.apply(this,arguments);tf(()=>{
-  const a=$("nxTa");if(!a||$("nxAdvT"))return;const c=a.closest(".card");if(!c)return;
-  const p=c.querySelector(".pw");if(p)p.textContent="Only needed if calls cut on weak networks. Get a free key at metered.ca.";
-  c.classList.add("nxadv");c.style.display="none";
-  const b=D.createElement("button");b.id="nxAdvT";b.className="btn wide";b.style.marginBottom="14px";b.textContent="Advanced settings";
-  b.onclick=()=>{const o=c.style.display==="none";c.style.display=o?"":"none"};
-  c.before(b)});return r}
+ 
 });
 })();
 </script>
@@ -4598,13 +4591,7 @@ const _fu=findUser;findUser=async function(){const q=($("us").value||"").trim().
 
 /* ---------- settings: grouped, nothing removed ---------- */
 const _rs=renderSettings;
-PG.settings=renderSettings=function(){const r=_rs.apply(this,arguments);tf(()=>{const pg=D.querySelector("#main .pg");if(!pg||$("nxAcc"))return;
- const cards=[...pg.querySelectorAll(":scope>.card")],lb=t=>'<div class="lbl">'+t+'</div>',me=S.me||{},anon=S.user&&S.user.is_anonymous;
- const acc=lb("Account")+'<div class="card" id="nxAcc" style="padding:14px;margin-bottom:14px"><div style="display:flex;gap:12px;align-items:center"><button class="av" id="nxdp" style="width:60px;height:60px;font-size:20px" onclick="nxDpSheet()" aria-label="Profile photo">'+esc(ini(myName()))+'</button><div style="flex:1;min-width:0"><b>'+esc(myName())+'</b><small style="display:block;color:var(--mu)">UID: '+esc(me.uid||"-")+'</small></div><button class="btn" style="min-height:40px" onclick="nxDpSheet()">Photo</button></div>'+(anon?'':'<button class="btn wide" style="margin-top:12px" onclick="nxNp(0)">Change password</button>')+'<button class="btn wide" style="margin-top:10px" onclick="nxStatus()">My status</button></div>';
- if(cards[0])cards[0].insertAdjacentHTML("beforebegin",acc);
- if(cards[1])cards[1].insertAdjacentHTML("beforebegin",lb("Privacy and calls"));
- const vq=cards.find(c=>/Video call quality/.test(c.textContent));if(vq)vq.insertAdjacentHTML("beforebegin",lb("Media"));
- pg.querySelectorAll(".pr").forEach(x=>{const b=x.querySelector("b");if(b&&b.textContent==="Hide my online status"){b.textContent="Hide last seen and online";const s=x.querySelector("small");if(s)s.textContent="Friends will not see when you were last online"}})});return r};
+
 
 /* ---------- status ---------- */
 async function canPost(){if(isA())return true;try{const[a,b]=await Promise.all([sb.from("profiles").select("can_status").eq("id",S.user.id).maybeSingle(),sb.from("app_config").select("status_all").eq("id",1).maybeSingle()]);return !!((a.data&&a.data.can_status)||(b.data&&b.data.status_all))}catch(_){return false}}
@@ -5750,7 +5737,12 @@ async function fsOn(){const w=wrap();if(!w)return;w.classList.add("wzfs");fs=tru
 function fsOff(){const w=wrap();if(w)w.classList.remove("wzfs");if(real&&(D.fullscreenElement||D.webkitFullscreenElement))try{(D.exitFullscreen||D.webkitExitFullscreen).call(D)}catch(_){}
  try{screen.orientation.unlock()}catch(_){}fs=false;real=false;z=1;tx=ty=0;setZm(false);paint()}
 function setup(){const b=box();if(!b)return;const w=b.parentElement;if(w.dataset.wz)return;w.dataset.wz=1;w.classList.add("wzw");z=1;tx=ty=0;fs=false;real=false;zm=false;
- 
+ w.insertAdjacentHTML("beforeend",'<div id="wzo"></div><div id="wzb"><button id="wzf">Full</button><button id="wzm">Zoom</button><span class="wzc"><button id="wzd">\u2212</button><b id="wzl">100%</b><button id="wzu">+</button><button id="wzr">Fit</button></span></div>');
+ bindOv($("wzo"));
+ $("wzf").onclick=()=>fs?fsOff():fsOn();
+ $("wzm").onclick=()=>setZm(!zm);
+ $("wzu").onclick=()=>{$("wzb").classList.add("zc");mid(1.3)};$("wzd").onclick=()=>{$("wzb").classList.add("zc");mid(1/1.3)};
+ $("wzr").onclick=()=>{z=1;tx=ty=0;paint()};
  const t=D.querySelector("#main h2");
  if(t&&!$("ltab"))t.insertAdjacentHTML("beforebegin",'<div class="seg" id="ltab" style="margin-bottom:10px"><button class="on" data-m="watch">Watch</button><button data-m="listen">Listen</button></div>');
  paint()}
@@ -5888,7 +5880,7 @@ wtMsg=function(W,m){
   if(W.host&&(m.t==="join"||m.t==="need")){setTimeout(()=>{if(WT===W){W.tx({t:"mode",m:W.mode||"watch"});if(W.q&&W.q.length)qTx()}},900)}
   if(m.t==="mode")setTimeout(rq,60)}
  return r};
-
+new MutationObserver(()=>{if($("wtS")&&!$("lq")){$("wtS").insertAdjacentHTML("afterend",'<div id="lq" class="card" style="display:none;padding:10px;margin-top:12px"></div>');rq()}}).observe($("main"),{childList:true});
 })();
 
 </script>
@@ -8091,42 +8083,5 @@ new MutationObserver(ms=>{if(!ms.some(m=>[...m.addedNodes].some(n=>n.nodeType===
 D.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#ltab button"))on("t",900)},true);
 })();
 </script>
-<script>
-/* NX-LOADER-B4 */
-(()=>{
-const D=document;
-D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
-#nxld{position:fixed;left:0;right:0;top:calc(64px + env(safe-area-inset-top,0px));bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:4000;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .18s ease}
-#nxld.on{opacity:1}
-#nxld .ldw{display:grid;justify-items:center;gap:16px;text-align:center}
-#nxld .ldt{font-weight:800;font-size:18px;letter-spacing:-.3px}
-#nxld .lds{color:#8b97ab;font-size:13px}
-.ldscr{position:relative;width:176px;height:108px;border-radius:18px;background:linear-gradient(145deg,#2a3470,#4b2f7e);border:1px solid rgba(255,255,255,.18);box-shadow:0 18px 36px -14px rgba(120,110,255,.7);display:grid;place-items:center;overflow:hidden}
-.ldscr::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-18deg);animation:ldsw 1.6s ease-in-out infinite}
-.ldpl{width:0;height:0;border-left:26px solid #fff;border-top:16px solid transparent;border-bottom:16px solid transparent;margin-left:8px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));animation:ldpp 1.2s ease-in-out infinite}
-.ldfr{display:flex;align-items:center}
-.ldfr i{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#697cff,#a26cff);border:2px solid #0b0e24;animation:ldbo 1.2s ease-in-out infinite}
-.ldfr i+i{margin-left:-8px;background:linear-gradient(135deg,#3fd68f,#2f9fd6);animation-delay:.3s}
-.ldfr i+i+i{background:linear-gradient(135deg,#ff8a5b,#ff5b8a);animation-delay:.6s}
-.lddk{width:104px;height:104px;border-radius:50%;background:conic-gradient(from 20deg,#252a49,#6a7fd6,#252a49,#8b78d2,#252a49,#63c29c,#252a49);box-shadow:0 18px 36px -14px rgba(120,110,255,.7),0 0 0 1px rgba(255,255,255,.15);display:grid;place-items:center;animation:ldsp 3s linear infinite}
-.lddk::after{content:"";width:26px;height:26px;border-radius:50%;background:#070a10;box-shadow:0 0 0 3px rgba(255,255,255,.3)}
-.ldeq{display:flex;gap:5px;align-items:flex-end;height:30px}
-.ldeq i{width:6px;height:100%;border-radius:3px;background:linear-gradient(#8fa2ff,#86ecc6);transform-origin:bottom;animation:ldeq 1s ease-in-out infinite}
-.ldeq i:nth-child(2){animation-delay:.15s}.ldeq i:nth-child(3){animation-delay:.3s}.ldeq i:nth-child(4){animation-delay:.45s}.ldeq i:nth-child(5){animation-delay:.6s}
-@keyframes ldsw{to{left:130%}}
-@keyframes ldpp{50%{transform:scale(1.18)}}
-@keyframes ldbo{50%{transform:translateY(-6px)}}
-@keyframes ldsp{to{transform:rotate(360deg)}}
-@keyframes ldeq{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}`}));
-D.body.insertAdjacentHTML("beforeend",'<div id="nxld"></div>');
-const el=D.getElementById("nxld");
-const V='<div class="ldw"><div class="ldscr"><i class="ldpl"></i></div><div class="ldfr"><i></i><i></i><i></i></div><div class="ldt">Enjoy Together</div><div class="lds">Getting your room ready...</div></div>';
-const M='<div class="ldw"><div class="lddk"></div><div class="ldeq"><i></i><i></i><i></i><i></i><i></i></div><div class="ldt">Music</div><div class="lds">Loading your songs...</div></div>';
-let k="";
-setInterval(()=>{const on=D.body.classList.contains("nxcl");
- if(on){let m=false;try{m=S.page==="xmus"||!!(WT&&WT.mode==="listen")}catch(e){}
-  const n=m?"m":"w";if(k!==n){k=n;el.innerHTML=m?M:V}}
- el.classList.toggle("on",on)},80);
-})();
-</script>
+<!-- NX-CLEAN-B5 -->
 </body></html>
