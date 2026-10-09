@@ -4838,4 +4838,74 @@ setTimeout(()=>{
 },300);
 </script>
 <!-- ================= END FINAL ROUTER PATCH ================= -->
+<!-- ============ ZNEXORA STABILIZE PATCH ============ -->
+<style>
+/* Heavy animations off — instant clean UI */
+*,
+*::before,
+*::after{
+  animation:none !important;
+  transition:none !important;
+}
+
+/* Old stacked-card swipe animation off */
+#nxStk2,
+#nxStk3{
+  display:none !important;
+}
+</style>
+
+<script>
+/* Safe navigation: agar naya go() fail ho to purana chalao */
+(function(){
+  const oldGo = window.go;
+
+  window.go = function(page){
+    try{
+      if(typeof oldGo === 'function'){
+        return oldGo.call(this, page);
+      }
+    }catch(e){
+      console.warn('[ZNEXORA] go failed:', page, e);
+    }
+
+    /* Fallback: basic pages */
+    const map={
+      home:'renderHome',
+      recent:'renderRecent',
+      connect:'renderConnect',
+      games:'renderGames',
+      settings:'renderSettings'
+    };
+
+    const fn=window[map[page]];
+    if(typeof fn==='function'){
+      try{
+        document.querySelector('main').innerHTML =
+          `<section class="pg">${fn()}</section>`;
+      }catch(e){
+        console.warn('[ZNEXORA] page render failed:', page, e);
+      }
+    }
+  };
+
+  /* Nav buttons ko dobara bind karo */
+  document.querySelectorAll('nav button').forEach(b=>{
+    if(b.dataset.znFixed)return;
+    b.dataset.znFixed='1';
+
+    b.addEventListener('click',()=>{
+      const p=b.dataset.p;
+      if(p) go(p);
+    });
+  });
+
+  /* Error dikhane ke liye */
+  window.addEventListener('error',e=>{
+    console.error('[ZNEXORA ERROR]',e.message);
+  });
+})();
+</script>
+<!-- ============ END STABILIZE PATCH ============ -->
+
 
