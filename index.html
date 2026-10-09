@@ -8336,4 +8336,78 @@ setInterval(()=>{const on=D.body.classList.contains("nxcl");
  el.classList.toggle("on",on)},80);
 })();
 </script>
+<script>
+/* NX-HOME-MUSIC-B7 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+const TYN={1:"Soothing",2:"Vibe",3:"Energetic"},CH=[["","Shuffle all"],["1","Soothing"],["2","Vibe"],["3","Energetic"]];
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:`
+#nxmpc{display:none!important}
+#nxrc{min-height:318px}
+.nxhm{position:relative;display:block;width:100%;margin-top:16px;padding:18px;border-radius:26px;overflow:hidden;text-align:left;color:#fff;cursor:pointer;background:linear-gradient(135deg,#1db97a 0%,#1a8f8a 45%,#2a4f9c 100%);box-shadow:0 22px 44px -18px rgba(29,185,122,.6),inset 0 1px 0 rgba(255,255,255,.25);-webkit-user-select:none;user-select:none}
+.nxhm::before{content:"";position:absolute;right:-60px;top:-70px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.3),transparent 65%);pointer-events:none}
+.nxhm .hmr{position:relative;display:flex;align-items:center;gap:14px}
+.nxhm .hmd{flex:none;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(from 20deg,#16202f,#6ee7b7,#16202f,#7aa7ff,#16202f,#b6a1ff,#16202f);box-shadow:0 10px 24px -8px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.25);animation:hmsp 6s linear infinite;animation-play-state:paused}
+.nxhm.on .hmd{animation-play-state:running}
+.nxhm .hmi{position:relative;width:44%;height:44%;border-radius:50%;background:#10162a center/cover;border:2px solid rgba(255,255,255,.5)}
+.nxhm .hmi::after{content:"";position:absolute;left:50%;top:50%;width:26%;height:26%;transform:translate(-50%,-50%);border-radius:50%;background:#0b1620;box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+.nxhm .hmt{flex:1;min-width:0}
+.nxhm .hmt small{display:block;font-size:11px;letter-spacing:1.6px;font-weight:800;opacity:.85}
+.nxhm .hmt b{display:block;font-size:22px;font-weight:900;letter-spacing:-.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nxhm .hmt em{display:block;font-style:normal;font-size:13px;opacity:.92;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nxhm .hmeq{display:none;gap:3px;height:16px;align-items:flex-end;flex:none}
+.nxhm.on .hmeq{display:flex}
+.nxhm .hmeq i{width:3px;height:100%;border-radius:2px;background:#fff;transform-origin:bottom;animation:hmeq .9s ease-in-out infinite}
+.nxhm .hmeq i:nth-child(2){animation-delay:.15s}.nxhm .hmeq i:nth-child(3){animation-delay:.3s}.nxhm .hmeq i:nth-child(4){animation-delay:.45s}
+.nxhm .hmp{flex:none;width:52px;height:52px;min-height:0;padding:0;border-radius:50%;background:#fff;color:#0b1620;display:grid;place-items:center;box-shadow:0 10px 22px -8px rgba(0,0,0,.55);transition:transform .2s}
+.nxhm .hmp:active{transform:scale(.92)}
+.nxhm .hmq{position:relative;display:flex;gap:8px;margin-top:16px;overflow-x:auto}
+.nxhm .hmc{flex:none;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);font-size:13px;font-weight:700;white-space:nowrap}
+.nxhm .hmc:active{background:rgba(255,255,255,.28)}
+@keyframes hmsp{to{transform:rotate(360deg)}}
+@keyframes hmeq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+/* music page: disc always dead center */
+.xm{min-width:0;overflow-x:hidden}
+.xar{display:flex!important;align-items:center!important;justify-content:center!important;min-width:0}
+.xar #xart{width:100%!important;min-width:0!important;max-width:100%!important}
+.xar .mpt,.xar .mps{width:100%;max-width:100%;box-sizing:border-box;padding:0 14px;text-align:center}
+.xar .mpcd{margin:0 auto 18px!important;align-self:center!important}
+`}));
+const PLAY='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
+const card=()=>'<div id="nxhm" class="nxhm" role="button" tabindex="0" aria-label="Open Music"><div class="hmr"><div class="hmd"><i class="hmi"></i></div><div class="hmt"><small>ZNEXORA MUSIC</small><b id="hmn">Music</b><em id="hms"></em></div><div class="hmeq"><i></i><i></i><i></i><i></i></div><button class="hmp" data-hm="open" aria-label="Play music">'+PLAY+'</button></div><div class="hmq">'+CH.map(c=>'<span class="hmc" data-ty="'+c[0]+'">'+c[1]+'</span>').join("")+'</div></div>';
+function fix(){
+ const pg=D.querySelector("#main .pg");if(!pg||pg.querySelector("#nxhm"))return;
+ [...pg.children].forEach(c=>{if(c.classList&&c.classList.contains("grid")&&/repeat\(3/.test(c.getAttribute("style")||""))c.remove()});
+ const lb=[...pg.querySelectorAll(".lbl")].find(e=>/Recent chats/i.test(e.textContent));
+ let wr=null;
+ if(lb){const hdr=lb.parentElement;wr=D.createElement("div");wr.id="nxrc";hdr.after(wr);
+  let n=wr.nextElementSibling;
+  while(n&&!n.classList.contains("pw")){const x=n;n=n.nextElementSibling;wr.appendChild(x)}}
+ if(wr)wr.insertAdjacentHTML("afterend",card());else pg.insertAdjacentHTML("beforeend",card());
+ upd()}
+function upd(){
+ const c=$$("nxhm");if(!c)return;
+ const X=W.NXX,f=X&&X.cur,on=!!(f&&X.want);
+ c.classList.toggle("on",on);
+ const n=$$("hmn"),s=$$("hms");
+ const t=f?f.name:"Music",sub=f?((on?"Now playing":"Paused")+(f.song_type?" \u00b7 "+TYN[f.song_type]:"")):"Soothing, Vibe and Energetic songs";
+ if(n.textContent!==t)n.textContent=t;
+ if(s.textContent!==sub)s.textContent=sub;
+ const id=f?tf(()=>ytId(f.url)):null,u=id?'url("https://i.ytimg.com/vi/'+id+'/hqdefault.jpg")':"",im=c.querySelector(".hmi");
+ if(im.dataset.u!==u){im.dataset.u=u;im.style.backgroundImage=u}}
+setInterval(upd,600);
+function openM(ty){
+ if(typeof W.nxMusic!=="function")return;
+ const X=W.NXX;if(X&&ty!==null){X.ty=ty;X.mode="r"}
+ W.nxMusic();
+ if(ty){setTimeout(()=>{const X2=W.NXX;if(X2&&X2.cur&&String(X2.cur.song_type)!==ty&&X2.all&&X2.all.length)tf(()=>W.NXN(1,1200))},1100)}}
+D.addEventListener("click",e=>{const c=e.target.closest&&e.target.closest("#nxhm");if(!c)return;
+ e.stopImmediatePropagation();e.preventDefault();
+ const ch=e.target.closest("[data-ty]");openM(ch?ch.dataset.ty:null)},true);
+D.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="nxhm")openM(null)});
+const _h=PG.home;
+PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(fix);return r};
+if(S.user&&S.page==="home")tf(()=>renderHome());
+})();
+</script>
 </body></html>
