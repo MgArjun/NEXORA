@@ -8410,4 +8410,52 @@ PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(fix);return r}
 if(S.user&&S.page==="home")tf(()=>renderHome());
 })();
 </script>
+<style>
+/* NX-PATCH-HOME-MUSIC-V1 */
+#nxStk3{min-height:318px}
+.nxhm>.card.empty{min-height:318px;display:grid;place-content:center;justify-items:center}
+.nxhmc{display:flex;align-items:center;gap:14px;width:100%;text-align:left;margin-top:18px;padding:16px;border-radius:28px;position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,rgba(111,132,255,.34),rgba(164,107,255,.28) 55%,rgba(63,214,143,.22)),#10162a;border:1px solid rgba(255,255,255,.18);box-shadow:0 22px 40px -20px rgba(110,120,255,.8),inset 0 1px 0 rgba(255,255,255,.14);transition:transform .22s cubic-bezier(.22,1,.36,1)}
+.nxhmc:active{transform:scale(.975)}
+.nxhmc::after{content:"";position:absolute;top:0;bottom:0;width:36%;left:-60%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.16),transparent);transform:skewX(-18deg);animation:hmsw 5s ease-in-out infinite}
+@keyframes hmsw{60%,100%{left:130%}}
+.hmi{position:relative;width:60px;height:60px;border-radius:20px;flex:none;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#1db97a,#2f9fd6 55%,#8b78d2);box-shadow:0 14px 22px -10px #2f9fd6,0 3px 0 rgba(0,0,0,.3),inset 0 1.5px 0 rgba(255,255,255,.55),inset 0 -8px 12px rgba(0,0,0,.22)}
+.hmi::before{content:"";position:absolute;left:-10%;right:-10%;top:-34%;height:62%;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.45),transparent 70%)}
+.hmi svg{position:relative;width:30px;height:30px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.hmt{flex:1;min-width:0}
+.hmt b{display:block;font-size:20px;font-weight:800;letter-spacing:-.4px}
+.hmt small{display:block;color:#c3cbea;font-size:12.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmq{display:flex;gap:3px;align-items:flex-end;height:24px;flex:none}
+.hmq i{width:4px;height:100%;border-radius:2px;background:linear-gradient(#8fa2ff,#86ecc6);transform-origin:bottom;transform:scaleY(.25);animation:hmeq 1s ease-in-out infinite;animation-play-state:paused}
+.hmq i:nth-child(2){animation-delay:.2s}.hmq i:nth-child(3){animation-delay:.4s}.hmq i:nth-child(4){animation-delay:.6s}
+.nxhmc.pl .hmq i{animation-play-state:running}
+@keyframes hmeq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+.hmg{font-size:28px;opacity:.6;flex:none;line-height:1}
+</style>
+<script>
+/* NX-PATCH-HOME-MUSIC-V1 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+const CARD='<button id="nxhmc" class="nxhmc" onclick="nxMusic()" aria-label="Music"><span class="hmi"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><span class="hmt"><b>Music</b><small id="hmn">Songs, shuffle, listen together</small></span><span class="hmq"><i></i><i></i><i></i><i></i></span><span class="hmg">&rsaquo;</span></button>';
+function fix(){
+ if(typeof S==="undefined"||!S.user||S.page!=="home")return;
+ const pg=D.querySelector("#main .pg");
+ if(!pg||pg.dataset.hm||!pg.querySelector(":scope>h2"))return;
+ pg.dataset.hm="1";pg.classList.add("nxhm");
+ pg.querySelectorAll(":scope>.grid").forEach(g=>g.remove());
+ pg.querySelectorAll(":scope>.pw").forEach(p=>{if(/^Wins/.test(p.textContent))p.remove()});
+ if(!$$("nxhmc"))pg.insertAdjacentHTML("beforeend",CARD);
+}
+const _h=PG.home;
+PG.home=renderHome=function(){const r=_h.apply(this,arguments);tf(fix);return r};
+new MutationObserver(()=>tf(fix)).observe($$("main"),{childList:true});
+setInterval(()=>tf(()=>{
+ const c=$$("nxhmc");if(!c)return;
+ const X=window.NXX,on=!!(X&&X.cur&&X.want),n=$$("hmn");
+ c.classList.toggle("pl",on);
+ const t=on?"Now playing \u00b7 "+X.cur.name:"Songs, shuffle, listen together";
+ if(n&&n.textContent!==t)n.textContent=t;
+}),800);
+tf(fix);
+})();
+</script>
 </body></html>
