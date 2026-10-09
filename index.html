@@ -8336,4 +8336,52 @@ setInterval(()=>{const on=D.body.classList.contains("nxcl");
  el.classList.toggle("on",on)},80);
 })();
 </script>
+<style>/* NX-REDESIGN-V1 */
+.nav button svg{width:23px;height:23px}
+.nav .on svg{fill:currentColor;fill-opacity:.22}
+#nxp{display:none!important}
+.ejc{display:flex;flex-direction:column;width:100%;text-align:left;min-height:150px;padding:22px;margin-bottom:14px;border:0;border-radius:26px;color:#fff;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.ejc svg{width:34px;height:34px;margin-bottom:auto}.ejc b{font-size:22px}.ejc span{font-size:14px;opacity:.9}
+#main .pg>h2+.sub+.grid{grid-template-columns:1fr}
+#main .pg>h2+.sub+.grid>.qc{flex-direction:row;align-items:center;gap:14px;min-height:84px;padding:16px 18px;color:#fff;border:0!important;border-radius:24px!important;background:linear-gradient(135deg,var(--c1),var(--c2))!important}
+#main .pg>h2+.sub+.grid>.qc .gi{background:rgba(255,255,255,.2)!important;box-shadow:none!important}
+#main .pg>h2+.sub+.grid>.qc small{color:rgba(255,255,255,.85)!important}
+#main .pg>h2+.sub+.grid>.qc:nth-child(1){--c1:#E8503F;--c2:#FF8A5B}
+#main .pg>h2+.sub+.grid>.qc:nth-child(2){--c1:#5568C4;--c2:#8A55D6}
+#main .pg>h2+.sub+.grid>.qc:nth-child(3){--c1:#B88400;--c2:#FF8A5B}
+#main .pg>h2+.sub+.grid>.qc:nth-child(4){--c1:#C9792E;--c2:#7A4018}
+#main .pg>h2+.sub+.grid>.qc:nth-child(5){--c1:#4A5270;--c2:#1A1F33}
+html.nxl{filter:invert(1) hue-rotate(180deg)}
+html.nxl :is(img,video,canvas,.av,.gi,.uc,.felt,.nu-felt,.pc2,.ejc,#main .pg>h2+.sub+.grid>.qc){filter:invert(1) hue-rotate(180deg)}
+</style>
+<script>/* NX-REDESIGN-V1 */
+(()=>{
+const D=document,W=window,tf=f=>{try{return f()}catch(e){}};
+const T=[["recent","Chats",I.chat],["status","Status",IC('<circle cx="12" cy="12" r="9" stroke-dasharray="3.2 3"/><circle cx="12" cy="12" r="4"/>')],["games","Play",I.game],["enjoy","Enjoy",IC('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5z"/><path d="M8 21h8"/>')],["settings","Me",IC('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/>')]];
+const bs=[...D.querySelectorAll("#nav button")];
+T.forEach((t,i)=>{const b=bs[i];if(!b)return;b.dataset.p=t[0];b.innerHTML="<span>"+t[2]+"</span>"+t[1]});
+PG.status=()=>W.nxStatus();
+function renderEnjoy(){page('<h2>Enjoy</h2><p class="sub">Watch and listen together.</p>'
++'<button class="ejc" style="--c1:#D9406F;--c2:#E8703F" onclick="wtMenu()">'+IC('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5z"/><path d="M8 21h8"/>')+'<b>Watch Together</b><span>YouTube or any video, in sync with up to 5 friends</span></button>'
++'<button class="ejc" style="--c1:#128A5C;--c2:#2279A8" onclick="nxMusic()">'+IC('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>')+'<b>Music</b><span>Shuffle songs, listen with friends</span></button>'
++'<button class="ejc" style="--c1:#B88400;--c2:#E0703F;min-height:96px" onclick="nxFavView()">'+IC('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>')+'<b>Favourites</b><span>Saved videos and songs</span></button>')}
+PG.enjoy=renderEnjoy;
+const _go=go;go=function(p){return _go.call(this,p==="home"?"recent":p)};
+const _r=PG.recent;
+PG.recent=renderRecent=function(){const r=_r.apply(this,arguments);tf(()=>{const b=D.querySelector(".wh .ib");if(b){b.setAttribute("onclick","go('connect')");b.setAttribute("aria-label","Find people");b.innerHTML=I.plus}});return r};
+const L=D.documentElement.classList;
+if(localStorage.nx_light==="1")L.add("nxl");
+W.nxLight=()=>{const on=!L.contains("nxl");L.toggle("nxl",on);try{localStorage.nx_light=on?"1":"0"}catch(_){}const t=$("nxlt");if(t)t.classList.toggle("on",on);const m=D.querySelector("meta[name=theme-color]");if(m)m.content=on?"#f8f5ef":"#070a10"};
+const _s=PG.settings;
+PG.settings=renderSettings=function(){const r=_s.apply(this,arguments);tf(()=>{const h=D.querySelector("#main .pg>h2");if(h&&!$("nxlt"))h.insertAdjacentHTML("afterend",'<div class="card stc"><div class="pr"><div class="t"><b>Light mode</b><small>Switch between dark and light</small></div><button id="nxlt" class="tg2'+(L.contains("nxl")?" on":"")+'" onclick="nxLight()" aria-label="Light mode"><i></i></button></div></div>')});return r};
+function snd(){const b=D.querySelector(".cp .snd"),i=$("ci");if(!b||!i)return;const e=!i.value.trim();if(b._e!==e){b._e=e;b.innerHTML=e?I.mic:I.send}}
+D.addEventListener("input",snd,true);
+const _sm=sendMsg;sendMsg=function(){const r=_sm.apply(this,arguments);setTimeout(snd,60);return r};
+const _oc=openChat;openChat=function(){const r=_oc.apply(this,arguments);setTimeout(snd,100);return r};
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".cp .snd"),i=$("ci");if(b&&i&&!i.value.trim()){e.stopImmediatePropagation();e.preventDefault();tf(()=>nxRec())}},true);
+const t0=Date.now(),iv=setInterval(()=>{const e=$("nxs3");if(!e)return clearInterval(iv);if(Date.now()-t0<1800)return;const a=$("auth"),s=$("shell");
+if((a&&!a.classList.contains("h"))||(s&&!s.classList.contains("h")&&D.querySelector("#main .pg"))){clearInterval(iv);e.classList.add("o");setTimeout(()=>e.remove(),800)}},150);
+if(S.user&&S.page==="home")go("recent");
+})();
+</script>
 </body></html>
