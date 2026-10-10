@@ -8786,4 +8786,74 @@ const iv=setInterval(()=>{const e=Date.now()-t0;
  if((e>2800&&ready())||e>12000){clearInterval(iv);kill()}},100);
 })();
 </script>
-</ body></html>
+ <!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fast Load Patcher</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:16px;font:16px/1.5 system-ui,sans-serif;background:#10141f;color:#eef1ff}
+h2{margin:0 0 12px}
+textarea{width:100%;height:200px;font:14px monospace;background:#1a2133;color:#eef1ff;border:1px solid #333c58;border-radius:12px;padding:10px;resize:vertical}
+button{width:100%;min-height:52px;margin:10px 0;border:0;border-radius:14px;font-size:17px;font-weight:700;background:#6f7cf0;color:#fff}
+#msg{min-height:24px;font-weight:700;margin:6px 0}
+.ok{color:#6dffb0}.er{color:#ff8a98}
+pre{white-space:pre-wrap;font-size:14px;color:#c9d0ff;margin:0 0 10px}
+</style></head><body>
+<h2>Fast Load Patcher</h2>
+<b>Step 1. Paste your full old code here</b>
+<textarea id="inp" placeholder="Poora purana code yahan paste karo"></textarea>
+<button id="go">Step 2. Patch lagao</button>
+<div id="msg"></div><pre id="rep"></pre>
+<b>Step 3. Final code</b>
+<textarea id="out" readonly style="height:240px"></textarea>
+<button id="cp">Copy final file</button>
+
+<script type="text/plain" id="o1">if(e>5200)el.classList.add("wait");if((e>5200&&ok())||e>15000){clearInterval(iv);fin()}</script>
+<script type="text/plain" id="n1">/* PATCH-FASTLOAD-V1 */if(e>2500)el.classList.add("wait");if((e>300&&ok())||e>6000){clearInterval(iv);fin()}</script>
+<script type="text/plain" id="o2">await sleep(1800);$("splash").classList.add("out");</script>
+<script type="text/plain" id="n2">$("splash").classList.add("out");</script>
+<script type="text/plain" id="o3">if(s==="SUBSCRIBED")setTimeout(r,1200)</script>
+<script type="text/plain" id="n3">if(s==="SUBSCRIBED")setTimeout(r,400)</script>
+<script type="text/plain" id="o4">if((e>2800&&ready())||e>12000)</script>
+<script type="text/plain" id="n4">if((e>300&&ready())||e>8000)</script>
+<script type="text/plain" id="o5">if(Date.now()-t0<1800)return;</script>
+<script type="text/plain" id="n5">if(Date.now()-t0<300)return;</script>
+
+<script>
+const $=i=>document.getElementById(i),T=i=>$(i).textContent,MARK="PATCH-FASTLOAD-V1";
+const show=(t,c)=>{$("msg").textContent=t;$("msg").className=c}
+const fail=t=>{show(t,"er");$("out").value="";$("rep").textContent=""};
+function bad(s){let n=0,m;const re=/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+ while((m=re.exec(s))){try{new Function(m[1])}catch(e){n++}}return n}
+function bal(s){const p={"(":")","{":"}","[":"]"};for(const k in p){if(s.split(k).length!==s.split(p[k]).length)return false}return true}
+$("go").onclick=()=>{
+ const src=$("inp").value;
+ if(!src.trim())return fail("Pehle code paste karo.");
+ if(src.indexOf(MARK)>-1)return fail("Ye patch pehle se laga hua hai.");
+ const jobs=[];
+ for(let i=1;i<=5;i++){
+  const o=T("o"+i),n=T("n"+i);
+  if(!bal(n))return fail("Naya code balanced nahi hai (patch "+i+").");
+  const parts=src.split(o);
+  if(parts.length!==2)return fail("Anchor "+i+" "+(parts.length<2?"mila nahi":"kai baar mila")+": "+o.slice(0,50)+"...  Poora code paste kiya?");
+  jobs.push({a:parts[0].length,b:parts[0].length+o.length,n});
+ }
+ jobs.sort((x,y)=>y.a-x.a);
+ for(let i=1;i<jobs.length;i++)if(jobs[i].b>jobs[i-1].a)return fail("Do patch overlap ho rahe hain.");
+ let s=src;
+ jobs.forEach(j=>{s=s.slice(0,j.a)+j.n+s.slice(j.b)});
+ const b0=bad(src),b1=bad(s);
+ if(b1>b0)return fail("Syntax error aa gaya. Kuch output nahi diya.");
+ $("out").value=s;
+ show("Ho gaya! Final code neeche hai.","ok");
+ $("rep").textContent="Badle hue jagah: "+jobs.length+"\nPurane code me syntax errors: "+b0+"  |  Naye me: "+b1;
+};
+$("cp").onclick=async()=>{
+ const o=$("out");if(!o.value)return show("Pehle patch lagao.","er");
+ try{await navigator.clipboard.writeText(o.value);show("Copy ho gaya.","ok")}
+ catch(e){o.focus();o.select();show("Auto copy nahi hua. Ab phone ka Copy dabao.","er")}
+};
+</script>
+</body></html>
