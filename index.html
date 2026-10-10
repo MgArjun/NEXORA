@@ -8637,4 +8637,69 @@ function lock(){
 setInterval(()=>tf(lock),120);
 })();
 </script>
+ <style id="nx-p9-css">
+/* NX-PATCH-P9 SWIPE-TABS-FIX */
+html body #main{overflow-x:hidden}
+html body #main .pg,html body #main .pg *:not(canvas):not(video){touch-action:pan-y!important}
+</style>
+<script>
+/* NX-PATCH-P9 SWIPE-TABS-FIX */
+(()=>{
+const D=document,$$=i=>D.getElementById(i);
+const ORDER=["recent","status","games","enjoy","settings"];
+/* true = ungli RIGHT le jao to agla page. Ulta chahiye to false karo */
+const RIGHT_IS_NEXT=true;
+let st=null,sup=0;
+const pg=()=>D.querySelector("#main>.pg");
+function active(){
+ if(typeof S==="undefined"||!S.user)return false;
+ if(ORDER.indexOf(S.page)<0)return false;
+ if(!$$("ov").classList.contains("h"))return false;
+ if(S.page==="settings"&&D.querySelector("#main .sth"))return false;
+ if(D.querySelector("#nxsv2,#nxsc,#pinf,#nxadm2,#nxiv,#nxdpv,#nxcam,#nxs3,#nxsp2"))return false;
+ const c=$$("call");if(c&&!c.classList.contains("h")&&!c.classList.contains("mn"))return false;
+ return true}
+const target=dx=>{const i=ORDER.indexOf(S.page),t=i+((dx>0)===RIGHT_IS_NEXT?1:-1);return t>=0&&t<ORDER.length?t:-1};
+D.addEventListener("pointerdown",e=>{
+ st=null;if(e.pointerType==="mouse"||!e.isPrimary||!active())return;
+ if(e.clientX<20||e.clientX>innerWidth-20)return;
+ if(e.target.closest&&e.target.closest("input,textarea,canvas,video,select,.nu-hand"))return;
+ st={id:e.pointerId,x:e.clientX,y:e.clientY,t:Date.now(),lock:0,el:pg(),p:S.page}},true);
+D.addEventListener("pointermove",e=>{
+ if(!st||e.pointerId!==st.id)return;
+ const dx=e.clientX-st.x,dy=e.clientY-st.y;
+ if(!st.lock){
+  if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)){st=null;return}
+  if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.3)st.lock=1;else return}
+ if(!st.el||!st.el.isConnected||S.page!==st.p){st=null;return}
+ const k=target(dx)<0?.15:.55;
+ st.el.style.transition="none";
+ st.el.style.transform="translate3d("+(dx*k).toFixed(1)+"px,0,0)";
+ st.el.style.opacity=String(Math.max(.45,1-Math.abs(dx)/(innerWidth*1.4)))},true);
+function end(e){
+ const s=st;st=null;if(!s||e.pointerId!==s.id||!s.lock||!s.el)return;
+ sup=Date.now();
+ const dx=e.clientX-s.x,ti=target(dx),el=s.el,fast=Math.abs(dx)/Math.max(1,Date.now()-s.t)>.5;
+ const ok=e.type==="pointerup"&&ti>=0&&S.page===s.p&&(Math.abs(dx)>innerWidth*.2||(fast&&Math.abs(dx)>45));
+ if(!ok){
+  el.style.transition="transform .3s cubic-bezier(.22,1,.36,1),opacity .3s";
+  el.style.transform="";el.style.opacity="";
+  setTimeout(()=>{if(el.isConnected)el.style.transition=""},340);return}
+ const sign=dx>0?1:-1;
+ el.style.transition="transform .16s ease-in,opacity .16s";
+ el.style.transform="translate3d("+(sign*innerWidth*.35)+"px,0,0)";el.style.opacity="0";
+ setTimeout(()=>{
+  go(ORDER[ti]);
+  const n=pg();if(!n)return;
+  n.style.transition="none";n.style.transform="translate3d("+(-sign*36)+"px,0,0)";n.style.opacity="0";
+  void n.offsetWidth;
+  n.style.transition="transform .3s cubic-bezier(.22,1,.36,1),opacity .26s";
+  n.style.transform="";n.style.opacity="1";
+  setTimeout(()=>{if(n.isConnected){n.style.transition="";n.style.opacity=""}},340)},165)}
+D.addEventListener("pointerup",end,true);
+D.addEventListener("pointercancel",end,true);
+D.addEventListener("click",e=>{if(Date.now()-sup<300){e.stopImmediatePropagation();e.preventDefault()}},true);
+})();
+</script>
+
 </ body></html>
