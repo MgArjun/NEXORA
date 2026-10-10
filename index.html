@@ -8769,30 +8769,21 @@ console.log("[NX-PATCH-P10] ready");
 })();
 </script>
  <script>
-/* NX-PATCH-P11 SPLASH-FIX */
+/* NX-SPLASH-FIX */
 (()=>{
-const D=document,$$=i=>D.getElementById(i),tf=f=>{try{return f()}catch(e){}};
-const t0=performance.now();
-/* 1. approval check 4 sec se zyada nahi rukega */
-tf(()=>{const o=sb.rpc.bind(sb);sb.rpc=(n,a,...r)=>n==="my_login_status"?Promise.race([o(n,a,...r),new Promise(res=>setTimeout(()=>res({data:null,error:{message:"timeout"}}),4000))]):o(n,a,...r)});
-/* 2. splash ko khatam karo */
-function hide(){
- ["nxs3","nxsp2","splash"].forEach(i=>{const e=$$(i);if(!e)return;e.style.transition="opacity .45s";e.style.opacity="0";e.style.pointerEvents="none";setTimeout(()=>e.remove(),500)});
- D.documentElement.classList.add("nxok")}
-function ready(){
- const a=$$("auth"),s=$$("shell"),m=$$("main");
- return !!($$("nxwq")||(a&&!a.classList.contains("h"))||(s&&!s.classList.contains("h")&&m&&m.querySelector(".pg")))}
-const iv=setInterval(()=>{
- const e=performance.now()-t0;
- if(!$$("nxs3")&&!$$("splash")&&!$$("nxsp2"))return clearInterval(iv);
- if(e>2500&&ready()){clearInterval(iv);hide();return}
- if(e>7000){clearInterval(iv);
-  tf(()=>{const m=$$("main");
-   if(S.user){$$("shell").classList.remove("h");if(m&&!m.querySelector(".pg"))go("recent")}
-   else $$("auth").classList.remove("h")});
-  hide()}
-},150);
+const D=document,$$=i=>D.getElementById(i),t0=Date.now();
+const ready=()=>{const a=$$("auth"),s=$$("shell"),m=$$("main");
+ if($$("nxwq"))return true;
+ if(a&&!a.classList.contains("h"))return true;
+ return !!(s&&!s.classList.contains("h")&&m&&m.querySelector(".pg"))};
+const kill=()=>{
+ ["nxs3","nxsp","nxsp2","splash"].forEach(id=>{const e=$$(id);
+  if(e){e.style.transition="opacity .35s";e.style.opacity="0";e.style.pointerEvents="none";setTimeout(()=>e.remove(),400)}});
+ D.documentElement.classList.add("nxok");
+ const a=$$("auth"),s=$$("shell");
+ if(a&&s&&a.classList.contains("h")&&s.classList.contains("h"))a.classList.remove("h")};
+const iv=setInterval(()=>{const e=Date.now()-t0;
+ if((e>2800&&ready())||e>12000){clearInterval(iv);kill()}},100);
 })();
 </script>
-
 </ body></html>
