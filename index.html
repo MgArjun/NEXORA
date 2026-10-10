@@ -8525,5 +8525,116 @@ function fixSet(){
 setInterval(()=>tf(fixSet),300);
 })();
 </script>
+ <style id="nx-p7-css">
+/* NX-PATCH-P7 SWIPE-TABS + DISC-CENTER */
+html body #main{overflow-x:hidden}
+html body #main>.pg{touch-action:pan-y}
+/* disc hamesha center */
+html body .xar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;overflow:clip!important;touch-action:none}
+html body #xart,html body #mp2art{width:100%!important;min-width:0!important;max-width:100%!important;margin:0 auto!important;left:0!important;right:auto!important;display:flex;flex-direction:column;align-items:center}
+html body #xcd,html body #mp2cd{margin:0 auto 18px!important;left:0!important;right:auto!important;position:relative}
+html body #xart .mpt,html body #xart .mps{max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+html body .xm{overflow-x:hidden}
+</style>
+<script>
+/* NX-PATCH-P7 SWIPE-TABS + DISC-CENTER */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
+const ORDER=["recent","status","games","enjoy","settings"];
+/* true  = finger RIGHT -> agla page (jaisa aapne bola)
+   false = finger LEFT  -> agla page (normal app jaisa) */
+const RIGHT_IS_NEXT=true;
+let st=null,sup=0;
+const pg=()=>D.querySelector("#main>.pg");
+function hScroll(t){for(let e=t;e&&e!==D.body;e=e.parentElement){const o=getComputedStyle(e).overflowX;if((o==="auto"||o==="scroll")&&e.scrollWidth>e.clientWidth+2)return true}return false}
+function active(){
+ if(typeof S==="undefined"||!S.user)return false;
+ if(ORDER.indexOf(S.page)<0)return false;
+ if(!$$("ov").classList.contains("h"))return false;
+ if(S.page==="settings"&&D.querySelector("#main .sth"))return false;
+ if(D.querySelector("#nxsv2,#nxsc,#pinf,#nxadm2,#nxiv,#nxdpv,#nxcam,#nxs3"))return false;
+ const c=$$("call");if(c&&!c.classList.contains("h")&&!c.classList.contains("mn"))return false;
+ return true}
+const target=(dx)=>{const i=ORDER.indexOf(S.page),d=(dx>0)===RIGHT_IS_NEXT?1:-1,t=i+d;return t>=0&&t<ORDER.length?t:-1};
+D.addEventListener("touchstart",e=>{
+ st=null;if(e.touches.length!==1||!active())return;
+ const t=e.touches[0];if(t.clientX<20||t.clientX>innerWidth-20)return;
+ const el=e.target;if(el.closest&&el.closest("input,textarea,canvas,video,select,.nu-hand,#nxStk3,#wal .wa"))return;
+ if(hScroll(el))return;
+ st={x:t.clientX,y:t.clientY,t:Date.now(),lock:0,el:pg(),p:S.page}},{passive:true});
+D.addEventListener("touchmove",e=>{
+ if(!st)return;const t=e.touches[0],dx=t.clientX-st.x,dy=t.clientY-st.y;
+ if(!st.lock){
+  if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){st=null;return}
+  if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.4)st.lock=1;else return}
+ if(!st.el||!st.el.isConnected||S.page!==st.p){st=null;return}
+ const k=target(dx)<0?.18:.6;
+ st.el.style.transition="none";
+ st.el.style.transform="translate3d("+(dx*k).toFixed(1)+"px,0,0)";
+ st.el.style.opacity=String(Math.max(.4,1-Math.abs(dx)/(innerWidth*1.3)))},{passive:true});
+function end(e){
+ const s=st;st=null;if(!s||!s.lock||!s.el)return;sup=Date.now();
+ const t=e.changedTouches&&e.changedTouches[0],dx=t?t.clientX-s.x:0,fast=Math.abs(dx)/Math.max(1,Date.now()-s.t)>.5;
+ const ti=target(dx),el=s.el,go2=ti>=0&&S.page===s.p&&(Math.abs(dx)>innerWidth*.22||(fast&&Math.abs(dx)>50));
+ if(!go2){el.style.transition="transform .32s cubic-bezier(.22,1,.36,1),opacity .32s";el.style.transform="";el.style.opacity="";setTimeout(()=>{if(el.isConnected){el.style.transition=""}},360);return}
+ const sign=dx>0?1:-1;
+ el.style.transition="transform .17s ease-in,opacity .17s";
+ el.style.transform="translate3d("+(sign*innerWidth*.4)+"px,0,0)";el.style.opacity="0";
+ setTimeout(()=>{
+  go(ORDER[ti]);
+  const n=pg();if(!n)return;
+  n.style.transition="none";n.style.transform="translate3d("+(-sign*40)+"px,0,0)";n.style.opacity="0";
+  void n.offsetWidth;
+  n.style.transition="transform .32s cubic-bezier(.22,1,.36,1),opacity .28s";n.style.transform="";n.style.opacity="1";
+  setTimeout(()=>{if(n.isConnected){n.style.transition="";n.style.opacity=""}},360)},175)}
+D.addEventListener("touchend",end,{passive:true});
+D.addEventListener("touchcancel",end,{passive:true});
+D.addEventListener("click",e=>{if(Date.now()-sup<350){e.stopImmediatePropagation();e.preventDefault()}},true);
+/* music disc: koi bhi sideways scroll/shift ho to turant wapas center */
+setInterval(()=>{
+ D.querySelectorAll(".xar,.xm,#main>.pg").forEach(e=>{if(e.scrollLeft)e.scrollLeft=0});
+ const a=$$("xart");if(a&&a.style.transform&&/translate3d\((?!0px)/.test(a.style.transform)&&!a.dataset.sw)a.style.transform=a.style.transform.replace(/translate3d\([^,]+,/,"translate3d(0,")},400);
+})();
+</script>
+<style id="nx-p8-css">
+/* NX-PATCH-P8 DISC-LOCK + MUSIC-PANEL-INPLACE */
+html body #xart{width:min(100vw,560px)!important;max-width:100vw!important;min-width:0!important;box-sizing:border-box}
+html body #xart .mpt,html body #xart .mps{width:min(86vw,420px)!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+html body .xar{overflow:hidden!important}
+/* panel: hamesha usi screen par, sabse upar */
+html body #xmp{position:fixed!important;z-index:2147483000!important;left:50%!important;bottom:calc(env(safe-area-inset-bottom,0px) + 96px)!important}
+html body #xmw{z-index:2147482900!important}
+html body #xmp .xmb{grid-template-columns:repeat(3,1fr)!important}
+html body #xmp [data-xp="o"]{display:none!important}
+</style>
+<script>
+/* NX-PATCH-P8 */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i);
 
-</body></html>
+/* 1. Music panel kholte waqt koi bhi page-change band (chat/settings/game par hi rahe) */
+let block=0;
+addEventListener("pointerdown",e=>{if(e.target&&e.target.closest&&e.target.closest("#xmw,#xmp"))block=Date.now()+1000},true);
+addEventListener("pointerup",e=>{if(e.target&&e.target.closest&&e.target.closest("#xmw,#xmp"))block=Date.now()+1000},true);
+const _go=go;
+go=function(p){if(Date.now()<block&&p!==S.page)return;return _go.apply(this,arguments)};
+tf(()=>{const _nm=window.nxMusic;if(typeof _nm==="function")window.nxMusic=function(){if(Date.now()<block)return;return _nm.apply(this,arguments)}});
+
+/* 2. Disc: har baar naap kar screen ke bilkul beech me laata hai */
+let busy=0;
+function lock(){
+ if(S.page!=="xmus")return;
+ const a=$$("xart"),d=$$("xcd");if(!a||!d)return;
+ const r=d.getBoundingClientRect();if(!r.width)return;
+ const diff=innerWidth/2-(r.left+r.width/2);
+ if(Math.abs(diff)>1){
+  const m=parseFloat(a.style.marginLeft)||0;
+  a.style.marginLeft=(m+diff).toFixed(1)+"px";
+ }
+ const ar=$$("xar");if(ar&&ar.scrollLeft)ar.scrollLeft=0;
+ const pg=D.querySelector("#main>.pg");if(pg&&pg.scrollLeft)pg.scrollLeft=0;
+}
+setInterval(()=>tf(lock),120);
+})();
+</script>
+</ body></html>
