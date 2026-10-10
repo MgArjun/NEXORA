@@ -8702,4 +8702,70 @@ D.addEventListener("click",e=>{if(Date.now()-sup<300){e.stopImmediatePropagation
 })();
 </script>
 
+
+<script>
+/* NX-PATCH-P10 ADMIN-DELETE-APPROVAL */
+(()=>{
+const D=document,tf=f=>{try{return f()}catch(e){}},$$=i=>D.getElementById(i),OWN="surajpurve078@gmail.com";
+const isA=()=>!!(S.user&&S.user.email&&S.user.email.toLowerCase()===OWN);
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+D.head.appendChild(Object.assign(D.createElement("style"),{textContent:"#nxwq .sp{width:44px;height:44px;margin:0 auto 18px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#8fa2ff;animation:nxps 1s linear infinite}@keyframes nxps{to{transform:rotate(360deg)}}.apr2{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--ln)}.apr2 .t{flex:1;min-width:0}.apr2 .t b{display:block}.apr2 .t small{color:var(--mu);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.apr2 .btn{min-height:36px;padding:0 14px}"}));
+const showAuth=()=>{$$("shell").classList.add("h");$$("auth").classList.remove("h");authMode(false)};
+/* ---- user side: first-login approval ---- */
+async function gate(u){
+ if(!u||u.is_anonymous||(u.email&&u.email.toLowerCase()===OWN))return true;
+ let s;try{const r=await sb.rpc("my_login_status");if(r.error)return true;s=r.data}catch(_){return true}
+ if(s==="declined"){await sb.auth.signOut();showAuth();amsg("The admin declined your request.","e");return false}
+ if(s!=="pending")return true;
+ return new Promise(res=>{
+  tf(()=>{const o=$$("nxwq");if(o)o.remove()});
+  D.body.insertAdjacentHTML("beforeend",'<div id="nxwq"><div class="wc"><div class="sp"></div><h3>Waiting for admin approval</h3><p>Your first login needs the admin\'s permission. You will enter automatically once it is accepted. Keep this screen open.</p><button class="btn wide" id="nxapo">Log out</button></div></div>');
+  const e=$$("nxwq");let done=0,iv=0;
+  const fin=v=>{if(done)return;done=1;clearInterval(iv);e.remove();res(v)};
+  const out=async m=>{await tf(()=>sb.auth.signOut());showAuth();amsg(m||"",m?"e":"");fin(false)};
+  iv=setInterval(async()=>{try{const r=await sb.rpc("my_login_status");
+   if(r.error){const g=await sb.auth.getUser();if(g.error)out("This account no longer exists.");return}
+   if(r.data==="approved")fin(true);else if(r.data==="declined")out("The admin declined your request.")}catch(_){}},3000);
+  $$("nxapo").onclick=()=>out("")})}
+const _en=enter;enter=async function(u){if(!await gate(u))return;return _en.apply(this,arguments)};
+const _os=onSig;onSig=function(p){if(p&&p.type==="udel"){toast("Your account was removed");tf(()=>logout());return}return _os.apply(this,arguments)};
+/* ---- admin side ---- */
+const AP={on:false,list:[],known:new Set()};let AU=null;
+async function loadAp(cfg){if(!isA())return;
+ if(cfg)try{const c=await sb.from("app_config").select("approval_required").eq("id",1).maybeSingle();if(c.data)AP.on=!!c.data.approval_required}catch(_){}
+ try{const r=await sb.rpc("pending_logins");if(r.error||!Array.isArray(r.data))return;
+  const f=r.data.filter(x=>!AP.known.has(x.user_id));r.data.forEach(x=>AP.known.add(x.user_id));AP.list=r.data;
+  if(f.length)banner("Login request",(f[0].name||f[0].email||"A new user")+" is waiting for approval",()=>tf(()=>nxAdm()))}catch(_){}
+ paintAp()}
+function paintAp(){const c=$$("nxapc");if(!c)return;c.querySelector(".tg2").classList.toggle("on",AP.on);
+ $$("nxapl").innerHTML=AP.list.length?'<div class="lbl" style="margin:10px 0 0">Waiting ('+AP.list.length+')</div>'+AP.list.map(x=>'<div class="apr2"><div class="t"><b>'+E(x.name||"User")+'</b><small>'+E(x.email)+(x.username?" \u00b7 @"+E(x.username):"")+'</small></div><button class="btn red" data-ap="no:'+E(x.user_id)+'">Decline</button><button class="btn pri" data-ap="ok:'+E(x.user_id)+'">Accept</button></div>').join(""):'<div class="pw" style="text-align:left;padding-top:8px">No waiting requests</div>'}
+function mount(){if(!isA())return;const b=D.querySelector("#nxadm2 .a2b");if(!b)return;
+ if(b.querySelector(".a2t")&&!$$("nxapc")){b.insertAdjacentHTML("afterbegin",'<div id="nxapc" class="card a2d" style="padding:12px;margin-bottom:12px"><div class="pr"><div class="t"><b>New user approval</b><small>ON = a new user needs your OK on their first login</small></div><button class="tg2" data-ap="tog" aria-label="New user approval"><i></i></button></div><div id="nxapl"></div></div>');loadAp(true)}
+ paintAp();
+ const d=[...D.querySelectorAll("#nxadm2 .a2d")].find(x=>x.querySelector(".a2u")&&x.querySelector(".a2ac"));
+ if(d&&!$$("nxdel"))d.insertAdjacentHTML("beforeend",'<button class="btn red wide" id="nxdel" style="margin-top:10px">Delete user permanently</button>')}
+setInterval(()=>tf(mount),500);
+setInterval(()=>{if(S.user&&isA()&&!D.hidden)loadAp(false)},5000);
+function askDel(){const n=tf(()=>D.querySelector("#nxadm2 .a2h h2").textContent)||"This user";
+ openModal('<div class="adg"><h3>Delete permanently?</h3><p>'+E(n)+'\'s account, chats, files and status will be erased forever, as if they never existed. This cannot be undone. Type DELETE to confirm.</p><input id="nxdc" placeholder="DELETE" autocapitalize="characters" autocomplete="off" style="margin-bottom:14px"><div class="adb"><button onclick="closeModal()">Cancel</button><button class="dl" id="nxdelok">Delete</button></div></div>')}
+async function doDel(){if((($$("nxdc")||{}).value||"").trim()!=="DELETE")return toast("Type DELETE to confirm");
+ const id=AU;closeModal();if(!id)return;if(S.user&&id===S.user.id)return toast("You cannot delete yourself");
+ toast("Deleting...");tf(()=>sig({type:"udel",to:id}));await sleep(500);
+ const r=await sb.rpc("admin_delete_user",{p_uid:id});
+ if(r.error)return toast("Could not delete. Run the Supabase SQL first.");
+ toast("User deleted permanently");AP.known.delete(id);AU=null;
+ const bk=D.querySelector("#nxadm2 [data-a=back]");if(bk)bk.click();
+ setTimeout(()=>{const f=D.querySelector("#nxadm2 [data-a=ref]");if(f)f.click()},250)}
+D.addEventListener("click",async e=>{const t=e.target;if(!t||!t.closest)return;
+ const o=t.closest("#nxadm2 [data-a=open]");if(o)AU=o.dataset.id;
+ if(t.closest("#nxdel")&&AU)return askDel();
+ if(t.closest("#nxdelok"))return doDel();
+ const b=t.closest("[data-ap]");if(!b||!isA())return;const a=b.dataset.ap;
+ if(a==="tog"){const v=!AP.on,r=await sb.from("app_config").upsert({id:1,approval_required:v});if(r.error)return toast("Could not save. Run the Supabase SQL first");AP.on=v;paintAp();return toast(v?"Approval ON":"Approval OFF")}
+ const i=a.indexOf(":"),c=a.slice(0,i),id=a.slice(i+1);b.disabled=true;
+ const r=await sb.rpc("decide_login",{p_uid:id,p_ok:c==="ok"});if(r.error){b.disabled=false;return toast("Could not save")}
+ AP.list=AP.list.filter(x=>x.user_id!==id);paintAp();toast(c==="ok"?"Accepted":"Declined")});
+console.log("[NX-PATCH-P10] ready");
+})();
+</script>
 </ body></html>
