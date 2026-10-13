@@ -88,7 +88,7 @@ nav .on{color:var(--tx)}nav .on svg{stroke:var(--ac)}
 #chat{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top,0px);transform:translateX(100%);transition:transform .3s cubic-bezier(.22,1,.36,1)}
 #chat.on{transform:none}
 .ch{display:flex;align-items:center;gap:6px;padding:8px 8px;border-bottom:1px solid var(--ln)}
-.ch .ava{width:40px;height:40px;font-size:14px}.ch .nm{flex:1;min-width:0;margin-left:4px;cursor:pointer}.ch .nm b{display:block;font-size:16px}.ch .nm small{color:var(--mu);font-size:12px}
+/* PATCH-ZY-HEAD-V1 */.ch .ava{width:40px;height:40px;font-size:14px;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px color-mix(in srgb,var(--ac) 55%,transparent),0 10px 20px -8px var(--ac)}.ch .nm{flex:1;min-width:0;margin-left:6px;cursor:pointer}.ch .nm b{display:block;font-size:17px;font-weight:650;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ch .nm small{display:block;margin-top:2px;color:var(--mu);font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}.ch::after{content:"";position:absolute;left:10%;right:10%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--ac),transparent);opacity:.55;pointer-events:none}
 #msgs{flex:1;min-height:0;overflow:auto;padding:14px 12px;display:flex;flex-direction:column;gap:5px;background:var(--cb,transparent)}
 .m{max-width:80%;padding:8px 12px 5px;border-radius:18px;line-height:1.4;white-space:pre-wrap;word-break:break-word;font-size:15px;user-select:none;-webkit-user-select:none}
 .m small{display:block;text-align:right;font-size:10px;opacity:.65;margin-top:2px}
@@ -219,7 +219,9 @@ nav .on{position:relative}nav .on::before{content:"";position:absolute;top:0;lef
 #chat.selm .sk{display:grid}#chat.selm .mr{padding-left:48px}
 .mr.sel .sk{background:var(--ac);border-color:var(--ac)}.mr.sel .sk::after{content:"✓";color:#fff;font-size:12px;font-weight:800}
 .mr.fl .m{animation:fl 1.1s}.mr.new .m{animation:pop .3s cubic-bezier(.22,1,.36,1)}@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.94)}}
-#sbar{display:none;align-items:center;gap:2px;padding:8px 8px;border-bottom:1px solid var(--ln);background:color-mix(in srgb,var(--bg) 85%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);position:relative;z-index:4}
+/* PATCH-ZY-BAR-V1 */#sbar{display:none;align-items:center;gap:4px;margin:8px 10px 2px;padding:6px 8px 6px 6px;border:1px solid transparent;border-radius:28px;background:linear-gradient(color-mix(in srgb,var(--sf) 80%,transparent),color-mix(in srgb,var(--sf) 80%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:0 18px 36px -18px rgba(0,0,0,.8),0 0 28px -14px var(--ac);position:relative;z-index:4;animation:zyin .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes zyin{from{opacity:0;transform:translateY(-10px) scale(.96)}}
+#sbar .ib{width:38px;height:38px;border-radius:50%;flex:none;background:color-mix(in srgb,var(--ac) 12%,transparent)}#sbar .ib:active{transform:scale(.86)}#sbar #sbd{color:#e5675f;background:rgba(229,103,95,.14)}
 #chat.selm .ch{display:none}#chat.selm #sbar{display:flex}#sbn{margin-left:8px;font-size:16px}
 .ch{position:relative;z-index:4;background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 10px 26px -20px rgba(0,0,0,.7)}
 #msgs{background:radial-gradient(120% 55% at 15% 0,rgba(91,84,224,.11),transparent 62%),radial-gradient(90% 45% at 100% 100%,rgba(94,194,183,.08),transparent 62%),var(--bg);padding-top:10px}
@@ -406,7 +408,13 @@ body.hasmini #pg{padding-bottom:170px}
 .md.vc .wf{display:flex;align-items:center;gap:2.5px;flex:1;height:30px}.md.vc .wf s{flex:1;border-radius:2px;background:currentColor;opacity:.35;transition:opacity .15s}.md.vc .wf s.on{opacity:1}.md.vc small{opacity:.8;font-size:11px;padding:0;text-align:left;font-family:var(--mono)}
 .mpv{border-radius:18px;overflow:hidden;background:#000;max-height:46dvh;display:grid;place-items:center}.mpv img,.mpv video{max-width:100%;max-height:46dvh;display:block}
 .rec{display:flex;align-items:center;gap:14px;margin:6px 0 16px}.rb{flex:1;display:flex;align-items:center;gap:3px;height:44px}.rb s{flex:1;height:5px;border-radius:2px;background:linear-gradient(var(--ac),#5ec2b7);transition:height .08s}.rec b{font-family:var(--mono);font-size:15px;min-width:42px;text-align:right}
-#mv{position:fixed;inset:0;z-index:66;background:rgba(0,0,0,.96);display:none;place-items:center}#mv.on{display:grid}.mvc{width:100%;height:100%;display:grid;place-items:center;will-change:transform}.mvc img,.mvc video{max-width:100%;max-height:100%;object-fit:contain}
+#mv{position:fixed;inset:0;z-index:66;background:rgba(0,0,0,.96);display:none;place-items:center}#mv.on{display:grid}/* PATCH-ZY-TILE-V1 */.mvc{width:100%;height:100%;display:grid;place-items:center;will-change:transform}.mvc img,.mvc video{width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none}.mvc img{touch-action:none}
+.zyf{width:100%;height:100%;border:0;background:#fff}
+.mvl{display:grid;justify-items:center;gap:12px;color:#fff;text-align:center;padding:24px;max-width:320px}.mvl b{font-size:18px;word-break:break-word}.mvl small{color:#9aa0b8}.mvl .pri{height:46px;border-radius:23px;margin-top:6px;padding:0 28px}
+.zyp{width:200px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}.zyp s{display:block;height:100%;width:6%;background:linear-gradient(90deg,#8f88ff,#5ec2b7);transition:width .2s}
+#mvd{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:62px;color:#fff;z-index:2}#mvd svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.md.zy{min-width:120px;min-height:90px}.md.zyb{width:230px;height:170px;background:linear-gradient(145deg,#2a2e55,#16182a)}.md.zyb img{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;filter:blur(12px);transform:scale(1.25)}
+.zyd{position:absolute;inset:0;margin:auto;width:fit-content;height:44px;display:flex;align-items:center;gap:8px;padding:0 16px 0 12px;border-radius:22px;background:rgba(10,12,20,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);color:#fff;font:600 13px system-ui,sans-serif}.zyd svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #mv .ib{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;color:#fff;z-index:2}#mv .ib svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .ob{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:14px;right:70px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden;z-index:2}.ob s{display:block;height:100%;width:100%;background:linear-gradient(90deg,#8f88ff,#5ec2b7);transform-origin:left}@keyframes obar{to{transform:scaleX(0)}}
 
@@ -711,7 +719,7 @@ function themeSheet(){const t=THEMES[thi];
 $("cd").onclick=chatMenu;
 /* ===== Chat: reactions, reply, notifications, add friend ===== */
 for(const k in MSG)MSG[k]=MSG[k].map((x,i,a)=>Array.isArray(x)?{d:x[0],t:x[1],tm:x[2],r:[],q:null,ts:Date.now()-(a.length-i)*6e4,st:2}:x);
-IC.reply=A('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 016 6v3"/>');
+IC.reply=A('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 016 6v3"/>');IC.fwd=A('<path d="M15 4l5 5-5 5"/><path d="M20 9H9a5 5 0 00-5 5v6"/>');
 let RP=null;
 const EMO=["❤️","👍","😂","😮","😢","🙏"];
 function dayL(t){const d=new Date(t),n=new Date(),y=new Date(n-864e5);return d.toDateString()===n.toDateString()?"Today":d.toDateString()===y.toDateString()?"Yesterday":d.toLocaleDateString([],{day:"numeric",month:"short"})}
@@ -729,7 +737,7 @@ $("msgs").addEventListener("scroll",scrollBtn);$("dn").onclick=()=>$("msgs").scr
 let NEWI=-1;
 const XI='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 document.querySelector("#chat .ch").insertAdjacentHTML("afterend",`<div id="sbar"><button class="ib" id="sbx" aria-label="Cancel">${XI}</button><b id="sbn"></b><span style="flex:1"></span><button class="ib" id="sbr" aria-label="Reply">${IC.reply}</button><button class="ib" id="sbe" aria-label="React">${A('<circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.5 2.2 4 2.2s3-.7 4-2.2M9 9.5v.5M15 9.5v.5"/>')}</button><button class="ib" id="sbed" aria-label="Edit">${A('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.500 6.500l4 4"/>')}</button><button class="ib" id="sbfw" aria-label="Forward">${IC.fwd}</button><button class="ib" id="sbc" aria-label="Copy">${IC.copy}</button><button class="ib" id="sbd" aria-label="Delete">${IC.trash}</button></div>`);
-function selUI(){const n=sel.size;$("chat").classList.toggle("selm",n>0);if(n){$("sbn").textContent=n+" selected";$("sbr").style.display=$("sbe").style.display=n===1?"":"none";const o=n===1?MSG[cur.id][[...sel][0]]:null;$("sbed").style.display=o&&o.d==="out"&&!o.k&&!o.deleted?"":"none"}}
+function selUI(){const n=sel.size;$("chat").classList.toggle("selm",n>0);if(n){$("sbn").textContent=n;$("sbr").style.display=$("sbe").style.display=n===1?"":"none";const o=n===1?MSG[cur.id][[...sel][0]]:null;$("sbed").style.display=o&&o.d==="out"&&!o.k&&!o.deleted?"":"none"}}
 function paintSel(){document.querySelectorAll("#msgs .mr").forEach(r=>r.classList.toggle("sel",sel.has(+r.dataset.i)));selUI()}
 const who=x=>x.d==="out"?"You":cur.n.split(" ")[0];
 $("sbx").onclick=()=>{sel.clear();paintSel()};
@@ -1132,11 +1140,33 @@ document.addEventListener("pointerdown",e=>{const el=e.target.closest&&e.target.
 const fmtB=b=>b<1024?b+" B":b<1048576?(b/1024).toFixed(0)+" KB":(b/1048576).toFixed(1)+" MB",LBL={img:"Photo",vid:"Video",file:"File",aud:"Audio",voice:"Voice message"};
 IC.fire=A('<path d="M12 3c.6 3 3.8 4.4 3.8 8.4a3.8 3.8 0 01-7.6 0c0-1.5.6-2.6 1.6-3.6C9.600 10 11 9.200 11 7c0-1.600.4-2.900 1-4z"/>');
 const wfRand=()=>Array.from({length:28},()=>Math.round(6+Math.random()*20)),wfNorm=a=>a.length?Array.from({length:28},(_,i)=>a[Math.floor(i/28*a.length)]):wfRand();
+/* PATCH-ZY-MEDIA-V1 */
+IC.dl=A('<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>');
+const MEDC={},zyZ={z:1,x:0,y:0};
+const zyImg=s=>new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=s});
+function zyThumb(src,k){return new Promise(res=>{const done=el=>{try{const w=el.videoWidth||el.width,h=el.videoHeight||el.height,s=32/Math.max(w,h),c=document.createElement("canvas");c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));c.getContext("2d").drawImage(el,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.5))}catch(e){res("")}};
+ if(k==="img"){const im=new Image();im.onload=()=>done(im);im.onerror=()=>res("");im.src=src}
+ else{const v=document.createElement("video");v.muted=true;v.playsInline=true;v.preload="auto";v.onloadeddata=()=>{v.currentTime=.1};v.onseeked=()=>done(v);v.onerror=()=>res("");v.src=src;setTimeout(()=>res(""),4000)}})}
+async function zyPrep(o,x){const b=await (await fetch(o.src)).blob();x.th=(o.k==="img"||o.k==="vid")?await zyThumb(o.src,o.k):"";
+ if(o.k!=="img"||o.gif||b.size<300e3||!/^image\/(jpeg|png|webp)$/.test(b.type))return b;
+ try{const im=await zyImg(o.src),k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+  const r=await new Promise(z=>c.toBlob(z,"image/jpeg",.82));if(r&&r.size<b.size){o.name=(o.name||"photo").replace(/\.\w+$/,"")+".jpg";o.size=r.size;x.size=r.size;x.name=o.name;return r}}catch(e){}return b}
+async function mediaLoad(x,onp,nc){const key=x.src;if(!key)return null;if(/^blob:/.test(key))return key;if(MEDC[key])return MEDC[key];
+ try{const r=await fetch(key);if(!r.ok)throw new Error("x");const L=+r.headers.get("content-length")||x.size||0,rd=r.body&&r.body.getReader?r.body.getReader():null,ty=/\.pdf$/i.test(x.name||"")?"application/pdf":(r.headers.get("content-type")||"");let blob;
+  if(rd){const ch=[];let n=0;for(;;){const d=await rd.read();if(d.done)break;ch.push(d.value);n+=d.value.length;if(onp&&L)onp(Math.min(1,n/L))}blob=new Blob(ch,{type:ty})}else blob=new Blob([await r.arrayBuffer()],{type:ty});
+  const bu=URL.createObjectURL(blob);if(!nc)MEDC[key]=bu;return bu}catch(e){return null}}
+async function zyDl(x){const u=await mediaLoad(x);if(!u)return ts("Could not download");const a=document.createElement("a");a.href=u;a.download=x.name||("znexora-"+Date.now()+({img:".jpg",vid:".mp4",aud:".mp3"}[x.k]||""));document.body.appendChild(a);a.click();a.remove();ts("Saved to your device");if(cur&&$("chat").classList.contains("on"))render(true)}
+function zyTile(x){const u=/^blob:/.test(x.src||"")?x.src:MEDC[x.src],v=x.k==="vid";
+ if(u)return `<div class="md zy" data-mv="1">${v?`<video src="${u}#t=0.1" muted playsinline preload="metadata"></video><i class="pl"></i>`:`<img src="${u}" alt="">`}</div>`;
+ return `<div class="md zy zyb" data-mv="1">${x.th?`<img src="${x.th}" alt="">`:""}<span class="zyd">${v?PL:IC.dl}<b>${fmtB(x.size||0)}</b></span></div>`}
+$("mv").insertAdjacentHTML("beforeend",'<button class="ib" id="mvd" aria-label="Download">'+IC.dl+'</button>');
+$("mv").addEventListener("click",e=>{const b=e.target.closest("[data-zdl],[data-zretry],#mvd");if(!b||MVI==null)return;const x=MSG[cur.id][MVI];if(!x)return;if(b.dataset.zretry!==undefined)return mvOpen(MVI);zyDl(x)});
+$("msgs").addEventListener("click",e=>{const b=e.target.closest("[data-dl]");if(!b||sel.size)return;e.stopPropagation();const r=b.closest(".mr"),x=r&&MSG[cur.id][+r.dataset.i];if(x)zyDl(x)},true);
 function mhtml(x,i){if(x.gone)return `<div class="md once op">${IC.fire}<b>No longer available</b></div>`;if(x.once&&x.k!=="voice")return x.opened?`<div class="md once op">${IC.fire}<b>Opened</b></div>`:`<div class="md once" data-mv="1">${IC.fire}<div><b>View once ${x.k==="vid"?"video":"photo"}</b><small>${x.once} s · tap to view</small></div></div>`;
- if(x.k==="img")return `<div class="md" data-mv="1"><img src="${x.src}" alt=""></div>`;
- if(x.k==="vid")return `<div class="md" data-mv="1"><video src="${x.src}#t=0.1" muted playsinline preload="metadata"></video><i class="pl"></i></div>`;
- if(x.k==="voice"||x.k==="aud")return `<div class="md vc" data-vc="1"><button class="vp" aria-label="Play">${PL}</button><div class="wf">${(x.wf||wfRand()).map(h=>`<s style="height:${h}px"></s>`).join("")}</div><small>${mpFmt(x.dur||0)}</small></div>`;
- if(x.k==="file")return `<div class="md file"><i>${IC.file}</i><div><b>${esc(x.name)}</b><small>${fmtB(x.size||0)}</small></div></div>`;return""}
+ if(x.k==="img")return zyTile(x);
+ if(x.k==="vid")return zyTile(x);
+ if(x.k==="voice"||x.k==="aud")return `<div class="md vc" data-vc="1"><button class="vp" aria-label="Play">${PL}</button><div class="wf">${(x.wf||wfRand()).map(h=>`<s style="height:${h}px"></s>`).join("")}</div><small>${mpFmt(x.dur||0)}</small>${x.k==="aud"?`<button class="vp zydl" data-dl="1" aria-label="Download">${IC.dl}</button>`:""}</div>`;
+ if(x.k==="file")return `<div class="md file" data-mv="1"><i>${IC.file}</i><div><b>${esc(x.name)}</b><small>${fmtB(x.size||0)}</small></div></div>`;return""}
 function sendMedia(o){const now=Date.now(),t=new Date(now).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),x=Object.assign({d:"out",tm:t,r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t}:null,ts:now,st:0,t:o.cap||""},o);delete x.cap;(MSG[cur.id]=MSG[cur.id]||[]).push(x);cur.l=o.gif?"GIF":LBL[o.k]||"Media";cur.t=t;RP=null;paintRP();NEWI=MSG[cur.id].length-1;render();NEWI=-1;const c=cur;if(c.on)setTimeout(()=>{x.st=1;if(cur===c&&$("chat").classList.contains("on"))render(true)},900)}
 function pickFile(accept,cap,cb){const i=document.createElement("input");i.type="file";i.accept=accept;if(cap)i.setAttribute("capture","environment");i.onchange=()=>{if(i.files[0])cb(i.files[0])};i.click()}
 function audioSend(f){const url=URL.createObjectURL(f),a=new Audio(url);a.onloadedmetadata=()=>sendMedia({k:"aud",src:url,name:f.name,size:f.size,dur:a.duration||0,wf:wfRand()});a.onerror=()=>ts("This audio cannot be read")}
@@ -1162,12 +1192,30 @@ function voiceTap(i){const x=MSG[cur.id][i];if(!x)return;if(VA&&VI===i&&VA.datas
 /* viewer + view once */
 let MVT=0,MVI=null;
 function mediaTap(el,i){const x=MSG[cur.id][i];if(!x)return;if(el.dataset.vc!==undefined)return voiceTap(i);mvOpen(i)}
-function mvOpen(i){const x=MSG[cur.id][i],once=x.once&&!x.opened;MVI=i;$("mvc").innerHTML=x.k==="vid"?`<video src="${x.src}" autoplay playsinline ${once?"":"controls"}></video>`:`<img src="${x.src}" alt="">`;$("mv").classList.add("on");const o=$("mvo");o.style.display=once?"":"none";clearTimeout(MVT);
- if(once){o.innerHTML="<s></s>";o.firstChild.style.animation=`obar ${x.once}s linear forwards`;MVT=setTimeout(()=>mvClose(true),x.once*1000)}}
+/* PATCH-ZY-VIEW-V1 */async function mvOpen(i){const x=MSG[cur.id][i],once=x.once&&!x.opened,c=$("mvc"),o=$("mvo");MVI=i;clearTimeout(MVT);zyZ.z=1;zyZ.x=zyZ.y=0;c.style.transition="none";c.style.transform="";$("mv").style.background="";o.style.display="none";$("mvd").style.display=once?"none":"";$("mv").classList.add("on");
+ if(x.k==="file"&&!/\.pdf$/i.test(x.name||"")){c.innerHTML=`<div class="mvl"><div class="tri">${IC.file}</div><b>${esc(x.name||"File")}</b><small>${fmtB(x.size||0)}</small><button class="pri" data-zdl="1">Download</button></div>`;return}
+ c.innerHTML=`<div class="mvl"><div class="zyp"><s></s></div><small>Downloading</small></div>`;
+ const bar=c.querySelector(".zyp s"),u=await mediaLoad(x,p=>{if(bar)bar.style.width=Math.round(p*100)+"%"},!!once);
+ if(MVI!==i||!$("mv").classList.contains("on"))return;
+ if(!u){c.innerHTML=`<div class="mvl"><b>Could not load</b><small>Check your internet</small><button class="pri" data-zretry="1">Try again</button></div>`;return}
+ c.innerHTML=x.k==="vid"?`<video src="${u}" autoplay playsinline ${once?"":"controls"}></video>`:x.k==="file"?`<iframe class="zyf" src="${u}"></iframe>`:`<img src="${u}" alt="" draggable="false">`;
+ if(!once&&$("chat").classList.contains("on"))render(true);
+ if(once){o.style.display="";o.innerHTML="<s></s>";o.firstChild.style.animation=`obar ${x.once}s linear forwards`;MVT=setTimeout(()=>mvClose(true),x.once*1000)}}
 function mvClose(done){clearTimeout(MVT);$("mv").classList.remove("on");const v=$("mvc").querySelector("video");if(v)v.pause();$("mvc").innerHTML="";const x=MVI!=null&&MSG[cur.id]&&MSG[cur.id][MVI];if((done||(x&&x.once))&&x&&x.once&&!x.opened){x.opened=true;render(true)}MVI=null}
 $("mvx").onclick=()=>mvClose(false);
-{const m=$("mv");let d=null,dr=0;m.addEventListener("pointerdown",e=>{d={y:e.clientY,id:e.pointerId};dr=0});m.addEventListener("pointermove",e=>{if(!d||e.pointerId!==d.id)return;const dy=e.clientY-d.y;if(!dr&&dy>10&&!e.target.closest("video")){dr=1;try{m.setPointerCapture(e.pointerId)}catch(x){}}if(dr){$("mvc").style.transition="none";$("mvc").style.transform=`translateY(${Math.max(0,dy)}px) scale(${1-Math.min(.25,dy/1200)})`;m.style.background=`rgba(0,0,0,${.96*(1-Math.min(1,dy/400))})`}});
- const up=e=>{if(!d)return;const dy=e.clientY-d.y;d=null;$("mvc").style.transition="transform .5s cubic-bezier(.2,.9,.2,1.1)";$("mvc").style.transform="";m.style.background="";if(dr&&dy>110)mvClose(false);dr=0};m.addEventListener("pointerup",up);m.addEventListener("pointercancel",up)}
+{const m=$("mv"),PT=new Map();let d0=0,z0=1,d=null,dr=0,tap=0;
+ const zap=()=>{if(zyZ.z<=1){zyZ.z=1;zyZ.x=zyZ.y=0}$("mvc").style.transform=`translate3d(${zyZ.x}px,${zyZ.y}px,0) scale(${zyZ.z})`};
+ m.addEventListener("pointerdown",e=>{if(e.target.closest("button,video,iframe"))return;PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size===2){const a=[...PT.values()];d0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1;z0=zyZ.z;d=null}else d={x:e.clientX,y:e.clientY};dr=0});
+ m.addEventListener("pointermove",e=>{const p=PT.get(e.pointerId);if(!p)return;const ox=p[0],oy=p[1],c=$("mvc");PT.set(e.pointerId,[e.clientX,e.clientY]);
+  if(PT.size===2){const a=[...PT.values()];zyZ.z=Math.max(1,Math.min(6,z0*Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])/d0));c.style.transition="none";zap();return}
+  if(zyZ.z>1){zyZ.x+=e.clientX-ox;zyZ.y+=e.clientY-oy;c.style.transition="none";zap();return}
+  if(!d)return;const dy=e.clientY-d.y;if(!dr&&dy>10){dr=1;try{m.setPointerCapture(e.pointerId)}catch(x){}}
+  if(dr){c.style.transition="none";c.style.transform=`translateY(${Math.max(0,dy)}px) scale(${1-Math.min(.25,dy/1200)})`;m.style.background=`rgba(0,0,0,${.96*(1-Math.min(1,dy/400))})`}});
+ const up=e=>{PT.delete(e.pointerId);const s=d;if(PT.size>0)return;d=null;const c=$("mvc"),tp=s&&e.type==="pointerup"&&Math.hypot(e.clientX-s.x,e.clientY-s.y)<8;
+  if(tp&&c.querySelector("img")){const n=Date.now();if(n-tap<300){tap=0;zyZ.z=zyZ.z>1?1:2.5;zyZ.x=zyZ.y=0;c.style.transition="transform .35s cubic-bezier(.2,.9,.2,1.1)";zap();dr=0;return}tap=n}
+  if(zyZ.z>1){c.style.transition="transform .3s";zap();dr=0;return}
+  c.style.transition="transform .5s cubic-bezier(.2,.9,.2,1.1)";c.style.transform="";m.style.background="";if(s&&dr&&e.clientY-s.y>110)mvClose(false);dr=0};
+ m.addEventListener("pointerup",up);m.addEventListener("pointercancel",up)}
 
 /* ===== chat: encryption note + contact info ===== */
 IC.lock=A('<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>');
@@ -1192,7 +1240,7 @@ function contactInfo(id){const u=U.find(x=>x.id===id);if(!u)return;const media=(
   if(k==="del"){setTimeout(()=>{sheet(`<h3>Delete this chat?</h3><button class="opt rd" data-d="me">${IC.trash}Delete for me</button><button class="opt rd" data-d="all">${IC.trash}Delete for everyone</button>`);$("sh").onclick=ev=>{const d=ev.target.closest("[data-d]");if(!d)return;closeS();MSG[id]=[];u.l="";if(d.dataset.d==="me")U=U.filter(x=>x.id!==id);ts(d.dataset.d==="me"?"Chat deleted for you":"Chat deleted for both");$("cb").click()}},280)}}}
 
 /* ===== chat: edit, forward, search ===== */
-IC.fwd=A('<path d="M15 4l5 5-5 5"/><path d="M20 9H9a5 5 0 00-5 5v6"/>');IC.search=A('<circle cx="11" cy="11" r="6.500"/><path d="M20 20l-4.200-4.200"/>');
+IC.search=A('<circle cx="11" cy="11" r="6.500"/><path d="M20 20l-4.200-4.200"/>');
 let SQ="",SQM=[],SQI=0;
 const escRe=t=>t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
 function hl(t){let e=esc(t);if(SQ)e=e.replace(new RegExp(escRe(esc(SQ)),"gi"),m=>`<mark>${m}</mark>`);return ST2.linkPrev?e.replace(/(https?:\/\/[^\s<]+)/g,u=>`<a class="lnk" href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`):e}
@@ -1764,7 +1812,7 @@ VIEWS.enjoy=(f=>function(){f();noChips()})(VIEWS.enjoy);VIEWS.play=(f=>function(
 /* ---------- list/render/banner: media label ---------- */
 const MK="\u200bMEDIA\u200b",lblOf=k=>({img:"📷 Photo",vid:"🎥 Video",aud:"🎵 Audio",voice:"🎤 Voice message",file:"📎 File"})[k]||"Media";
 let OPN=new Set();try{OPN=new Set(JSON.parse(localStorage.getItem("znx_opn")||"[]"))}catch(e){}
-function dec(x){if(x.k||!x.t||!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:o.k,src:o.u,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
+function dec(x){if(x.k||!x.t||!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:o.k,src:o.u,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,th:o.th,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
 let HIDE=new Set();try{HIDE=new Set(JSON.parse(localStorage.getItem("znx_hide")||"[]"))}catch(e){}
 const saveHide=()=>{try{localStorage.setItem("znx_hide",JSON.stringify([...HIDE].slice(-2000)))}catch(e){}};
 const _rd=render;render=function(k){if(cur){MSG[cur.id]=(MSG[cur.id]||[]).filter(x=>!(x.sid&&HIDE.has(x.sid)));MSG[cur.id].forEach(x=>{dec(x);if(x.k&&x.ts&&Date.now()-x.ts>7*864e5)x.gone=true})}_rd(k)};
@@ -1779,16 +1827,16 @@ sendMedia=async function(o){
  const now=Date.now(),x=Object.assign({d:"out",tm:fT(now),r:[],q:null,ts:now,st:0,t:o.cap||""},o);delete x.cap;
  (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=lblOf(o.k);c.t=x.tm;c.lat=now;U.sort((a,b)=>(b.lat||0)-(a.lat||0));RP=null;paintRP();NEWI=MSG[c.id].length-1;render();NEWI=-1;
  try{
-  const blob=await (await fetch(o.src)).blob(),ext=((o.name||"").split(".").pop()||"bin").replace(/[^a-z0-9]/gi,"").slice(0,5)||"bin",path=PID+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
+  const blob=await zyPrep(o,x),ext=((o.name||"").split(".").pop()||"bin").replace(/[^a-z0-9]/gi,"").slice(0,5)||"bin",path=PID+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
   const up=await SB.storage.from("chat-media").upload(path,blob,{contentType:blob.type||undefined,cacheControl:"3600"});if(up.error)throw up.error;
-  x.path=path;const url=SB.storage.from("chat-media").getPublicUrl(path).data.publicUrl;
+  x.path=path;const url=SB.storage.from("chat-media").getPublicUrl(path).data.publicUrl;MEDC[url]=o.src;
   if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
-  const pay={k:o.k,u:url,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,cap:o.cap||""};
+  const pay={k:o.k,u:url,name:o.name,size:blob.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,th:x.th,cap:o.cap||""};
   const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:MK+JSON.stringify(pay)});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=row.id;x.st=1;
  }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);ts("Upload failed. Run the SQL setup first.")}
  if(cur===c&&chatOn())render(true)};
-$("msgs").addEventListener("click",e=>{const f=e.target.closest(".md.file");if(!f)return;const r=f.closest(".mr"),x=r&&MSG[cur.id][+r.dataset.i];if(x&&x.src)window.open(x.src,"_blank")});
+
 
 /* ---------- music: demo songs hatao, sirf tumhare saved links ---------- */
 mpSync=function(){MT.length=0;FAV.filter(x=>x.kind==="listen").forEach(x=>{const src=parseSrc(x.url);if(src)MT.push({n:x.title,m:x.type||1,src,fid:x.id,scope:x.scope,c:(g(x.title).match(/#[0-9a-f]{6}/gi)||["#5b54e0","#5ec2b7"])})})};mpSync();
