@@ -1170,7 +1170,7 @@ async function mediaLoad(x,onp,nc){const key=x.src;zyErr="";if(!key)return null;
  if(!blob&&window.znxGet){const m=String(key).split("/chat-media/")[1],p=m?decodeURIComponent(m.split("?")[0]):"";
   if(p){const b=await window.znxGet(p);if(b){blob=ty?new Blob([b],{type:ty}):b;zyErr=""}else if(!zyErr)zyErr="File not found on server"}}
  if(!blob)return null;const bu=URL.createObjectURL(blob);if(!nc)MEDC[key]=bu;return bu}
-async function zyDl(x){const u=await mediaLoad(x,p=>ts("Downloading "+Math.round(p*100)+"%"));if(!u)return ts(zyErr||"Could not download");const a=document.createElement("a");a.href=u;a.download=x.name||("znexora-"+Date.now()+({img:".jpg",vid:".mp4",aud:".mp3"}[x.k]||""));document.body.appendChild(a);a.click();a.remove();ts("Saved to your device");if(cur&&$("chat").classList.contains("on"))render(true)}
+async function zyDl(x){const u=await mediaLoad(x,p=>ts("Downloading "+Math.round(p*100)+"%"));if(!u)return ts(zyErr||"Could not download");const nm=x.name||("znexora-"+Date.now()+({img:".jpg",vid:".mp4",aud:".mp3"}[x.k]||""));try{const bl=await (await fetch(u)).blob(),fl=new File([bl],nm,{type:bl.type||"application/octet-stream"});if(navigator.canShare&&navigator.canShare({files:[fl]})&&matchMedia("(pointer:coarse)").matches){await navigator.share({files:[fl]});ts("Saved");return}}catch(e){if(e&&e.name==="AbortError")return}const a=document.createElement("a");a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();ts("Saved to your device");if(cur&&$("chat").classList.contains("on"))render(true)}
 function zyTile(x){const own=x.d==="out",u=/^blob:/.test(x.src||"")?x.src:MEDC[x.src],v=x.k==="vid",dl=own?"":`<button class="zyc" data-dl="1" aria-label="Download">${IC.dl}</button>`;
  if(u)return `<div class="md zy" data-mv="1">${v?`<video src="${u}#t=0.1" muted playsinline preload="metadata"></video><i class="pl"></i>`:`<img src="${u}" alt="">`}${dl}</div>`;
  if(own){if(!v&&!ZYQ.has(x.src)){ZYQ.add(x.src);mediaLoad(x).then(r=>{if(r&&cur&&$("chat").classList.contains("on"))render(true)})}
@@ -1684,7 +1684,7 @@ const loadHist=async u=>{
  if(!SB||!u||!u.cid)return;
  let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:true}).limit(500);if(r.error)return;data=r.data||[]}catch(e){return}
  const old=MSG[u.id]||[],by={};old.forEach(x=>{if(x.sid)by[x.sid]=x});
- const srv=data.map(r=>{const m=mapMsg(r),o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}if(o.k&&/^blob:/.test(o.src||"")){m.k=o.k;m.src=o.src;m.name=o.name;m.size=o.size;m.dur=o.dur;m.wf=o.wf;m.once=o.once;m.gif=o.gif;m.th=o.th;m.t=o.t;m.opened=o.opened}}return m}).filter(m=>!(m.d==="out"&&String(m.t).startsWith(MK))&&!(m.d==="in"&&String(m.t).startsWith(MK)&&SEEN.has(m.sid)&&!SESS.has(m.sid))&&!(m.sid&&HIDE.has(m.sid)));
+ const srv=data.map(r=>{const m=mapMsg(r),o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}if(o.k&&/^blob:/.test(o.src||"")){m.k=o.k;m.src=o.src;m.name=o.name;m.size=o.size;m.dur=o.dur;m.wf=o.wf;m.once=o.once;m.gif=o.gif;m.th=o.th;m.t=o.t;m.opened=o.opened}}return m}).filter(m=>!(m.d==="out"&&String(m.t).startsWith(MK))&&!(m.sid&&HIDE.has(m.sid)));
  const keep=old.filter(x=>!x.sid&&(x.k||x.fail||(x.st===0&&!srv.some(m=>m.d==="out"&&m.t===x.t&&Math.abs(m.ts-x.ts)<60000))));
  const merged=srv.concat(keep).sort((a,b)=>a.ts-b.ts),sig=a=>a.map(x=>(x.sid||"p")+":"+(x.st||0)+(x.rd?"r":"")).join(",");
  const ch=sig(merged)!==sig(old),grew=merged.length>old.length;
@@ -1852,7 +1852,7 @@ const SESS=new Set();
 window.znxSeen=sid=>{SEEN.add(sid);SESS.add(sid);try{localStorage.setItem("znx_seen",JSON.stringify([...SEEN].slice(-1000)))}catch(e){}};
 window.znxDead=x=>{if(x.sid){HIDE.add(x.sid);saveHide()}if(cur)MSG[cur.id]=(MSG[cur.id]||[]).filter(z=>z!==x);ts("File not available. Removed");if(cur&&chatOn())render(true)};
 window.znxLeave=()=>{const u=cur;if(!u||!SB)return;const m=MSG[u.id]||[],ids=[],ps=[];
- m.forEach(x=>{if(!x.k||!x.sid)return;if(x.d==="out")HIDE.add(x.sid);else if(SESS.has(x.sid)){HIDE.add(x.sid);ids.push(x.sid);const p=pathOf(x);if(p)ps.push(p)}});
+ m.forEach(x=>{if(!x.k||!x.sid)return;if(x.d==="out")HIDE.add(x.sid);else /* PATCH-ZNX-LIFE-V2 */if(SEEN.has(x.sid)){HIDE.add(x.sid);ids.push(x.sid);const p=pathOf(x);if(p)ps.push(p)}});
  MSG[u.id]=m.filter(x=>!(x.k&&x.d==="out")&&!(x.sid&&HIDE.has(x.sid)));SESS.clear();saveHide();
  if(ids.length)SB.from("messages").delete().in("id",ids).then(()=>{},()=>{});
  if(ps.length)SB.storage.from("chat-media").remove(ps).then(()=>{},()=>{})};
