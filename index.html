@@ -652,12 +652,12 @@ function closeView(){const vw=$("vw"),b=$("vb");if(!vw.classList.contains("on"))
  if(src){b.style.transform="none";const c=b.getBoundingClientRect();b.style.transform=cur;const a=src.getBoundingClientRect();
   b.animate([{transform:cur},{transform:`translate(${a.left+a.width/2-(c.left+c.width/2)}px,${a.top+a.height/2-(c.top+c.height/2)}px) scale(${a.width/c.width})`}],{duration:360,easing:"cubic-bezier(.4,0,.2,1)",fill:"forwards"}).onfinish=fin}
  else b.animate([{transform:cur,opacity:1},{transform:"scale(.85)",opacity:0}],{duration:280,fill:"forwards"}).onfinish=fin}
-let z=1,tx=0,ty=0;const P=new Map();let d0=0,z0=1,lt=0;
+let z=1,tx=0,ty=0;const P=new Map();let d0=0,z0=1,tp=null;/* PATCH-FIXC-V1 */
 const zr=()=>{z=1;tx=ty=0;ap()},ap=()=>{if(z<=1){z=1;tx=ty=0}$("vb").style.transform=`translate3d(${tx}px,${ty}px,0) scale(${z})`};
 $("vx").onclick=()=>closeView();
-$("vw").addEventListener("pointerdown",e=>{P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===2){const a=[...P.values()];d0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1;z0=z}else{const n=Date.now();if(n-lt<300){$("vb").style.transition="transform .3s";z=z>1?1:2.5;ap();setTimeout(()=>$("vb").style.transition="",320)}lt=n}});
+$("vw").addEventListener("pointerdown",e=>{P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===2){const a=[...P.values()];d0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1;z0=z}else{tp={x:e.clientX,y:e.clientY,t:Date.now()}}});
 $("vw").addEventListener("pointermove",e=>{const p=P.get(e.pointerId);if(!p)return;const ox=p[0],oy=p[1];P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===2){const a=[...P.values()];z=Math.max(1,Math.min(5,z0*Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])/d0));ap()}else if(z>1){tx+=e.clientX-ox;ty+=e.clientY-oy;ap()}});
-["pointerup","pointercancel"].forEach(v=>$("vw").addEventListener(v,e=>{P.delete(e.pointerId)}));
+["pointerup","pointercancel"].forEach(v=>$("vw").addEventListener(v,e=>{P.delete(e.pointerId);const s=tp;tp=null;if(v==="pointerup"&&s&&P.size===0&&!e.target.closest("#vx")&&Math.hypot(e.clientX-s.x,e.clientY-s.y)<10&&Date.now()-s.t<400){if(z>1){$("vb").style.transition="transform .3s";z=1;ap();setTimeout(()=>$("vb").style.transition="",320)}else closeView()}}));
 /* chat */
 const THEMES=[{n:"Midnight",a:"#5b54e0",g:"#5ec2b7"},{n:"Aurora",a:"#3f8f9e",g:"#7a5bb5"},{n:"Rose",a:"#c0576f",g:"#7a5bb5"},{n:"Ocean",a:"#3f6fd1",g:"#2f8f9e"},{n:"Forest",a:"#3f8f7a",g:"#6f8a58"},{n:"Lilac",a:"#7a5bb5",g:"#c0576f"},{n:"Ember",a:"#b8664a",g:"#c0576f"},{n:"Graphite",a:"#6a6f8f",g:"#4a5a7a"},{n:"Sky",a:"#4c7bd1",g:"#5ec2b7"},{n:"Mint",a:"#1f7a6a",g:"#5ec2b7"},{n:"Wine",a:"#9a5a86",g:"#5c4a8a"},{n:"Dune",a:"#8a6a5a",g:"#b8664a"}];
 let thi=0,sel=new Set(),vq="720";
