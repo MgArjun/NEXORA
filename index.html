@@ -1723,6 +1723,95 @@ $("gs").onclick=async()=>{
  BUSY=0};
 if(SB)SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&PID&&booted)location.reload()});
 (async()=>{try{await boot()}catch(e){}})();
+/* ===== ZNEXORA FIX PATCH v2 (koi aur edit nahi chahiye) =====
+PASTE KAHAN: file ke end mein ye line dhundo:
+   (async()=>{try{await boot()}catch(e){}})();
+Uske TURANT NEECHE ye poora block paste karo, bas. */
+
+/* ---------- CSS ---------- */
+{const s=document.createElement("style");s.textContent=`.enc{display:none!important}.md.file{cursor:pointer!important}#mdz{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));width:64px;height:64px;margin-left:-32px;border-radius:50%;display:grid;place-items:center;z-index:8;pointer-events:none;color:#fff;background:rgba(20,22,34,.7);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.2);transform:translateY(140px) scale(.7);opacity:0;transition:transform .5s cubic-bezier(.2,.9,.3,1.4),opacity .25s,background .2s}#mdz.on{transform:none;opacity:1}#mdz.hot{transform:scale(1.3);background:linear-gradient(145deg,#ff6a6a,#d63a4a)}#mdz svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}`;document.head.appendChild(s)}
+
+/* ---------- online / last seen sahi ---------- */
+const FR={},freshOn=p=>!!(p.online&&p.last_seen&&Date.now()-Date.parse(p.last_seen)<75000);
+function applyPres(){U.forEach(u=>{const p=FR[u.pid];if(!p)return;if(p.hide_seen){u.on=0;u.seen="";return}u.on=freshOn(p)?1:0;u.seen=seenT(Object.assign({},p,{online:freshOn(p)}))})}
+async function presRefresh(){if(!SB||!PID||!vis())return;const ids=U.map(u=>u.pid).filter(Boolean);if(!ids.length)return;try{const r=await SB.from("profiles").select("id,online,last_seen,hide_seen").in("id",ids);(r.data||[]).forEach(p=>FR[p.id]=p)}catch(e){}}
+function beat(){if(!SB||!PID||!vis())return;setPres(true);SB.from("profiles").update({last_seen:new Date().toISOString()}).eq("id",PID).then(()=>{},()=>{})}
+setInterval(beat,20000);setInterval(presRefresh,6000);setTimeout(presRefresh,1200);
+setInterval(()=>{applyPres();if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm&&sm.textContent!==cur.seen)sm.textContent=cur.seen}},1000);
+
+/* ---------- 30 din wali line + demo text hatao ---------- */
+purgeOld=function(){};
+{const a=SUBX.sec;SUBX.sec=()=>a().replace(" Messages are deleted automatically after 30 days.","");const b=SUBX.hlp;SUBX.hlp=()=>b().replace(", and are deleted after 30 days","")}
+{const o=new MutationObserver(()=>{const t=$("ts");if(!t)return;let x=t.textContent;if(/Minimised\./.test(x)){t.classList.remove("on");return}if(/\(preview\)/.test(x))t.textContent=x.replace(/\s*\(preview\)/,"")});o.observe($("ts"),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]})}
+const noChips=()=>document.querySelectorAll("#pg .chip").forEach(c=>{if(!c.classList.contains("red"))c.remove()});
+VIEWS.enjoy=(f=>function(){f();noChips()})(VIEWS.enjoy);VIEWS.play=(f=>function(){f();noChips()})(VIEWS.play);
+{const _ds=drawSub;drawSub=function(k){_ds(k);const P=$("pg");
+ const rmSec=(t,n)=>[...P.querySelectorAll(".sec")].filter(s=>s.textContent.trim().startsWith(t)).forEach(s=>{let x=s.nextElementSibling;s.remove();while(n-->0&&x){const y=x.nextElementSibling;x.remove();x=y}});
+ if(k==="abt"){rmSec("Upcoming",1);P.querySelectorAll(".note").forEach(n=>{if(/design preview/.test(n.textContent))n.textContent="Version 1.0"})}
+ if(k==="sec"){rmSec("Active devices",1);const b=P.querySelector('[data-x="od"]');if(b)b.remove()}
+ if(k==="ntf"){const b=P.querySelector('[data-x="tn"]');if(b)b.remove()}
+ if(k==="cht"){const b=P.querySelector('[data-x="bk"]');if(b&&b.closest(".card2"))b.closest(".card2").remove()}}}
+
+/* ---------- list/render/banner: media label ---------- */
+const MK="\u200bMEDIA\u200b",lblOf=k=>({img:"📷 Photo",vid:"🎥 Video",aud:"🎵 Audio",voice:"🎤 Voice message",file:"📎 File"})[k]||"Media";
+let OPN=new Set();try{OPN=new Set(JSON.parse(localStorage.getItem("znx_opn")||"[]"))}catch(e){}
+function dec(x){if(x.k||!x.t||!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:o.k,src:o.u,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
+let HIDE=new Set();try{HIDE=new Set(JSON.parse(localStorage.getItem("znx_hide")||"[]"))}catch(e){}
+const saveHide=()=>{try{localStorage.setItem("znx_hide",JSON.stringify([...HIDE].slice(-2000)))}catch(e){}};
+const _rd=render;render=function(k){if(cur){MSG[cur.id]=(MSG[cur.id]||[]).filter(x=>!(x.sid&&HIDE.has(x.sid)));MSG[cur.id].forEach(x=>{dec(x);if(x.k&&x.ts&&Date.now()-x.ts>7*864e5)x.gone=true})}_rd(k)};
+const _ls=list;list=function(){applyPres();U.forEach(u=>{if(u.l&&u.l.startsWith(MK)){try{u.l=lblOf(JSON.parse(u.l.slice(MK.length)).k)}catch(e){u.l="Media"}}});_ls()};
+const _bn=banner;banner=function(a,b,c,d){if(typeof b==="string"&&b.startsWith(MK)){try{b=lblOf(JSON.parse(b.slice(MK.length)).k)}catch(e){b="Media"}}_bn(a,b,c,d)};
+const _mc=mvClose;mvClose=function(d){const x=MVI!=null&&cur&&MSG[cur.id]&&MSG[cur.id][MVI];_mc(d);if(x&&x.opened&&x.sid){OPN.add(x.sid);try{localStorage.setItem("znx_opn",JSON.stringify([...OPN].slice(-500)))}catch(e){}}};
+
+/* ---------- media bhejna: photo, video, file, voice, GIF ---------- */
+sendMedia=async function(o){
+ const c=cur;if(!c||!SB||!PID)return ts("Not connected yet.");
+ if((o.size||0)>50*1048576)return ts("File is larger than 50 MB");
+ const now=Date.now(),x=Object.assign({d:"out",tm:fT(now),r:[],q:null,ts:now,st:0,t:o.cap||""},o);delete x.cap;
+ (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=lblOf(o.k);c.t=x.tm;c.lat=now;RP=null;paintRP();NEWI=MSG[c.id].length-1;render();NEWI=-1;
+ try{
+  const blob=await (await fetch(o.src)).blob(),ext=((o.name||"").split(".").pop()||"bin").replace(/[^a-z0-9]/gi,"").slice(0,5)||"bin",path=PID+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
+  const up=await SB.storage.from("chat-media").upload(path,blob,{contentType:blob.type||undefined,cacheControl:"3600"});if(up.error)throw up.error;
+  x.path=path;const url=SB.storage.from("chat-media").getPublicUrl(path).data.publicUrl;
+  if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
+  const pay={k:o.k,u:url,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,cap:o.cap||""};
+  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:MK+JSON.stringify(pay)});if(r.error)throw r.error;
+  const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=row.id;x.st=1;
+ }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · not sent";ts("Upload failed. Run the SQL setup first.")}
+ if(cur===c&&chatOn())render(true)};
+$("msgs").addEventListener("click",e=>{const f=e.target.closest(".md.file");if(!f)return;const r=f.closest(".mr"),x=r&&MSG[cur.id][+r.dataset.i];if(x&&x.src)window.open(x.src,"_blank")});
+
+/* ---------- music: demo songs hatao, sirf tumhare saved links ---------- */
+mpSync=function(){MT.length=0;FAV.filter(x=>x.kind==="listen").forEach(x=>{const src=parseSrc(x.url);if(src)MT.push({n:x.title,m:x.type||1,src,fid:x.id,scope:x.scope,c:(g(x.title).match(/#[0-9a-f]{6}/gi)||["#5b54e0","#5ec2b7"])})})};mpSync();
+{const _mo=mpOpen;mpOpen=function(){mpSync();if(!MT.length){ts("Add a song first");return mpAdd()}_mo()}}
+
+/* ---------- orb ko neeche X par drag = music band ---------- */
+{const z=document.createElement("div");z.id="mdz";z.innerHTML='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';document.body.appendChild(z);
+ const o=$("morb");let moved=0,sx=0,sy=0;
+ const over=(x,y)=>{const r=z.getBoundingClientRect();return Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))<70};
+ o.addEventListener("pointerdown",e=>{moved=0;sx=e.clientX;sy=e.clientY});
+ o.addEventListener("pointermove",e=>{if(!moved&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){moved=1;z.classList.add("on")}if(moved)z.classList.toggle("hot",over(e.clientX,e.clientY))});
+ o.addEventListener("pointerup",e=>{const hit=moved&&over(e.clientX,e.clientY);z.classList.remove("on","hot");if(hit){MP.started=0;MP.play=0;mpStopAll();try{MP.ac&&MP.ac.suspend()}catch(x){}o.classList.remove("on","pl")}moved=0});
+ o.addEventListener("pointercancel",()=>{z.classList.remove("on","hot");moved=0})}
+
+/* ---------- jelly bounce ---------- */
+function jelly(edge){const l=$("lens");if(!l||!l.animate||ST2.rm)return;l.animate([{scale:"1 1"},{scale:edge?"1.55 .7":"1.32 .82",offset:.22},{scale:".86 1.16",offset:.45},{scale:"1.08 .95",offset:.68},{scale:".98 1.02",offset:.85},{scale:"1 1"}],{duration:edge?820:640,easing:"cubic-bezier(.3,.9,.4,1)"})}
+{const _ml=moveLens;moveLens=function(t){_ml(t);const i=ORDER.indexOf(t);jelly(i===0||i===ORDER.length-1)}}
+{const pe=$("pg");let x0=null;pe.addEventListener("pointerdown",e=>{x0=e.clientX});pe.addEventListener("pointerup",e=>{if(x0==null)return;const dx=e.clientX-x0;x0=null;const i=ORDER.indexOf(tab);if((i===0&&dx>60)||(i===ORDER.length-1&&dx<-60))jelly(true)})}
+
+/* ---------- delete: "for me" yaad rahe, "for everyone" server + storage se bhi ---------- */
+const pathOf=x=>x.path||(x.src&&String(x.src).includes("/chat-media/")?decodeURIComponent(String(x.src).split("/chat-media/")[1].split("?")[0]):null);
+$("sbd").onclick=()=>{const n=sel.size;sheet(`<h3>Delete ${n} message${n>1?"s":""}?</h3><button class="opt rd" data-d="me">${IC.trash}Delete for me</button><button class="opt rd" data-d="all">${IC.trash}Delete for everyone</button>`);
+ $("sh").onclick=async e=>{const d=e.target.closest("[data-d]");if(!d)return;closeS();const c=cur,m=MSG[c.id],ix=[...sel].filter(i=>m[i]);let rm=new Set(ix);
+  if(d.dataset.d==="all"){const mine=ix.filter(i=>m[i].d==="out");if(mine.length<ix.length)ts("Only your own messages can be deleted for everyone");
+   const items=mine.map(i=>m[i]),paths=items.map(pathOf).filter(Boolean),ids=items.map(x=>x.sid).filter(Boolean);
+   try{if(paths.length)await SB.storage.from("chat-media").remove(paths);if(ids.length){const r=await SB.from("messages").delete().in("id",ids);if(r.error)throw r.error}}catch(err){return ts("Could not delete for everyone")}
+   rm=new Set(mine);ts("Deleted for everyone")}
+  else{ix.forEach(i=>{if(m[i].sid)HIDE.add(m[i].sid)});saveHide();ts("Deleted for you")}
+  m.forEach(x=>{if(x.q){if(rm.has(x.q.i))x.q=null;else x.q.i-=[...rm].filter(r=>r<x.q.i).length}});
+  [...rm].sort((a,b)=>b-a).forEach(i=>m.splice(i,1));sel.clear();if(cur===c)render(true);paintSel()}};
+
+
 }
 
 })();</script></body></html>
