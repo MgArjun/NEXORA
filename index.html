@@ -6,6 +6,7 @@
 <meta name="description" content="ZNEXORA - chat, call and enjoy together.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b0d13'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23ffd93d' font-family='Georgia,serif' font-style='italic'%3EZ%3C/text%3E%3C/svg%3E">
 <title>ZNEXORA</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#f5f6fa;--sf:#fff;--tx:#14151c;--mu:#6e7184;--ln:rgba(30,34,60,.09);--bt:linear-gradient(135deg,#6f67f2,#5149d6);--bt-t:#fff;--ac:#5b54e0;--y:#ffdf4a}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0d13;--sf:#141722;--tx:#eceef6;--mu:#8a8fa6;--ln:rgba(255,255,255,.08);--bt:linear-gradient(135deg,#8f88ff,#6a62f0);--bt-t:#fff;--ac:#a39cff;--y:#ffdf4a}}
@@ -605,9 +606,9 @@ const IC={mic:A('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a
  gal:A('<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/>'),cam:A('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.500"/>'),file:A('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>'),aud:A('<path d="M9 18V6l10-2v12"/><circle cx="6.500" cy="18" r="2.500"/><circle cx="16.500" cy="16" r="2.500"/>'),gif:A('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 5v14M16 5v14M3 10h5M3 14h5M16 10h5M16 14h5"/>'),
  user:A('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.500-7 8-7s8 3 8 7"/>'),pal:A('<circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 3a9 9 0 010 18" fill="currentColor" fill-opacity=".25"/>'),play:A('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.500l5 2.500-5 2.500zM8 21h8"/>'),vid:A('<rect x="2" y="6" width="14" height="12" rx="3"/><path d="M22 8l-6 4 6 4z"/>'),db:A('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.700 3.600 3 8 3s8-1.300 8-3V6M4 12v6c0 1.700 3.600 3 8 3s8-1.300 8-3v-6"/>'),trash:A('<path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>'),copy:A('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/>')};
 const TABS=[["chats","Chats",A('<path d="M21 11.500a8.500 8.500 0 01-12.300 7.600L3 21l1.800-5.200A8.500 8.500 0 1121 11.500z"/>')],["status","Status",A('<circle cx="12" cy="12" r="9" stroke-dasharray="3.200 3"/><circle cx="12" cy="12" r="4"/>')],["enjoy","Enjoy",IC.play],["play","Play",A('<rect x="2" y="7" width="20" height="11" rx="5.500"/><path d="M7 10v5M4.500 12.500h5"/>')],["me","Me",IC.user]];
-let U=[{id:1,n:"Aarav Sharma",l:"Kal milte hain 👍",t:"09:41",u:2,on:1,seen:"online",p:0},{id:2,n:"Priya",l:"Photo",t:"Yesterday",u:0,on:0,seen:"last seen today at 08:15",p:0},{id:3,n:"Rohan Verma",l:"Voice message",t:"Mon",u:0,on:0,seen:"last seen yesterday at 22:40",p:0},{id:4,n:"Neha",l:"Ok done",t:"Sun",u:5,on:1,seen:"online",p:0}];
-const UI2={1:["aarav","MG1010","Building things at night 🌙"],2:["priya","MG1011","Coffee, code, chill"],3:["rohan","MG1012","Busy. Text me."],4:["neha","MG1013","Good vibes only"]};U.forEach(u=>{const k=UI2[u.id];if(k){u.user=k[0];u.uid=k[1];u.about=k[2]}});
-const MSG={1:[["in","Hey! Kya haal hai?","09:30"],["out","Sab badhiya, tu bata","09:32"],["in","Kal milte hain 👍","09:41"]],2:[["in","Photo bhej di","08:10"]],3:[],4:[["in","Ok done","Sun"]]};
+let U=[];
+
+const MSG={};
 const $=i=>document.getElementById(i),ts=m=>{$("ts").textContent=m;$("ts").classList.add("on");clearTimeout(ts.t);ts.t=setTimeout(()=>$("ts").classList.remove("on"),1800)};
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const ini=n=>n.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
@@ -755,7 +756,7 @@ $("sbd").onclick=()=>{const n=sel.size;sheet(`<h3>Delete ${n} message${n>1?"s":"
   const q=e.target.closest(".qt");if(q){const el=mb.querySelector(`.mr[data-i="${q.dataset.ref}"]`);if(el){el.scrollIntoView({block:"center",behavior:"smooth"});el.classList.add("fl");setTimeout(()=>el.classList.remove("fl"),1200)}return}
   if(!r||!e.target.closest(".m"))return;const i=+r.dataset.i,n=Date.now();if(n-tapT<300&&tapI===i){tapT=0;return react(i,"❤️")}tapT=n;tapI=i})}
 /* notifications */
-let NT=[{id:1,k:"req",who:"Kabir Singh",user:"kabir",ts:Date.now()-18e5,un:1},{id:2,k:"info",text:"Aarav reacted ❤️ to your message",ts:Date.now()-36e5,un:1},{id:3,k:"info",text:"Priya viewed your status",ts:Date.now()-72e5,un:1}];
+let NT=[];
 const ago2=t=>{const m=Math.floor((Date.now()-t)/6e4);return m<1?"just now":m<60?m+" min ago":Math.floor(m/60)+" h ago"};
 function bellDot(){const n=NT.filter(x=>x.un).length,b=$("bell");let d=b.querySelector(".nb");if(!n){if(d)d.remove();return}if(!d){b.insertAdjacentHTML("beforeend",'<span class="nb"></span>');d=b.querySelector(".nb")}d.textContent=n}
 let NSM=false;const NSEL=new Set();
@@ -765,9 +766,9 @@ function openNotes(){NSM=false;NSEL.clear();sheet(notesHtml());
  $("sh").onclick=e=>{const t=e.target;let b;
   if(b=t.closest("[data-nn]")){const k=b.dataset.nn;if(k==="tog"){NSM=!NSM;NSEL.clear()}else if(k==="all"){NSEL.size===NT.length?NSEL.clear():NT.forEach(x=>NSEL.add(x.id))}else if(!NSEL.size)return ts("Select something first");else if(k==="read"){NT.forEach(x=>{if(NSEL.has(x.id)&&x.k!=="req")x.un=0});NSEL.clear();ts("Marked as read")}else{NT=NT.filter(x=>!NSEL.has(x.id));NSEL.clear();ts("Deleted");if(!NT.length)NSM=false}return notesPaint()}
   if(b=t.closest("[data-nr]")){const id=+b.dataset.nr;NSEL.has(id)?NSEL.delete(id):NSEL.add(id);return notesPaint()}
-  if(b=t.closest("[data-n]")){const[a,id]=b.dataset.n.split(":"),x=NT.find(z=>z.id==id);if(!x)return;NT=NT.filter(z=>z!==x);if(a==="acc"){U.push({id:Date.now(),n:x.who,l:"",t:"now",u:0,on:1,seen:"online",p:0,user:x.user||"kabir",uid:"MG1002",about:"Hey there! I am using ZNEXORA"});ts(x.who+" is now your friend")}else ts("Request declined");if(tab==="chats")list();return notesPaint()}}}
+  if(b=t.closest("[data-n]")){const[a,id]=b.dataset.n.split(":"),x=NT.find(z=>z.id==id);if(!x)return;NT=NT.filter(z=>z!==x);window.znxReq(x,a);if(tab==="chats")list();return notesPaint()}}}
 /* add friend */
-const DIR=[{n:"Kabir Singh",user:"kabir",uid:"MG1002"},{n:"Ananya Rao",user:"ananya",uid:"MG1003"},{n:"Dev Patel",user:"dev",uid:"MG1004"},{n:"Meera Nair",user:"meera",uid:"MG1005"}],SENT=new Set();
+const DIR=[],SENT=new Set();
 function addSheet(){sheet(`<h3>Add friend</h3>${ST2.extra?rdRows():""}<input id="au" placeholder="@username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Search a username or UID.</div></div>`);
  const run=()=>{const q=$("au").value.trim().replace(/^@/,"").toLowerCase(),box=$("ar");if(q.length<2){box.innerHTML='<div class="empty" style="padding:26px 10px">Search a username or UID.</div>';return}
   const l=DIR.filter(d=>d.user.includes(q)||d.uid.toLowerCase().includes(q)||d.n.toLowerCase().includes(q));
@@ -778,7 +779,7 @@ $("bell").onclick=openNotes;$("me").onclick=()=>show("me");
 /* ===== Status ===== */
 const ADMIN={maxMB:16,maxSec:30},DAY=864e5,BG=["linear-gradient(135deg,#4c47c8,#7a6cf0)","linear-gradient(135deg,#2f7f8f,#4fb0a8)","linear-gradient(135deg,#8a4b7a,#c26f9a)"];
 const now=Date.now();
-let SS={me:[],1:[{k:"text",cap:"Weekend plan ban gaya 🎉",bg:0,t:now-36e5*2,seen:0}],4:[{k:"text",cap:"Good vibes only",bg:1,t:now-36e5*7,seen:0},{k:"text",cap:"Coffee ☕",bg:2,t:now-36e5*5,seen:0}]};
+let SS={me:[]};
 const live=a=>(a||[]).filter(x=>Date.now()-x.t<DAY);
 const ago=t=>{const m=Math.floor((Date.now()-t)/6e4);return m<1?"just now":m<60?m+" min ago":Math.floor(m/60)+" h ago"};
 const clock=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
@@ -829,7 +830,7 @@ hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
 function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();impRestore();show("chats");lockOnEnter();tourCheck()}
 
 /* ===== Me tab ===== */
-const MY={role:"admin",name:"Suraj Kumar",user:"suraj",uid:"MG1001",bio:"Hey there! I am using ZNEXORA",email:"you@example.com",guest:false,p:0};
+const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
 const D2={theme:"auto",photo:"everyone",bioV:"everyone",seen:"everyone",online:1,typing:1,ticks:1,invite:1,calls:1,noise:1,voice:0,sound:1,vib:1,ds:0,vq:"720",extra:0,msgTone:1,preview:1,banner:1,ringtone:1,vibN:1,dnd:"off",enterSend:1,fontSize:"m",autoDl:"wifi",linkPrev:1,lastPrev:1,applock:0,lockT:"1",rm:0};
 let ST2=Object.assign({},D2);try{Object.assign(ST2,JSON.parse(localStorage.getItem("znx_set")||"{}"))}catch(e){}
 const sv2=()=>{try{localStorage.setItem("znx_set",JSON.stringify(ST2))}catch(e){}};
@@ -848,7 +849,7 @@ function drawMe(){sub=null;
  <div class="card2 prof" data-go="acc">${avBig()}<div class="t" style="flex:1"><b>${esc(MY.name)}</b><small>@${esc(MY.user)} · ${MY.uid}</small></div><span style="color:var(--mu);font-size:20px">›</span></div>
  <div class="card2"><div style="padding:10px 0"><b style="font-size:15px;font-weight:600">Appearance</b><div class="seg s3" style="margin:8px 0 2px">${[["light","Light"],["dark","Dark"],["auto","Auto"]].map(x=>`<button data-sg="theme:${x[0]}" class="${ST2.theme===x[0]?"on":""}">${x[1]}</button>`).join("")}</div></div>${tgR("rm","Reduce motion","Fewer animations")}</div>
  ${MY.role==="admin"?`<div class="card2">${row(["adm","shield","Admin","Users, controls, reports, activity"])}</div>`:""}
- <div class="card2">${[["acc","user","Account","Profile, password, UID"],["prv","lock","Privacy","Photo, bio, last seen, invites"],["sec","shield","Security","App lock, devices, encryption"],["blk","ban","Blocked users","People you blocked"]].map(row).join("")}</div>
+ <div class="card2">${[["acc","user","Account","Profile, password, UID"],["prv","lock","Privacy","Photo, bio, last seen, invites"],["sec","shield","Security","App lock and devices"],["blk","ban","Blocked users","People you blocked"]].map(row).join("")}</div>
  <div class="card2">${[["ntf","bell","Notifications","Sounds, previews, do not disturb"],["cht","chat","Chats","Text size, Enter key, media download"],["snd","snd","Sound and calls","Noise, voice, video quality"],["dat","db","Storage and data","Data saver, device storage"]].map(row).join("")}</div>
  <div class="card2">${row(["adv","adv","Advanced","Extra features"])}${row(["hlp","help","Help and feedback","FAQ, report a problem"])}<button class="sr" data-x="inv"><i>${SI.share}</i><span class="t"><b>Invite friends</b><small>Share the ZNEXORA link</small></span><em>›</em></button>${row(["abt","info","About","Version and upcoming"])}</div>
  <button class="sr dang" style="padding:0 14px" data-act="out"><i style="background:rgba(229,103,95,.14)">${SI.out}</i><span class="t"><b>Log out</b></span></button>`}
@@ -866,7 +867,7 @@ function drawSub(k){sub=k;let b="";
  if(k==="snd")b=`<div class="card2">${tgR("calls","Allow incoming calls","Off = every call is declined")}${tgR("noise","Noise cancellation","Reduces background noise and echo")}${tgR("voice","Enhance voice","Clearer, steadier voice")}</div>
  <div class="card2"><div style="padding:10px 0"><b style="font-size:15px;font-weight:600">Video call quality</b><small style="display:block;color:var(--mu);margin-top:2px">Default 720p. Higher = sharper, more data</small><div class="seg" style="margin:10px 0 2px">${Object.keys(Q).map(v=>`<button data-sg="vq:${v}" class="${ST2.vq===v?"on":""}">${Q[v]}</button>`).join("")}</div></div></div>
  <div class="card2">${tgR("sound","Sound","Soft tap sounds on buttons and games")}${tgR("vib","Vibration","Feedback on actions")}</div>`;
- if(k==="dat")b=`<div class="card2"><div class="pr2"><div class="t"><b>Device storage</b><small id="est">Checking...</small></div></div>${tgR("ds","Data saver for files","On: photos and videos are compressed. Off: original quality")}</div><button class="sr dang" style="padding:0 14px" data-act="cc"><span class="t"><b>Clear cached chats on this phone</b><small>Messages on the server stay</small></span></button><div class="sec">Your old data</div><div class="card2"><button class="sr" data-x="imp"><span class="t"><b>Import from old app</b><small>Songs, links, profile and friends. Nothing is changed or deleted there.</small></span><em>›</em></button></div><div class="sec">Media in chats</div>${mediaUsage()}`;
+ if(k==="dat")b=`<div class="card2"><div class="pr2"><div class="t"><b>Device storage</b><small id="est">Checking...</small></div></div>${tgR("ds","Data saver for files","On: photos and videos are compressed. Off: original quality")}</div><button class="sr dang" style="padding:0 14px" data-act="cc"><span class="t"><b>Clear cached chats on this phone</b><small>Messages on the server stay</small></span></button><div class="sec">Media in chats</div>${mediaUsage()}`;
  if(k==="adv")b=`<div class="card2">${tgR("extra","Extra features","Random chat, random call and online games with random people")}</div><p class="note">Off = these stay hidden everywhere. When you turn it on, new sections appear in Chats and Enjoy.</p>`;
  if(k==="abt")b=`<div class="card2" style="text-align:center;padding:22px 14px"><div class="brand" style="font-size:34px">Z</div><b style="letter-spacing:.5em;font-weight:300;font-size:13px;padding-left:.5em">NEXORA</b><p class="note" style="margin:14px 0 4px">Version 0.1 (design preview)</p><p class="note" style="margin:0">Powered by Suraj Kumar</p></div>
  <div class="sec">Upcoming</div><div class="card2">${["Calls and screen share","Games: Ludo, UNO, Chess, Carrom","Enjoy Together and Music","Archery and more games"].map(x=>`<div class="pr2"><div class="t"><b style="font-weight:550">${x}</b></div></div>`).join("")}</div>`;
@@ -882,12 +883,12 @@ $("pg").addEventListener("click",e=>{if(tab!=="me")return;
  if(k==="cuid"){navigator.clipboard&&navigator.clipboard.writeText(MY.uid).then(()=>ts("UID copied"),()=>ts("Copy failed"));return}
  if(k==="save"){const n=$("fn").value.trim(),u=$("fu").value.trim().toLowerCase(),b=$("fb").value.trim(),m=$("fm");
   if(n.length<2){m.textContent="Name needs at least 2 letters.";return}if(!/^[a-z0-9_]{3,20}$/.test(u)){m.textContent="Username: 3 to 20 characters, a-z, 0-9, _";return}
-  Object.assign(MY,{name:n,user:u,bio:b});m.textContent="";ts("Profile saved");top2();return}
- if(k==="bind"||k==="rs")return ts(k==="rs"?"Reset link will be emailed after login is connected":"Linking comes with the login step");
- if(k==="pw")return sheet(`<h3>Change password</h3><input id="p1" type="password" placeholder="New password (6+)" style="margin-bottom:10px"><input id="p2" type="password" placeholder="Confirm password" style="margin-bottom:10px"><button class="pri" style="width:100%" id="ps">Save password</button>`),$("ps").onclick=()=>{if($("p1").value.length<6)return ts("At least 6 characters");if($("p1").value!==$("p2").value)return ts("Passwords do not match");closeS();ts("Password changed (preview)")};
- if(k==="del")return sheet(`<h3>Delete account?</h3><p class="note">Your profile, chats and status will be removed for good. Type DELETE to confirm.</p><input id="dc" placeholder="DELETE" autocapitalize="characters" style="margin-bottom:10px"><button class="opt dang" style="justify-content:center" id="dy">Delete my account</button>`),$("dy").onclick=()=>{if($("dc").value!=="DELETE")return ts("Type DELETE first");closeS();ts("Account deletion connects with the database step")};
+  window.znxSave(n,u,b,m);return}
+ if(k==="bind"||k==="rs")return window.znxLink(k);
+ if(k==="pw")return sheet(`<h3>Change password</h3><input id="p1" type="password" placeholder="New password (6+)" style="margin-bottom:10px"><input id="p2" type="password" placeholder="Confirm password" style="margin-bottom:10px"><button class="pri" style="width:100%" id="ps">Save password</button>`),$("ps").onclick=()=>{if($("p1").value.length<6)return ts("At least 6 characters");if($("p1").value!==$("p2").value)return ts("Passwords do not match");const pv=$("p1").value;closeS();window.znxPw(pv)};
+ if(k==="del")return sheet(`<h3>Delete account?</h3><p class="note">Your profile, chats and status will be removed for good. Type DELETE to confirm.</p><input id="dc" placeholder="DELETE" autocapitalize="characters" style="margin-bottom:10px"><button class="opt dang" style="justify-content:center" id="dy">Delete my account</button>`),$("dy").onclick=()=>{if($("dc").value!=="DELETE")return ts("Type DELETE first");closeS();window.znxDel()};
  if(k==="cc")return sheet(`<h3>Clear cached chats?</h3><p class="note">Chats saved on this phone are removed. Messages on the server stay.</p><div class="grid" style="grid-template-columns:1fr 1fr"><button onclick="document.getElementById('ov').classList.remove('on')">Cancel</button><button class="pri" id="cy">Clear</button></div>`),$("cy").onclick=()=>{closeS();ts("Cache cleared")};
- if(k==="out")return sheet(`<h3>Log out?</h3><div class="grid" style="grid-template-columns:1fr 1fr"><button onclick="document.getElementById('ov').classList.remove('on')">Cancel</button><button class="pri" id="lo">Log out</button></div>`),$("lo").onclick=()=>{closeS();location.reload()}});
+ if(k==="out")return sheet(`<h3>Log out?</h3><div class="grid" style="grid-template-columns:1fr 1fr"><button onclick="document.getElementById('ov').classList.remove('on')">Cancel</button><button class="pri" id="lo">Log out</button></div>`),$("lo").onclick=()=>{closeS();window.znxOut()}});
 function dpSheet(){sheet(`<h3>Profile photo</h3><div class="grid" style="grid-template-columns:1fr 1fr"><button class="tile" data-p="c"><i>${IC.cam}</i>Take photo</button><button class="tile" data-p="g"><i>${IC.gal}</i>Gallery</button></div>${MY.p?`<button class="opt dang" data-p="r">${IC.trash}Remove photo</button>`:""}`);
  $("sh").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;const k=b.dataset.p;closeS();
   if(k==="r"){MY.p=0;top2();return sub?drawSub(sub):0}
@@ -903,9 +904,9 @@ function applyPrefs(){root.toggleAttribute("data-rm",!!ST2.rm);root.style.setPro
 const SUBX={
  ntf:()=>`<div class="card2">${tgR("msgTone","Message sounds","Soft sound for new messages")}${tgR("preview","Show message preview","Show text in notifications")}${tgR("banner","In-app banners","Pop-up when a message arrives")}${tgR("ringtone","Call ringtone")}${tgR("vibN","Vibrate on notifications")}</div><div class="card2">${sgR("dnd","Do not disturb",[["off","Off"],["1","1 hour"],["8","8 hours"],["on","Until off"]])}</div><p class="note">With Do not disturb on, messages still arrive but stay silent.</p><button class="pri" style="width:100%" data-x="tn">Send a test notification</button>`,
  cht:()=>`<div class="card2">${sgR("fontSize","Message text size",[["s","Small"],["m","Medium"],["l","Large"]])}${sgR("autoDl","Auto-download media",[["all","Wi-Fi + mobile"],["wifi","Wi-Fi only"],["never","Never"]])}</div><div class="card2">${tgR("enterSend","Enter key sends message","On computer. On phone Enter adds a new line")}${tgR("linkPrev","Link previews","Show a preview for links")}${tgR("lastPrev","Last message in chat list")}</div><div class="card2"><button class="sr" data-x="bk"><span class="t"><b>Chat backup</b><small>Connects with the database step</small></span><em>›</em></button></div>`,
- sec:()=>`<div class="card2" style="padding:16px 14px"><b>End-to-end encrypted</b><p class="note" style="margin:6px 0 0">Your chats and calls are protected so only you and the other person can read or hear them.</p></div><div class="card2">${tgR("applock","App lock","Ask for PIN or fingerprint when opening")}${sgR("lockT","Lock after",[["0","Immediately"],["1","1 min"],["5","5 min"]])}</div><div class="sec">Active devices</div><div class="card2"><div class="pr2"><div class="t"><b>This device</b><small>Active now</small></div></div><div class="pr2"><div class="t"><b>Other phone</b><small>Active 2 days ago</small></div></div></div><button class="sr dang" style="padding:0 14px" data-x="od"><span class="t"><b>Log out of other devices</b></span></button>`,
+ sec:()=>`<div class="card2" style="padding:16px 14px"><b>Private by design</b><p class="note" style="margin:6px 0 0">Your chats are visible only to you and the person you talk to. Messages are deleted automatically after 30 days.</p></div><div class="card2">${tgR("applock","App lock","Ask for PIN or fingerprint when opening")}${sgR("lockT","Lock after",[["0","Immediately"],["1","1 min"],["5","5 min"]])}</div><div class="sec">Active devices</div><div class="card2"><div class="pr2"><div class="t"><b>This device</b><small>Active now</small></div></div><div class="pr2"><div class="t"><b>Other phone</b><small>Active 2 days ago</small></div></div></div><button class="sr dang" style="padding:0 14px" data-x="od"><span class="t"><b>Log out of other devices</b></span></button>`,
  blk:()=>BL.length?`<div class="card2">${BL.map(id=>{const u=U.find(x=>x.id===id);return `<div class="pr2"><div class="ava" style="background:${g(u.n)};width:40px;height:40px;font-size:14px">${esc(ini(u.n))}</div><div class="t"><b>${esc(u.n)}</b></div><button style="height:36px;padding:0 14px;border-radius:18px;font-size:13px" data-ub="${id}">Unblock</button></div>`}).join("")}</div>`:`<div class="empty">No blocked users.<br><small>Block someone from the menu inside their chat.</small></div>`,
- hlp:()=>`<div class="card2">${[["How do I add a friend?","Chats, then the + button, then search their username or UID (MG1001)."],["Who can see my status?","Your friends, for 24 hours."],["Are my chats private?","Yes, chats and calls are end-to-end encrypted."],["How do I change my chat colour?","Open a chat, three dots, Change chat theme."]].map(f=>`<div style="padding:12px 0;border-top:1px solid var(--ln)"><b style="font-size:15px">${f[0]}</b><div class="note" style="margin:4px 0 0">${f[1]}</div></div>`).join("").replace("border-top:1px solid var(--ln)","")}</div><button class="pri" style="width:100%" data-x="rp">Report a problem</button><p class="note" style="margin-top:12px;text-align:center">Made by Suraj Kumar</p>`
+ hlp:()=>`<div class="card2">${[["How do I add a friend?","Chats, then the + button, then search their username or UID (MG1001)."],["Who can see my status?","Your friends, for 24 hours."],["Are my chats private?","Your chats are visible only to you and the other person, and are deleted after 30 days."],["How do I change my chat colour?","Open a chat, three dots, Change chat theme."]].map(f=>`<div style="padding:12px 0;border-top:1px solid var(--ln)"><b style="font-size:15px">${f[0]}</b><div class="note" style="margin:4px 0 0">${f[1]}</div></div>`).join("").replace("border-top:1px solid var(--ln)","")}</div><button class="pri" style="width:100%" data-x="rp">Report a problem</button><p class="note" style="margin-top:12px;text-align:center">Made by Suraj Kumar</p>`
 };
 $("pg").addEventListener("click",e=>{if(tab!=="me")return;setTimeout(applyPrefs,0);
  const u=e.target.closest("[data-ub]");if(u){const id=+u.dataset.ub;BL.splice(BL.indexOf(id),1);ts("Unblocked");drawSub("blk");return}
@@ -1163,8 +1164,8 @@ $("mvx").onclick=()=>mvClose(false);
 /* ===== chat: encryption note + contact info ===== */
 IC.lock=A('<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>');
 IC.phone=A('<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.8 2z"/>');
-const encNote=()=>`<button class="enc" data-enc="1">${IC.lock}<span>End-to-end encrypted</span></button>`;
-function encInfo(){const n=esc((cur&&cur.n||"").split(" ")[0]);sheet(`<div class="ci"><div class="tri" style="width:64px;height:64px;border-radius:22px;margin:0 0 6px">${IC.lock}</div><b>End-to-end encrypted</b><small style="max-width:280px;line-height:1.5">Messages and calls stay between you and ${n}. No one else can read or hear them.</small></div><button class="pri" style="width:100%" id="encok">Got it</button>`);$("sh").onclick=e=>{if(e.target.closest("#encok"))closeS()}}
+const encNote=()=>`<button class="enc" data-enc="1">${IC.lock}<span>Private chat · deleted after 30 days</span></button>`;
+function encInfo(){const n=esc((cur&&cur.n||"").split(" ")[0]);sheet(`<div class="ci"><div class="tri" style="width:64px;height:64px;border-radius:22px;margin:0 0 6px">${IC.lock}</div><b>Private chat</b><small style="max-width:280px;line-height:1.5">Your messages are visible only to you and ${n} in the app. They are deleted automatically after 30 days.</small></div><button class="pri" style="width:100%" id="encok">Got it</button>`);$("sh").onclick=e=>{if(e.target.closest("#encok"))closeS()}}
 $("msgs").addEventListener("click",e=>{if(e.target.closest("[data-enc]"))encInfo()});
 function contactInfo(id){const u=U.find(x=>x.id===id);if(!u)return;const media=(MSG[id]||[]).map((x,i)=>({x,i})).filter(o=>(o.x.k==="img"||o.x.k==="vid")&&o.x.src&&!o.x.once).slice(-9).reverse();
  sheet(`<div class="ci"><div class="ava ciav" id="ciav" style="${u.p?`background-image:url(${u.p})`:`background:${g(u.n)}`}">${u.p?"":esc(ini(u.n))}</div><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user||"user")} · ${esc(u.uid||"MG----")}</small><span class="cis${u.on?" on":""}">${u.on?"Online":esc(u.seen||"")}</span></div>
@@ -1219,13 +1220,13 @@ $("cbar").onclick=e=>{if(e.target.closest("#cbx"))return cselEnd();
  else{const ids=[...CSEL];sheet(`<h3>Delete ${ids.length} chat${ids.length>1?"s":""}?</h3><button class="opt rd" data-d="me">${IC.trash}Delete for me</button><button class="opt rd" data-d="all">${IC.trash}Delete for everyone</button>`);$("sh").onclick=ev=>{const d=ev.target.closest("[data-d]");if(!d)return;closeS();ids.forEach(id=>{MSG[id]=[];const u=U.find(x=>x.id===id);if(u)u.l=""});if(d.dataset.d==="me")U=U.filter(x=>!ids.includes(x.id));ts(d.dataset.d==="me"?"Chats deleted for you":"Chats deleted for both");cselEnd()};return}
  cselEnd()};
 /* ===== reports (people choose what admins can see) ===== */
-const REPORTS=[{id:1,by:"Priya",tg:"Dev Patel",reason:"Spam",note:"Keeps sending links.",snap:["Check this out https://example.com/offer","Buy now, limited!"],st:"open"}];
+const REPORTS=[];
 function reportSheet(id){const u=U.find(x=>x.id===id);if(!u)return;let why="Spam",share=false;
  sheet(`<h3>Report ${esc(u.n)}</h3><div class="seg" id="rpw">${["Spam","Harassment","Inappropriate","Other"].map((w,i)=>`<button data-w="${w}" class="${i?"":"on"}">${w}</button>`).join("")}</div><input id="rpn" placeholder="Add a note (optional)" maxlength="200" autocomplete="off" style="margin:10px 0"><div class="pr2"><div class="t"><b>Share the last 5 messages</b><small>Admins see only what you share. Off by default.</small></div><button class="tg" id="rpsh" aria-label="Share messages"></button></div><button class="pri" style="width:100%;margin-top:12px" id="rpk">Send report</button>`);
  $("sh").onclick=e=>{const b=e.target.closest("#rpw button");if(b){why=b.dataset.w;[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));return}if(e.target.closest("#rpsh")){share=!share;$("rpsh").classList.toggle("on",share);return}
   if(e.target.closest("#rpk")){const snap=share?(MSG[id]||[]).filter(x=>x.t).slice(-5).map(x=>x.t):[];REPORTS.unshift({id:Date.now(),by:MY.name,tg:u.n,reason:why,note:$("rpn").value.trim(),snap,st:"open"});closeS();ts("Report sent. Thank you.")}}}
 /* ===== admin ===== */
-const AU=[["Aarav Sharma","aarav","MG1010",1],["Priya","priya","MG1011",2],["Rohan Verma","rohan","MG1012",3],["Neha","neha","MG1013",4],["Kabir Singh","kabir","MG1002"],["Ananya Rao","ananya","MG1003"],["Dev Patel","dev","MG1004"],["Meera Nair","meera","MG1005"],["Guest","guest_4821","MG1020",0,1]].map((a,i)=>({id:i,n:a[0],user:a[1],uid:a[2],ref:a[3]||0,guest:!!a[4],canSt:false,canFav:false,banned:false,act:["2 h ago","Yesterday","3 d ago","5 h ago","1 w ago","12 min ago","2 w ago","Today","Today"][i]}));
+const AU=[];
 const ADC={signups:true,max:40,statusAll:false,fileMb:50,stSec:30,fav:30,bypass:0},AUD=[];
 const AS={tab:"users",sm:false,sel:new Set(),q:"",f:"all",vis:[]};
 const logA=(a,d)=>{AUD.unshift({t:Date.now(),a,d});};
@@ -1330,7 +1331,7 @@ $("pg").addEventListener("click",e=>{if(tab!=="me")return;const b=e.target.close
  const up=e=>{if(!d)return;const m=d.m;d=null;o.style.transition="left .5s cubic-bezier(.2,.9,.3,1.3),top .4s";if(!m){mpOpen();return}const r=o.getBoundingClientRect(),W=innerWidth,H=innerHeight;o.style.left=(r.left+r.width/2<W/2?12:W-r.width-12)+"px";o.style.top=Math.max(80,Math.min(H-170,r.top))+"px"};o.addEventListener("pointerup",up);o.addEventListener("pointercancel",up)}
 
 /* ===== auto-delete: messages older than 7 days are removed (the server does the same for everyone) ===== */
-const RET_DAYS=7;
+const RET_DAYS=30;
 function purgeOld(){const lim=Date.now()-RET_DAYS*864e5;for(const k in MSG)MSG[k]=MSG[k].filter(x=>!x.ts||x.ts>=lim)}
 
 
@@ -1363,7 +1364,7 @@ function v2gSheet(f){if(!f.type.startsWith("video/"))return ts("Choose a video")
 
 /* ===== import from the old app (read only: nothing in the old database is changed) ===== */
 const OLD_URL="https://ktwluvpmzisonmootdqc.supabase.co";
-function impRestore(){try{const o=JSON.parse(localStorage.getItem("znx_import")||"null");if(!o)return;if(o.my)Object.assign(MY,o.my);if(o.friends&&o.friends.length){U=o.friends;for(const k in MSG)delete MSG[k]}}catch(e){}}
+function impRestore(){return;try{const o=JSON.parse(localStorage.getItem("znx_import")||"null");if(!o)return;if(o.my)Object.assign(MY,o.my);if(o.friends&&o.friends.length){U=o.friends;for(const k in MSG)delete MSG[k]}}catch(e){}}
 async function impRun(url,key,email,pw,say){const base=url.replace(/\/+$/,"");
  say("Signing in...");const a=await fetch(base+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:key,"Content-Type":"application/json"},body:JSON.stringify({email,password:pw})});const j=await a.json().catch(()=>({}));
  if(!a.ok||!j.access_token)throw new Error(j.error_description||j.msg||j.message||"Could not sign in. Check email, password and key.");
@@ -1423,7 +1424,7 @@ function banHide(){$("ban").classList.remove("on");$("ban").style.transform=""}
 /* ===== Enjoy Together ===== */
 const ET={code:"",mem:[],msgs:[],q:[],ctl:"all",url:null,hide:0,kind:"watch",voice:0,mic:0,cur:null,title:"",pane:"chat",fav:"all",sm:false,sel:new Set(),vis:[]},P2={yt:null,kind:"",vol:80,bright:1};
 let FAV=[];try{FAV=JSON.parse(localStorage.getItem("znx_fav")||"[]")}catch(e){}
-const favSave=()=>{try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}};
+const favSave=()=>{try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}if(window.znxFavSync)window.znxFavSync()};
 function parseSrc(u){u=(u||"").trim();if(!u)return null;const m=u.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);if(m)return{t:"yt",id:m[1]};if(/^https?:\/\/\S+\.(mp4|webm|m3u8|mov|m4v|ogg|mp3|m4a|wav)(\?\S*)?$/i.test(u))return{t:"url",url:u};return null}
 /* player core: YouTube or direct media behind one control surface */
 const plDur=()=>P2.kind==="yt"?(P2.yt&&P2.yt.getDuration?P2.yt.getDuration()||0:0):($("etv").duration||0),plTime=()=>P2.kind==="yt"?(P2.yt&&P2.yt.getCurrentTime?P2.yt.getCurrentTime()||0:0):$("etv").currentTime||0;
@@ -1539,4 +1540,189 @@ $("fvlist").onclick=e=>{const fr=e.target.closest("[data-fs]");if(fr){const id=+
 $("pg").addEventListener("click",e=>{if(tab==="enjoy"&&e.target.closest("[data-en=fav]"))fvOpen()});
 
 document.body.insertAdjacentHTML("beforeend",'<i id="streak"></i>');
-window.enter=enter;})();</script></body></html>
+window.enter=enter;
+/* ===== ZNEXORA BACKEND v1: real login, profile, friends, chats, songs (Supabase) ===== */
+{
+const SB_URL="https://ktwluvpmzisonmootdqc.supabase.co",SB_KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm";
+let SB=null,PID=null,RT=null,RTOK=0,BUSY=0,FRS=[],NID=100,NTI=1,FAVT=0,booted=0,tick=0,firstLoad=1;
+const BYP={},BYC={},REQID={},KNOWN=new Set(),FAVDB=new Set();
+try{SB=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}catch(e){SB=null}
+const fT=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+const fL=t=>{const d=new Date(t),n=new Date(),y=new Date(n-864e5);return d.toDateString()===n.toDateString()?fT(t):d.toDateString()===y.toDateString()?"Yesterday":d.toLocaleDateString([],{day:"numeric",month:"short"})};
+const seenT=p=>{if(p.hide_seen)return"";if(p.online)return"online";if(!p.last_seen)return"";const d=new Date(p.last_seen),n=new Date(),y=new Date(n-864e5);return"last seen "+(d.toDateString()===n.toDateString()?"today":d.toDateString()===y.toDateString()?"yesterday":d.toLocaleDateString([],{day:"numeric",month:"short"}))+" at "+fT(d)};
+const chatOn=()=>$("chat").classList.contains("on"),vis=()=>document.visibilityState!=="hidden";
+const frErr=m=>{m=String(m||"");if(/invalid login/i.test(m))return"Wrong email or password.";if(/already registered|already been registered/i.test(m))return"This email already has an account. Log in instead.";if(/not confirmed/i.test(m))return"Please confirm your email first, then log in.";if(/rate limit|too many/i.test(m))return"Too many tries. Wait a minute and try again.";if(/anonymous/i.test(m))return"Guest login is not available right now.";if(/failed to fetch|network/i.test(m))return"No internet connection.";if(/password/i.test(m)&&/weak|short|least/i.test(m))return"Password is too weak. Use 6+ characters.";return m||"Something went wrong."};
+const setPres=on=>{if(SB&&PID)SB.rpc("nexora_set_presence",{is_now_online:on}).then(()=>{},()=>{})};
+
+/* people */
+const mkU=p=>{let u=BYP[p.id];if(!u){u={id:NID++,n:"User",l:"",t:"",u:0,on:0,seen:"",p:0,pid:p.id,lat:0};BYP[p.id]=u;U.push(u)}
+ if(p.display_name)u.n=p.display_name;if(p.username)u.user=p.username;if(p.uid)u.uid=String(p.uid).replace(/^NX-?/,"MG");
+ u.p=p.avatar_url||0;u.about=p.about||"Hey there! I am using ZNEXORA";
+ if(p.hide_seen){u.on=0;u.seen=""}else{u.on=p.online?1:0;u.seen=seenT(p)}return u};
+
+/* chat list + friend requests */
+const loadChats=async notify=>{
+ if(!SB||!PID)return;
+ let rows=[],fr=[];
+ try{const[a,b]=await Promise.all([SB.rpc("nexora_my_recent_chats"),SB.from("friendships").select("id,requester_id,addressee_id,status,created_at").or("requester_id.eq."+PID+",addressee_id.eq."+PID)]);
+  if(a.error&&b.error)return;rows=a.data||[];fr=b.data||[]}catch(e){return}
+ FRS=fr;
+ const other=f=>f.requester_id===PID?f.addressee_id:f.requester_id,ids=new Set(rows.map(r=>r.other_id));
+ fr.forEach(f=>ids.add(other(f)));
+ const PM={};
+ if(ids.size){try{const r=await SB.from("profiles").select("id,username,display_name,avatar_url,online,last_seen,uid,about,hide_seen").in("id",[...ids]);(r.data||[]).forEach(p=>PM[p.id]=p)}catch(e){}}
+ const show=new Set(rows.map(r=>r.other_id));fr.filter(f=>f.status==="accepted").forEach(f=>show.add(other(f)));
+ show.forEach(pid=>{const r=rows.find(x=>x.other_id===pid),p=PM[pid]||{};
+  const u=mkU({id:pid,display_name:p.display_name||(r&&r.other_display_name),username:p.username||(r&&r.other_username),uid:p.uid,avatar_url:p.avatar_url||(r&&r.other_avatar_url),about:p.about,online:p.online!=null?p.online:(r&&r.other_online),last_seen:p.last_seen||(r&&r.other_last_seen),hide_seen:p.hide_seen});
+  if(r){u.cid=r.conversation_id;BYC[u.cid]=u;const nu=Number(r.unread_count)||0,prev=u.u||0,openNow=cur===u&&chatOn();
+   u.l=r.last_message||"";u.t=r.last_message_at?fL(r.last_message_at):"";u.lat=r.last_message_at?Date.parse(r.last_message_at):0;
+   u.u=openNow?0:nu;if(notify&&!RTOK&&!openNow&&u.u>prev)banner(u.n,u.l,u.id)}});
+ const inc=fr.filter(f=>f.status==="pending"&&f.addressee_id===PID),oldR=NT.filter(x=>x.k==="req");
+ SENT.clear();fr.filter(f=>f.status==="pending"&&f.requester_id===PID).forEach(f=>SENT.add(f.addressee_id));
+ NT=NT.filter(x=>x.k!=="req").concat(inc.map(f=>{let id=REQID[f.id];if(!id)id=REQID[f.id]=900000+(NTI++);const p=PM[f.requester_id]||{},o=oldR.find(x=>x.id===id);
+  if(notify&&!KNOWN.has(f.id))banner(p.display_name||"Someone","sent you a friend request",0);KNOWN.add(f.id);
+  return{id,k:"req",who:p.display_name||"Someone",user:p.username||"",ts:Date.parse(f.created_at),un:o?o.un:1,fid:f.id,pid:f.requester_id}}));
+ U.sort((a,b)=>(b.lat||0)-(a.lat||0));
+ try{bellDot()}catch(e){}
+ if(tab==="chats"&&!chatOn()&&$("ls"))list();
+ if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm)sm.textContent=cur.seen}
+ firstLoad=0};
+
+/* messages */
+const mapMsg=r=>{const mine=r.sender_id===PID;return{d:mine?"out":"in",t:(r.message_type&&r.message_type!=="text")?"["+r.message_type+"]":(r.message||""),tm:fT(r.created_at),r:[],ts:Date.parse(r.created_at),st:mine?(r.read_at?2:1):2,rd:!mine&&!!r.read_at,sid:r.id}};
+const markRead=u=>{if(!SB||!u||!(cur===u&&chatOn()&&vis()))return;const t=(MSG[u.id]||[]).filter(x=>x.d==="in"&&x.sid&&!x.rd).slice(0,40);
+ t.forEach(x=>{x.rd=true;SB.rpc("nexora_mark_message_read",{target_message:x.sid}).then(()=>{},()=>{x.rd=false})});if(t.length)u.u=0};
+const loadHist=async u=>{
+ if(!SB||!u||!u.cid)return;
+ let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:true}).limit(500);if(r.error)return;data=r.data||[]}catch(e){return}
+ const old=MSG[u.id]||[],by={};old.forEach(x=>{if(x.sid)by[x.sid]=x});
+ const srv=data.map(r=>{const m=mapMsg(r),o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}}return m});
+ const keep=old.filter(x=>!x.sid&&(x.k||x.fail||(x.st===0&&!srv.some(m=>m.d==="out"&&m.t===x.t&&Math.abs(m.ts-x.ts)<60000))));
+ const merged=srv.concat(keep).sort((a,b)=>a.ts-b.ts),sig=a=>a.map(x=>(x.sid||"p")+":"+(x.st||0)+(x.rd?"r":"")).join(",");
+ const ch=sig(merged)!==sig(old),grew=merged.length>old.length;
+ MSG[u.id]=merged;
+ if(ch&&cur===u&&chatOn()){if(grew){NEWI=merged.length-1;render();NEWI=-1}else render(true)}};
+const _oc=openChat;openChat=id=>{_oc(id);const u=U.find(x=>x.id===id);if(!u)return;u.u=0;loadHist(u).then(()=>markRead(u))};
+
+const doSend=async(c,x)=>{
+ try{
+  if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
+  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:x.t});if(r.error)throw r.error;
+  const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=x.sid||row.id;x.st=1;x.fail=0;if(row&&row.created_at)x.ts=Date.parse(row.created_at)
+ }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · not sent";ts("Message not sent. Check your internet.")}
+ if(cur===c&&chatOn())render(true)};
+send=v=>{const c=cur;if(!c)return;if(!SB||!PID)return ts("Not connected yet.");
+ const now=Date.now(),x={d:"out",t:v,tm:fT(now),r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t}:null,ts:now,st:0};
+ (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=v;c.t=x.tm;c.lat=now;RP=null;paintRP();$("ci").value="";upd();NEWI=MSG[c.id].length-1;render();NEWI=-1;doSend(c,x)};
+sendMedia=()=>{ts("Sending photos and files comes in the next update")};
+
+/* realtime */
+const onMsg=r=>{
+ const u=BYC[r.conversation_id];
+ if(!u){loadChats().then(()=>{if(BYC[r.conversation_id])onMsg(r)});return}
+ const arr=MSG[u.id]=MSG[u.id]||[];if(arr.some(x=>x.sid===r.id))return;
+ if(r.sender_id===PID){const p=arr.find(x=>!x.sid&&x.d==="out"&&x.t===r.message&&x.st===0);if(p){p.sid=r.id;return}}
+ const m=mapMsg(r);arr.push(m);u.l=m.t;u.t=m.tm;u.lat=m.ts;
+ if(cur===u&&chatOn()){NEWI=arr.length-1;render();NEWI=-1;markRead(u)}
+ else if(m.d==="in"){u.u=(u.u||0)+1;banner(u.n,m.t,u.id)}
+ U.sort((a,b)=>(b.lat||0)-(a.lat||0));if(tab==="chats"&&!chatOn()&&$("ls"))list()};
+const onUpd=r=>{const u=BYC[r.conversation_id];if(!u||r.sender_id!==PID)return;const x=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(x&&r.read_at&&x.st<2){x.st=2;if(cur===u&&chatOn())render(true)}};
+const subRT=()=>{if(!SB||RT)return;try{RT=SB.channel("znx-msgs").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},p=>onMsg(p.new)).on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},p=>onUpd(p.new)).subscribe(s=>{RTOK=s==="SUBSCRIBED"?1:0})}catch(e){}};
+setInterval(()=>{if(!PID||!vis())return;tick++;if(cur&&chatOn())loadHist(cur).then(()=>markRead(cur));if(tick%3===0)loadChats(true);if(tick%12===0)setPres(true)},4000);
+document.addEventListener("visibilitychange",()=>{if(!PID)return;if(vis()){setPres(true);loadChats(true);if(cur&&chatOn())loadHist(cur)}else setPres(false)});
+window.addEventListener("pagehide",()=>setPres(false));
+
+/* add friend */
+addSheet=()=>{
+ sheet(`<h3>Add friend</h3><input id="au" placeholder="@username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Search a username or UID.</div></div>`);
+ let tm=0,seq=0,res=[];
+ const isF=pid=>FRS.some(f=>f.status==="accepted"&&(f.requester_id===pid||f.addressee_id===pid)),inc=pid=>FRS.find(f=>f.status==="pending"&&f.requester_id===pid&&f.addressee_id===PID);
+ const draw=()=>{const box=$("ar");if(!box)return;box.innerHTML=res.length?res.map(d=>{const fr=isF(d.id),sn=SENT.has(d.id),rq=inc(d.id),nm=d.display_name||d.username||"User",lab=fr?"Friends":rq?"Accept":sn?"Sent":"Add";
+  return `<div class="pr2"><div class="ava" style="background:${g(nm)};width:42px;height:42px;font-size:14px">${esc(ini(nm))}</div><div class="t"><b>${esc(nm)}</b><small>@${esc(d.username||"")} · ${esc(String(d.uid||"").replace(/^NX-?/,"MG"))}</small></div><button class="${fr||sn?"":"pri"}" style="height:36px;padding:0 16px;border-radius:18px;font-size:13px" data-add="${d.id}" ${fr||sn?"disabled":""}>${lab}</button></div>`}).join(""):'<div class="empty" style="padding:26px 10px">No one found.</div>'};
+ const run=async()=>{const raw=$("au").value.trim().replace(/^@/,""),q=raw.replace(/[^A-Za-z0-9_ .-]/g,""),box=$("ar");
+  if(q.length<2){box.innerHTML='<div class="empty" style="padding:26px 10px">Search a username or UID.</div>';return}
+  const my=++seq;let data=[];try{const r=await SB.from("profiles").select("id,username,display_name,uid,avatar_url").or("username.ilike.%"+q+"%,uid.ilike.%"+q+"%,display_name.ilike.%"+q+"%").neq("id",PID).limit(12);data=r.data||[]}catch(e){}
+  if(my!==seq)return;res=data;draw()};
+ $("au").oninput=()=>{clearTimeout(tm);tm=setTimeout(run,300)};
+ $("ar").onclick=async e=>{const b=e.target.closest("[data-add]");if(!b||b.disabled)return;const pid=b.dataset.add,d=res.find(x=>x.id===pid);if(!d)return;
+  b.disabled=true;
+  try{const q=inc(pid);
+   if(q){const r=await SB.rpc("nexora_update_friend_request",{target_friendship:q.id,new_status:"accepted"});if(r.error)throw r.error;ts("You are now friends");await loadChats()}
+   else{const r=await SB.rpc("nexora_send_friend_request",{target_username:d.username});if(r.error)throw r.error;const j=r.data;if(j&&j.error)throw new Error(j.error);SENT.add(pid);ts("Friend request sent");loadChats()}
+  }catch(x){ts((x&&x.message)||"Could not send the request");b.disabled=false;return}
+  draw()}};
+window.znxReq=async(x,a)=>{
+ try{if(a==="acc"){const r=await SB.rpc("nexora_update_friend_request",{target_friendship:x.fid,new_status:"accepted"});if(r.error)throw r.error;ts(x.who+" is now your friend")}
+  else{const r=await SB.from("friendships").delete().eq("id",x.fid);if(r.error)throw r.error;ts("Request declined")}
+  await loadChats()}catch(e){ts((e&&e.message)||"Could not update the request")}};
+
+/* account actions */
+window.znxSave=async(n,u,b,m)=>{
+ try{if(u!==MY.user||n!==MY.name){const r=await SB.rpc("nexora_set_username",{new_username:u,new_display_name:n});if(r.error)throw r.error}
+  if(b!==MY.bio){const r=await SB.from("profiles").update({about:b}).eq("id",PID);if(r.error)throw r.error}
+  Object.assign(MY,{name:n,user:u,bio:b,about:b});m.textContent="";ts("Profile saved");top2()}
+ catch(e){m.textContent=/duplicate|already|taken|unique/i.test((e&&e.message)||"")?"That username is taken.":((e&&e.message)||"Could not save.")}};
+window.znxPw=async p=>{try{const r=await SB.auth.updateUser({password:p});if(r.error)throw r.error;ts("Password changed")}catch(e){ts((e&&e.message)||"Could not change password")}};
+window.znxLink=async k=>{
+ if(k==="rs"){if(MY.guest||!MY.email)return ts("Save your account with an email first");
+  try{const r=await SB.auth.resetPasswordForEmail(MY.email,{redirectTo:location.href.split("#")[0]});if(r.error)throw r.error;ts("Reset link sent to "+MY.email)}catch(e){ts((e&&e.message)||"Could not send the link")}return}
+ sheet(`<h3>Save your account</h3><p class="note">Add an email and password so you can log in again, even on a new phone.</p><input id="be" type="email" placeholder="Email" autocapitalize="off" style="margin-bottom:10px"><input id="bp" type="password" placeholder="Password (6+)" style="margin-bottom:10px"><button class="pri" style="width:100%" id="bg">Save account</button>`);
+ $("bg").onclick=async()=>{const e=$("be").value.trim(),p=$("bp").value;if(!/^\S+@\S+\.\S+$/.test(e))return ts("Enter a valid email");if(p.length<6)return ts("Password needs 6+ characters");
+  try{const r=await SB.auth.updateUser({email:e,password:p});if(r.error)throw r.error;closeS();ts("Done. Check your email to confirm.");MY.guest=false;MY.email=e;try{SB.from("profiles").update({is_guest:false}).eq("id",PID).then(()=>{},()=>{})}catch(z){}}catch(x){ts((x&&x.message)||"Could not save")}}};
+window.znxDel=()=>ts("To delete your account, please ask the admin");
+window.znxOut=async()=>{setPres(false);try{await SB.auth.signOut()}catch(e){}location.reload()};
+
+/* songs and links */
+const loadFav=async()=>{
+ try{const r=await SB.from("nx_fav").select("*").order("created_at",{ascending:false}).limit(1000);if(r.error)return;
+  FAVDB.clear();FAV.length=0;let n=0;
+  (r.data||[]).forEach(x=>{if(!x.url)return;if(x.owner!==PID&&x.scope!=="global")return;if(x.owner===PID)FAVDB.add(x.id);FAV.push({id:Date.now()+n++,sid:x.id,mine:x.owner===PID,kind:x.kind==="listen"?"listen":"watch",title:x.name||"Untitled",url:x.url,scope:x.scope==="global"?"global":"private",type:x.song_type||0})});
+  try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}
+  if(typeof mpSync==="function")mpSync()}catch(e){}};
+window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID)return;
+ try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;const r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0}).select("id").maybeSingle();
+   if(r.error){ts(r.error.message||"Could not save the link");continue}if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
+  const have=new Set(FAV.filter(x=>x.sid).map(x=>x.sid));
+  for(const id of [...FAVDB]){if(!have.has(id)){const r=await SB.from("nx_fav").delete().eq("id",id);if(!r.error)FAVDB.delete(id)}}}catch(e){}},500)};
+
+/* admin: real user list */
+const loadAdmin=async()=>{try{const r=await SB.from("profiles").select("id,username,display_name,uid,is_guest,online,last_seen").order("created_at",{ascending:false}).limit(500);if(r.error)return;
+ AU.length=0;(r.data||[]).forEach((p,i)=>AU.push({id:i,pid:p.id,n:p.display_name||"User",user:p.username||"",uid:String(p.uid||"").replace(/^NX-?/,"MG"),ref:0,guest:!!p.is_guest,canSt:false,canFav:false,banned:false,act:p.online?"Online":(p.last_seen?fL(p.last_seen):"")}))}catch(e){}};
+
+/* login */
+const boot=async()=>{
+ if(!SB)return false;
+ const{data}=await SB.auth.getSession(),ses=data&&data.session;if(!ses)return false;
+ const au=ses.user;PID=au.id;
+ let ls="";try{const r=await SB.rpc("my_login_status");ls=String(r.data==null?"":r.data)}catch(e){}
+ if(/ban|block|reject|denied/i.test(ls)){try{await SB.auth.signOut()}catch(e){}PID=null;say("This account is blocked. Please contact the admin.");return false}
+ if(/pend|wait/i.test(ls)){try{await SB.auth.signOut()}catch(e){}PID=null;say("Your account is waiting for admin approval. Try again later.");return false}
+ let pr=null;for(let i=0;i<4&&!pr;i++){try{const r=await SB.from("profiles").select("*").eq("id",PID).maybeSingle();pr=r.data}catch(e){}if(!pr)await new Promise(z=>setTimeout(z,500))}
+ if(!pr){try{const nm=(au.user_metadata&&au.user_metadata.display_name)||"NEXORA User",r=await SB.from("profiles").insert({id:PID,username:"NX_"+PID.replace(/-/g,"").slice(0,8).toUpperCase(),display_name:nm,is_guest:!!au.is_anonymous}).select().maybeSingle();pr=r.data}catch(e){}}
+ if(!pr){PID=null;say("Could not load your profile. Please try again.");return false}
+ let adm=false;try{const r=await SB.rpc("nx_is_admin");adm=r.data===true}catch(e){}
+ Object.assign(MY,{role:adm?"admin":"user",name:pr.display_name||"NEXORA User",user:pr.username||"",uid:String(pr.uid||"").replace(/^NX-?/,"MG"),bio:pr.about||"Hey there! I am using ZNEXORA",about:pr.about||"",email:au.email||"",guest:!!(pr.is_guest||au.is_anonymous),p:pr.avatar_url||0});
+ setPres(true);await Promise.all([loadChats(),loadFav()]);if(adm)loadAdmin();subRT();
+ if(!booted){booted=1;enter()}else{top2()}
+ return true};
+$("go").onclick=async()=>{
+ if(BUSY)return;const em=$("em").value.trim();
+ if(st===1){if(!/^\S+@\S+\.\S+$/.test(em))return say("Enter a valid email.");if(su&&$("nm").value.trim().length<2)return say("Enter your name.");st=2;paint();setTimeout(()=>$("pw").focus(),60);return}
+ const p=$("pw").value;if(!p)return say("Enter your password.");if(su&&p.length<6)return say("Password needs 6+ characters.");
+ if(!SB)return say("Could not reach the server. Check your internet and reload.");
+ BUSY=1;$("go").disabled=true;say(su?"Creating your account...":"Logging in...");
+ try{if(su){const r=await SB.auth.signUp({email:em,password:p,options:{data:{display_name:$("nm").value.trim()}}});if(r.error)throw r.error;
+   if(!r.data.session){su=false;st=1;paint();say("Account created. Confirm the email we sent, then log in.");BUSY=0;$("go").disabled=false;return}}
+  else{const r=await SB.auth.signInWithPassword({email:em,password:p});if(r.error)throw r.error}
+  const ok=await boot();if(ok)say("")}catch(e){say(frErr(e&&e.message))}
+ BUSY=0;$("go").disabled=false};
+$("gs").onclick=async()=>{
+ if(BUSY)return;if(!SB)return say("Could not reach the server. Check your internet and reload.");
+ BUSY=1;say("Starting guest session...");
+ try{const r=await SB.auth.signInAnonymously({options:{data:{is_guest:true,display_name:"Guest"}}});if(r.error)throw r.error;const ok=await boot();if(ok)say("")}catch(e){say(frErr(e&&e.message))}
+ BUSY=0};
+if(SB)SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&PID&&booted)location.reload()});
+(async()=>{try{await boot()}catch(e){}})();
+}
+
+})();</script></body></html>
