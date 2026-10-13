@@ -502,7 +502,13 @@ mark{background:color-mix(in srgb,var(--ac) 50%,transparent);color:inherit;borde
 .abar{gap:4px;padding:8px 8px;position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px) scale(.96);opacity:0;visibility:hidden;pointer-events:none;width:min(440px,calc(100% - 24px));display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:28px;z-index:60;border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--sf) 88%,transparent),color-mix(in srgb,var(--sf) 88%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:0 22px 44px -16px rgba(0,0,0,.8);transition:transform .55s cubic-bezier(.2,.9,.2,1.1),opacity .3s,visibility 0s .55s}
 .abar.on{transform:translate(-50%,0) scale(1);opacity:1;visibility:visible;pointer-events:auto;transition:transform .55s cubic-bezier(.2,.9,.2,1.1),opacity .3s,visibility 0s}.abar b{font-size:13.5px;margin-left:6px;white-space:nowrap}.abar .ib{width:36px;height:36px;flex:none}.abar .ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #cbar{z-index:8;bottom:calc(88px + env(safe-area-inset-bottom,0px))}#fvbar{z-index:60}#adbar{z-index:60;flex-wrap:wrap}
-.row.sel{background:rgba(91,84,224,.12)}.row .ck{margin-right:12px}.gr .ck{margin-right:2px}
+/* PATCH-ZX-SEL-V1 */.row.sel{border:1px solid transparent;border-radius:24px;margin:4px -8px;padding:12px 8px;background:linear-gradient(color-mix(in srgb,var(--ac) 15%,var(--sf)),color-mix(in srgb,var(--ac) 15%,var(--sf))) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 45%,var(--e3)) border-box;box-shadow:0 20px 36px -18px var(--ac),0 0 26px -12px var(--ac);transform:translateY(-2px) scale(1.012);animation:zxlift .55s cubic-bezier(.2,.9,.3,1.3);z-index:1}
+.row.sel::before,.row.sel+.row::before{display:none}
+@keyframes zxlift{from{transform:scale(.96);box-shadow:0 0 0 0 transparent}}
+#cbar{border-radius:32px;padding:8px 12px;box-shadow:0 28px 50px -18px rgba(0,0,0,.9),0 0 34px -12px var(--ac);transition:transform .65s cubic-bezier(.2,.9,.2,1.25),opacity .3s,visibility 0s .65s}
+#cbar.on{transition:transform .65s cubic-bezier(.2,.9,.2,1.25),opacity .3s,visibility 0s}
+#cbar .ib{border-radius:50%;background:color-mix(in srgb,var(--ac) 14%,transparent)}
+#cbar .ib:active{transform:scale(.86)}.row .ck{margin-right:12px}.gr .ck{margin-right:2px}
 .chip.red{color:#e5675f;border-color:rgba(229,103,95,.4)}.gb.dg{color:#e5675f}
 #ad{position:fixed;inset:0;z-index:28;display:flex;flex-direction:column;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px calc(90px + env(safe-area-inset-bottom,0px));overflow:auto;background:radial-gradient(90% 40% at 10% 0,rgba(124,108,255,.2),transparent 70%),var(--bg);transform:translateX(100%);transition:transform .5s cubic-bezier(.2,.9,.2,1.03)}#ad.on{transform:none}#ad>*{flex:none}
 .adsh{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:18px;border:1px solid var(--ln);background:color-mix(in srgb,#4cc9a0 8%,var(--sf))}.adsh svg{width:22px;height:22px;fill:none;stroke:#4cc9a0;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;margin-top:1px}.adsh b{font-size:13.5px;display:block}.adsh small{display:block;color:var(--mu);font-size:12px;line-height:1.4;margin-top:2px}
@@ -668,8 +674,10 @@ function render(keep){const m=MSG[cur.id]||[],box=$("msgs");let last="";
  box.innerHTML=encNote()+(m.length?m.map((x,i)=>{const dl=dayL(x.ts),sep=dl!==last?`<div class="dsep"><span>${dl}</span></div>`:"";last=dl;const rx=grp(x.r);
   return sep+`<div class="mr ${x.d}${sel.has(i)?" sel":""}${i===NEWI?" new":""}" data-i="${i}"><i class="sk"></i><div class="mw ${x.d}"><div class="m ${x.d}${x.k?" has":""}">${x.q?`<div class="qt" data-ref="${x.q.i}"><b>${esc(x.q.who)}</b>${esc(x.q.t)}</div>`:""}${x.fw?`<div class="fwd">${IC.fwd}Forwarded</div>`:""}${x.k?mhtml(x,i):""}${x.t?hl(x.t)+lcard(x.t):""}<small>${x.ed?"edited · ":""}${x.tm}${x.d==="out"?` <span class="tk s${ST2.ticks?x.st:Math.min(x.st,1)}">${(ST2.ticks?x.st:Math.min(x.st,1))>1?"✓✓":x.st?"✓":"◷"}</span>`:""}</small></div>${rx?`<div class="rx">${rx}</div>`:""}</div></div>`}).join(""):'<div class="empty">Say hi to '+esc(cur.n)+'</div>');
  if(!keep)box.scrollTop=1e9;scrollBtn();selUI();vcRe()}
-function upd(){const e=!$("ci").value.trim();$("sd").innerHTML=e?IC.mic:IC.send;$("sd").dataset.e=e?1:0;$("ci").style.height="auto";$("ci").style.height=Math.min(130,$("ci").scrollHeight)+"px"}
+function upd(){const e=!$("ci").value.trim();$("sd").innerHTML=e?IC.mic:IC.send;$("sd").dataset.e=e?1:0;$("ci").style.height="auto";$("ci").style.height=Math.min(130,$("ci").scrollHeight+2)+"px"}
 $("ci").oninput=upd;
+/* PATCH-ZX-KBD-V1 */
+if(window.visualViewport){const vv=visualViewport,fitChat=()=>{const c=$("chat"),m=$("msgs"),end=m.scrollHeight-m.scrollTop-m.clientHeight<80;if(vv.height>=innerHeight-1&&!vv.offsetTop){c.style.height="";c.style.top=""}else{c.style.height=vv.height+"px";c.style.top=vv.offsetTop+"px"}if(end)m.scrollTop=m.scrollHeight};vv.addEventListener("resize",fitChat);vv.addEventListener("scroll",fitChat)}
 $("sd").onclick=()=>{if($("sd").dataset.e==="1")return recOpen();const v=$("ci").value.trim();if(v)send(v)};
 $("ci").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&ST2.enterSend&&!matchMedia("(pointer:coarse)").matches){e.preventDefault();$("sd").click()}});
 $("cb").onclick=()=>{if(sel.size){sel.clear();render();return}$("chat").classList.remove("on");drawChats()};
@@ -1614,7 +1622,7 @@ const doSend=async(c,x)=>{
  if(cur===c&&chatOn())render(true)};
 send=v=>{const c=cur;if(!c)return;if(!SB||!PID)return ts("Not connected yet.");
  const now=Date.now(),x={d:"out",t:v,tm:fT(now),r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t}:null,ts:now,st:0};
- (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=v;c.t=x.tm;c.lat=now;RP=null;paintRP();$("ci").value="";upd();NEWI=MSG[c.id].length-1;render();NEWI=-1;doSend(c,x)};
+ (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=v;c.t=x.tm;c.lat=now;/* PATCH-ZX-TOP-V1 */U.sort((a,b)=>(b.lat||0)-(a.lat||0));RP=null;paintRP();$("ci").value="";upd();NEWI=MSG[c.id].length-1;render();NEWI=-1;doSend(c,x)};
 sendMedia=()=>{ts("Sending photos and files comes in the next update")};
 
 /* realtime */
@@ -1769,7 +1777,7 @@ sendMedia=async function(o){
  const c=cur;if(!c||!SB||!PID)return ts("Not connected yet.");
  if((o.size||0)>50*1048576)return ts("File is larger than 50 MB");
  const now=Date.now(),x=Object.assign({d:"out",tm:fT(now),r:[],q:null,ts:now,st:0,t:o.cap||""},o);delete x.cap;
- (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=lblOf(o.k);c.t=x.tm;c.lat=now;RP=null;paintRP();NEWI=MSG[c.id].length-1;render();NEWI=-1;
+ (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=lblOf(o.k);c.t=x.tm;c.lat=now;U.sort((a,b)=>(b.lat||0)-(a.lat||0));RP=null;paintRP();NEWI=MSG[c.id].length-1;render();NEWI=-1;
  try{
   const blob=await (await fetch(o.src)).blob(),ext=((o.name||"").split(".").pop()||"bin").replace(/[^a-z0-9]/gi,"").slice(0,5)||"bin",path=PID+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
   const up=await SB.storage.from("chat-media").upload(path,blob,{contentType:blob.type||undefined,cacheControl:"3600"});if(up.error)throw up.error;
