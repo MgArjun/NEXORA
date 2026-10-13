@@ -1078,7 +1078,7 @@ function mpToggle(){if(!MP.started)return mpGo(mpList()[0]??0);
 function mpTheme(){const T=MT[MP.i],r=document.documentElement.style;r.setProperty("--m1",T.c[0]);r.setProperty("--m2",T.c[1])}
 function mpUI(){const T=MT[MP.i];$("mpn").textContent=T.n;$("mpk").textContent=MN[T.m]+" · "+(T.src?"link":T.bpm+" bpm");$("mpp").innerHTML=MP.play?PA:PL;$("mip").innerHTML=MP.play?PA:PL;$("min").textContent=T.n;$("mim").textContent=MN[T.m];$("mio").style.background=`linear-gradient(145deg,${T.c[0]},${T.c[1]})`;$("mps").classList.toggle("on",!!MP.sh);$("mpr").classList.toggle("on",!!MP.rp);
  $("mpmo").innerHTML=MN.map((n,i)=>`<button data-mo="${i}" class="${MP.mood===i?"on":""}">${n}</button>`).join("");mpTheme()}
-function mpSim(){const t=performance.now()/1000,n=MP.data.length,p=Math.pow(Math.max(0,Math.sin(t*6.1)),5),w=Math.pow(Math.max(0,Math.sin(t*3.05+1)),3);for(let k=0;k<n;k++){const e=MP.play?(p*(1-k/n)*.9+w*.35+.2*Math.abs(Math.sin(t*(2+k*.37)+k)))*MP.vol:0;MP.data[k]=MP.data[k]*.6+Math.min(1,e)*255*.4}}
+/* PATCH-FIXB-V1 */function mpSim(){const t=performance.now()/1000,n=MP.data.length,T=MT[MP.i],m=(T&&T.m)||2,f=[0,.7,1.6,2.6][m],a=[0,.45,.75,1][m],p=Math.pow(Math.max(0,Math.sin(t*Math.PI*2*f)),[0,2,4,6][m]),w=Math.pow(Math.max(0,Math.sin(t*Math.PI*f+1)),3),fl=[0,.06,.18,.4][m],sp=m===3?2.4:1,dec=m===3?.4:.7;for(let k=0;k<n;k++){const e=MP.play?(p*(1-k/n)*.9+w*.3+fl*Math.abs(Math.sin(t*(2+k*.37)*sp+k)))*a*MP.vol:0;MP.data[k]=MP.data[k]*dec+Math.min(1,e)*255*(1-dec)}}
 function mpDraw(){const c=$("mpc");if(!MP.on){MP.raf=0;return}const d=Math.min(2,devicePixelRatio||1),S=300;if(c.width!==S*d){c.width=c.height=S*d}const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,S,S);
  const T=MT[MP.i],cx=S/2,n=MP.data.length,ink=isDark()?"255,255,255":"28,30,48";if(MP.ext&&!(MP.ext.k==="audio"&&MP.hooked))mpSim();else if(MP.an&&MP.play)MP.an.getByteFrequencyData(MP.data);else for(let k=0;k<n;k++)MP.data[k]*=.9;
  const b=(MP.data[1]+MP.data[2]+MP.data[3])/765,ro=76+b*6;
@@ -1114,8 +1114,8 @@ function mpAdd(){sheet(`<h3>Add a song</h3><div class="fld"><label>YouTube or au
   if(e.target.closest("#mak")){const u=$("mal").value.trim(),nm=$("man").value.trim();if(!parseSrc(u))return ts("Paste a valid YouTube or audio link");if(!nm)return ts("Give it a name");const id=Date.now();FAV.unshift({id,kind:"listen",title:nm,url:u,scope:sc,type:ty});favSave();mpSync();closeS();ts("Saved");mpGo(MT.findIndex(t=>t.fid===id),1)}}}
 $("mpl").onclick=()=>mpLib("all");
 /* mini pill */
-$("mini").onclick=e=>{if(e.target.closest("#mix"))return;mpOpen()};$("mix").onclick=e=>{e.stopPropagation();MP.hideMini=1;$("mini").classList.remove("on");document.body.classList.remove("hasmini");ts("Minimised. Drag the orb anywhere.")};
-{const m=$("mini");let d=null,dr=0;m.addEventListener("pointerdown",e=>{d={x:e.clientX,id:e.pointerId};dr=0});m.addEventListener("pointermove",e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x;if(!dr&&Math.abs(dx)>10){dr=1;try{m.setPointerCapture(e.pointerId)}catch(x){}}if(dr){m.style.transition="none";m.style.transform=`translate(calc(-50% + ${dx}px),0)`;m.style.opacity=String(1-Math.min(.8,Math.abs(dx)/260))}});const up=e=>{if(!d)return;const dx=e.clientX-d.x;d=null;m.style.transition="";m.style.transform="";m.style.opacity="";if(dr&&Math.abs(dx)>90){MP.hideMini=1;ts("Minimised. Drag the orb anywhere.")}dr=0};m.addEventListener("pointerup",up);m.addEventListener("pointercancel",up)}
+$("mini").onclick=e=>{if(e.target.closest("#mix"))return;mpOpen()};$("mix").onclick=e=>{e.stopPropagation();MP.hideMini=1;$("mini").classList.remove("on");document.body.classList.remove("hasmini")};
+{const m=$("mini");let d=null,dr=0;m.addEventListener("pointerdown",e=>{d={x:e.clientX,id:e.pointerId};dr=0});m.addEventListener("pointermove",e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x;if(!dr&&Math.abs(dx)>10){dr=1;try{m.setPointerCapture(e.pointerId)}catch(x){}}if(dr){m.style.transition="none";m.style.transform=`translate(calc(-50% + ${dx}px),0)`;m.style.opacity=String(1-Math.min(.8,Math.abs(dx)/260))}});const up=e=>{if(!d)return;const dx=e.clientX-d.x;d=null;m.style.transition="";m.style.transform="";m.style.opacity="";if(dr&&Math.abs(dx)>90){MP.hideMini=1}dr=0};m.addEventListener("pointerup",up);m.addEventListener("pointercancel",up)}
 setInterval(()=>{if(!MP.started)return;if(MP.play&&!MP.ext&&mpPos()>=MP.dur-.05)mpEnded();const sm=!MP.on&&MP.started&&!MP.hideMini&&!$("app").classList.contains("hide");$("mini").classList.toggle("on",sm);document.body.classList.toggle("hasmini",sm);const so=!MP.on&&MP.started&&MP.hideMini&&!$("app").classList.contains("hide"),T0=MT[MP.i];$("morb").classList.toggle("on",so);$("morb").classList.toggle("pl",!!MP.play);if(T0)$("morb").firstChild.style.background=`linear-gradient(145deg,${T0.c[0]},${T0.c[1]})`},300);
 $("pg").addEventListener("click",e=>{if(tab!=="enjoy")return;if(e.target.closest("[data-en=music]"))mpOpen()});
 document.addEventListener("pointerdown",e=>{const el=e.target.closest&&e.target.closest(".gr,.opt,.row,.cct");if(!el)return;const r=el.getBoundingClientRect();el.style.setProperty("--mx",(e.clientX-r.left)+"px");el.style.setProperty("--my",(e.clientY-r.top)+"px")},true);
@@ -1743,7 +1743,7 @@ setInterval(()=>{applyPres();if(chatOn()&&cur){const sm=$("cn").querySelector("s
 /* ---------- 30 din wali line + demo text hatao ---------- */
 purgeOld=function(){};
 {const a=SUBX.sec;SUBX.sec=()=>a().replace(" Messages are deleted automatically after 30 days.","");const b=SUBX.hlp;SUBX.hlp=()=>b().replace(", and are deleted after 30 days","")}
-{const o=new MutationObserver(()=>{const t=$("ts");if(!t)return;let x=t.textContent;if(/Minimised\./.test(x)){t.classList.remove("on");return}if(/\(preview\)/.test(x))t.textContent=x.replace(/\s*\(preview\)/,"")});o.observe($("ts"),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]})}
+{const o=new MutationObserver(()=>{const t=$("ts");if(!t)return;let x=t.textContent;if(/\(preview\)/.test(x))t.textContent=x.replace(/\s*\(preview\)/,"")});o.observe($("ts"),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]})}
 const noChips=()=>document.querySelectorAll("#pg .chip").forEach(c=>{if(!c.classList.contains("red"))c.remove()});
 VIEWS.enjoy=(f=>function(){f();noChips()})(VIEWS.enjoy);VIEWS.play=(f=>function(){f();noChips()})(VIEWS.play);
 {const _ds=drawSub;drawSub=function(k){_ds(k);const P=$("pg");
@@ -1795,10 +1795,8 @@ mpSync=function(){MT.length=0;FAV.filter(x=>x.kind==="listen").forEach(x=>{const
  o.addEventListener("pointerup",e=>{const hit=moved&&over(e.clientX,e.clientY);z.classList.remove("on","hot");if(hit){MP.started=0;MP.play=0;mpStopAll();try{MP.ac&&MP.ac.suspend()}catch(x){}o.classList.remove("on","pl")}moved=0});
  o.addEventListener("pointercancel",()=>{z.classList.remove("on","hot");moved=0})}
 
-/* ---------- jelly bounce ---------- */
-/* PATCH-FIXA-V1 */function jelly(edge){const l=$("lens");if(!edge||!l||!l.animate||ST2.rm)return;l.animate([{scale:"1 1"},{scale:"1.07 .97",offset:.35},{scale:".99 1.01",offset:.7},{scale:"1 1"}],{duration:360,easing:"cubic-bezier(.3,.9,.4,1)"})}
-{const _ml=moveLens;moveLens=function(t){_ml(t);const i=ORDER.indexOf(t);jelly(i===0||i===ORDER.length-1)}}
-{const pe=$("pg");let x0=null;pe.addEventListener("pointerdown",e=>{x0=e.clientX});pe.addEventListener("pointerup",e=>{if(x0==null)return;const dx=e.clientX-x0;x0=null;const i=ORDER.indexOf(tab);if((i===0&&dx>60)||(i===ORDER.length-1&&dx<-60))jelly(true)})}
+
+
 
 /* ---------- delete: "for me" yaad rahe, "for everyone" server + storage se bhi ---------- */
 const pathOf=x=>x.path||(x.src&&String(x.src).includes("/chat-media/")?decodeURIComponent(String(x.src).split("/chat-media/")[1].split("?")[0]):null);
