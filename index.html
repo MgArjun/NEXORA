@@ -1610,7 +1610,7 @@ const doSend=async(c,x)=>{
   if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
   const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:x.t});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=x.sid||row.id;x.st=1;x.fail=0;if(row&&row.created_at)x.ts=Date.parse(row.created_at)
- }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · not sent";ts("Message not sent. Check your internet.")}
+ }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);ts("Message not sent. Check your internet.")/* PATCH-FIXD-V1 */}
  if(cur===c&&chatOn())render(true)};
 send=v=>{const c=cur;if(!c)return;if(!SB||!PID)return ts("Not connected yet.");
  const now=Date.now(),x={d:"out",t:v,tm:fT(now),r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t}:null,ts:now,st:0};
@@ -1778,7 +1778,7 @@ sendMedia=async function(o){
   const pay={k:o.k,u:url,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,cap:o.cap||""};
   const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:MK+JSON.stringify(pay)});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=row.id;x.st=1;
- }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · not sent";ts("Upload failed. Run the SQL setup first.")}
+ }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);ts("Upload failed. Run the SQL setup first.")}
  if(cur===c&&chatOn())render(true)};
 $("msgs").addEventListener("click",e=>{const f=e.target.closest(".md.file");if(!f)return;const r=f.closest(".mr"),x=r&&MSG[cur.id][+r.dataset.i];if(x&&x.src)window.open(x.src,"_blank")});
 
