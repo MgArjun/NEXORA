@@ -1162,15 +1162,17 @@ function zyThumb(src,k){return new Promise(res=>{const done=el=>{try{const w=el.
  if(k==="img"){const im=new Image();im.onload=()=>done(im);im.onerror=()=>res("");im.src=src}
  else{const v=document.createElement("video");v.muted=true;v.playsInline=true;v.preload="auto";v.onloadeddata=()=>{v.currentTime=.1};v.onseeked=()=>done(v);v.onerror=()=>res("");v.src=src;setTimeout(()=>res(""),4000)}})}
 async function zyPrep(o,x){const b=await (await fetch(o.src)).blob();x.th=(o.k==="img"||o.k==="vid")?await zyThumb(o.src,o.k):"";return b}
-async function mediaLoad(x,onp,nc){const key=x.src;zyErr="";if(!key)return null;if(/^blob:/.test(key))return key;if(MEDC[key])return MEDC[key];
- const ex=(x.name||"").split(".").pop().toLowerCase(),ty=({pdf:"application/pdf",mp4:"video/mp4",mov:"video/quicktime",webm:"video/webm",mp3:"audio/mpeg",m4a:"audio/mp4",wav:"audio/wav",jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",gif:"image/gif",webp:"image/webp"})[ex]||"";let blob=null;
- try{const r=await fetch(key);
-  if(r.ok){const L=+r.headers.get("content-length")||x.size||0,rd=r.body&&r.body.getReader?r.body.getReader():null,ct=ty||r.headers.get("content-type")||"";
-   if(rd){const ch=[];let n=0;for(;;){const d=await rd.read();if(d.done)break;ch.push(d.value);n+=d.value.length;if(onp&&L)onp(Math.min(1,n/L))}blob=new Blob(ch,{type:ct})}else blob=new Blob([await r.arrayBuffer()],{type:ct})}
-  else zyErr="Server replied "+r.status}catch(e){zyErr="Network blocked the file"}
- if(!blob&&window.znxGet){const m=String(key).split("/chat-media/")[1],p=m?decodeURIComponent(m.split("?")[0]):"";
-  if(p){const b=await window.znxGet(p);if(b){blob=ty?new Blob([b],{type:ty}):b;zyErr=""}else if(!zyErr)zyErr="File not found on server"}}
- if(!blob)return null;const bu=URL.createObjectURL(blob);if(!nc)MEDC[key]=bu;return bu}
+async function mediaLoad(x,onp,nc){/* PATCH-MEDIA-V1 */const key=x.src;zyErr="";if(!key)return null;if(/^blob:/.test(key))return key;if(MEDC[key])return MEDC[key];
+ const ex=(x.name||"").split(".").pop().toLowerCase(),ty=({pdf:"application/pdf",mp4:"video/mp4",mov:"video/quicktime",webm:"video/webm",mp3:"audio/mpeg",m4a:"audio/mp4",wav:"audio/wav",jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",gif:"image/gif",webp:"image/webp"})[ex]||"",pm=String(key).split("/chat-media/")[1],pth=pm?decodeURIComponent(pm.split("?")[0]):"",nap=ms=>new Promise(r=>setTimeout(r,ms));let blob=null,miss=false;
+ const rd=async r=>{const L=+r.headers.get("content-length")||x.size||0,ct=ty||r.headers.get("content-type")||"",rr=r.body&&r.body.getReader?r.body.getReader():null;if(!rr)return new Blob([await r.arrayBuffer()],{type:ct});const ch=[];let n=0;for(;;){const d=await rr.read();if(d.done)break;ch.push(d.value);n+=d.value.length;if(onp&&L)onp(Math.min(1,n/L))}return new Blob(ch,{type:ct})};
+ for(let a=0;a<3&&!blob&&!miss;a++){if(a)await nap(a*900);const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),20000);
+  try{const r=await fetch(key,{signal:ac.signal});clearTimeout(tm);
+   if(r.ok)blob=await rd(r);else if(r.status===400||r.status===404||r.status===410)miss=true;else zyErr=r.status===401||r.status===403?"No permission to read this file ("+r.status+")":"Server busy ("+r.status+")"}
+  catch(e){clearTimeout(tm);zyErr="Network is slow or blocked"}}
+ if(!blob&&pth&&window.znxGet){const b=await window.znxGet(pth);if(b){blob=ty?new Blob([b],{type:ty}):b;miss=false}}
+ if(!blob&&pth&&window.znxSign){const su=await window.znxSign(pth);if(su){try{const r=await fetch(su);if(r.ok){blob=await rd(r);miss=false}}catch(e){}}}
+ if(!blob){zyErr=miss?"File not found on server":(zyErr||"Network is slow or blocked");return null}
+ zyErr="";const bu=URL.createObjectURL(blob);if(!nc)MEDC[key]=bu;return bu}
 /* PATCH-ZNX-DL-V3 */function dlFail(m){sheet(`<div class="ci"><div class="tri" style="width:64px;height:64px;border-radius:22px;margin:0 0 6px">${IC.dl}</div><b>Download failed</b><small style="max-width:280px;line-height:1.5">${esc(m||"Unknown error")}</small></div><button class="pri" style="width:100%" id="dlok">OK</button>`);$("sh").onclick=e=>{if(e.target.closest("#dlok"))closeS()}}
 async function zyDl(x){const u=await mediaLoad(x,p=>ts("Downloading "+Math.round(p*100)+"%"));if(!u)return dlFail(zyErr);const nm=x.name||("znexora-"+Date.now()+({img:".jpg",vid:".mp4",aud:".mp3"}[x.k]||""));try{const bl=await (await fetch(u)).blob(),fl=new File([bl],nm,{type:bl.type||"application/octet-stream"});if(navigator.canShare&&navigator.canShare({files:[fl]})&&matchMedia("(pointer:coarse)").matches){await navigator.share({files:[fl]});ts("Saved");return}}catch(e){if(e&&e.name==="AbortError")return}const a=document.createElement("a");a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();ts("Saved to your device");if(cur&&$("chat").classList.contains("on"))render(true)}
 function zyTile(x){const own=x.d==="out",u=/^blob:/.test(x.src||"")?x.src:MEDC[x.src],v=x.k==="vid",dl=own?"":`<button class="zyc" data-dl="1" aria-label="Download">${IC.dl}</button>`;
@@ -1230,7 +1232,7 @@ function mediaTap(el,i){const x=MSG[cur.id][i];if(!x)return;if(el.dataset.vc!==u
  c.innerHTML=`<div class="mvl"><div class="dlc"><small class="mono">${once?"Opening":"Downloading"}</small><b>0%</b><i class="dlb"><s></s></i><small>${esc(x.name||LBL[x.k]||"File")} · ${fmtB(x.size||0)}</small></div></div>`;
  const u=await mediaLoad(x,p=>{const r=c.querySelector(".dlc");if(r){const n=Math.round(p*100);r.querySelector("b").textContent=n+"%";r.querySelector("s").style.width=n+"%"}},!!once);
  if(MVI!==i||!$("mv").classList.contains("on"))return;
- if(!u){mvClose(false);window.znxDead(x);return}
+ if(!u){/* PATCH-MEDIA-V1 */if(/not found/i.test(zyErr)){mvClose(false);window.znxDead(x);return}c.innerHTML=`<div class="mvl"><div class="tri">${IC.dl}</div><b>Could not load</b><small>${esc(zyErr||"Check your internet")}</small><button class="pri" data-zretry="1">Try again</button></div>`;return}
  c.innerHTML=x.k==="vid"?`<video src="${u}" autoplay playsinline ${once?"":"controls"}></video>`:x.k==="file"?`<iframe class="zyf" src="${u}"></iframe>`:`<img src="${u}" alt="" draggable="false">`;
  if(!once&&$("chat").classList.contains("on"))render(true);
  if(once&&x.once>1){o.style.display="";o.innerHTML="<s></s>";o.firstChild.style.animation=`obar ${x.once}s linear forwards`;MVT=setTimeout(()=>mvClose(true),x.once*1000)}}
@@ -1822,6 +1824,7 @@ window.znxLink=async k=>{
 window.znxDel=()=>ts("To delete your account, please ask the admin");
 window.znxCtx=()=>({sb:SB,pid:PID,byPid:BYP,note:async(u,t)=>{const now=Date.now(),x={d:"out",t,tm:fT(now),r:[],q:null,ts:now,st:0};(MSG[u.id]=MSG[u.id]||[]).push(x);u.l=t;u.t=x.tm;u.lat=now;U.sort((a,b)=>(b.lat||0)-(a.lat||0));if(tab==="chats"&&!chatOn()&&$("ls"))list();await doSend(u,x)}});
 window.znxGet=async p=>{try{const r=await SB.storage.from("chat-media").download(p);return r.error?null:r.data}catch(e){return null}};
+/* PATCH-MEDIA-V1 */window.znxSign=async p=>{try{const r=await SB.storage.from("chat-media").createSignedUrl(p,300);return r.error?null:r.data.signedUrl}catch(e){return null}};
 window.znxOut=async()=>{setPres(false);try{await SB.auth.signOut()}catch(e){}location.reload()};
 
 /* songs and links */
@@ -1913,12 +1916,12 @@ const saveHide=()=>{try{localStorage.setItem("znx_hide",JSON.stringify([...HIDE]
 let SEEN=new Set();try{SEEN=new Set(JSON.parse(localStorage.getItem("znx_seen")||"[]"))}catch(e){}
 const SESS=new Set();
 window.znxSeen=sid=>{SEEN.add(sid);SESS.add(sid);try{localStorage.setItem("znx_seen",JSON.stringify([...SEEN].slice(-1000)))}catch(e){}};
-window.znxDead=x=>{if(!/replied 4|not found/i.test(zyErr||"")){ts("Could not load: "+(zyErr||"try again"));return}if(x.sid){HIDE.add(x.sid);saveHide()}if(cur)MSG[cur.id]=(MSG[cur.id]||[]).filter(z=>z!==x);ts("Removed: "+zyErr);if(cur&&chatOn())render(true)};
-window.znxLeave=()=>{const u=cur;if(!u||!SB)return;const m=MSG[u.id]||[],ids=[],ps=[];
- m.forEach(x=>{if(!x.k||!x.sid)return;if(x.d==="out")HIDE.add(x.sid);else /* PATCH-ZNX-LIFE-V2 */if(SEEN.has(x.sid)){HIDE.add(x.sid);ids.push(x.sid);const p=pathOf(x);if(p)ps.push(p)}});
+window.znxDead=x=>{/* PATCH-MEDIA-V1 */if(!/not found/i.test(zyErr||"")){ts("Could not load. Check your internet and try again");return}if(x.sid){HIDE.add(x.sid);saveHide()}if(cur)MSG[cur.id]=(MSG[cur.id]||[]).filter(z=>z!==x);ts("This file is no longer available");if(cur&&chatOn())render(true)};
+window.znxLeave=()=>{/* PATCH-MEDIA-V1 */const u=cur;if(!u||!SB)return;const m=MSG[u.id]||[],gone=[];
+ m.forEach(x=>{if(!x.k||!x.sid)return;if(x.d==="out")HIDE.add(x.sid);else if(SEEN.has(x.sid)){HIDE.add(x.sid);gone.push(x)}});
  MSG[u.id]=m.filter(x=>!(x.k&&x.d==="out")&&!(x.sid&&HIDE.has(x.sid)));SESS.clear();saveHide();
- if(ids.length)SB.from("messages").delete().in("id",ids).then(()=>{},()=>{});
- if(ps.length)SB.storage.from("chat-media").remove(ps).then(()=>{},()=>{})};
+ if(gone.length){const pm={};gone.forEach(x=>{const p=pathOf(x);if(p)pm[x.sid]=p});
+  SB.from("messages").delete().in("id",gone.map(x=>x.sid)).select("id").then(r=>{const px=(r.data||[]).map(z=>pm[z.id]).filter(Boolean);if(px.length)SB.storage.from("chat-media").remove(px).then(()=>{},()=>{})},()=>{})}};
 const _rd=render;render=function(k){if(cur){MSG[cur.id]=(MSG[cur.id]||[]).filter(x=>!(x.sid&&HIDE.has(x.sid)));MSG[cur.id].forEach(x=>{dec(x);if(x.k&&x.ts&&Date.now()-x.ts>7*864e5)x.gone=true})}_rd(k)};
 const _ls=list;list=function(){applyPres();U.forEach(u=>{if(u.l&&u.l.startsWith(MK)){try{u.l=lblOf(JSON.parse(u.l.slice(MK.length)).k)}catch(e){u.l="Media"}}});_ls()};
 const _bn=banner;banner=function(a,b,c,d){if(typeof b==="string"&&b.startsWith(MK)){try{b=lblOf(JSON.parse(b.slice(MK.length)).k)}catch(e){b="Media"}}_bn(a,b,c,d)};
@@ -1932,13 +1935,13 @@ sendMedia=async function(o){
  (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=lblOf(o.k);c.t=x.tm;c.lat=now;U.sort((a,b)=>(b.lat||0)-(a.lat||0));RP=null;paintRP();NEWI=MSG[c.id].length-1;render();NEWI=-1;
  try{
   const blob=await zyPrep(o,x),ext=((o.name||"").split(".").pop()||"bin").replace(/[^a-z0-9]/gi,"").slice(0,5)||"bin",path=PID+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
-  const up=await SB.storage.from("chat-media").upload(path,blob,{contentType:blob.type||undefined,cacheControl:"3600"});if(up.error)throw up.error;
+  /* PATCH-MEDIA-V1 */let up;for(let a=0;a<3;a++){up=await SB.storage.from("chat-media").upload(path,blob,{contentType:blob.type||undefined,cacheControl:"3600"});if(!up.error||/exist|duplicate/i.test(String(up.error.message||"")))break;await new Promise(r=>setTimeout(r,a*900+600))}if(up.error&&!/exist|duplicate/i.test(String(up.error.message||"")))throw up.error;
   x.path=path;const url=SB.storage.from("chat-media").getPublicUrl(path).data.publicUrl;MEDC[url]=o.src;
   if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
   const pay={k:o.k,u:url,name:o.name,size:blob.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,th:x.th,cap:o.cap||""};
   const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:MK+JSON.stringify(pay)});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=row.id;x.st=1;
- }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);ts("Upload failed. Run the SQL setup first.")}
+ }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);/* PATCH-MEDIA-V1 */ts("Upload failed. Check your internet and send again.")}
  if(cur===c&&chatOn())render(true)};
 
 
