@@ -469,7 +469,9 @@ body.hasmini #pg{padding-bottom:170px}
 .ethud{top:14px;left:50%;transform:translate(-50%,-10px);display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:20px;font-size:11.5px;border:1px solid rgba(255,255,255,.12);transition:opacity .25s,transform .4s cubic-bezier(.2,.9,.3,1.3)}.ethud.on{opacity:1;transform:translate(-50%,0)}.ethud b{font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px}.ethud i{width:80px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden}.ethud s{display:block;height:100%;background:linear-gradient(90deg,#8f88ff,#5ec2b7)}
 .srcb{display:flex;align-items:center;gap:4px;padding:5px 6px 5px 18px;border-radius:28px;border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--sf) 80%,transparent),color-mix(in srgb,var(--sf) 80%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box}
 .srcb input{flex:1;min-width:0;height:42px;padding:0;margin:0;border:0;background:none;box-shadow:none;border-radius:0}.srcb .ib{width:42px;height:42px;flex:none}.srcb .ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#etgo{background:var(--bt);color:#fff;border-radius:50%}
-.etx{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;padding:2px 0}.etx .m{align-self:flex-end;max-width:80%}.etin{display:flex;gap:8px;margin-top:8px}.etin input{margin:0;flex:1;border-radius:24px}
+.etx{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;padding:2px 0}.etx .m{align-self:flex-end;max-width:80%}
+/* PATCH-ZNX-ROOM-V1 */.etx .m.in{align-self:flex-start}
+.ava.spk{box-shadow:0 0 0 2px var(--ac),0 0 18px var(--ac);transition:box-shadow .2s}.etin{display:flex;gap:8px;margin-top:8px}.etin input{margin:0;flex:1;border-radius:24px}
 .gb{height:34px;padding:0 14px;border-radius:17px;font-size:12.5px;font-weight:600;border:1px solid var(--ln);background:var(--sf);color:var(--tx);flex:none}.gb.pri{border-color:transparent;background:var(--bt);color:#fff}
 .mono{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}.etlv{margin-top:14px;justify-content:center}.etlv .t{flex:none}
 
@@ -1424,7 +1426,7 @@ function tourEnd(){$("tr").classList.remove("on");try{localStorage.setItem("znx_
 $("trn").onclick=()=>{if(TI<TOUR.length-1){TI++;tourDraw()}else tourEnd()};$("trs").onclick=tourEnd;
 
 /* ===== chat to Enjoy, GIF, random, privacy lists, floating orb ===== */
-function enjoyWith(u){etOpen();if(u&&!ET.mem.some(m=>m.n===u.n)){ET.mem.push({n:u.n,w:1});etHead()}ts(u?u.n.split(" ")[0]+" is invited":"Room ready")}
+function enjoyWith(u){/* PATCH-ZNX-ROOM-V1 */etOpen();if(u)etInviteTo(u);ts(u?u.n.split(" ")[0]+" is invited":"Room ready")}
 function gifSheet(){sheet(`<h3>GIF</h3><div class="glist"><div class="gr" style="opacity:.55"><i>${A('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>')}</i><span class="t"><b>Search GIPHY</b><small>Works on your own site with a GIPHY key</small></span><span class="chip">Later</span></div><button class="gr" data-g="dev"><i>${IC.gal}</i><span class="t"><b>From your device</b><small>Send a .gif or animated .webp</small></span><em>›</em></button></div>`);
  $("sh").onclick=e=>{if(!e.target.closest("[data-g]"))return;closeS();pickFile("image/gif,image/webp",0,f=>sendMedia({k:"img",src:URL.createObjectURL(f),name:f.name,size:f.size,gif:true}))}}
 const rdRows=()=>`<div class="glist" style="margin-bottom:14px">${[["chat","Random chat","Meet someone new",SI.chat],["call","Random call","Talk to someone new",IC.phone]].map(r=>`<button class="gr" data-rd="${r[0]}"><i>${r[3]}</i><span class="t"><b>${r[1]}</b><small>${r[2]}</small></span><em>›</em></button>`).join("")}</div>`;
@@ -1539,7 +1541,7 @@ function clState(s){if(!CL.on||!CL.pc)return;
  else if(s==="failed")clRetry()}
 function clRetry(){if(!CL.on)return;if(CL.fail++>=2)return clEnd("lost");
  if(CL.role==="out")clOffer(true).catch(()=>{});else{clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&CL.pc&&CL.pc.connectionState!=="connected")clEnd("lost")},15000)}}
-function clGot(m){if(!m||!m.t||!m.from)return;
+function clGot(m){if(!m||!m.t||!m.from)return;/* PATCH-ZNX-ROOM-V1 */if(m.t==="etinv")return etInvIn(m);
  if(m.t==="invite"){const c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
   if(CL.on||(u&&BL.includes(u.id))||!ST2.calls){clSig(m.from,{t:CL.on?"busy":"decline",id:m.id});return}
   Object.assign(CL,{on:1,role:"in",id:m.id,pid:m.from,peer:u||{n:String(m.name||"Unknown").slice(0,30),p:0},t0:0,mute:0,spk:1,fail:0,busy:0,q:[]});
@@ -1592,27 +1594,27 @@ function banHide(){$("ban").classList.remove("on");$("ban").style.transform=""}
  const up=e=>{if(!d)return;const dy=e.clientY-d.y;d=null;b.style.transition="";if(dr&&dy<-28){banHide();return}b.style.transform="";if(!dr&&BANID){banHide();const u=U.find(x=>x.id===BANID);if(u)openChat(u.id)}else BANT=setTimeout(banHide,2500)};b.addEventListener("pointerup",up);b.addEventListener("pointercancel",up)}
 
 /* ===== Enjoy Together ===== */
-const ET={code:"",mem:[],msgs:[],q:[],ctl:"all",url:null,hide:0,kind:"watch",voice:0,mic:0,cur:null,title:"",pane:"chat",fav:"all",sm:false,sel:new Set(),vis:[]},P2={yt:null,kind:"",vol:80,bright:1};
+const ET={code:"",mem:[],msgs:[],q:[],ctl:"all",/* PATCH-ZNX-ROOM-V1 */ch:null,host:1,pid:"",j:0,live:0,lv:0,hm:0,rx:0,hb:0,got:0,vp:{},mu:{},url:null,hide:0,kind:"watch",voice:0,mic:0,cur:null,title:"",pane:"chat",fav:"all",sm:false,sel:new Set(),vis:[]},P2={yt:null,kind:"",vol:80,bright:1};
 let FAV=[];try{FAV=JSON.parse(localStorage.getItem("znx_fav")||"[]")}catch(e){}
 const favSave=()=>{try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}if(window.znxFavSync)window.znxFavSync()};
 function parseSrc(u){u=(u||"").trim();if(!u)return null;const m=u.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);if(m)return{t:"yt",id:m[1]};if(/^https?:\/\/\S+\.(mp4|webm|m3u8|mov|m4v|ogg|mp3|m4a|wav)(\?\S*)?$/i.test(u))return{t:"url",url:u};return null}
 /* player core: YouTube or direct media behind one control surface */
 const plDur=()=>P2.kind==="yt"?(P2.yt&&P2.yt.getDuration?P2.yt.getDuration()||0:0):($("etv").duration||0),plTime=()=>P2.kind==="yt"?(P2.yt&&P2.yt.getCurrentTime?P2.yt.getCurrentTime()||0:0):$("etv").currentTime||0;
 const plPaused=()=>P2.kind==="yt"?!(P2.yt&&P2.yt.getPlayerState&&P2.yt.getPlayerState()===1):$("etv").paused;
-const plSeek=t=>{if(P2.kind==="yt"){P2.yt&&P2.yt.seekTo&&P2.yt.seekTo(t,true)}else $("etv").currentTime=t};
+const plSeek=t=>{/* PATCH-ZNX-ROOM-V1 */if(!etCan())return ts("Only the host controls playback");if(P2.kind==="yt"){P2.yt&&P2.yt.seekTo&&P2.yt.seekTo(t,true)}else $("etv").currentTime=t;etTx({t:"seek",at:t})};
 const etShow=()=>{const k=$("etk");k.classList.add("on");clearTimeout(ET.hide);ET.hide=setTimeout(()=>{if(!plPaused()&&ET.kind!=="listen")k.classList.remove("on")},2800)};
-const plToggle=()=>{if(!P2.kind)return;if(P2.kind==="yt"){if(!P2.yt)return;plPaused()?P2.yt.playVideo():P2.yt.pauseVideo()}else{const v=$("etv");v.paused?v.play():v.pause()}etShow()};
+const plToggle=()=>{/* PATCH-ZNX-ROOM-V1 */if(!P2.kind)return;if(!etCan())return ts("Only the host controls playback");const was=plPaused();if(P2.kind==="yt"){if(!P2.yt)return;was?P2.yt.playVideo():P2.yt.pauseVideo()}else{const v=$("etv");was?v.play():v.pause()}etTx({t:was?"play":"pause",at:plTime()});etShow()};
 const plVol=v=>{P2.vol=Math.max(0,Math.min(100,v));if(P2.kind==="yt"){P2.yt&&P2.yt.setVolume&&P2.yt.setVolume(P2.vol)}else $("etv").volume=P2.vol/100};
 const plBr=b=>{P2.bright=Math.max(.35,Math.min(1.15,b));$("etdim").style.opacity=String(Math.max(0,1-P2.bright)*.85)};
 function etKill(){if(P2.yt&&P2.yt.destroy){try{P2.yt.destroy()}catch(e){}}P2.yt=null;P2.kind="";const w=$("etyw");if(w)w.innerHTML='<div id="etyt"></div>'}
 function ytLoad(){return new Promise((res,rej)=>{if(window.YT&&YT.Player)return res();const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";sc.onerror=()=>rej();window.onYouTubeIframeAPIReady=()=>res();document.head.appendChild(sc);setTimeout(()=>rej(),7000)})}
-async function etLoad(src,title){const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
+async function etLoad(src,title){/* PATCH-ZNX-ROOM-V1 */if(!etCan())return ts("Only the host controls playback");const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";if(src.t==="yt"||!/^blob:/.test(src.url||""))etTx({t:"src",src:src,title:ET.title,kind:ET.kind});else if(ET.ch)ts("Device files play only on your phone");$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
  if(src.t==="yt"){v.pause();v.removeAttribute("src");v.style.display="none";P2.kind="yt";
   try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById(src.id)}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{if(e.data===0)etNext()}}})}}
   catch(x){P2.kind="";ET.cur=null;$("etg").classList.remove("on");$("etn").style.display="";$("etn").innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>YouTube cannot load in this preview</b><small>This preview blocks outside players. On your own site it plays here with your controls.</small><button class="pri" id="etpick">From device</button>'}}
  else{if(P2.yt)etKill();P2.kind="file";v.style.display="";v.src=src.url;v.volume=P2.vol/100;v.play().catch(()=>{});v.onended=etNext}
  etShow();etUI();if(ET.pane==="queue")etQueue()}
-function etNext(){const n=ET.q.shift();if(n){etLoad(n.src,n.title);ts("Next: "+(n.title||"queued item"))}if(ET.pane==="queue")etQueue()}
+function etNext(){/* PATCH-ZNX-ROOM-V1 */if(ET.ch&&!ET.host)return;const n=ET.q.shift();if(n){etLoad(n.src,n.title);ts("Next: "+(n.title||"queued item"))}etTx({t:"q",q:ET.q});if(ET.pane==="queue")etQueue()}
 function etUI(){const d=plDur(),t=plTime();$("etp").innerHTML=plPaused()?PL:PA;if(d){const p=t/d*100;$("etf").style.width=p+"%";$("etkn").style.left=p+"%";$("eta").textContent=mpFmt(t);$("etd").textContent=mpFmt(d)}}
 setInterval(()=>{if($("et").classList.contains("on")&&P2.kind)etUI()},250);
 $("etp").onclick=e=>{e.stopPropagation();plToggle()};
@@ -1630,27 +1632,100 @@ function etHud(label,val,txt){const h=$("ethud");h.innerHTML=`<b>${label}</b>${v
   if(n-tapT<280&&Math.abs(x-tapX)<.25&&(x<.35||x>.65)){const d=x<.5?-10:10;plSeek(Math.max(0,Math.min(plDur(),plTime()+d)));const f=$("etdb");f.textContent=d<0?"‹‹  10 s":"10 s  ››";f.style.left=d<0?"14%":"auto";f.style.right=d>0?"14%":"auto";f.animate([{opacity:0,transform:"translateY(8px)"},{opacity:1,offset:.25},{opacity:0,transform:"translateY(-6px)"}],{duration:650});tapT=0;return}
   tapT=n;tapX=x;const k=$("etk");k.classList.contains("on")&&!plPaused()&&ET.kind!=="listen"?k.classList.remove("on"):etShow()};gs.addEventListener("pointerup",up);gs.addEventListener("pointercancel",()=>{st=null})}
 /* room */
-function etHead(){$("etc").textContent="ROOM · "+ET.code;$("etstk").innerHTML=ET.mem.map((m,i)=>`<div class="ava" style="background:${g(m.n)}">${esc(ini(m.n))}</div>`).join("")+`<em>${ET.mem.length}/5</em>`;const b=$("etmic");b.innerHTML=ET.voice&&!ET.mic?CI.micx:CI.mic;b.classList.toggle("on",!!ET.voice&&!!ET.mic);b.classList.toggle("off",!!ET.voice&&!ET.mic)}
+function etHead(){$("etc").textContent="ROOM · "+ET.code;$("etstk").innerHTML=ET.mem.map((m,i)=>`<div class="ava" data-pid="${m.pid}" style="background:${g(m.n)}">${esc(ini(m.n))}</div>`).join("")+`<em>${ET.mem.length}/5</em>`;const b=$("etmic");b.innerHTML=ET.voice&&!ET.mic?CI.micx:CI.mic;b.classList.toggle("on",!!ET.voice&&!!ET.mic);b.classList.toggle("off",!!ET.voice&&!ET.mic)}
 function etPane(k){ET.pane=k;ET.sm=false;ET.sel.clear();[...$("ettabs").children].forEach(b=>b.classList.toggle("on",b.dataset.p===k));["chat","queue","saved","room"].forEach(p=>$("etp_"+p).classList.toggle("hide",p!==k));({chat:etChat,queue:etQueue,saved:etSaved,room:etRoom})[k]()}
-function etChat(){$("etx").innerHTML=ET.msgs.length?ET.msgs.map(m=>`<div class="m out">${esc(m)}</div>`).join(""):'<div class="empty" style="padding:18px">No messages yet.</div>';$("etx").scrollTop=1e9}
+function etChat(){$("etx").innerHTML=ET.msgs.length?ET.msgs.map(m=>`<div class="m ${m.me?"out":"in"}">${m.me?"":`<b style="display:block;font-size:11px;opacity:.7">${esc(m.n)}</b>`}${esc(m.t)}</div>`).join(""):'<div class="empty" style="padding:18px">No messages yet.</div>';$("etx").scrollTop=1e9}
 function etQueue(){const l=ET.q,sm=ET.sm&&ET.pane==="queue";$("etp_queue").innerHTML=`${ET.cur?`<div class="sec">Now playing</div><div class="glist"><div class="gr"><span class="t"><b>${esc(ET.title||"Playing")}</b><small class="mono">${ET.kind==="listen"?"Audio":"Video"}</small></span></div></div>`:""}<div class="shd"><div class="sec" style="margin:16px 4px 10px">Up next · ${l.length}</div>${l.length?`<button class="gb" data-es="tog">${sm?"Done":"Select"}</button>`:""}</div>${l.length?`<div class="glist">${l.map((n,i)=>`<div class="gr"${sm?` data-eq="${i}"`:""}>${sm?`<span class="ck${ET.sel.has(i)?" on":""}"></span>`:""}<span class="t"><b>${esc(n.title||"Untitled")}</b></span>${sm?"":`<button class="ib" data-qd="${i}" aria-label="Remove">${IC.trash}</button>`}</div>`).join("")}</div>${sm?`<div class="ibar"><b>${ET.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-es="all">All</button><button class="gb dg" data-es="del">Remove</button></div>`:'<button class="gb" data-qs="1" style="margin-top:12px">Skip to next</button>'}`:'<div class="empty" style="padding:22px">Nothing queued.<br><small>Add items from Saved.</small></div>'}`}
 function etSaved(){const f=ET.fav,sm=ET.sm&&ET.pane==="saved",l=FAV.filter(x=>x.kind===ET.kind&&(f==="all"||x.scope===f)),TY=["","Soothing","Vibe","Energetic"];ET.vis=l;
  $("etp_saved").innerHTML=`<div class="shd"><div class="seg" id="etfv2" style="flex:1;margin-right:10px">${["all","private","global"].map(k=>`<button data-f="${k}" class="${f===k?"on":""}">${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}</div>${l.length?`<button class="gb" data-es="tog">${sm?"Done":"Select"}</button>`:""}</div>${l.length?`<div class="glist">${l.map(x=>`<div class="gr"${sm?` data-ef="${x.id}"`:""}>${sm?`<span class="ck${ET.sel.has(x.id)?" on":""}"></span>`:""}<span class="t"><b>${esc(x.title)}</b><small class="mono">${x.scope}${x.type?" · "+TY[x.type]:""}</small></span>${sm?"":`<button class="ib" data-fa="q:${x.id}" aria-label="Add to queue">${A('<path d="M12 5v14M5 12h14"/>')}</button><button class="gb pri" data-fa="p:${x.id}">Play</button><button class="ib" data-fa="d:${x.id}" aria-label="Remove">${IC.trash}</button>`}</div>`).join("")}</div>${sm?`<div class="ibar"><b>${ET.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-es="all">All</button><button class="gb" data-es="priv">Private</button><button class="gb" data-es="glob">Global</button><button class="gb dg" data-es="del">Remove</button></div>`:""}`:'<div class="empty" style="padding:22px">Nothing saved yet.<br><small>Paste a link and tap the star.</small></div>'}`}
-function etRoom(){$("etp_room").innerHTML=`<div class="glist">${ET.mem.map((m,i)=>`<div class="gr"><div class="ava" style="background:${g(m.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(m.n))}</div><span class="t"><b>${esc(m.n)}${i===0?" (You)":""}</b><small class="mono">${m.host?"Host":m.w?"Invited":"Member"}${ET.voice&&(m.muted||(i===0&&!ET.mic))?" · Muted":""}</small></span>${i>0?`${ET.voice?`<button class="gb" data-mm="${i}">${m.muted?"Unmute":"Mute"}</button>`:""}<button class="ib" data-mr="${i}" aria-label="Remove">${IC.trash}</button>`:""}</div>`).join("")}${ET.mem.length<5?`<button class="gr" data-inv="1"><i>${A('<path d="M12 5v14M5 12h14"/>')}</i><span class="t"><b>Invite a friend</b></span></button>`:""}</div>
- <div class="sec">Voice</div><div class="glist"><div class="gr"><span class="t"><b>Voice chat</b><small>Everyone in the room can talk. The host can mute anyone.</small></span><button class="tg ${ET.voice?"on":""}" data-voice="1" aria-label="Voice chat"></button></div></div>
+function etRoom(){/* PATCH-ZNX-ROOM-V1 */$("etp_room").innerHTML=`<div class="glist">${ET.mem.map((m,i)=>`<div class="gr"><div class="ava" data-pid="${m.pid}" style="background:${g(m.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(m.n))}</div><span class="t"><b>${esc(m.n)}${m.me?" (You)":""}</b><small class="mono">${m.host?"Host":m.w?"Invited":"Member"}${m.v?((m.me?ET.mic:m.mic)?" · In voice":" · Muted"):""}</small></span>${!m.me&&ET.host?`${m.v?`<button class="gb" data-mm="${i}">${ET.mu[m.pid]?"Unmute":"Mute"}</button>`:""}<button class="ib" data-mr="${i}" aria-label="Remove">${IC.trash}</button>`:""}</div>`).join("")}${ET.mem.length<5?`<button class="gr" data-inv="1"><i>${A('<path d="M12 5v14M5 12h14"/>')}</i><span class="t"><b>Invite a friend</b></span></button>`:""}</div>
+ <div class="sec">Voice</div><div class="glist"><div class="gr"><span class="t"><b>Voice chat</b><small>Join or leave any time. The host can mute anyone.</small></span><button class="tg ${ET.voice?"on":""}" data-voice="1" aria-label="Voice chat"></button></div></div>
  <div class="sec">Who controls playback</div><div class="seg" id="etcm"><button data-c="all" class="${ET.ctl==="all"?"on":""}">Everyone</button><button data-c="host" class="${ET.ctl==="host"?"on":""}">Host only</button></div>
  <button class="gr dang etlv" data-leave="1"><span class="t"><b>Leave room</b></span></button>`}
-function etOpen(){ET.code=Math.random().toString(36).slice(2,8).toUpperCase();ET.mem=[{n:MY.name,host:1}];ET.msgs=[];ET.q=[];ET.voice=0;ET.mic=0;etClear();$("et").classList.add("on");etHead();etPane("chat");$("etsd").innerHTML=IC.send}
+function etOpen(code){/* PATCH-ZNX-ROOM-V1 */etLeave();ET.code=code||Math.random().toString(36).slice(2,8).toUpperCase();ET.host=code?0:1;ET.mem=[{n:MY.name,host:ET.host}];ET.msgs=[];ET.q=[];ET.voice=0;ET.mic=0;ET.ctl="all";etClear();$("et").classList.add("on");etHead();etPane("chat");$("etsd").innerHTML=IC.send;etJoin()}
 function etClear(){etKill();const v=$("etv");v.pause();v.removeAttribute("src");v.load();if(ET.url)URL.revokeObjectURL(ET.url);ET.url=null;ET.cur=null;ET.title="";$("etg").classList.remove("on");$("etn").style.display="";$("etp").innerHTML=PL;$("etf").style.width="0";$("etkn").style.left="0";$("eta").textContent="0:00";$("etd").textContent="0:00"}
-function etClose(){if(ETA){ETA.s.getTracks().forEach(t=>t.stop());ETA=null}$("et").classList.remove("on");etClear()}
+function etClose(){/* PATCH-ZNX-ROOM-V1 */etLeave();$("et").classList.remove("on");etClear()}
 function etInvite(){const l=U.filter(u=>!BL.includes(u.id)&&!ET.mem.some(m=>m.n===u.n)).sort((a,b)=>b.on-a.on);
  sheet(`<h3>Invite to the room</h3>${l.length?l.map(u=>`<div class="pr2"><div class="ava" style="background:${g(u.n)};width:42px;height:42px;font-size:14px">${esc(ini(u.n))}</div><div class="t"><b>${esc(u.n)}</b><small>${u.on?"Online":"Offline"}</small></div><button class="pri" style="height:36px;padding:0 16px;border-radius:18px;font-size:13px" data-iv="${u.id}">Invite</button></div>`).join(""):'<div class="empty">Everyone is already here.</div>'}`);
- $("sh").onclick=ev=>{const b=ev.target.closest("[data-iv]");if(!b)return;const u=U.find(x=>x.id==b.dataset.iv);if(!u||ET.mem.length>=5)return;ET.mem.push({n:u.n,w:1});closeS();etHead();if(ET.pane==="room")etRoom();ts("Invite sent to "+u.n.split(" ")[0])}}
+ $("sh").onclick=ev=>{const b=ev.target.closest("[data-iv]");if(!b)return;const u=U.find(x=>x.id==b.dataset.iv);if(!u||ET.mem.length>=5)return;/* PATCH-ZNX-ROOM-V1 */etInviteTo(u);closeS();ts("Invite sent to "+u.n.split(" ")[0])}}
+/* PATCH-ZNX-ROOM-V1 */
+const ETI=()=>[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}].concat(CL_TURN);
+function etCan(){return !ET.ch||ET.rx||ET.ctl==="all"||!!ET.host}
+function etRaw(m){if(!ET.ch||!ET.live)return;try{ET.ch.send({type:"broadcast",event:"m",payload:Object.assign({from:ET.pid},m)})}catch(e){}}
+function etTx(m){if(!ET.rx)etRaw(m)}
+function etPresence(){if(!ET.ch||!ET.live)return;try{ET.ch.track({n:MY.name,pid:ET.pid,j:ET.j,host:ET.host?1:0,v:ET.voice?1:0,mic:ET.mic?1:0})}catch(e){}}
+function etKind(){[...$("ets").children].forEach(b=>b.classList.toggle("on",(b.dataset.k==="l")===(ET.kind==="listen")));$("etg").classList.toggle("aud",ET.kind==="listen");$("etlink").placeholder=ET.kind==="listen"?"Paste a YouTube or audio link":"Paste YouTube or video link"}
+function etPos(at,pl){if(!P2.kind)return;if(Math.abs(plTime()-at)>1.2)plSeek(at);if(pl&&plPaused())plToggle();else if(!pl&&!plPaused())plToggle()}
+function etBeat(){if(ET.host&&P2.kind&&!plPaused())etTx({t:"hb",at:plTime()})}
+function etJoin(){const c=clCtx();if(!c.sb||!c.pid){ET.ch=null;return}
+ ET.pid=c.pid;ET.j=Date.now();ET.vp={};ET.mu={};ET.live=0;ET.got=0;ET.mem[0].pid=ET.pid;ET.mem[0].me=true;
+ const ch=c.sb.channel("et:"+ET.code,{config:{broadcast:{self:false},presence:{key:ET.pid}}});ET.ch=ch;
+ ch.on("presence",{event:"sync"},etSync).on("broadcast",{event:"m"},p=>etGot(p.payload)).subscribe(s=>{if(ET.ch!==ch)return;
+  if(s==="SUBSCRIBED"){ET.live=1;etPresence();if(!ET.host){etRaw({t:"hello"});setTimeout(()=>{if(ET.ch===ch&&!ET.got)etRaw({t:"hello"})},1800)}clearInterval(ET.hb);ET.hb=setInterval(etBeat,4000)}
+  else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")ts("Room connection is weak")})}
+function etLeave(){clearInterval(ET.hb);etVoiceOff();ET.voice=0;ET.mic=0;ET.hm=0;ET.live=0;ET.mu={};ET.vp={};const ch=ET.ch;ET.ch=null;if(ch){try{ch.untrack()}catch(e){}try{clCtx().sb.removeChannel(ch)}catch(e){}}}
+function etSync(){if(!ET.ch)return;const st=ET.ch.presenceState(),live=[];for(const k in st){const x=st[k][st[k].length-1];if(x&&x.pid)live.push(x)}
+ live.sort((a,b)=>(a.j||0)-(b.j||0));
+ if(live.length&&!live.some(x=>x.host)&&live[0].pid===ET.pid&&!ET.host){ET.host=1;etPresence();ts("You are the host now")}
+ if(live.findIndex(x=>x.pid===ET.pid)>=5){ts("This room is full");etClose();return}
+ const pend=ET.mem.filter(x=>x.w&&!live.some(l=>l.pid===x.pid));
+ ET.mem=live.slice().sort((a,b)=>(b.host?1:0)-(a.host?1:0)||(a.j||0)-(b.j||0)).map(l=>({n:l.n||"Friend",pid:l.pid,host:!!l.host,v:!!l.v,mic:!!l.mic,me:l.pid===ET.pid})).concat(pend);
+ if(!live.some(l=>l.pid===ET.pid))ET.mem.unshift({n:MY.name,pid:ET.pid,host:!!ET.host,v:!!ET.voice,mic:!!ET.mic,me:true});
+ etPeers();etHead();if(ET.pane==="room")etRoom()}
+function etGot(m){if(!m||!m.t||m.from===ET.pid)return;
+ const frm=ET.mem.find(x=>x.pid===m.from),hostMsg=!!(frm&&frm.host),ctl=ET.ctl==="all"||hostMsg;
+ if(m.t==="vsig"){if(m.to===ET.pid)etVsig(m);return}
+ ET.rx=1;
+ try{
+  if(m.t==="hello"){if(ET.host){const ok=ET.cur&&(ET.cur.t==="yt"||!/^blob:/.test(ET.cur.url||""));etRaw({t:"state",to:m.from,src:ok?ET.cur:null,title:ET.title,kind:ET.kind,at:ok?plTime():0,pl:!!ok&&!plPaused(),q:ET.q,ctl:ET.ctl})}}
+  else if(m.t==="state"){if(m.to!==ET.pid||ET.host)return;ET.got=1;ET.ctl=m.ctl==="host"?"host":"all";ET.q=Array.isArray(m.q)?m.q:[];ET.kind=m.kind==="listen"?"listen":"watch";etKind();
+   if(m.src){etLoad(m.src,m.title||"");setTimeout(()=>{ET.rx=1;try{etPos((m.at||0)+(m.pl?2.4:0),!!m.pl)}finally{ET.rx=0}},2400)}
+   if(ET.pane==="queue")etQueue();if(ET.pane==="room")etRoom()}
+  else if(m.t==="src"){if(!ctl||!m.src)return;ET.kind=m.kind==="listen"?"listen":"watch";etKind();etLoad(m.src,m.title||"");$("etlink").value=m.src.t==="yt"?"https://youtu.be/"+m.src.id:m.src.url||""}
+  else if(m.t==="play"){if(ctl)etPos(m.at||0,true)}
+  else if(m.t==="pause"){if(ctl)etPos(m.at||0,false)}
+  else if(m.t==="seek"){if(ctl&&P2.kind)plSeek(m.at||0)}
+  else if(m.t==="q"){if(ctl){ET.q=Array.isArray(m.q)?m.q:[];if(ET.pane==="queue")etQueue()}}
+  else if(m.t==="chat"){const tx=String(m.m||"").slice(0,200),nm=String(m.n||"Friend").slice(0,30);ET.msgs.push({n:nm,t:tx,me:0});if(ET.pane==="chat")etChat();else ts(nm.split(" ")[0]+": "+tx.slice(0,40))}
+  else if(m.t==="ctl"){if(hostMsg){ET.ctl=m.v==="host"?"host":"all";if(ET.pane==="room")etRoom()}}
+  else if(m.t==="mute"){if(hostMsg&&m.pid===ET.pid){ET.hm=m.v?1:0;if(m.v){ET.mic=0;if(ETA)ETA.s.getAudioTracks().forEach(t=>t.enabled=false)}ts(m.v?"The host muted you":"The host unmuted you");etHead();etPresence()}}
+  else if(m.t==="kick"){if(hostMsg&&m.pid===ET.pid){ts("The host removed you");etClose()}}
+  else if(m.t==="hb"){if(hostMsg&&!ET.host&&P2.kind){if(Math.abs(plTime()-(m.at||0))>2.5)plSeek(m.at||0);if(plPaused())plToggle()}}
+ }finally{ET.rx=0}}
+function etPeers(){for(const k in ET.vp){const m=ET.mem.find(x=>x.pid===k);if(!ET.voice||!m||!m.v)etPeerDrop(k)}
+ if(!ET.voice||!ETA)return;ET.mem.forEach(m=>{if(m.me||!m.pid||!m.v||ET.vp[m.pid]||ET.pid>m.pid)return;etPeerMake(m.pid,true)})}
+function etPeerMake(pid,init){const pc=new RTCPeerConnection({iceServers:ETI()}),au=new Audio(),p=ET.vp[pid]={pc:pc,au:au,q:[],an:null,d:null};au.autoplay=true;
+ ETA.s.getTracks().forEach(t=>pc.addTrack(t,ETA.s));
+ pc.onicecandidate=e=>{if(e.candidate)etRaw({t:"vsig",to:pid,k:"ice",c:e.candidate.toJSON()})};
+ pc.ontrack=e=>{au.srcObject=e.streams[0];au.play().catch(()=>{});try{const an=ETA.ac.createAnalyser();an.fftSize=256;ETA.ac.createMediaStreamSource(e.streams[0]).connect(an);p.an=an;p.d=new Uint8Array(an.frequencyBinCount);etLevel()}catch(x){}};
+ pc.onconnectionstatechange=()=>{if(pc.connectionState==="failed"&&ET.vp[pid]===p&&init){etPeerDrop(pid);setTimeout(etPeers,1500)}};
+ if(init)pc.createOffer().then(o=>pc.setLocalDescription(o).then(()=>etRaw({t:"vsig",to:pid,k:"offer",s:{type:o.type,sdp:o.sdp}}))).catch(()=>{});
+ return p}
+function etPeerDrop(pid){const p=ET.vp[pid];if(!p)return;try{p.pc.close()}catch(e){}p.au.srcObject=null;delete ET.vp[pid]}
+async function etVsig(m){if(!ETA||!ET.voice)return;let p=ET.vp[m.from];
+ try{if(m.k==="offer"){if(p)etPeerDrop(m.from);p=etPeerMake(m.from,false);await p.pc.setRemoteDescription(m.s);while(p.q.length)await p.pc.addIceCandidate(p.q.shift()).catch(()=>{});const a=await p.pc.createAnswer();await p.pc.setLocalDescription(a);etRaw({t:"vsig",to:m.from,k:"answer",s:{type:a.type,sdp:a.sdp}})}
+  else if(!p)return;
+  else if(m.k==="answer"){await p.pc.setRemoteDescription(m.s);while(p.q.length)await p.pc.addIceCandidate(p.q.shift()).catch(()=>{})}
+  else if(m.k==="ice"){if(p.pc.remoteDescription)await p.pc.addIceCandidate(m.c).catch(()=>{});else p.q.push(m.c)}}catch(e){}}
+function etVoiceOff(){Object.keys(ET.vp).forEach(k=>etPeerDrop(k));if(ETA){ETA.s.getTracks().forEach(t=>t.stop());try{ETA.ac.close()}catch(e){}ETA=null}}
+function etInviteTo(u){if(!u||!u.pid)return ts("This person cannot be invited");if(!ET.mem.some(x=>x.pid===u.pid))ET.mem.push({n:u.n,pid:u.pid,w:1});clSig(u.pid,{t:"etinv",code:ET.code,name:MY.name});etHead();if(ET.pane==="room")etRoom()}
+function etInvIn(m){if(!m.code||!/^[A-Z0-9]{4,8}$/.test(m.code)||CL.on)return;if($("et").classList.contains("on")&&ET.code===m.code)return;
+ const nm=String(m.name||"Someone").slice(0,30);
+ sheet(`<div class="ci"><div class="ava ciav" style="width:72px;height:72px;font-size:26px;cursor:default;background:${g(nm)}">${esc(ini(nm))}</div><b>${esc(nm)}</b><small>invited you to Enjoy Together</small></div><div class="grid" style="grid-template-columns:1fr 1fr"><button id="eid">Decline</button><button class="pri" id="eij">Join</button></div>`);
+ $("sh").onclick=e=>{if(e.target.closest("#eid"))closeS();else if(e.target.closest("#eij")){closeS();setTimeout(()=>etOpen(m.code),300)}};
+ if(navigator.vibrate)navigator.vibrate([20,40,20]);ping()}
 let ETA=null;
-async function etVoice(){if(ET.voice){ET.voice=0;ET.mic=0;if(ETA){ETA.s.getTracks().forEach(t=>t.stop());ETA=null}etHead();if(ET.pane==="room")etRoom();return ts("Left voice")}
- ET.voice=1;try{const st=await navigator.mediaDevices.getUserMedia({audio:true}),ac=new(window.AudioContext||window.webkitAudioContext)(),an=ac.createAnalyser();an.fftSize=256;ac.createMediaStreamSource(st).connect(an);ETA={s:st,ac,an,d:new Uint8Array(an.frequencyBinCount)};ET.mic=1;etLevel()}catch(e){ET.mic=0;ts("Microphone is not available here")}etHead();if(ET.pane==="room")etRoom();if(ET.mic)ts("Voice on. Everyone in the room can talk.")}
-function etLevel(){if(!ETA||!$("et").classList.contains("on"))return;ETA.an.getByteTimeDomainData(ETA.d);let m=0;for(const v of ETA.d)m=Math.max(m,Math.abs(v-128));$("etmic").style.setProperty("--lv",(ET.mic?Math.min(1,m/60):0).toFixed(2));requestAnimationFrame(etLevel)}
-$("etmic").onclick=()=>{if(!ET.voice)return etVoice();if(!ETA){return ts("Microphone is not available here")}ET.mic=ET.mic?0:1;ETA.s.getAudioTracks().forEach(t=>t.enabled=!!ET.mic);etHead();if(ET.pane==="room")etRoom()};
+async function etVoice(){/* PATCH-ZNX-ROOM-V1 */if(ET.voice){ET.voice=0;ET.mic=0;etVoiceOff();etHead();etPresence();if(ET.pane==="room")etRoom();return ts("Left voice")}
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:!!ST2.noise,autoGainControl:!!ST2.voice,channelCount:1}}),ac=new(window.AudioContext||window.webkitAudioContext)(),an=ac.createAnalyser();an.fftSize=256;ac.createMediaStreamSource(st).connect(an);ETA={s:st,ac,an,d:new Uint8Array(an.frequencyBinCount)};ET.voice=1;ET.mic=ET.hm?0:1;st.getAudioTracks().forEach(t=>t.enabled=!!ET.mic);etLevel();etPresence();etPeers()}catch(e){ET.voice=0;ET.mic=0;ts("Allow the microphone to join voice")}
+ etHead();if(ET.pane==="room")etRoom();if(ET.voice)ts("Voice on")}
+function etLevel(){if(ET.lv)return;ET.lv=1;const lp=()=>{if(!$("et").classList.contains("on")||(!ETA&&!Object.keys(ET.vp).length)){ET.lv=0;$("etmic").style.setProperty("--lv","0");return}
+ let m=0;if(ETA){ETA.an.getByteTimeDomainData(ETA.d);for(const v of ETA.d)m=Math.max(m,Math.abs(v-128))}
+ $("etmic").style.setProperty("--lv",(ET.mic?Math.min(1,m/60):0).toFixed(2));
+ const sp=new Set();if(ET.mic&&m>14)sp.add(ET.pid);
+ for(const k in ET.vp){const p=ET.vp[k];if(!p.an)continue;p.an.getByteTimeDomainData(p.d);let q=0;for(const v of p.d)q=Math.max(q,Math.abs(v-128));if(q>14)sp.add(k)}
+ document.querySelectorAll("#et .ava[data-pid]").forEach(a=>a.classList.toggle("spk",sp.has(a.dataset.pid)));
+ requestAnimationFrame(lp)};lp()}
+$("etmic").onclick=()=>{if(!ET.voice)return etVoice();if(ET.hm)return ts("The host muted you");if(!ETA)return ts("Microphone is not available here");ET.mic=ET.mic?0:1;ETA.s.getAudioTracks().forEach(t=>t.enabled=!!ET.mic);etHead();etPresence();if(ET.pane==="room")etRoom()};
 /* link, device file, favourites */
 $("etgo").onclick=()=>{const src=parseSrc($("etlink").value);if(!src)return ts("Paste a YouTube or video link");etLoad(src,"")};
 $("etlink").addEventListener("keydown",e=>{if(e.key==="Enter")$("etgo").click()});
@@ -1660,24 +1735,24 @@ $("etst").onclick=()=>{const src=parseSrc($("etlink").value)||ET.cur;if(!src)ret
  let sc="private",ty=1;$("sh").onclick=e=>{const b=e.target.closest("#fvs button,#fvt button");if(b){[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.s)sc=b.dataset.s;if(b.dataset.t)ty=+b.dataset.t;return}
   if(e.target.closest("#fvok")){const nm=$("fvn").value.trim();if(!nm)return ts("Give it a name");FAV.unshift({id:Date.now(),kind:ET.kind,title:nm,url,scope:sc,type:lis?ty:0});favSave();closeS();ts("Saved to favourites");if(ET.pane==="saved")etSaved()}}};
 $("ets").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));ET.kind=b.dataset.k==="l"?"listen":"watch";$("etg").classList.toggle("aud",ET.kind==="listen");$("etlink").placeholder=ET.kind==="listen"?"Paste a YouTube or audio link":"Paste YouTube or video link";if(ET.pane==="saved"||ET.pane==="queue")etPane(ET.pane)};
-const etSend=()=>{const i=$("etmsg"),t=i.value.trim();if(!t)return;ET.msgs.push(t);i.value="";etChat()};$("etsd").onclick=etSend;$("etmsg").addEventListener("keydown",e=>{if(e.key==="Enter")etSend()});
+const etSend=()=>{const i=$("etmsg"),t=i.value.trim();if(!t)return;/* PATCH-ZNX-ROOM-V1 */ET.msgs.push({n:MY.name,t:t,me:1});etTx({t:"chat",n:MY.name,m:t});i.value="";etChat()};$("etsd").onclick=etSend;$("etmsg").addEventListener("keydown",e=>{if(e.key==="Enter")etSend()});
 $("etb").onclick=etClose;
 $("et").addEventListener("click",e=>{const t=e.target;let b;
  if(b=t.closest("[data-es]")){const k=b.dataset.es,q=ET.pane==="queue";if(k==="tog"){ET.sm=!ET.sm;ET.sel.clear()}else if(k==="all"){const ids=q?ET.q.map((_,i)=>i):ET.vis.map(x=>x.id);ET.sel.size===ids.length?ET.sel.clear():ids.forEach(i=>ET.sel.add(i))}else if(!ET.sel.size)return ts("Select something first");
-  else if(k==="del"){if(q)ET.q=ET.q.filter((_,i)=>!ET.sel.has(i));else{FAV=FAV.filter(x=>!ET.sel.has(x.id));favSave()}ts(ET.sel.size+" removed");ET.sel.clear()}else{FAV.forEach(x=>{if(ET.sel.has(x.id))x.scope=k==="glob"?"global":"private"});favSave();ts("Updated");ET.sel.clear()}
+  else if(k==="del"){/* PATCH-ZNX-ROOM-V1 */if(q){ET.q=ET.q.filter((_,i)=>!ET.sel.has(i));etTx({t:"q",q:ET.q})}else{FAV=FAV.filter(x=>!ET.sel.has(x.id));favSave()}ts(ET.sel.size+" removed");ET.sel.clear()}else{FAV.forEach(x=>{if(ET.sel.has(x.id))x.scope=k==="glob"?"global":"private"});favSave();ts("Updated");ET.sel.clear()}
   return q?etQueue():etSaved()}
  if(b=t.closest("[data-eq],[data-ef]")){const id=+(b.dataset.eq??b.dataset.ef);ET.sel.has(id)?ET.sel.delete(id):ET.sel.add(id);return ET.pane==="queue"?etQueue():etSaved()}
  if(t.closest("#etpick"))return etPickFile();
  if(b=t.closest("#ettabs button"))return etPane(b.dataset.p);
  if(b=t.closest("#etfv2 button")){ET.fav=b.dataset.f;return etSaved()}
- if(b=t.closest("[data-fa]")){const[k,id]=b.dataset.fa.split(":"),x=FAV.find(z=>z.id==id);if(!x)return;if(k==="d"){FAV=FAV.filter(z=>z!==x);favSave();return etSaved()}const src=parseSrc(x.url);if(!src)return ts("This link cannot be played");if(k==="q"){ET.q.push({src,title:x.title});return ts("Added to queue")}$("etlink").value=x.url;return etLoad(src,x.title)}
- if(b=t.closest("[data-qd]")){ET.q.splice(+b.dataset.qd,1);return etQueue()}
+ if(b=t.closest("[data-fa]")){const[k,id]=b.dataset.fa.split(":"),x=FAV.find(z=>z.id==id);if(!x)return;if(k==="d"){FAV=FAV.filter(z=>z!==x);favSave();return etSaved()}const src=parseSrc(x.url);if(!src)return ts("This link cannot be played");if(k==="q"){ET.q.push({src,title:x.title});/* PATCH-ZNX-ROOM-V1 */etTx({t:"q",q:ET.q});return ts("Added to queue")}$("etlink").value=x.url;return etLoad(src,x.title)}
+ if(b=t.closest("[data-qd]")){ET.q.splice(+b.dataset.qd,1);/* PATCH-ZNX-ROOM-V1 */etTx({t:"q",q:ET.q});return etQueue()}
  if(t.closest("[data-qs]"))return etNext();
- if(b=t.closest("[data-mm]")){const m=ET.mem[+b.dataset.mm];m.muted=!m.muted;ts(m.muted?m.n.split(" ")[0]+" muted by host":"Unmuted");return etRoom()}
- if(b=t.closest("[data-mr]")){ET.mem.splice(+b.dataset.mr,1);etHead();return etRoom()}
+ if(b=t.closest("[data-mm]")){/* PATCH-ZNX-ROOM-V1 */const m=ET.mem[+b.dataset.mm];if(!m||!ET.host)return;ET.mu[m.pid]=!ET.mu[m.pid];etTx({t:"mute",pid:m.pid,v:!!ET.mu[m.pid]});ts(ET.mu[m.pid]?m.n.split(" ")[0]+" muted by host":"Unmuted");return etRoom()}
+ if(b=t.closest("[data-mr]")){/* PATCH-ZNX-ROOM-V1 */const m=ET.mem[+b.dataset.mr];if(!m||!ET.host)return;if(m.pid)etTx({t:"kick",pid:m.pid});ET.mem.splice(+b.dataset.mr,1);etHead();return etRoom()}
  if(t.closest("[data-inv]"))return etInvite();
  if(t.closest("[data-voice]"))return etVoice();
- if(b=t.closest("#etcm button")){ET.ctl=b.dataset.c;[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));return ts(ET.ctl==="all"?"Everyone can control playback":"Only the host controls playback")}
+ if(b=t.closest("#etcm button")){/* PATCH-ZNX-ROOM-V1 */if(!ET.host)return ts("Only the host can change this");ET.ctl=b.dataset.c;etTx({t:"ctl",v:ET.ctl});[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));return ts(ET.ctl==="all"?"Everyone can control playback":"Only the host controls playback")}
  if(t.closest("[data-leave]"))return etClose()});
 $("pg").addEventListener("click",e=>{if(tab==="enjoy"&&e.target.closest("[data-en=together]"))etOpen()});
 /* ===== Favourites ===== */
