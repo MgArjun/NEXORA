@@ -899,7 +899,7 @@ function showSv(n){clearInterval(sv.iv);if(n<0)n=0;if(n>=sv.l.length)return clos
  const b=$("svs");if(b)b.onclick=()=>{sv.p=1;sheet(`<h3>Seen by ${(x.v||[]).length}</h3>${(x.v||[]).length?(x.v).map(n=>`<div class="row"><div class="ava" style="background:${g(n)}">${esc(ini(n))}</div><div class="t"><b>${esc(n)}</b></div></div>`).join(""):'<div class="empty">No views yet</div>'}`);const o=new MutationObserver(()=>{if(!$("ov").classList.contains("on")){sv.p=0;o.disconnect()}});o.observe($("ov"),{attributes:true})}}
 $("svf").addEventListener("click",e=>{const s=e.target.closest("[data-e]");if(s)stReply(s.dataset.e)});
 document.querySelector("#sv .zl").onclick=()=>showSv(sv.i-1);document.querySelector("#sv .zr").onclick=()=>showSv(sv.i+1);$("svx").onclick=closeSv;
-$("svd").onclick=()=>{sv.p=1;sheet(`<h3>Delete this status?</h3><button class="opt rd" id="sdy">${TR}Delete</button>`);$("sdy").onclick=()=>{closeS();SS.me.splice(SS.me.indexOf(sv.l[sv.i]),1);sv.l.splice(sv.i,1);sv.p=0;ts("Status deleted");if(!sv.l.length)return closeSv();$("svb").innerHTML=sv.l.map(()=>"<i><b></b></i>").join("");showSv(Math.min(sv.i,sv.l.length-1))}};
+$("svd").onclick=()=>{sv.p=1;sheet(`<h3>Delete this status?</h3><button class="opt rd" id="sdy">${TR}Delete</button>`);$("sdy").onclick=()=>{closeS();{const x=sv.l[sv.i];if(x&&x.src)URL.revokeObjectURL(x.src)}SS.me.splice(SS.me.indexOf(sv.l[sv.i]),1);sv.l.splice(sv.i,1);sv.p=0;ts("Status deleted");if(!sv.l.length)return closeSv();$("svb").innerHTML=sv.l.map(()=>"<i><b></b></i>").join("");showSv(Math.min(sv.i,sv.l.length-1))}};
 /* press and hold = pause */
 const hold=el=>{el.addEventListener("pointerdown",()=>{sv.p=1;sv.vid&&sv.vid.pause()});["pointerup","pointercancel","pointerleave"].forEach(v=>el.addEventListener(v,()=>{if(!document.activeElement||document.activeElement.id!=="svi"){sv.p=0;sv.vid&&sv.vid.play&&sv.vid.play().catch(()=>{})}}))};
 hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
@@ -967,8 +967,8 @@ $("pg").addEventListener("click",e=>{if(tab!=="me")return;
  if(k==="out")return sheet(`<h3>Log out?</h3><div class="grid" style="grid-template-columns:1fr 1fr"><button onclick="document.getElementById('ov').classList.remove('on')">Cancel</button><button class="pri" id="lo">Log out</button></div>`),$("lo").onclick=()=>{closeS();window.znxOut()}});
 function dpSheet(){sheet(`<h3>Profile photo</h3><div class="grid" style="grid-template-columns:1fr 1fr"><button class="tile" data-p="c"><i>${IC.cam}</i>Take photo</button><button class="tile" data-p="g"><i>${IC.gal}</i>Gallery</button></div>${MY.p?`<button class="opt dang" data-p="r">${IC.trash}Remove photo</button>`:""}`);
  $("sh").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;const k=b.dataset.p;closeS();
-  if(k==="r"){MY.p=0;top2();return sub?drawSub(sub):0}
-  const i=document.createElement("input");i.type="file";i.accept="image/*";if(k==="c")i.setAttribute("capture","user");i.onchange=()=>{const f=i.files[0];if(!f||!f.type.startsWith("image/"))return;MY.p=URL.createObjectURL(f);top2();if(sub)drawSub(sub);ts("Photo updated")};i.click()}}
+  if(k==="r"){/* PATCH-FINAL1-V1 */if(/^blob:/.test(MY.p))URL.revokeObjectURL(MY.p);MY.p=0;top2();return sub?drawSub(sub):0}
+  const i=document.createElement("input");i.type="file";i.accept="image/*";if(k==="c")i.setAttribute("capture","user");i.onchange=()=>{const f=i.files[0];if(!f||!f.type.startsWith("image/"))return;if(/^blob:/.test(MY.p))URL.revokeObjectURL(MY.p);MY.p=URL.createObjectURL(f);top2();if(sub)drawSub(sub);ts("Photo updated")};i.click()}}
 function top2(){const a=document.querySelector("#me .ava");if(a){a.textContent=MY.p?"":ini(MY.name);a.style.background=MY.p?"":g(MY.name);if(MY.p)a.style.backgroundImage=`url(${MY.p})`}}
 metaT();
 
@@ -1453,7 +1453,7 @@ $("adbar").onclick=e=>{const b=e.target.closest("[data-ab]");if(!b)return;const 
 /* ===== my status: manage many ===== */
 function stManage(){const l=live(SS.me),sel=new Set();
  const paint=()=>{$("sh").innerHTML='<i class="grab"></i>'+`<div class="shd"><h3 style="margin:0">My status</h3><button class="gb" data-sa="all">${sel.size===l.length?"None":"All"}</button></div><div class="glist" style="margin-top:10px">${l.map((x,i)=>`<div class="gr" data-si="${i}"><span class="ck${sel.has(i)?" on":""}"></span><span class="sthm" style="${x.k==="text"?`background:${BG[x.bg]}`:""}">${x.k==="image"?`<img src="${x.src}" alt="">`:x.k==="video"?`<video src="${x.src}#t=0.1" muted playsinline></video>`:""}</span><span class="t"><b>${x.k==="text"?esc(x.cap):x.k==="image"?"Photo":"Video"}</b><small class="mono">${ago(x.t)} · ${(x.v||[]).length} seen</small></span></div>`).join("")}</div><button class="pri" style="width:100%;margin-top:12px${sel.size?"":";opacity:.5"}" data-sa="del">Delete ${sel.size||""}</button>`};
- sheet("");paint();$("sh").onclick=e=>{const a=e.target.closest("[data-sa]");if(a){if(a.dataset.sa==="all"){sel.size===l.length?sel.clear():l.forEach((_,i)=>sel.add(i));return paint()}if(!sel.size)return ts("Select what to delete");const rm=[...sel].map(i=>l[i]);SS.me=SS.me.filter(x=>!rm.includes(x));closeS();ts(rm.length+" deleted");return drawStatus()}
+ sheet("");paint();$("sh").onclick=e=>{const a=e.target.closest("[data-sa]");if(a){if(a.dataset.sa==="all"){sel.size===l.length?sel.clear():l.forEach((_,i)=>sel.add(i));return paint()}if(!sel.size)return ts("Select what to delete");const rm=[...sel].map(i=>l[i]);rm.forEach(x=>{if(x.src)URL.revokeObjectURL(x.src)});SS.me=SS.me.filter(x=>!rm.includes(x));closeS();ts(rm.length+" deleted");return drawStatus()}
   const r=e.target.closest("[data-si]");if(r){const i=+r.dataset.si;sel.has(i)?sel.delete(i):sel.add(i);paint()}}}
 
 /* ===== settings that do something: DND + sound, link cards, data saver, media usage ===== */
@@ -1520,7 +1520,7 @@ $("pg").addEventListener("click",e=>{if(tab!=="me")return;const b=e.target.close
  const up=e=>{if(!d)return;const m=d.m;d=null;o.style.transition="left .5s cubic-bezier(.2,.9,.3,1.3),top .4s";if(!m){mpOpen();return}const r=o.getBoundingClientRect(),W=innerWidth,H=innerHeight;o.style.left=(r.left+r.width/2<W/2?12:W-r.width-12)+"px";o.style.top=Math.max(80,Math.min(H-170,r.top))+"px"};o.addEventListener("pointerup",up);o.addEventListener("pointercancel",up)}
 
 /* ===== auto-delete: messages older than 7 days are removed (the server does the same for everyone) ===== */
-const RET_DAYS=30;
+/* PATCH-FINAL1-V1 */const RET_DAYS=7;
 function purgeOld(){const lim=Date.now()-RET_DAYS*864e5;for(const k in MSG)MSG[k]=MSG[k].filter(x=>!x.ts||x.ts>=lim)}
 
 
@@ -1592,9 +1592,11 @@ function clRingStop(){clearInterval(clRT);clRT=0;if(navigator.vibrate)navigator.
 async function clSig(pid,m){const c=clCtx();if(!c.sb||!c.pid)return false;let h=clOut[pid];
  if(!h){h=clOut[pid]={c:c.sb.channel("call:"+pid)};h.p=new Promise(r=>{h.c.subscribe(s=>{if(s==="SUBSCRIBED")r(1)});setTimeout(()=>r(0),5000)})}
  if(!await h.p){try{c.sb.removeChannel(h.c)}catch(e){}delete clOut[pid];return false}
- try{await h.c.send({type:"broadcast",event:"sig",payload:Object.assign({from:c.pid},m)});return true}catch(e){return false}}
+ try{await h.c.send({type:"broadcast",event:"sig",payload:Object.assign({from:c.pid},m)});clKeep(pid);return true}catch(e){return false}}
 function clListen(){const c=clCtx();if(clLis||!c.sb||!c.pid)return;clLis=1;c.sb.channel("call:"+c.pid).on("broadcast",{event:"sig"},p=>clGot(p.payload)).subscribe()}
 window.znxCallListen=clListen;
+/* PATCH-FINAL1-V1 */function clKeep(pid){const h=clOut[pid];if(!h)return;clearTimeout(h.z);h.z=setTimeout(()=>{CL.on&&CL.pid===pid?clKeep(pid):clDrop(pid)},60000)}
+function clDrop(pid){const h=clOut[pid];if(!h)return;clearTimeout(h.z);delete clOut[pid];try{clCtx().sb.removeChannel(h.c)}catch(e){}}
 function clPaint(){const cam=!!CL.cam;$("kmu").innerHTML=CL.mute?CI.micx:CI.mic;$("kmu").classList.toggle("off",!!CL.mute);$("kcm").innerHTML=cam?CI.cam:CI.camx;$("kcm").classList.toggle("off",!cam);$("kfl").innerHTML=CI.flip;$("kfl").style.display=cam?"":"none";$("ksp").innerHTML=CL.spk?CI.spk:CI.spkx;$("ksp").classList.toggle("off",!CL.spk);$("ken").innerHTML=CI.end;$("kac").innerHTML=CI.acc}
 function clFill(){const u=CL.peer,col=g(u.n).match(/#[0-9a-f]{6}/gi)||["#5b54e0","#5ec2b7"],r=document.documentElement.style,av=$("clav");
  r.setProperty("--c1",col[0]);r.setProperty("--c2",col[1]);
@@ -2166,7 +2168,7 @@ setInterval(beat,20000);setInterval(presRefresh,15000);setTimeout(presRefresh,12
 setInterval(()=>{applyPres();if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm&&sm.textContent!==cur.seen)sm.textContent=cur.seen}},1000);
 
 /* ---------- 30 din wali line + demo text hatao ---------- */
-purgeOld=function(){};
+
 {const a=SUBX.sec;SUBX.sec=()=>a().replace(" Messages are deleted automatically after 30 days.","");const b=SUBX.hlp;SUBX.hlp=()=>b().replace(", and are deleted after 30 days","")}
 {const o=new MutationObserver(()=>{const t=$("ts");if(!t)return;let x=t.textContent;if(/\(preview\)/.test(x))t.textContent=x.replace(/\s*\(preview\)/,"")});o.observe($("ts"),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]})}
 const noChips=()=>document.querySelectorAll("#pg .chip").forEach(c=>{if(!c.classList.contains("red"))c.remove()});
@@ -2190,10 +2192,11 @@ window.znxSeen=sid=>{SEEN.add(sid);SESS.add(sid);try{localStorage.setItem("znx_s
 window.znxDead=x=>{/* PATCH-MEDIA-V1 */if(!/not found/i.test(zyErr||"")){ts("Could not load. Check your internet and try again");return}if(x.sid){HIDE.add(x.sid);saveHide()}if(cur)MSG[cur.id]=(MSG[cur.id]||[]).filter(z=>z!==x);ts("This file is no longer available");if(cur&&chatOn())render(true)};
 window.znxLeave=()=>{/* PATCH-MEDIA-V1 */const u=cur;if(!u||!SB)return;const m=MSG[u.id]||[],gone=[];
  m.forEach(x=>{if(!x.k||!x.sid)return;if(x.d==="out")HIDE.add(x.sid);else if(SEEN.has(x.sid)){HIDE.add(x.sid);gone.push(x)}});
+ /* PATCH-FINAL1-V1 */m.forEach(x=>{if(!x.k)return;if(!((x.d==="out"&&(x.sid||x.fail))||(x.sid&&HIDE.has(x.sid))))return;if(/^blob:/.test(x.src||""))URL.revokeObjectURL(x.src);const c=MEDC[x.src];if(c&&c!==x.src){URL.revokeObjectURL(c);delete MEDC[x.src]}});
  MSG[u.id]=m.filter(x=>!(x.k&&x.d==="out")&&!(x.sid&&HIDE.has(x.sid)));SESS.clear();saveHide();
  if(gone.length){const pm={};gone.forEach(x=>{const p=pathOf(x);if(p)pm[x.sid]=p});
   SB.from("messages").delete().in("id",gone.map(x=>x.sid)).select("id").then(r=>{const px=(r.data||[]).map(z=>pm[z.id]).filter(Boolean);if(px.length)SB.storage.from("chat-media").remove(px).then(()=>{},()=>{})},()=>{})}};
-const _rd=render;render=function(k){if(cur){MSG[cur.id]=(MSG[cur.id]||[]).filter(x=>!(x.sid&&HIDE.has(x.sid)));MSG[cur.id].forEach(x=>{dec(x);if(x.k&&x.ts&&Date.now()-x.ts>7*864e5)x.gone=true})}_rd(k)};
+const _rd=render;render=function(k){if(cur){MSG[cur.id]=(MSG[cur.id]||[]).filter(x=>!(x.sid&&HIDE.has(x.sid)));MSG[cur.id].forEach(x=>{dec(x);if(x.k&&x.ts&&Date.now()-x.ts>RET_DAYS*864e5)x.gone=true})}_rd(k)};
 const _ls=list;list=function(){applyPres();U.forEach(u=>{if(u.l&&u.l.startsWith(MK)){try{u.l=lblOf(JSON.parse(u.l.slice(MK.length)).k)}catch(e){u.l="Media"}}else if(u.l)u.l=cstrip(u.l)});_ls()};
 const _bn=banner;banner=function(a,b,c,d){if(typeof b==="string"&&b.startsWith(MK)){try{b=lblOf(JSON.parse(b.slice(MK.length)).k)}catch(e){b="Media"}}_bn(a,b,c,d)};
 const _mc=mvClose;mvClose=function(d){const x=MVI!=null&&cur&&MSG[cur.id]&&MSG[cur.id][MVI];_mc(d);if(x&&x.opened&&x.sid){OPN.add(x.sid);try{localStorage.setItem("znx_opn",JSON.stringify([...OPN].slice(-500)))}catch(e){}}};
