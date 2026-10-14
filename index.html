@@ -784,7 +784,7 @@ let RP=null;
 const EMO=["❤️","👍","😂","😮","😢","🙏","🔥"];
 function dayL(t){const d=new Date(t),n=new Date(),y=new Date(n-864e5);return d.toDateString()===n.toDateString()?"Today":d.toDateString()===y.toDateString()?"Yesterday":d.toLocaleDateString([],{day:"numeric",month:"short"})}
 function grp(r){const c={};r.forEach(z=>c[z.e]=(c[z.e]||0)+1);return Object.keys(c).map(e=>`<span class="rc ${r.some(z=>z.by==="me"&&z.e===e)?"me":""}" data-e="${e}">${e}${c[e]>1?" "+c[e]:""}</span>`).join("")}
-function react(i,e){const x=MSG[cur.id][i];if(!x)return;const mine=x.r.find(z=>z.by==="me");if(mine&&mine.e===e)x.r=x.r.filter(z=>z!==mine);else{x.r=x.r.filter(z=>z.by!=="me");x.r.push({e,by:"me"})}render(true)}
+function react(i,e){const x=MSG[cur.id][i];if(!x)return;const mine=x.r.find(z=>z.by==="me");if(mine&&mine.e===e)x.r=x.r.filter(z=>z!==mine);else{x.r=x.r.filter(z=>z.by!=="me");x.r.push({e,by:"me"})}if(window.znxReact)window.znxReact(x);render(true)}
 function send(v){const now=Date.now(),t=new Date(now).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),x={d:"out",t:v,tm:t,r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t}:null,ts:now,st:0};
  (MSG[cur.id]=MSG[cur.id]||[]).push(x);cur.l=v;cur.t=t;RP=null;paintRP();$("ci").value="";upd();NEWI=MSG[cur.id].length-1;render();NEWI=-1;
  const c=cur;if(c.on)setTimeout(()=>{x.st=1;if(cur===c&&$("chat").classList.contains("on"))render(true)},900)}
@@ -1372,11 +1372,11 @@ const escRe=t=>t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
 /* PATCH-ZNX-FIX3-V1 */const cicon=t=>{const k=t.slice(0,2);return k==="🎥"||k==="📞"?`<i class="cic${/Missed|declined|Busy/.test(t)?" ms":""}">${k==="🎥"?IC.vid:IC.phone}</i>`:""},cstrip=t=>/^(🎥|📞) /.test(t)?t.slice(3):t;
 function hl(t){let e=esc(t);if(SQ)e=e.replace(new RegExp(escRe(esc(SQ)),"gi"),m=>`<mark>${m}</mark>`);return ST2.linkPrev?e.replace(/(https?:\/\/[^\s<]+)/g,u=>`<a class="lnk" href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`):e}
 $("sbed").onclick=()=>{const i=[...sel][0],x=MSG[cur.id][i];if(!x)return;sheet(`<h3>Edit message</h3><textarea id="edt" rows="3" maxlength="2000" style="width:100%;border-radius:16px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font:inherit;font-size:16px;padding:12px;margin-bottom:10px;outline:none">${esc(x.t)}</textarea><button class="pri" style="width:100%" id="edk">Save</button>`);
- $("sh").onclick=e=>{if(!e.target.closest("#edk"))return;const v=$("edt").value.trim();if(!v)return ts("Message cannot be empty");x.t=v;x.ed=1;if(i===MSG[cur.id].length-1)cur.l=v;closeS();sel.clear();paintSel();render(true);ts("Message edited")}};
+ $("sh").onclick=e=>{if(!e.target.closest("#edk"))return;const v=$("edt").value.trim();if(!v)return ts("Message cannot be empty");x.t=v;x.ed=1;if(window.znxEdit)window.znxEdit(cur,x);if(i===MSG[cur.id].length-1)cur.l=v;closeS();sel.clear();paintSel();render(true);ts("Message edited")}};
 $("sbfw").onclick=()=>{const ix=[...sel].sort((a,b)=>a-b),m=MSG[cur.id],pick=new Set(),l=U.filter(u=>!BL.includes(u.id)&&u.id!==cur.id);if(!l.length)return ts("No other chats to forward to");
  sheet(`<h3>Forward ${ix.length} message${ix.length>1?"s":""}</h3>${l.map(u=>`<div class="row" data-fw="${u.id}"><div class="ava" style="background:${g(u.n)}">${esc(ini(u.n))}</div><div class="t"><b>${esc(u.n)}</b></div><span class="ck"></span></div>`).join("")}<button class="pri" style="width:100%;margin-top:12px" id="fwk" disabled>Send</button>`);
  $("sh").onclick=e=>{const r=e.target.closest("[data-fw]");if(r){const id=+r.dataset.fw;pick.has(id)?pick.delete(id):pick.add(id);r.querySelector(".ck").classList.toggle("on",pick.has(id));$("fwk").disabled=!pick.size;return}
-  if(e.target.closest("#fwk")&&pick.size){const now=Date.now(),tm=new Date(now).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});pick.forEach(id=>{const u=U.find(z=>z.id===id);ix.forEach(i=>{const x=m[i];(MSG[id]=MSG[id]||[]).push(Object.assign({},x,{d:"out",fw:1,r:[],q:null,ts:now,tm,st:0,ed:0,opened:false}));u.l=x.t||LBL[x.k]||"Forwarded";u.t=tm})});closeS();sel.clear();paintSel();ts("Forwarded to "+pick.size+" chat"+(pick.size>1?"s":""))}}};
+  if(e.target.closest("#fwk")&&pick.size){const now=Date.now(),tm=new Date(now).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});pick.forEach(id=>{const u=U.find(z=>z.id===id);ix.forEach(i=>{const x=m[i];const nx=Object.assign({},x,{d:"out",fw:1,r:[],q:null,sid:0,ts:now,tm,st:0,ed:0,opened:false});(MSG[id]=MSG[id]||[]).push(nx);if(!nx.k&&nx.t&&window.znxTx)window.znxTx(u,nx);u.l=x.t||LBL[x.k]||"Forwarded";u.t=tm})});closeS();sel.clear();paintSel();ts("Forwarded to "+pick.size+" chat"+(pick.size>1?"s":""))}}};
 /* search inside a chat */
 $("chat").querySelector(".ch").insertAdjacentHTML("afterend",'<div id="csb"><button class="ib" id="csx" aria-label="Close search">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><input id="csi" placeholder="Search in chat" autocomplete="off" data-noswipe><span id="csn"></span><button class="ib" id="csu" aria-label="Previous">'+A('<path d="M6 15l6-6 6 6"/>')+'</button><button class="ib" id="csd" aria-label="Next">'+A('<path d="M6 9l6 6 6-6"/>')+'</button></div>');
 function csGo(){const n=SQM.length;$("csn").textContent=n?(SQI+1)+"/"+n:"0";if(!n)return;const el=document.querySelector(`#msgs .mr[data-i="${SQM[SQI]}"]`);if(el){el.scrollIntoView({block:"center",behavior:"smooth"});el.classList.add("fl");setTimeout(()=>el.classList.remove("fl"),1100)}}
@@ -2030,38 +2030,45 @@ const loadHist=async u=>{
  if(!SB||!u||!u.cid)return;
  let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:false}).limit(500);if(r.error)return;data=await Promise.all((r.data||[]).slice().reverse().map(x=>ed(u,x)))}catch(e){return}
  const old=MSG[u.id]||[],by={};old.forEach(x=>{if(x.sid)by[x.sid]=x});
- const srv=data.map(r=>{const m=mapMsg(r),o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}if(o.k&&/^blob:/.test(o.src||"")){m.k=o.k;m.src=o.src;m.name=o.name;m.size=o.size;m.dur=o.dur;m.wf=o.wf;m.once=o.once;m.gif=o.gif;m.th=o.th;m.t=o.t;m.opened=o.opened}}return m}).filter(m=>!(m.d==="out"&&String(m.t).startsWith(MK))&&!(m.sid&&HIDE.has(m.sid)));
+ const srv=data.map(r=>{const m=mapMsg(r);if(String(m.t).startsWith(MM))dec(m);const o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}if(o.k&&/^blob:/.test(o.src||"")){m.k=o.k;m.src=o.src;m.name=o.name;m.size=o.size;m.dur=o.dur;m.wf=o.wf;m.once=o.once;m.gif=o.gif;m.th=o.th;m.t=o.t;m.opened=o.opened}}return m}).filter(m=>!(m.d==="out"&&String(m.t).startsWith(MK))&&!(m.sid&&HIDE.has(m.sid)));
  const keep=old.filter(x=>!x.sid&&(x.k||x.fail||(x.st===0&&!srv.some(m=>m.d==="out"&&m.t===x.t&&Math.abs(m.ts-x.ts)<60000))));
  const merged=srv.concat(keep).sort((a,b)=>a.ts-b.ts),sig=a=>a.map(x=>(x.sid||"p")+":"+(x.st||0)+(x.rd?"r":"")).join(",");
  const ch=sig(merged)!==sig(old),grew=merged.length>old.length;
- /* PATCH-ZNX-FILE-V1 */merged.forEach(dec);MSG[u.id]=merged;
+ /* PATCH-ZNX-FILE-V1 */merged.forEach(dec);qfix(merged);await loadRx(merged);MSG[u.id]=merged;
  if(ch&&cur===u&&chatOn()){if(grew){NEWI=merged.length-1;render();NEWI=-1}else render(true)}};
 const _oc=openChat;openChat=id=>{_oc(id);const u=U.find(x=>x.id===id);if(!u)return;u.u=0;loadHist(u).then(()=>markRead(u))};
 
 const doSend=async(c,x)=>{
  try{
   if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
-  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:await enc(c,x.t)});if(r.error)throw r.error;
+  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:await enc(c,(x.q||x.fw)?MM+JSON.stringify({t:x.t,q:x.q?{s:x.q.s,who:x.q.who,t:x.q.t}:0,fw:x.fw?1:0}):x.t)});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=x.sid||row.id;x.st=1;x.fail=0;if(row&&row.created_at)x.ts=Date.parse(row.created_at)
  }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);ts("Message not sent. Check your internet.")/* PATCH-FIXD-V1 */}
  if(cur===c&&chatOn())render(true)};
 send=v=>{const c=cur;if(!c)return;if(!SB||!PID)return ts("Not connected yet.");
- const now=Date.now(),x={d:"out",t:v,tm:fT(now),r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t}:null,ts:now,st:0};
+ const now=Date.now(),x={d:"out",t:v,tm:fT(now),r:[],q:RP?{i:RP.i,who:RP.who,t:RP.t,s:(MSG[c.id][RP.i]||{}).sid}:null,ts:now,st:0};
  (MSG[c.id]=MSG[c.id]||[]).push(x);c.l=v;c.t=x.tm;c.lat=now;/* PATCH-ZX-TOP-V1 */U.sort((a,b)=>(b.lat||0)-(a.lat||0));RP=null;paintRP();$("ci").value="";upd();NEWI=MSG[c.id].length-1;render();NEWI=-1;doSend(c,x)};
 sendMedia=()=>{ts("Sending photos and files comes in the next update")};
+function mtxt(s){s=String(s);if(!s.startsWith(MM))return s;try{return String(JSON.parse(s.slice(MM.length)).t||"")}catch(e){return s}}
+function qfix(a){a.forEach(x=>{if(x.t&&x.t.startsWith(MM))dec(x)});a.forEach(x=>{if(x.q&&x.q.s)x.q.i=a.findIndex(z=>z.sid===x.q.s)})}
+async function loadRx(a){const ids=a.filter(x=>x.sid).slice(-100).map(x=>String(x.sid));if(!ids.length)return;try{const r=await SB.from("nx_reactions").select("message_id,user_id,emoji").in("message_id",ids);if(r.error)return;const by={};(r.data||[]).forEach(z=>{(by[z.message_id]=by[z.message_id]||[]).push({e:z.emoji,by:z.user_id===PID?"me":z.user_id})});a.forEach(x=>{if(x.sid&&ids.includes(String(x.sid)))x.r=by[String(x.sid)]||[]})}catch(e){}}
+window.znxTx=doSend;
+window.znxEdit=async(c,x)=>{if(!x.sid)return;try{const r=await SB.rpc("nx_edit_message",{msg_id:String(x.sid),new_text:await enc(c,MM+JSON.stringify({t:x.t,e:1,q:x.q?{s:x.q.s,who:x.q.who,t:x.q.t}:0,fw:x.fw?1:0}))});if(r.error)throw r.error}catch(e){ts("Could not save the edit")}};
+window.znxReact=async x=>{if(!x.sid)return;const me=x.r.find(z=>z.by==="me"),id=String(x.sid);try{const r=me?await SB.from("nx_reactions").upsert({message_id:id,user_id:PID,emoji:me.e}):await SB.from("nx_reactions").delete().eq("message_id",id).eq("user_id",PID);if(r.error)throw r.error}catch(e){ts("Reaction not saved")}};
 
 /* realtime */
 const onMsg=async r=>{
  const u=BYC[r.conversation_id];
  if(!u){loadChats().then(()=>{if(BYC[r.conversation_id])onMsg(r)});return}
  r=await ed(u,r);const arr=MSG[u.id]=MSG[u.id]||[];if(arr.some(x=>x.sid===r.id))return;
- if(r.sender_id===PID){const p=arr.find(x=>!x.sid&&x.d==="out"&&(x.k?String(r.message).startsWith(MK):x.t===r.message&&x.st===0));if(p){p.sid=r.id;return}}
- const m=mapMsg(r);arr.push(m);u.l=m.t;u.t=m.tm;u.lat=m.ts;
+ if(r.sender_id===PID){const p=arr.find(x=>!x.sid&&x.d==="out"&&(x.k?String(r.message).startsWith(MK):x.t===mtxt(r.message)&&x.st===0));if(p){p.sid=r.id;return}}
+ const m=mapMsg(r);arr.push(m);u.l=m.t;qfix(arr);u.t=m.tm;u.lat=m.ts;
  if(cur===u&&chatOn()){NEWI=arr.length-1;render();NEWI=-1;markRead(u)}
  else if(m.d==="in"){u.u=(u.u||0)+1;banner(u.n,m.t,u.id)}
  U.sort((a,b)=>(b.lat||0)-(a.lat||0));if(tab==="chats"&&!chatOn()&&$("ls"))list()};
-const onUpd=r=>{const u=BYC[r.conversation_id];if(!u||r.sender_id!==PID)return;const x=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(x&&r.read_at&&x.st<2){x.st=2;if(cur===u&&chatOn())render(true)}};
-const subRT=()=>{if(!SB||RT)return;try{RT=SB.channel("znx-msgs").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},p=>onMsg(p.new)).on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},p=>onUpd(p.new)).subscribe(s=>{RTOK=s==="SUBSCRIBED"?1:0})}catch(e){}};
+const onRx=p=>{const rw=(p.new&&p.new.message_id)?p.new:p.old;if(!rw||!rw.message_id)return;const mid=String(rw.message_id);for(const k in MSG){const x=MSG[k].find(z=>String(z.sid)===mid);if(!x)continue;const by=rw.user_id===PID?"me":rw.user_id;x.r=(x.r||[]).filter(z=>z.by!==by);if(p.eventType!=="DELETE"&&p.new&&p.new.emoji)x.r.push({e:p.new.emoji,by:by});if(cur&&MSG[cur.id]===MSG[k]&&chatOn())render(true);break}};
+const onUpd=async r=>{const u=BYC[r.conversation_id];if(!u)return;if(r.sender_id!==PID){const y=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(y&&!y.k&&r.message){const t=mtxt(await dText(u,r.message));if(t&&t!==LOCKED&&t!==y.t){y.t=t;y.ed=1;if(cur===u&&chatOn())render(true)}}return}const x=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(x&&r.read_at&&x.st<2){x.st=2;if(cur===u&&chatOn())render(true)}};
+const subRT=()=>{if(!SB||RT)return;try{RT=SB.channel("znx-msgs").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},p=>onMsg(p.new)).on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},p=>onUpd(p.new)).on("postgres_changes",{event:"*",schema:"public",table:"nx_reactions"},p=>onRx(p)).subscribe(s=>{RTOK=s==="SUBSCRIBED"?1:0})}catch(e){}};
 /* PATCH-CLEAN1-V1 */setInterval(()=>{if(!PID||!vis())return;tick++;if(cur&&chatOn()&&!RTOK)loadHist(cur).then(()=>markRead(cur));if(tick%(RTOK?15:3)===0)loadChats(true)},4000);
 document.addEventListener("visibilitychange",()=>{if(!PID)return;if(vis()){setPres(true);loadChats(true);if(cur&&chatOn())loadHist(cur)}else setPres(false)});
 window.addEventListener("pagehide",()=>setPres(false));
@@ -2190,9 +2197,9 @@ VIEWS.enjoy=(f=>function(){f();noChips()})(VIEWS.enjoy);VIEWS.play=(f=>function(
  if(k==="cht"){const b=P.querySelector('[data-x="bk"]');if(b&&b.closest(".card2"))b.closest(".card2").remove()}}}
 
 /* ---------- list/render/banner: media label ---------- */
-const MK="\u200bMEDIA\u200b",lblOf=k=>({img:"Photo",vid:"Video",aud:"Audio",voice:"Voice message",file:"File"})[k]||"Media";
+/* PATCH-MSG1-V1 */const MM="\u200bMETA\u200b",MK="\u200bMEDIA\u200b",lblOf=k=>({img:"Photo",vid:"Video",aud:"Audio",voice:"Voice message",file:"File"})[k]||"Media";
 let OPN=new Set();try{OPN=new Set(JSON.parse(localStorage.getItem("znx_opn")||"[]"))}catch(e){}
-function dec(x){if(x.k||!x.t||!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:["img","vid","aud","voice","file"].includes(o.k)?o.k:"file",src:safeUrl(o.u),name:o.name,size:+o.size||0,dur:+o.dur||0,wf:Array.isArray(o.wf)?o.wf.slice(0,40).map(v=>+v||6):0,once:+o.once||0,gif:!!o.gif,th:safeTh(o.th),enc:o.enc,mt:o.mt,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
+function dec(x){if(x.k||!x.t)return;if(x.t.startsWith(MM)){try{const o=JSON.parse(x.t.slice(MM.length));x.t=String(o.t||"");if(o.fw)x.fw=1;if(o.e)x.ed=1;if(o.q)x.q={i:-1,s:o.q.s,who:String(o.q.who||"").slice(0,30),t:String(o.q.t||"").slice(0,80)}}catch(e){}return}if(!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:["img","vid","aud","voice","file"].includes(o.k)?o.k:"file",src:safeUrl(o.u),name:o.name,size:+o.size||0,dur:+o.dur||0,wf:Array.isArray(o.wf)?o.wf.slice(0,40).map(v=>+v||6):0,once:+o.once||0,gif:!!o.gif,th:safeTh(o.th),enc:o.enc,mt:o.mt,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
 let HIDE=new Set();try{HIDE=new Set(JSON.parse(localStorage.getItem("znx_hide")||"[]"))}catch(e){}
 const saveHide=()=>{try{localStorage.setItem("znx_hide",JSON.stringify([...HIDE].slice(-2000)))}catch(e){}};/* PATCH-ZNX-LIFE-V1 */
 let SEEN=new Set();try{SEEN=new Set(JSON.parse(localStorage.getItem("znx_seen")||"[]"))}catch(e){}
@@ -2206,7 +2213,7 @@ window.znxLeave=()=>{/* PATCH-MEDIA-V1 */const u=cur;if(!u||!SB)return;const m=M
  if(gone.length){const pm={};gone.forEach(x=>{const p=pathOf(x);if(p)pm[x.sid]=p});
   SB.from("messages").delete().in("id",gone.map(x=>x.sid)).select("id").then(r=>{const px=(r.data||[]).map(z=>pm[z.id]).filter(Boolean);if(px.length)SB.storage.from("chat-media").remove(px).then(()=>{},()=>{})},()=>{})}};
 const _rd=render;render=function(k){if(cur){MSG[cur.id]=(MSG[cur.id]||[]).filter(x=>!(x.sid&&HIDE.has(x.sid)));MSG[cur.id].forEach(x=>{dec(x);if(x.k&&x.ts&&Date.now()-x.ts>RET_DAYS*864e5)x.gone=true})}_rd(k)};
-const _ls=list;list=function(){applyPres();U.forEach(u=>{if(u.l&&u.l.startsWith(MK)){try{u.l=lblOf(JSON.parse(u.l.slice(MK.length)).k)}catch(e){u.l="Media"}}else if(u.l)u.l=cstrip(u.l)});_ls()};
+const _ls=list;list=function(){applyPres();U.forEach(u=>{if(u.l&&u.l.startsWith(MK)){try{u.l=lblOf(JSON.parse(u.l.slice(MK.length)).k)}catch(e){u.l="Media"}}else if(u.l&&u.l.startsWith(MM))u.l=mtxt(u.l);else if(u.l)u.l=cstrip(u.l)});_ls()};
 const _bn=banner;banner=function(a,b,c,d){if(typeof b==="string"&&b.startsWith(MK)){try{b=lblOf(JSON.parse(b.slice(MK.length)).k)}catch(e){b="Media"}}_bn(a,b,c,d)};
 const _mc=mvClose;mvClose=function(d){const x=MVI!=null&&cur&&MSG[cur.id]&&MSG[cur.id][MVI];_mc(d);if(x&&x.opened&&x.sid){OPN.add(x.sid);try{localStorage.setItem("znx_opn",JSON.stringify([...OPN].slice(-500)))}catch(e){}}};
 
