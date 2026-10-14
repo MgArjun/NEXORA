@@ -1945,9 +1945,11 @@ const setPres=on=>{if(SB&&PID)SB.rpc("nexora_set_presence",{is_now_online:on}).t
 
 /* people */
 const freshOn=p=>!!(p.online&&p.last_seen&&Date.now()-Date.parse(p.last_seen)<75000);
+/* PATCH-SEC1-V1 */const safeUrl=s=>{s=String(s||"");return /^https:\/\/[^\s"'()<>\\]+$/.test(s)?s:0};
+const safeTh=s=>/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s||"")?s:"";
 const mkU=p=>{let u=BYP[p.id];if(!u){u={id:NID++,n:"User",l:"",t:"",u:0,on:0,seen:"",p:0,pid:p.id,lat:0};BYP[p.id]=u;U.push(u)}
  if(p.display_name)u.n=p.display_name;if(p.username)u.user=p.username;if(p.uid)u.uid=String(p.uid).replace(/^NX-?/,"MG");
- u.p=p.avatar_url||0;u.about=p.about||"Hey there! I am using ZNEXORA";
+ u.p=safeUrl(p.avatar_url);u.about=p.about||"Hey there! I am using ZNEXORA";
  if(p.hide_seen){u.on=0;u.seen=""}else{u.on=freshOn(p)?1:0;u.seen=seenT(Object.assign({},p,{online:freshOn(p)}))}return u};
 
 /* chat list + friend requests */
@@ -1980,13 +1982,13 @@ const loadChats=async notify=>{
 
 /* messages */
 /* PATCH-ZNX-E2E-V1 */
-const E={k:null,pub:null,priv:null,sh:{},pr:null},EK="znx_e2e_",EC={name:"ECDH",namedCurve:"P-256"},ALF="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",TXT=new TextEncoder(),LOCKED="Message cannot be decrypted on this device";
+const E={k:null,pub:null,priv:null,sh:{},st:{},pr:null},EK="znx_e2e_",EC={name:"ECDH",namedCurve:"P-256"},ALF="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",TXT=new TextEncoder(),LOCKED="Message cannot be decrypted on this device";
 const b64=a=>{let s="";new Uint8Array(a).forEach(v=>s+=String.fromCharCode(v));return btoa(s)},u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),isEnc=s=>typeof s==="string"&&s.startsWith("E2E1:");
 const eKdf=async(code,salt)=>{const m=await crypto.subtle.importKey("raw",TXT.encode(code.replace(/[\s-]/g,"").toUpperCase()),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])};
 const eSave=(priv,pub)=>{try{localStorage.setItem(EK+PID,JSON.stringify({priv,pub}))}catch(e){}};
 async function eLoad(){try{const j=JSON.parse(localStorage.getItem(EK+PID)||"null");if(!j)return false;E.k=await crypto.subtle.importKey("jwk",j.priv,EC,false,["deriveKey"]);E.priv=j.priv;E.pub=j.pub;return true}catch(e){return false}}
 async function eGen(){const kp=await crypto.subtle.generateKey(EC,true,["deriveKey"]),priv=await crypto.subtle.exportKey("jwk",kp.privateKey),pub=await crypto.subtle.exportKey("jwk",kp.publicKey);eSave(priv,pub);await eLoad()}
-async function eShared(u){if(E.sh[u.pid])return E.sh[u.pid];const r=await SB.from("profiles").select("pub_key").eq("id",u.pid).maybeSingle(),pk=r.data&&r.data.pub_key;if(!pk)return null;return E.sh[u.pid]=await crypto.subtle.deriveKey({name:"ECDH",public:await crypto.subtle.importKey("jwk",pk,EC,false,[])},E.k,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function eShared(u){if(E.sh[u.pid]&&Date.now()-(E.st[u.pid]||0)<120000)return E.sh[u.pid];const r=await SB.from("profiles").select("pub_key").eq("id",u.pid).maybeSingle(),pk=r.data&&r.data.pub_key;if(!pk)return E.sh[u.pid]||null;E.st[u.pid]=Date.now();return E.sh[u.pid]=await crypto.subtle.deriveKey({name:"ECDH",public:await crypto.subtle.importKey("jwk",pk,EC,false,[])},E.k,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
 async function enc(u,t){if(!E.k){e2ePrompt();throw new Error("Restore your encrypted chats first")}const k=await eShared(u);if(!k)throw new Error("This person has not turned on encryption yet. Ask them to open the app once.");const iv=crypto.getRandomValues(new Uint8Array(12));return "E2E1:"+b64(iv)+":"+b64(await crypto.subtle.encrypt({name:"AES-GCM",iv},k,TXT.encode(t)))}
 async function dText(u,s){if(!isEnc(s))return s;for(let a=0;a<2;a++){try{const k=await eShared(u),p=s.split(":");if(!k)break;return new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:u8(p[1])},k,u8(p[2])))}catch(e){delete E.sh[u.pid]}}return LOCKED}
 async function ed(u,r){return isEnc(r.message)?Object.assign({},r,{message:await dText(u,r.message)}):r}
@@ -2019,7 +2021,7 @@ const markRead=u=>{if(!SB||!u||!(cur===u&&chatOn()&&vis()))return;const t=(MSG[u
  t.forEach(x=>{x.rd=true;SB.rpc("nexora_mark_message_read",{target_message:x.sid}).then(()=>{},()=>{x.rd=false})});if(t.length)u.u=0};
 const loadHist=async u=>{
  if(!SB||!u||!u.cid)return;
- let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:true}).limit(500);if(r.error)return;data=await Promise.all((r.data||[]).map(x=>ed(u,x)))}catch(e){return}
+ let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:false}).limit(500);if(r.error)return;data=await Promise.all((r.data||[]).slice().reverse().map(x=>ed(u,x)))}catch(e){return}
  const old=MSG[u.id]||[],by={};old.forEach(x=>{if(x.sid)by[x.sid]=x});
  const srv=data.map(r=>{const m=mapMsg(r),o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}if(o.k&&/^blob:/.test(o.src||"")){m.k=o.k;m.src=o.src;m.name=o.name;m.size=o.size;m.dur=o.dur;m.wf=o.wf;m.once=o.once;m.gif=o.gif;m.th=o.th;m.t=o.t;m.opened=o.opened}}return m}).filter(m=>!(m.d==="out"&&String(m.t).startsWith(MK))&&!(m.sid&&HIDE.has(m.sid)));
  const keep=old.filter(x=>!x.sid&&(x.k||x.fail||(x.st===0&&!srv.some(m=>m.d==="out"&&m.t===x.t&&Math.abs(m.ts-x.ts)<60000))));
@@ -2129,7 +2131,7 @@ const boot=async()=>{
  if(!pr){try{const nm=(au.user_metadata&&au.user_metadata.display_name)||"NEXORA User",r=await SB.from("profiles").insert({id:PID,username:"NX_"+PID.replace(/-/g,"").slice(0,8).toUpperCase(),display_name:nm,is_guest:!!au.is_anonymous}).select().maybeSingle();pr=r.data}catch(e){}}
  if(!pr){PID=null;say("Could not load your profile. Please try again.");return false}
  let adm=false;try{const r=await SB.rpc("nx_is_admin");adm=r.data===true}catch(e){}
- Object.assign(MY,{role:adm?"admin":"user",name:pr.display_name||"NEXORA User",user:pr.username||"",uid:String(pr.uid||"").replace(/^NX-?/,"MG"),bio:pr.about||"Hey there! I am using ZNEXORA",about:pr.about||"",email:au.email||"",guest:!!(pr.is_guest||au.is_anonymous),p:pr.avatar_url||0});
+ Object.assign(MY,{role:adm?"admin":"user",name:pr.display_name||"NEXORA User",user:pr.username||"",uid:String(pr.uid||"").replace(/^NX-?/,"MG"),bio:pr.about||"Hey there! I am using ZNEXORA",about:pr.about||"",email:au.email||"",guest:!!(pr.is_guest||au.is_anonymous),p:safeUrl(pr.avatar_url)});
  setPres(true);await e2eInit(pr);await Promise.all([loadChats(),loadFav()]);if(adm)loadAdmin();subRT();window.znxCallListen();
  if(!booted){booted=1;enter()}else{top2()}
  return true};
@@ -2183,7 +2185,7 @@ VIEWS.enjoy=(f=>function(){f();noChips()})(VIEWS.enjoy);VIEWS.play=(f=>function(
 /* ---------- list/render/banner: media label ---------- */
 const MK="\u200bMEDIA\u200b",lblOf=k=>({img:"Photo",vid:"Video",aud:"Audio",voice:"Voice message",file:"File"})[k]||"Media";
 let OPN=new Set();try{OPN=new Set(JSON.parse(localStorage.getItem("znx_opn")||"[]"))}catch(e){}
-function dec(x){if(x.k||!x.t||!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:o.k,src:o.u,name:o.name,size:o.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,th:o.th,enc:o.enc,mt:o.mt,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
+function dec(x){if(x.k||!x.t||!x.t.startsWith(MK))return;try{const o=JSON.parse(x.t.slice(MK.length));Object.assign(x,{k:["img","vid","aud","voice","file"].includes(o.k)?o.k:"file",src:safeUrl(o.u),name:o.name,size:+o.size||0,dur:+o.dur||0,wf:Array.isArray(o.wf)?o.wf.slice(0,40).map(v=>+v||6):0,once:+o.once||0,gif:!!o.gif,th:safeTh(o.th),enc:o.enc,mt:o.mt,t:o.cap||""});if(x.sid&&OPN.has(x.sid))x.opened=true}catch(e){}}
 let HIDE=new Set();try{HIDE=new Set(JSON.parse(localStorage.getItem("znx_hide")||"[]"))}catch(e){}
 const saveHide=()=>{try{localStorage.setItem("znx_hide",JSON.stringify([...HIDE].slice(-2000)))}catch(e){}};/* PATCH-ZNX-LIFE-V1 */
 let SEEN=new Set();try{SEEN=new Set(JSON.parse(localStorage.getItem("znx_seen")||"[]"))}catch(e){}
