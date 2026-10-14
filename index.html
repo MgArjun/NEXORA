@@ -1924,25 +1924,47 @@ const loadChats=async notify=>{
   const u=mkU({id:pid,display_name:p.display_name||(r&&r.other_display_name),username:p.username||(r&&r.other_username),uid:p.uid,avatar_url:p.avatar_url||(r&&r.other_avatar_url),about:p.about,online:p.online!=null?p.online:(r&&r.other_online),last_seen:p.last_seen||(r&&r.other_last_seen),hide_seen:p.hide_seen});
   if(r){u.cid=r.conversation_id;BYC[u.cid]=u;const nu=Number(r.unread_count)||0,prev=u.u||0,openNow=cur===u&&chatOn();
    u.l=r.last_message||"";u.t=r.last_message_at?fL(r.last_message_at):"";u.lat=r.last_message_at?Date.parse(r.last_message_at):0;
-   u.u=openNow?0:nu;if(notify&&!RTOK&&!openNow&&u.u>prev)banner(u.n,u.l,u.id)}});
+   u.u=openNow?0:nu;if(notify&&!RTOK&&!openNow&&u.u>prev)banner(u.n,isEnc(u.l)?"New message":u.l,u.id)}});
  const inc=fr.filter(f=>f.status==="pending"&&f.addressee_id===PID),oldR=NT.filter(x=>x.k==="req");
  SENT.clear();fr.filter(f=>f.status==="pending"&&f.requester_id===PID).forEach(f=>SENT.add(f.addressee_id));
  NT=NT.filter(x=>x.k!=="req").concat(inc.map(f=>{let id=REQID[f.id];if(!id)id=REQID[f.id]=900000+(NTI++);const p=PM[f.requester_id]||{},o=oldR.find(x=>x.id===id);
   if(notify&&!KNOWN.has(f.id))banner(p.display_name||"Someone","sent you a friend request",0);KNOWN.add(f.id);
   return{id,k:"req",who:p.display_name||"Someone",user:p.username||"",ts:Date.parse(f.created_at),un:o?o.un:1,fid:f.id,pid:f.requester_id}}));
  U.sort((a,b)=>(b.lat||0)-(a.lat||0));
- try{bellDot()}catch(e){}
+ await Promise.all(U.map(async u=>{if(isEnc(u.l))u.l=await dText(u,u.l)}));try{bellDot()}catch(e){}
  if(tab==="chats"&&!chatOn()&&$("ls"))list();
  if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm)sm.textContent=cur.seen}
  firstLoad=0};
 
 /* messages */
+/* PATCH-ZNX-E2E-V1 */
+const E={k:null,pub:null,priv:null,sh:{},pr:null},EK="znx_e2e_",EC={name:"ECDH",namedCurve:"P-256"},ALF="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",TXT=new TextEncoder(),LOCKED="Message cannot be decrypted on this device";
+const b64=a=>{let s="";new Uint8Array(a).forEach(v=>s+=String.fromCharCode(v));return btoa(s)},u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),isEnc=s=>typeof s==="string"&&s.startsWith("E2E1:");
+const eKdf=async(code,salt)=>{const m=await crypto.subtle.importKey("raw",TXT.encode(code.replace(/[\s-]/g,"").toUpperCase()),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])};
+const eSave=(priv,pub)=>{try{localStorage.setItem(EK+PID,JSON.stringify({priv,pub}))}catch(e){}};
+async function eLoad(){try{const j=JSON.parse(localStorage.getItem(EK+PID)||"null");if(!j)return false;E.k=await crypto.subtle.importKey("jwk",j.priv,EC,false,["deriveKey"]);E.priv=j.priv;E.pub=j.pub;return true}catch(e){return false}}
+async function eGen(){const kp=await crypto.subtle.generateKey(EC,true,["deriveKey"]),priv=await crypto.subtle.exportKey("jwk",kp.privateKey),pub=await crypto.subtle.exportKey("jwk",kp.publicKey);eSave(priv,pub);await eLoad()}
+async function eShared(u){if(E.sh[u.pid])return E.sh[u.pid];const r=await SB.from("profiles").select("pub_key").eq("id",u.pid).maybeSingle(),pk=r.data&&r.data.pub_key;if(!pk)return null;return E.sh[u.pid]=await crypto.subtle.deriveKey({name:"ECDH",public:await crypto.subtle.importKey("jwk",pk,EC,false,[])},E.k,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function enc(u,t){if(!E.k){e2ePrompt();throw new Error("Restore your encrypted chats first")}const k=await eShared(u);if(!k)throw new Error("This person has not turned on encryption yet. Ask them to open the app once.");const iv=crypto.getRandomValues(new Uint8Array(12));return "E2E1:"+b64(iv)+":"+b64(await crypto.subtle.encrypt({name:"AES-GCM",iv},k,TXT.encode(t)))}
+async function dText(u,s){if(!isEnc(s))return s;for(let a=0;a<2;a++){try{const k=await eShared(u),p=s.split(":");if(!k)break;return new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:u8(p[1])},k,u8(p[2])))}catch(e){delete E.sh[u.pid]}}return LOCKED}
+async function ed(u,r){return isEnc(r.message)?Object.assign({},r,{message:await dText(u,r.message)}):r}
+async function e2eSetup(){try{await eGen();const code=Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>ALF[v%32]).join("").replace(/(.{4})(?=.)/g,"$1-"),salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},await eKdf(code,salt),TXT.encode(JSON.stringify(E.priv))),r=await SB.from("profiles").update({pub_key:E.pub,key_backup:{s:b64(salt),i:b64(iv),c:b64(ct)}}).eq("id",PID);if(r.error)throw r.error;E.pr=Object.assign(E.pr||{},{pub_key:E.pub});e2eCode(code)}catch(e){E.k=null;try{localStorage.removeItem(EK+PID)}catch(x){}ts("Could not turn on encryption. Run the SQL step first.")}}
+function e2eCode(code){sheet(`<h3>Save your backup code</h3><div class="card2" style="text-align:center;padding:18px 10px"><b class="mono lc" style="font-size:20px;letter-spacing:.1em">${code}</b></div><p class="note">This code restores your chats on a new phone. We cannot recover it for you. Keep it safe.</p><button class="pri" style="width:100%" id="e2c">Copy code</button><button style="width:100%;margin-top:10px" id="e2d">I saved it</button>`);
+ $("sh").onclick=e=>{if(e.target.closest("#e2c"))return navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>ts("Code copied"),()=>ts("Copy failed"));if(e.target.closest("#e2d"))closeS()}}
+function e2eRestore(){sheet(`<h3>Restore your chats</h3><p class="note">Enter your backup code to read your old chats on this phone.</p><div class="fld"><input id="e2i" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off"></div><button class="pri" style="width:100%" id="e2r">Restore</button><button class="opt rd" style="justify-content:center" id="e2n">Start fresh (old chats stay locked)</button>`);
+ $("sh").onclick=async e=>{if(e.target.closest("#e2n")){closeS();return e2eSetup()}if(!e.target.closest("#e2r"))return;
+  try{const b=E.pr.key_backup,priv=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:u8(b.i)},await eKdf($("e2i").value,u8(b.s)),u8(b.c)))),pub={kty:"EC",crv:"P-256",x:priv.x,y:priv.y,ext:true,key_ops:[]};eSave(priv,pub);await eLoad();closeS();ts("Chats restored");loadChats();if(cur&&chatOn())loadHist(cur)}catch(x){ts("Wrong code")}}}
+const e2ePrompt=()=>{if(E.pr&&E.pr.pub_key&&E.pr.key_backup)e2eRestore();else if(E.pr)e2eSetup()};
+async function e2eInit(pr){E.k=null;E.sh={};E.pr=pr;const s=pr.pub_key;
+ if(await eLoad()&&(!s||(s.x===E.pub.x&&s.y===E.pub.y))){if(!s)await e2eSetup();return}
+ try{localStorage.removeItem(EK+PID)}catch(e){}E.k=null;
+ if(s)e2eRestore();else await e2eSetup()}
 const mapMsg=r=>{const mine=r.sender_id===PID;return{d:mine?"out":"in",t:(r.message_type&&r.message_type!=="text")?"["+r.message_type+"]":(r.message||""),tm:fT(r.created_at),r:[],ts:Date.parse(r.created_at),st:mine?(r.read_at?2:1):2,rd:!mine&&!!r.read_at,sid:r.id}};
 const markRead=u=>{if(!SB||!u||!(cur===u&&chatOn()&&vis()))return;const t=(MSG[u.id]||[]).filter(x=>x.d==="in"&&x.sid&&!x.rd).slice(0,40);
  t.forEach(x=>{x.rd=true;SB.rpc("nexora_mark_message_read",{target_message:x.sid}).then(()=>{},()=>{x.rd=false})});if(t.length)u.u=0};
 const loadHist=async u=>{
  if(!SB||!u||!u.cid)return;
- let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:true}).limit(500);if(r.error)return;data=r.data||[]}catch(e){return}
+ let data;try{const r=await SB.from("messages").select("id,sender_id,message,message_type,created_at,read_at").eq("conversation_id",u.cid).order("created_at",{ascending:true}).limit(500);if(r.error)return;data=await Promise.all((r.data||[]).map(x=>ed(u,x)))}catch(e){return}
  const old=MSG[u.id]||[],by={};old.forEach(x=>{if(x.sid)by[x.sid]=x});
  const srv=data.map(r=>{const m=mapMsg(r),o=by[r.id];if(o){m.r=o.r||[];m.q=o.q;m.fw=o.fw;if(o.ed){m.ed=o.ed;m.t=o.t}if(o.k&&/^blob:/.test(o.src||"")){m.k=o.k;m.src=o.src;m.name=o.name;m.size=o.size;m.dur=o.dur;m.wf=o.wf;m.once=o.once;m.gif=o.gif;m.th=o.th;m.t=o.t;m.opened=o.opened}}return m}).filter(m=>!(m.d==="out"&&String(m.t).startsWith(MK))&&!(m.sid&&HIDE.has(m.sid)));
  const keep=old.filter(x=>!x.sid&&(x.k||x.fail||(x.st===0&&!srv.some(m=>m.d==="out"&&m.t===x.t&&Math.abs(m.ts-x.ts)<60000))));
@@ -1955,7 +1977,7 @@ const _oc=openChat;openChat=id=>{_oc(id);const u=U.find(x=>x.id===id);if(!u)retu
 const doSend=async(c,x)=>{
  try{
   if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
-  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:x.t});if(r.error)throw r.error;
+  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:await enc(c,x.t)});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=x.sid||row.id;x.st=1;x.fail=0;if(row&&row.created_at)x.ts=Date.parse(row.created_at)
  }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);ts("Message not sent. Check your internet.")/* PATCH-FIXD-V1 */}
  if(cur===c&&chatOn())render(true)};
@@ -1965,10 +1987,10 @@ send=v=>{const c=cur;if(!c)return;if(!SB||!PID)return ts("Not connected yet.");
 sendMedia=()=>{ts("Sending photos and files comes in the next update")};
 
 /* realtime */
-const onMsg=r=>{
+const onMsg=async r=>{
  const u=BYC[r.conversation_id];
  if(!u){loadChats().then(()=>{if(BYC[r.conversation_id])onMsg(r)});return}
- const arr=MSG[u.id]=MSG[u.id]||[];if(arr.some(x=>x.sid===r.id))return;
+ r=await ed(u,r);const arr=MSG[u.id]=MSG[u.id]||[];if(arr.some(x=>x.sid===r.id))return;
  if(r.sender_id===PID){const p=arr.find(x=>!x.sid&&x.d==="out"&&(x.k?String(r.message).startsWith(MK):x.t===r.message&&x.st===0));if(p){p.sid=r.id;return}}
  const m=mapMsg(r);arr.push(m);u.l=m.t;u.t=m.tm;u.lat=m.ts;
  if(cur===u&&chatOn()){NEWI=arr.length-1;render();NEWI=-1;markRead(u)}
@@ -2053,7 +2075,7 @@ const boot=async()=>{
  if(!pr){PID=null;say("Could not load your profile. Please try again.");return false}
  let adm=false;try{const r=await SB.rpc("nx_is_admin");adm=r.data===true}catch(e){}
  Object.assign(MY,{role:adm?"admin":"user",name:pr.display_name||"NEXORA User",user:pr.username||"",uid:String(pr.uid||"").replace(/^NX-?/,"MG"),bio:pr.about||"Hey there! I am using ZNEXORA",about:pr.about||"",email:au.email||"",guest:!!(pr.is_guest||au.is_anonymous),p:pr.avatar_url||0});
- setPres(true);await Promise.all([loadChats(),loadFav()]);if(adm)loadAdmin();subRT();window.znxCallListen();
+ setPres(true);await e2eInit(pr);await Promise.all([loadChats(),loadFav()]);if(adm)loadAdmin();subRT();window.znxCallListen();
  if(!booted){booted=1;enter()}else{top2()}
  return true};
 $("go").onclick=async()=>{
@@ -2135,7 +2157,7 @@ sendMedia=async function(o){
   x.path=path;const url=SB.storage.from("chat-media").getPublicUrl(path).data.publicUrl;MEDC[url]=o.src;
   if(!c.cid){const r=await SB.rpc("nexora_get_or_create_dm",{target_username:c.user});if(r.error||!r.data)throw r.error||new Error("no chat");c.cid=r.data;BYC[c.cid]=c}
   const pay={k:o.k,u:url,name:o.name,size:blob.size,dur:o.dur,wf:o.wf,once:o.once,gif:o.gif,th:x.th,cap:o.cap||""};
-  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:MK+JSON.stringify(pay)});if(r.error)throw r.error;
+  const r=await SB.rpc("nexora_send_message",{target_conversation:c.cid,message_text:await enc(c,MK+JSON.stringify(pay))});if(r.error)throw r.error;
   const row=Array.isArray(r.data)?r.data[0]:r.data;if(row&&row.id)x.sid=row.id;x.st=1;
  }catch(e){x.fail=1;x.st=0;x.tm=fT(x.ts)+" · "+String((e&&e.message)||"not sent").slice(0,60);/* PATCH-MEDIA-V1 */ts("Upload failed. Check your internet and send again.")}
  if(cur===c&&chatOn())render(true)};
