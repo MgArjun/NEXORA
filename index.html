@@ -387,7 +387,7 @@ main::before{content:"";position:absolute;inset:0;background:radial-gradient(55%
 .clc{flex:1;display:grid;place-items:center;align-content:center;gap:10px;text-align:center}
 .clav{width:116px;height:116px;border-radius:50%;display:grid;place-items:center;font-size:40px;font-weight:700;color:#fff;background-size:cover;animation:aura 3.2s ease-in-out infinite;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 30px 60px -20px var(--c1,#5b54e0)}@keyframes aura{50%{box-shadow:0 0 0 1px rgba(255,255,255,.26),0 30px 90px -10px var(--c1,#5b54e0)}}
 .clc b{font-size:28px;font-weight:700;letter-spacing:-.8px;margin-top:8px}.clc small{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--mu)}
-/* PATCH-ZNX-VCALL-V1 */#cl .clvd{position:absolute;display:block;object-fit:cover;background:#0b0d13}
+/* PATCH-ZNX-VCALL-V1 *//* PATCH-ZNX-VCALL-V2 */#cl .clvd{position:absolute;display:block;object-fit:contain;background:#05060a}
 #cl .clvd.off{display:none}
 #cl .clvd.big{inset:0;width:100%;height:100%;z-index:0}
 #cl .clvd.pip{top:calc(env(safe-area-inset-top,0px) + 156px);right:16px;width:104px;height:148px;border-radius:20px;border:1px solid rgba(255,255,255,.2);box-shadow:0 20px 40px -16px #000;z-index:4;touch-action:none;cursor:grab}
@@ -399,13 +399,13 @@ main::before{content:"";position:absolute;inset:0;background:radial-gradient(55%
 #cl.vid .clc b{font-size:18px;margin-top:0;color:#fff}
 #cl.vid .clc small,#cl.vid .clh small{color:#e2e5f5}
 #cl .clh{z-index:3;transition:opacity .45s,transform .55s cubic-bezier(.2,.9,.3,1.2)}
-#cl #clq{position:absolute;top:calc(env(safe-area-inset-top,0px) + 112px);left:50%;transform:translateX(-50%);z-index:3;display:none;align-items:center;gap:12px;padding:7px 14px;border-radius:999px;border:1px solid transparent;white-space:nowrap;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:#c9cde6;background:linear-gradient(rgba(14,16,26,.55),rgba(14,16,26,.55)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+#cl #clq{position:absolute;top:calc(env(safe-area-inset-top,0px) + 112px);left:50%;transform:translateX(-50%);z-index:3;display:none;align-items:center;gap:12px;padding:7px 14px;border-radius:999px;border:1px solid transparent;white-space:nowrap;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:#e8ebf8;background:linear-gradient(rgba(14,16,26,.3),rgba(14,16,26,.3)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
 #cl.vid #clq{display:flex}
 #clq b{color:#fff;font-weight:600}
 #clq i{width:7px;height:7px;border-radius:50%;color:#4cc9a0;background:#4cc9a0;box-shadow:0 0 10px currentColor}
 #clq i.w{color:#e9b949;background:#e9b949}
 #clq i.b{color:#e5675f;background:#e5675f}
-.clk{display:flex;gap:14px;padding:12px;border-radius:36px;border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--bg) 55%,transparent),color-mix(in srgb,var(--bg) 55%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);z-index:3}
+/* PATCH-ZNX-VCALL-V2 */.clk{display:flex;gap:14px;padding:12px;margin-top:auto;border-radius:36px;border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--bg) 55%,transparent),color-mix(in srgb,var(--bg) 55%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);z-index:3}
 .clk button{width:58px;height:58px;border-radius:50%;padding:0;display:grid;place-items:center;border:1px solid var(--ln);background:var(--sf);color:var(--tx)}.clk button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .clk button.off{background:var(--tx);color:var(--bg)}.clk .end{background:linear-gradient(145deg,#ff6a6a,#d63a4a);border-color:transparent;color:#fff;box-shadow:0 14px 26px -10px #ff4a5a}
 .clk .acc{display:none;background:linear-gradient(145deg,#4cc9a0,#2f9e7f);border-color:transparent;color:#fff;box-shadow:0 14px 26px -10px #4cc9a0}#cl.inc .clk .acc{display:grid}#cl.inc .clk button:not(.end):not(.acc){display:none}#cl.inc #kmin{visibility:hidden}
@@ -1573,15 +1573,19 @@ async function clMic(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUs
  try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:!!ST2.noise,autoGainControl:!!ST2.voice,voiceIsolation:!!ST2.voice,channelCount:1}})}catch(e){ts("Allow the microphone to make calls");return null}}
 /* camera: raw front or back camera, never mirrored, so you and the other person see the same picture */
 async function clCamStream(face){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ts("Camera is not available here");return null}
- const q=CQ[ST2.vq]||CQ[720],port=innerHeight>innerWidth,w=port?q[1]:q[0],h=port?q[0]:q[1];
+ const q=CQ[ST2.vq]||CQ[720],port=innerHeight>innerWidth,sh=q[1],lg=Math.round(sh*4/3),w=port?sh:lg,h=port?lg:sh;
  try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:face||"user",width:{ideal:w},height:{ideal:h},frameRate:{ideal:30}}}),t=s.getVideoTracks()[0];if(t)t.contentHint="motion";return s}catch(e){ts("Allow the camera to use video");return null}}
 function clCamStop(){if(CL.vs){CL.vs.getTracks().forEach(t=>t.stop());CL.vs=null}}
 /* layout: big picture + small draggable picture, tap the small one to swap */
+/* PATCH-ZNX-VCALL-V2 */function clFit(v){const w=v.clientWidth,h=v.clientHeight;if(!w||!h||!v.videoWidth)return;v.style.objectFit=Math.abs(Math.log(v.videoWidth/v.videoHeight/(w/h)))<.07?"cover":"contain"}
+["clr","clv"].forEach(i=>{$(i).addEventListener("loadedmetadata",()=>clFit($(i)));$(i).addEventListener("resize",()=>clFit($(i)))});
+addEventListener("resize",()=>{clFit($("clr"));clFit($("clv"))});
 function clLay(){const c=$("cl"),r=$("clr"),l=$("clv"),cam=!!(CL.cam&&CL.vs),rc=!!CL.rcam,both=cam&&rc,sw=both&&!!CL.sw;
  r.className="clvd"+(rc?(sw?" pip":" big"):" off");l.className="clvd"+(cam?(both&&!sw?" pip":" big"):" off");
  ["left","top","right"].forEach(k=>{r.style.removeProperty(k);l.style.removeProperty(k)});
  const p=c.querySelector(".clvd.pip");if(p&&CL.pp){p.style.right="auto";p.style.left=CL.pp.x+"px";p.style.top=CL.pp.y+"px"}
  const src=cam?CL.vs:null;if(l.srcObject!==src)l.srcObject=src;
+ l.style.transform=CL.face==="user"?"scaleX(-1)":"";clFit(r);clFit(l);
  c.classList.toggle("vid",cam||rc);if(!(cam||rc))c.classList.remove("hc")}
 function clCtl(show){const c=$("cl");clearTimeout(CL.ht);c.classList.toggle("hc",!show);if(show&&c.classList.contains("vid")&&CL.t0)CL.ht=setTimeout(()=>c.classList.add("hc"),4500)}
 /* sender tuning: voice first, then frame rate, then sharpness. On a weak network the picture gets smaller, never slower. */
@@ -1595,7 +1599,7 @@ async function clStat(){const pc=CL.pc;if(!pc||pc.connectionState!=="connected")
  if(CL.cam&&out&&out.framesPerSecond){const f=out.framesPerSecond;if(f<20){CL.lo++;CL.hi=0}else if(f>=26){CL.hi++;CL.lo=0}else{CL.lo=0;CL.hi=0}if(CL.lo>=2)clScale(CL.sc*1.5);else if(CL.hi>=8&&CL.sc>1)clScale(CL.sc/1.5)}
  if(!$("cl").classList.contains("vid"))return;
  const bad=(rtt!=null&&rtt>400)||(CL.rcam&&fps>0&&fps<15),mid=(rtt!=null&&rtt>200)||(CL.rcam&&fps>0&&fps<22);
- $("clq").innerHTML=`<i class="${bad?"b":mid?"w":""}"></i><span><b>${rtt==null?"-":Math.round(rtt)}</b> ms</span><span><b>${CL.rcam&&fps?Math.round(fps):"-"}</b> fps</span><span><b>${CL.rcam&&h?Math.min(w,h)+"p":"-"}</b></span><span><b>${CL.rcam&&kb?(kb/1000).toFixed(1):"-"}</b> Mb/s</span>`}
+ $("clq").innerHTML=`<i class="${bad?"b":mid?"w":""}"></i><span><b>${mpFmt(Math.floor((Date.now()-CL.t0)/1000))}</b></span><span><b>${rtt==null?"-":Math.round(rtt)}</b> ms</span><span><b>${CL.rcam&&fps?Math.round(fps):"-"}</b> fps</span><span><b>${CL.rcam&&h?Math.min(w,h)+"p":"-"}</b></span><span><b>${CL.rcam&&kb?(kb/1000).toFixed(1):"-"}</b> Mb/s</span>`}
 function clPc(){const pc=new RTCPeerConnection({iceServers:[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}].concat(CL_TURN),iceCandidatePoolSize:2}),id=CL.id;CL.pc=pc;
  CL.ls.getTracks().forEach(t=>pc.addTrack(t,CL.ls));
  if(CL.role==="out"){CL.vt=pc.addTransceiver("video",{direction:"sendrecv"});if(CL.vs)CL.vt.sender.replaceTrack(CL.vs.getVideoTracks()[0]).then(clTuneV).catch(()=>{})}
