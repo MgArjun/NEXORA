@@ -629,9 +629,8 @@ let su=false,st=1;
 const say=t=>$("msg").textContent=t,gl=$("gl");
 function paint(){$("fnm").classList.toggle("hide",!su||st===2);gl.classList.toggle("on2",st===2);$("ttl").textContent=st===2?(su?"Set a password":"Enter your password"):(su?"Create your ID":"Welcome back");$("sub").style.display=st===2?"none":"";
  $("go").textContent=st===1?"Continue":(su?"Create account":"Log in");$("sw").innerHTML=su?"Have an account? <b>Log in</b>":"New here? <b>Create account</b>";$("ce").textContent=$("em").value.trim();$("gs").style.display=st===2?"none":"";say("")}
-$("go").onclick=()=>{if(st===1){if(!/^\S+@\S+\.\S+$/.test($("em").value.trim()))return say("Enter a valid email.");if(su&&$("nm").value.trim().length<2)return say("Enter your name.");st=2;paint();setTimeout(()=>$("pw").focus(),60);return}
- const p=$("pw").value;if(!p)return say("Enter your password.");if(su&&p.length<6)return say("Password needs 6+ characters.");enter()};
-$("bk").onclick=()=>{st=1;paint()};$("sw").onclick=()=>{su=!su;st=1;paint()};$("gs").onclick=()=>enter();
+
+$("bk").onclick=()=>{st=1;paint()};$("sw").onclick=()=>{su=!su;st=1;paint()};
 $("eye").onclick=()=>{const p=$("pw");p.type=p.type==="password"?"text":"password";$("eye").textContent=p.type==="password"?"Show":"Hide"};
 ["nm","em","pw"].forEach(i=>$(i).addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click()}));paint();
 {const f=$("emf"),c=document.querySelector(".card"),tilt=(x,y)=>{f.style.setProperty("--ry",x*12+"deg");f.style.setProperty("--rx",y*-12+"deg")};
@@ -904,7 +903,7 @@ $("svd").onclick=()=>{sv.p=1;sheet(`<h3>Delete this status?</h3><button class="o
 /* press and hold = pause */
 const hold=el=>{el.addEventListener("pointerdown",()=>{sv.p=1;sv.vid&&sv.vid.pause()});["pointerup","pointercancel","pointerleave"].forEach(v=>el.addEventListener(v,()=>{if(!document.activeElement||document.activeElement.id!=="svi"){sv.p=0;sv.vid&&sv.vid.play&&sv.vid.play().catch(()=>{})}}))};
 hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
-function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();impRestore();show("chats");appIn();lockOnEnter();tourCheck()}
+function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();show("chats");appIn();lockOnEnter();tourCheck()}
 
 /* ===== Me tab ===== */
 const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
@@ -1554,7 +1553,7 @@ function v2gSheet(f){if(!f.type.startsWith("video/"))return ts("Choose a video")
 
 /* ===== import from the old app (read only: nothing in the old database is changed) ===== */
 const OLD_URL="https://ktwluvpmzisonmootdqc.supabase.co";
-function impRestore(){return;try{const o=JSON.parse(localStorage.getItem("znx_import")||"null");if(!o)return;if(o.my)Object.assign(MY,o.my);if(o.friends&&o.friends.length){U=o.friends;for(const k in MSG)delete MSG[k]}}catch(e){}}
+
 async function impRun(url,key,email,pw,say){const base=url.replace(/\/+$/,"");
  say("Signing in...");const a=await fetch(base+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:key,"Content-Type":"application/json"},body:JSON.stringify({email,password:pw})});const j=await a.json().catch(()=>({}));
  if(!a.ok||!j.access_token)throw new Error(j.error_description||j.msg||j.message||"Could not sign in. Check email, password and key.");
@@ -2051,7 +2050,7 @@ const onMsg=async r=>{
  U.sort((a,b)=>(b.lat||0)-(a.lat||0));if(tab==="chats"&&!chatOn()&&$("ls"))list()};
 const onUpd=r=>{const u=BYC[r.conversation_id];if(!u||r.sender_id!==PID)return;const x=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(x&&r.read_at&&x.st<2){x.st=2;if(cur===u&&chatOn())render(true)}};
 const subRT=()=>{if(!SB||RT)return;try{RT=SB.channel("znx-msgs").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},p=>onMsg(p.new)).on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},p=>onUpd(p.new)).subscribe(s=>{RTOK=s==="SUBSCRIBED"?1:0})}catch(e){}};
-setInterval(()=>{if(!PID||!vis())return;tick++;if(cur&&chatOn())loadHist(cur).then(()=>markRead(cur));if(tick%3===0)loadChats(true);if(tick%12===0)setPres(true)},4000);
+/* PATCH-CLEAN1-V1 */setInterval(()=>{if(!PID||!vis())return;tick++;if(cur&&chatOn()&&!RTOK)loadHist(cur).then(()=>markRead(cur));if(tick%(RTOK?15:3)===0)loadChats(true)},4000);
 document.addEventListener("visibilitychange",()=>{if(!PID)return;if(vis()){setPres(true);loadChats(true);if(cur&&chatOn())loadHist(cur)}else setPres(false)});
 window.addEventListener("pagehide",()=>setPres(false));
 
@@ -2162,7 +2161,7 @@ const FR={};
 function applyPres(){U.forEach(u=>{const p=FR[u.pid];if(!p)return;if(p.hide_seen){u.on=0;u.seen="";return}u.on=freshOn(p)?1:0;u.seen=seenT(Object.assign({},p,{online:freshOn(p)}))})}
 async function presRefresh(){if(!SB||!PID||!vis())return;const ids=U.map(u=>u.pid).filter(Boolean);if(!ids.length)return;try{const r=await SB.from("profiles").select("id,online,last_seen,hide_seen").in("id",ids);(r.data||[]).forEach(p=>FR[p.id]=p)}catch(e){}}
 function beat(){if(!SB||!PID||!vis())return;setPres(true);SB.from("profiles").update({last_seen:new Date().toISOString()}).eq("id",PID).then(()=>{},()=>{})}
-setInterval(beat,20000);setInterval(presRefresh,6000);setTimeout(presRefresh,1200);
+setInterval(beat,20000);setInterval(presRefresh,15000);setTimeout(presRefresh,1200);
 setInterval(()=>{applyPres();if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm&&sm.textContent!==cur.seen)sm.textContent=cur.seen}},1000);
 
 /* ---------- 30 din wali line + demo text hatao ---------- */
