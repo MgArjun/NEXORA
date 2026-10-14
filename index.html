@@ -882,7 +882,7 @@ $("svd").onclick=()=>{sv.p=1;sheet(`<h3>Delete this status?</h3><button class="o
 /* press and hold = pause */
 const hold=el=>{el.addEventListener("pointerdown",()=>{sv.p=1;sv.vid&&sv.vid.pause()});["pointerup","pointercancel","pointerleave"].forEach(v=>el.addEventListener(v,()=>{if(!document.activeElement||document.activeElement.id!=="svi"){sv.p=0;sv.vid&&sv.vid.play&&sv.vid.play().catch(()=>{})}}))};
 hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
-function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();impRestore();show("chats");lockOnEnter();tourCheck()}
+function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();impRestore();show("chats");appIn();lockOnEnter();tourCheck()}
 
 /* ===== Me tab ===== */
 const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
@@ -930,7 +930,7 @@ function drawSub(k){sub=k;let b="";
  $("pg").innerHTML=`<div class="sb"><button class="ib" data-go="" aria-label="Back">${A('<path d="M15 18l-6-6 6-6"/>')}</button><h2>${TT[k]}</h2></div>${b}`;
  if(k==="dat"&&navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(e=>{const m=n=>(n/1048576).toFixed(1)+" MB";if($("est"))$("est").textContent=m(e.usage||0)+" used of "+m(e.quota||0)}).catch(()=>{});else if(k==="dat")$("est").textContent="Not available on this browser"}
 $("pg").addEventListener("click",e=>{if(tab!=="me")return;
- const g=e.target.closest("[data-go]");if(g){const k=g.dataset.go;if(k==="adm")return adOpen();return k?drawSub(k):drawMe()}
+ const g=e.target.closest("[data-go]");if(g){const k=g.dataset.go;if(k==="adm")return adOpen();return k?(drawSub(k),pgIn(1)):(drawMe(),pgIn(-1))}
  const t=e.target.closest("[data-tg]");if(t){const k=t.dataset.tg;if(k==="applock")return lockToggle(t);ST2[k]=ST2[k]?0:1;t.classList.toggle("on",!!ST2[k]);sv2();if(k==="extra")ts(ST2.extra?"Extra features on":"Extra features off");return}
  const sg=e.target.closest("[data-sg]");if(sg){const[k,v]=sg.dataset.sg.split(":");ST2[k]=v;if(k==="dnd")ST2.dndAt=Date.now();sv2();if(k==="theme")metaT();if(k==="vq")vq=v;[...sg.parentNode.children].forEach(b=>b.classList.toggle("on",b===sg));return}
  const a=e.target.closest("[data-act]");if(!a)return;const k=a.dataset.act;
@@ -955,7 +955,7 @@ metaT();
 function g(n){let h=0;for(const c of String(n||"?"))h=(h*31+c.charCodeAt(0))>>>0;const P=[["#5b6ad6","#8a78e6"],["#3f8f9e","#5fb3b0"],["#7a5bb5","#a77fd0"],["#4c7bd1","#6fa0ea"],["#b0587f","#d27f9f"],["#4f8a7a","#79b8a0"],["#5e6486","#8a90b4"]],p=P[h%P.length];return `linear-gradient(150deg,${p[0]},${p[1]})`}
 let BL=[];
 Object.assign(SI,{bell:A('<path d="M18 8.5a6 6 0 10-12 0c0 6.5-2.5 8.5-2.5 8.5h17S18 15 18 8.5z"/><path d="M13.7 20.5a2 2 0 01-3.4 0"/>'),chat:A('<path d="M21 11.5a8.5 8.5 0 01-12.3 7.6L3 21l1.8-5.2A8.5 8.5 0 1121 11.5z"/>'),shield:A('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'),ban:A('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'),help:A('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5M12 17h.01"/>'),share:A('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/>')});
-function applyPrefs(){root.toggleAttribute("data-rm",!!ST2.rm);root.style.setProperty("--mfs",{s:"13px",m:"15px",l:"17.5px"}[ST2.fontSize]||"15px")}
+function applyPrefs(){root.toggleAttribute("data-rm",!!ST2.rm||matchMedia("(prefers-reduced-motion:reduce)").matches);root.style.setProperty("--mfs",{s:"13px",m:"15px",l:"17.5px"}[ST2.fontSize]||"15px")}
 const SUBX={
  ntf:()=>`<div class="card2">${tgR("msgTone","Message sounds","Soft sound for new messages")}${tgR("preview","Show message preview","Show text in notifications")}${tgR("banner","In-app banners","Pop-up when a message arrives")}${tgR("ringtone","Call ringtone")}${tgR("vibN","Vibrate on notifications")}</div><div class="card2">${sgR("dnd","Do not disturb",[["off","Off"],["1","1 hour"],["8","8 hours"],["on","Until off"]])}</div><p class="note">With Do not disturb on, messages still arrive but stay silent.</p><button class="pri" style="width:100%" data-x="tn">Send a test notification</button>`,
  cht:()=>`<div class="card2">${sgR("fontSize","Message text size",[["s","Small"],["m","Medium"],["l","Large"]])}${sgR("autoDl","Auto-download media",[["all","Wi-Fi + mobile"],["wifi","Wi-Fi only"],["never","Never"]])}</div><div class="card2">${tgR("enterSend","Enter key sends message","On computer. On phone Enter adds a new line")}${tgR("linkPrev","Link previews","Show a preview for links")}${tgR("lastPrev","Last message in chat list")}</div><div class="card2"><button class="sr" data-x="bk"><span class="t"><b>Chat backup</b><small>Connects with the database step</small></span><em>›</em></button></div>`,
@@ -981,7 +981,7 @@ document.addEventListener("pointerdown",e=>{if(!(e.target.closest&&e.target.clos
 const ORDER=["chats","status","enjoy","play","me"];
 let inGame=false;
 const VIEWS={chats:drawChats,status:drawStatus,play:drawPlay,enjoy:drawEnjoy,me:drawMe};
-const PR3="perspective(900px) ";
+/* PATCH-MOTION-V2 */const PR3="perspective(900px) ";const pgIn=dir=>{if(root.hasAttribute("data-rm"))return;const p=$("pg");p.scrollTop=0;p.animate([{opacity:0,transform:`translate3d(${dir*34}px,0,0)`},{opacity:1,transform:"none"}],{duration:420,easing:"cubic-bezier(.2,.9,.2,1.05)"})};const appIn=()=>{if(root.hasAttribute("data-rm"))return;$("app").animate([{opacity:0,transform:"scale(.985)"},{opacity:1,transform:"none"}],{duration:560,easing:"cubic-bezier(.2,.9,.2,1.05)"})};
 function streak(dir){const e=$("streak");if(!e)return;e.animate([{transform:`translateX(${dir>0?"105vw":"-45vw"})`,opacity:0},{opacity:1,offset:.45},{transform:`translateX(${dir>0?"-45vw":"105vw"})`,opacity:0}],{duration:640,easing:"cubic-bezier(.3,.7,.2,1)"})}
 function goTab(t,dir){if(navigator.vibrate&&t!==tab)navigator.vibrate(5);const i=ORDER.indexOf(tab),j=ORDER.indexOf(t),p=$("pg");if(t===tab)return show(t);dir=dir||(j>i?1:-1);streak(dir);moveLens(t);setNav(t);
  p.style.transition="transform .13s cubic-bezier(.4,0,1,1),opacity .13s,filter .13s";p.style.transform=`${PR3}translate3d(${-dir*90}px,0,0) rotateY(${dir*18}deg) scale(.92)`;p.style.filter="blur(6px)";p.style.opacity="0";
@@ -1024,7 +1024,7 @@ function cfgSheet(id,mode){const x=gOf(id);let n=mode==="bot"?1:2,d=1;const dif=
   if(mode==="bot"&&dif)body.push(`<div class="sec">Difficulty</div>${segN("d",0,2,d,v=>["Easy","Medium","Hard"][v])}`);
   sheet(`<h3>${x.n} · ${mode==="bot"?"Vs robots":"One phone"}</h3>${body.join("")}<button class="pri" style="width:100%;margin-top:14px" id="gst">Start game</button>`);
   $("sh").onclick=e=>{const b=e.target.closest(".seg button");if(b){const k=b.parentNode.dataset.k;if(k==="n")n=+b.dataset.v;else d=+b.dataset.v;return paint()}};$("gst").onclick=()=>{closeS();startGame(id,mode,n,d)}};paint()}
-function startGame(id,mode,n,d){if(id!=="ttt"){ts(gOf(id).n+" board comes in the next step");return}tStart(mode,d)}
+function startGame(id,mode,n,d){if(id!=="ttt"){ts(gOf(id).n+" board comes in the next step");return}tStart(mode,d);pgIn(1)}
 /* online: choose friends, then waiting room */
 let INV=null;
 function inviteScreen(id,pre){const x=gOf(id);INV={id,sel:new Set(pre?[pre]:[]),q:""};
@@ -1052,10 +1052,10 @@ function tPlace(i){T.last=i;T.b[i]=T.turn;const w=tWin(T.b);if(w){T.over=1;T.win
  if(!T.over&&T.mode==="bot"&&T.turn==="O"){const t=T;setTimeout(()=>{if(T===t&&!t.over)tPlace(tBot())},450)}}
 $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-pl]");if(!b)return;const a=b.dataset.pl,k=a.split(":")[0],v=a.split(":")[1];
  if(k==="pick"){const uid=+v;sheet(`<h3>Invite to a game</h3>${GAMES.map(x=>`<button class="opt" data-g="${x.id}">${GI[x.id]}${x.n}</button>`).join("")}`);$("sh").onclick=e=>{const b=e.target.closest("[data-g]");if(b){closeS();inviteScreen(b.dataset.g,uid)}};return}
- if(k==="open")return openGame(v);if(k==="home"||k==="exit"){return drawPlay()}
- if(k==="online")return inviteScreen(v);if(k==="bot"||k==="phone")return cfgSheet(v,k);
+ if(k==="open"){openGame(v);return pgIn(b.closest(".sb")?-1:1)}if(k==="home"||k==="exit"){drawPlay();return pgIn(-1)}
+ if(k==="online"){inviteScreen(v);return pgIn(1)}if(k==="bot"||k==="phone")return cfgSheet(v,k);
  if(k==="tg"){const x=gOf(INV.id),id=+v;if(INV.sel.has(id))INV.sel.delete(id);else{if(x.max===2)INV.sel.clear();else if(INV.sel.size>=x.max-1)return ts("You can invite up to "+(x.max-1));INV.sel.add(id)}return fl()}
- if(k==="send")return INV.sel.size&&lobby();if(k==="cancel")return openGame(INV.id);if(k==="vc")return ts("Voice chat in the room comes with the calls step");if(k==="mu")return ts("Music in the room comes with the Enjoy step");
+ if(k==="send"){if(INV.sel.size){lobby();pgIn(1)}return}if(k==="cancel"){openGame(INV.id);return pgIn(-1)}if(k==="vc")return ts("Voice chat in the room comes with the calls step");if(k==="mu")return ts("Music in the room comes with the Enjoy step");
  if(k==="t"){const i=+v;if(!T||T.over||T.b[i]||(T.mode==="bot"&&T.turn!=="X"))return;return tPlace(i)}
  if(k==="redo")return tStart(T.mode,T.d)});
 
