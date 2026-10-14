@@ -1034,14 +1034,14 @@ function drawPlay(){const on=U.filter(u=>u.on&&!BL.includes(u.id));
 const MODES=[["online","Play online","Invite friends to a room",A('<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M16 4.5a3.5 3.5 0 010 7M22 20c0-3-2-5-5-5.7"/>')],["bot","Vs robots","Practice on your own",A('<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4.5V8M9 13h.01M15 13h.01M9.5 16.5h5"/>')],["phone","One phone","Take turns on this device",A('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>')]];
 function openGame(id){const x=gOf(id);inGame=false;$("pg").innerHTML=`<div class="sb"><button class="ib" data-pl="home" aria-label="Back">${A('<path d="M15 18l-6-6 6-6"/>')}</button></div><div class="gh"><i>${GI[id]}</i><div><h2>${x.n}</h2><p>${x.d}</p></div></div><div class="sec">How do you want to play?</div><div class="glist">${MODES.map(m=>`<button class="gr" data-pl="${m[0]}:${id}"><i>${m[3]}</i><span class="t"><b>${m[1]}</b><small>${m[2]}</small></span><em>›</em></button>`).join("")}</div>`}
 const segN=(k,from,to,cur,lab)=>`<div class="seg" data-k="${k}">${Array.from({length:to-from+1},(_,i)=>from+i).map(v=>`<button data-v="${v}" class="${v===cur?"on":""}">${lab?lab(v):v}</button>`).join("")}</div>`;
-function cfgSheet(id,mode){const x=gOf(id);let n=mode==="bot"?1:2,d=1;const dif=id==="ttt"||id==="chess";
+function cfgSheet(id,mode){const x=gOf(id);let n=mode==="bot"?1:2,d=1;const dif=id==="ttt"||id==="chess"||id==="uno";
  const paint=()=>{const body=[];
   if(mode==="bot"&&x.max>2)body.push(`<div class="sec">Robots</div>${segN("n",1,x.max-1,n,v=>v+(v>1?" robots":" robot"))}`);
   if(mode==="phone"&&x.max>2)body.push(`<div class="sec">Players</div>${segN("n",2,x.max,n,v=>v+" players")}`);
   if(mode==="bot"&&dif)body.push(`<div class="sec">Difficulty</div>${segN("d",0,2,d,v=>["Easy","Medium","Hard"][v])}`);
   sheet(`<h3>${x.n} · ${mode==="bot"?"Vs robots":"One phone"}</h3>${body.join("")}<button class="pri" style="width:100%;margin-top:14px" id="gst">Start game</button>`);
   $("sh").onclick=e=>{const b=e.target.closest(".seg button");if(b){const k=b.parentNode.dataset.k;if(k==="n")n=+b.dataset.v;else d=+b.dataset.v;return paint()}};$("gst").onclick=()=>{closeS();startGame(id,mode,n,d)}};paint()}
-function startGame(id,mode,n,d){if(id!=="ttt"){ts(gOf(id).n+" board comes in the next step");return}tStart(mode,d);pgIn(1)}
+function startGame(id,mode,n,d){if(id==="uno")return uoPick(mode,n,d);if(id!=="ttt"){ts(gOf(id).n+" board comes in the next step");return}tStart(mode,d);pgIn(1)}
 /* online: choose friends, then waiting room */
 let INV=null;
 function inviteScreen(id,pre){const x=gOf(id);INV={id,sel:new Set(pre?[pre]:[]),q:""};
@@ -1912,6 +1912,454 @@ document.body.insertAdjacentHTML("beforeend",'<button id="fsb" aria-label="Full 
  b.onclick=()=>{const d=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(d.requestFullscreen)d.requestFullscreen().catch(()=>ts("Full screen is not allowed here"));else ts("Full screen is not supported on this browser");clearTimeout(hd);hd=setTimeout(()=>b.classList.remove("on"),1200)};
  document.addEventListener("fullscreenchange",sync)}
 document.body.insertAdjacentHTML("beforeend",'<i id="streak"></i>');
+;
+/* PATCH-UNO-V1 */
+/* ZNEXORA UNO engine: Classic + No Mercy. Pure logic, no UI, JSON-safe state. */
+(function (root) {
+'use strict';
+
+const COLORS = ['R', 'Y', 'G', 'B'];
+const DRAWV = { d2: 2, d4: 4, wd4: 4, wr4: 4, w6: 6, w10: 10 };
+const WILD = { wild: 1, wd4: 1, wr4: 1, w6: 1, w10: 1, wcr: 1 };
+const PTS = { skip: 20, rev: 20, d2: 20, se: 30, d4: 30, da: 30, wild: 50, wd4: 50, wr4: 60, w6: 70, w10: 80, wcr: 60 };
+const cardPoints = c => (/^\d$/.test(c.t) ? +c.t : (PTS[c.t] || 20));
+
+/* seeded random whose state lives in the game state (so a game can be saved and resumed) */
+function rand(s) {
+  const a = (s.rs + 0x6D2B79F5) | 0; s.rs = a;
+  let t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function shuffle(s, arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand(s) * (i + 1)), x = arr[i]; arr[i] = arr[j]; arr[j] = x;
+  }
+  return arr;
+}
+
+function buildDeck(mode) {
+  const d = []; let id = 0;
+  const add = (c, t, k) => { for (let i = 0; i < k; i++) d.push({ id: id++, c, t }); };
+  if (mode === 'classic') {
+    for (const c of COLORS) {
+      add(c, '0', 1);
+      for (let n = 1; n <= 9; n++) add(c, String(n), 2);
+      add(c, 'skip', 2); add(c, 'rev', 2); add(c, 'd2', 2);
+    }
+    add('W', 'wild', 4); add('W', 'wd4', 4);
+  } else {
+    for (const c of COLORS) {
+      for (let n = 0; n <= 9; n++) add(c, String(n), 2);
+      add(c, 'skip', 3); add(c, 'se', 2); add(c, 'rev', 3);
+      add(c, 'd2', 3); add(c, 'd4', 3); add(c, 'da', 3);
+    }
+    add('W', 'wr4', 4); add('W', 'w6', 4); add('W', 'w10', 4); add('W', 'wcr', 8);
+  }
+  return d;
+}
+
+function aliveN(s) { let k = 0; for (let i = 0; i < s.n; i++) if (!s.out[i]) k++; return k; }
+function next(s, from, k) {
+  k = k || 1; let p = from;
+  for (let i = 0; i < k; i++) { let g = 0; do { p = (p + s.dir + s.n) % s.n; g++; } while (s.out[p] && g <= s.n); }
+  return p;
+}
+const top = s => s.disc[s.disc.length - 1];
+
+function create(o) {
+  const nm = o.mode === 'nomercy', n = o.names.length;
+  if (n < 2 || n > 10) throw new Error('UNO needs 2 to 10 players');
+  const rules = Object.assign({ stack: nm, challenge: !nm, seven0: nm, drawUntil: nm, mercy: nm ? 25 : 0 }, o.rules || {});
+  if (rules.stack) rules.challenge = false;
+  const s = {
+    mode: nm ? 'nomercy' : 'classic', rules, n, names: o.names.slice(), bots: (o.bots || o.names.map(() => false)).slice(),
+    rs: (o.seed == null ? Date.now() : o.seed) | 0, deck: [], disc: [], hands: [], dir: 1, turn: 0, color: 'R',
+    pending: null, drawn: null, phase: 'play', challenge: null, winner: -1,
+    out: Array(n).fill(false), uno: Array(n).fill(false), unoPend: -1, stall: 0, points: 0
+  };
+  s.deck = shuffle(s, buildDeck(s.mode));
+  for (let i = 0; i < n; i++) s.hands.push([]);
+  for (let k = 0; k < 7; k++) for (let i = 0; i < n; i++) s.hands[i].push(s.deck.pop());
+  let c;
+  for (;;) {
+    c = s.deck.pop();
+    const ok = nm ? /^\d$/.test(c.t) : c.t !== 'wd4';
+    if (ok) break;
+    s.deck.unshift(c);
+  }
+  s.disc = [c];
+  s.color = c.c === 'W' ? COLORS[Math.floor(rand(s) * 4)] : c.c;
+  const ev = [];
+  if (c.t === 'skip') s.turn = 1 % n;
+  else if (c.t === 'rev') { s.dir = -1; s.turn = n === 2 ? 1 : 0; }
+  else if (c.t === 'd2') { drawN(s, 0, 2, ev); s.turn = 1 % n; }
+  return s;
+}
+
+/* ---------- cards moving around ---------- */
+function reshuffle(s, ev) {
+  if (s.disc.length <= 1) return;
+  const t = s.disc.pop(); s.deck = shuffle(s, s.disc); s.disc = [t]; ev.push({ t: 'reshuffle' });
+}
+function draw1(s, p, ev) {
+  if (!s.deck.length) reshuffle(s, ev);
+  if (!s.deck.length) return null;
+  const c = s.deck.pop(); s.hands[p].push(c); s.uno[p] = false; return c;
+}
+function mercy(s, p, ev) {
+  if (!s.rules.mercy || s.out[p] || s.hands[p].length < s.rules.mercy) return false;
+  s.out[p] = true; s.deck.unshift.apply(s.deck, s.hands[p]); s.hands[p] = []; s.uno[p] = false;
+  ev.push({ t: 'out', p });
+  if (s.unoPend === p) s.unoPend = -1;
+  if (s.turn === p) { s.drawn = null; s.turn = next(s, p); }
+  return true;
+}
+function drawN(s, p, k, ev) {
+  const ids = [];
+  for (let i = 0; i < k; i++) { const c = draw1(s, p, ev); if (!c) break; ids.push(c.id); }
+  ev.push({ t: 'draw', p, n: ids.length, ids });
+  mercy(s, p, ev);
+}
+function roulette(s, p, col, ev) {
+  const ids = [];
+  for (;;) { const c = draw1(s, p, ev); if (!c) break; ids.push(c.id); if (c.c === col) break; }
+  ev.push({ t: 'roulette', p, color: col, n: ids.length, ids });
+  mercy(s, p, ev);
+}
+function rotate(s, p, ev) {
+  const order = [p]; let q = next(s, p);
+  while (q !== p) { order.push(q); q = next(s, q); }
+  const old = order.map(i => s.hands[i]);
+  order.forEach((pl, i) => { s.hands[order[(i + 1) % order.length]] = old[i]; });
+  order.forEach(pl => { s.uno[pl] = false; });
+  ev.push({ t: 'rotate', order });
+}
+function swap(s, a, b, ev) {
+  const t = s.hands[a]; s.hands[a] = s.hands[b]; s.hands[b] = t; s.uno[a] = s.uno[b] = false;
+  ev.push({ t: 'swap', a, b });
+}
+function finish(s, p, ev) {
+  s.phase = 'over'; s.winner = p; let pts = 0;
+  for (let i = 0; i < s.n; i++) if (i !== p) for (const c of s.hands[i]) pts += cardPoints(c);
+  s.points = pts; s.pending = null; s.drawn = null; s.challenge = null; s.unoPend = -1;
+  ev.push({ t: 'win', p, points: pts });
+}
+function checkLast(s, ev) {
+  if (s.phase !== 'over' && aliveN(s) === 1) finish(s, s.out.indexOf(false), ev);
+}
+
+/* ---------- what can be played ---------- */
+function matches(s, c) {
+  if (WILD[c.t]) return true;
+  const t = top(s);
+  return c.c === s.color || (!WILD[t.t] && c.t === t.t);
+}
+function playable(s, p, c) {
+  if (s.phase !== 'play' || p !== s.turn || s.out[p]) return false;
+  if (s.drawn != null && c.id !== s.drawn) return false;
+  if (s.pending) return !!s.rules.stack && DRAWV[c.t] !== undefined && DRAWV[c.t] >= s.pending.val;
+  return matches(s, c);
+}
+const legal = (s, p) => s.hands[p].filter(c => playable(s, p, c));
+const targets = (s, p) => { const r = []; for (let i = 0; i < s.n; i++) if (i !== p && !s.out[i]) r.push(i); return r; };
+
+/* ---------- one action ---------- */
+const err = m => ({ ok: false, err: m });
+
+function act(s, a) {
+  const ev = [];
+  if (s.phase === 'over') return err('game over');
+  const p = a.p;
+  if (!(p >= 0 && p < s.n) || s.out[p]) return err('bad player');
+
+  if (a.type === 'uno') {
+    if (s.hands[p].length > 2) return err('too many cards for UNO');
+    s.uno[p] = true; if (s.unoPend === p) s.unoPend = -1;
+    ev.push({ t: 'uno', p }); return { ok: true, ev };
+  }
+  if (a.type === 'catch') {
+    if (s.unoPend < 0 || s.unoPend === p) return err('nothing to catch');
+    const v = s.unoPend; s.unoPend = -1;
+    ev.push({ t: 'catch', p: v, by: p });
+    drawN(s, v, 2, ev); checkLast(s, ev);
+    return { ok: true, ev };
+  }
+  if (p !== s.turn) return err('not your turn');
+  const keepPend = () => { if (s.unoPend !== p) s.unoPend = -1; };
+
+  if (s.phase === 'challenge') {
+    const ch = s.challenge;
+    if (a.type === 'accept') {
+      keepPend(); s.phase = 'play'; s.challenge = null;
+      drawN(s, p, 4, ev); s.turn = next(s, p);
+    } else if (a.type === 'challenge') {
+      keepPend(); s.phase = 'play'; s.challenge = null;
+      ev.push({ t: 'challenge', by: p, target: ch.by, bluff: ch.bluff });
+      if (ch.bluff) { drawN(s, ch.by, 4, ev); s.turn = p; }
+      else { drawN(s, p, 6, ev); s.turn = next(s, p); }
+    } else return err('answer the Wild Draw Four first');
+    checkLast(s, ev);
+    return { ok: true, ev };
+  }
+
+  if (a.type === 'pass') {
+    if (s.drawn == null) return err('nothing to pass');
+    keepPend(); s.drawn = null; s.turn = next(s, p); ev.push({ t: 'pass', p });
+    return { ok: true, ev };
+  }
+
+  if (a.type === 'draw') {
+    if (s.drawn != null) return err('you already drew');
+    keepPend();
+    if (s.pending) {
+      const k = s.pending.n; s.pending = null;
+      drawN(s, p, k, ev); s.turn = next(s, p); checkLast(s, ev);
+      return { ok: true, ev };
+    }
+    if (s.rules.drawUntil && legal(s, p).length) return err('you have a playable card');
+    const ids = [];
+    if (s.rules.drawUntil) {
+      for (;;) {
+        const c = draw1(s, p, ev); if (!c) break; ids.push(c.id);
+        if (matches(s, c)) { s.drawn = c.id; break; }
+        if (mercy(s, p, ev)) break;
+      }
+    } else {
+      const c = draw1(s, p, ev);
+      if (c) { ids.push(c.id); if (matches(s, c)) s.drawn = c.id; }
+    }
+    ev.push({ t: 'draw', p, n: ids.length, ids });
+    if (!s.drawn || s.out[p]) {
+      s.drawn = null; s.turn = next(s, p);
+      s.stall = ids.length ? 0 : s.stall + 1;
+      if (s.stall >= aliveN(s) * 2) {
+        let best = -1;
+        for (let i = 0; i < s.n; i++) if (!s.out[i] && (best < 0 || s.hands[i].length < s.hands[best].length)) best = i;
+        finish(s, best, ev);
+      }
+    } else s.stall = 0;
+    checkLast(s, ev);
+    return { ok: true, ev };
+  }
+
+  if (a.type !== 'play') return err('unknown action');
+  if (s.phase !== 'play') return err('wrong phase');
+  const hand = s.hands[p], i = hand.findIndex(c => c.id === a.card);
+  if (i < 0) return err('card is not in your hand');
+  const c = hand[i];
+  if (!playable(s, p, c)) return err('that card cannot be played now');
+  if (WILD[c.t] && COLORS.indexOf(a.color) < 0) return err('choose a colour');
+  if (c.t === '7' && s.rules.seven0 && hand.length > 1 &&
+      !(a.target >= 0 && a.target < s.n && a.target !== p && !s.out[a.target])) return err('choose a player');
+
+  const hadColor = hand.some(x => x.id !== c.id && x.c === s.color);
+  keepPend(); s.drawn = null; s.stall = 0;
+  if (c.t === 'da') {
+    const same = hand.filter(x => x.c === c.c && x.id !== c.id);
+    s.hands[p] = hand.filter(x => x.c !== c.c);
+    for (const x of same) s.disc.push(x);
+    s.disc.push(c);
+  } else { hand.splice(i, 1); s.disc.push(c); }
+  s.color = WILD[c.t] ? a.color : c.c;
+  ev.push({ t: 'play', p, card: c, color: s.color });
+
+  const v = DRAWV[c.t];
+  if (s.hands[p].length === 0) {
+    if (v) {
+      if (c.t === 'wr4') s.dir = -s.dir;
+      drawN(s, next(s, p), (s.pending ? s.pending.n : 0) + v, ev);
+    }
+    s.pending = null; finish(s, p, ev);
+    return { ok: true, ev };
+  }
+
+  switch (c.t) {
+    case 'skip': { const sk = next(s, p); ev.push({ t: 'skip', p: sk }); s.turn = next(s, sk); break; }
+    case 'se': ev.push({ t: 'skipall' }); s.turn = p; break;
+    case 'rev': s.dir = -s.dir; ev.push({ t: 'reverse' }); s.turn = aliveN(s) === 2 ? p : next(s, p); break;
+    case 'wcr': { const vic = next(s, p); roulette(s, vic, a.color, ev); s.turn = next(s, vic); break; }
+    case '0': if (s.rules.seven0) rotate(s, p, ev); s.turn = next(s, p); break;
+    case '7': if (s.rules.seven0) swap(s, p, a.target, ev); s.turn = next(s, p); break;
+    default:
+      if (!v) { s.turn = next(s, p); break; }
+      if (c.t === 'wr4') { s.dir = -s.dir; ev.push({ t: 'reverse' }); }
+      if (s.rules.stack) {
+        s.pending = { n: (s.pending ? s.pending.n : 0) + v, val: v }; s.turn = next(s, p);
+      } else if (c.t === 'wd4' && s.rules.challenge) {
+        const vic = next(s, p);
+        s.phase = 'challenge'; s.challenge = { by: p, victim: vic, bluff: hadColor }; s.turn = vic;
+      } else {
+        const vic = next(s, p); drawN(s, vic, v, ev); s.turn = next(s, vic);
+      }
+  }
+  if (s.hands[p].length === 1 && !s.uno[p] && !s.out[p]) s.unoPend = p;
+  if (s.hands[p].length !== 1) s.uno[p] = false;
+  checkLast(s, ev);
+  return { ok: true, ev };
+}
+
+/* ---------- robots ---------- */
+function chooseColor(s, p, played, lv) {
+  const cnt = { R: 0, Y: 0, G: 0, B: 0 };
+  for (const x of s.hands[p]) if (x.c !== 'W' && x.id !== played.id) cnt[x.c]++;
+  if (lv === 'easy') return COLORS[Math.floor(rand(s) * 4)];
+  let best = [], m = -1;
+  for (const k of COLORS) { if (cnt[k] > m) { m = cnt[k]; best = [k]; } else if (cnt[k] === m) best.push(k); }
+  return best[Math.floor(rand(s) * best.length)];
+}
+function score(s, p, c, lv) {
+  const nx = next(s, p), nh = s.hands[nx].length, mine = s.hands[p].length;
+  let sc = rand(s) * (lv === 'hard' ? 0.2 : 0.8);
+  if (/^\d$/.test(c.t)) sc += +c.t / 9;
+  else if (WILD[c.t]) sc -= (mine >= 12 ? 0 : 5);
+  else sc += 1;
+  const attack = DRAWV[c.t] !== undefined || c.t === 'skip' || c.t === 'se' || c.t === 'rev';
+  if (attack && (lv === 'hard' ? nh <= 3 : nh <= 2)) sc += 3;
+  if (c.t === 'da') sc += s.hands[p].filter(x => x.c === c.c).length * 1.5;
+  if (c.t === '7' && lv !== 'easy') { const m = Math.min.apply(null, targets(s, p).map(i => s.hands[i].length)); if (m < mine - 1) sc += 2; }
+  if (lv === 'hard' && s.rules.mercy && mine >= s.rules.mercy - 7 && c.t !== 'da' && DRAWV[c.t] === undefined) sc += 0.5;
+  return sc;
+}
+function plan(s, p, lv) {
+  lv = lv || 'medium';
+  if (s.phase === 'challenge') {
+    const th = { easy: 0.1, medium: 0.25, hard: 0.35 }[lv];
+    return [{ type: rand(s) < th ? 'challenge' : 'accept', p }];
+  }
+  const L = legal(s, p);
+  if (!L.length) return [{ type: s.drawn != null ? 'pass' : 'draw', p }];
+  let c;
+  if (lv === 'easy') c = L[Math.floor(rand(s) * L.length)];
+  else if (s.pending) {
+    const sorted = L.slice().sort((x, y) => DRAWV[x.t] - DRAWV[y.t]);
+    c = (lv === 'hard' && s.hands[next(s, p)].length <= 2) ? sorted[sorted.length - 1] : sorted[0];
+  } else {
+    let b = -1e9; for (const x of L) { const k = score(s, p, x, lv); if (k > b) { b = k; c = x; } }
+  }
+  const out = [];
+  if (s.hands[p].length === 2 && (lv !== 'easy' || rand(s) < 0.6)) out.push({ type: 'uno', p });
+  const act1 = { type: 'play', p, card: c.id };
+  if (WILD[c.t]) act1.color = chooseColor(s, p, c, lv);
+  if (c.t === '7' && s.rules.seven0 && s.hands[p].length > 1) {
+    const T = targets(s, p);
+    act1.target = lv === 'easy' ? T[Math.floor(rand(s) * T.length)]
+      : T.slice().sort((x, y) => s.hands[x].length - s.hands[y].length)[0];
+  }
+  out.push(act1);
+  return out;
+}
+function botCatch(s, lv) {
+  if (s.unoPend < 0 || s.phase === 'over') return null;
+  const th = { easy: 0.25, medium: 0.6, hard: 0.9 }[lv || 'medium'];
+  for (let i = 0; i < s.n; i++) if (s.bots[i] && !s.out[i] && i !== s.unoPend && rand(s) < th) return { type: 'catch', p: i };
+  return null;
+}
+
+const api = { COLORS, DRAWV, WILD, buildDeck, create, act, legal, playable, targets, plan, botCatch, cardPoints, aliveN, next };
+if (typeof module !== 'undefined' && module.exports) module.exports = api;
+else root.UnoEngine = api;
+})(typeof window !== 'undefined' ? window : this);
+
+{const s=document.createElement("style");s.textContent=`
+@property --uc{syntax:"<color>";inherits:true;initial-value:#e5484d}
+#uoB{--uc:#e5484d;transition:--uc .7s;position:relative;display:flex;flex-direction:column;gap:12px;min-height:calc(100dvh - 230px);background:radial-gradient(75% 42% at 50% 36%,color-mix(in srgb,var(--uc) 26%,transparent),transparent 72%)}
+.uop{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.uopl{display:grid;justify-items:center;gap:3px;padding:7px 10px 6px;min-width:64px;border-radius:16px;border:1px solid var(--ln);background:var(--sf);font-size:11.5px;font-weight:600;transition:transform .4s cubic-bezier(.2,.9,.3,1.4),box-shadow .3s,opacity .3s}
+.uopl .ava{width:34px;height:34px;font-size:12px}
+.uopl.on{box-shadow:0 0 0 2px var(--uc),0 12px 26px -10px var(--uc);transform:translateY(-3px)}
+.uopl.out{opacity:.35}.uopl em{font-style:normal;font-family:var(--mono);color:var(--mu);font-size:10.5px}
+.uopl i{font-style:normal;color:var(--uc);font-weight:800;font-size:10px;letter-spacing:.08em}
+.uot{display:flex;align-items:center;justify-content:center;gap:26px;padding:16px 0 4px}
+.uodp{position:relative;text-align:center;cursor:pointer}.uodp small{display:block;margin-top:6px;font:600 11px var(--mono);color:var(--mu)}
+.uodp.hot .uc{animation:uopl 1.2s infinite;box-shadow:0 0 0 2px var(--uc),0 0 26px -4px var(--uc)}
+.uodc{padding:8px;border-radius:20px;box-shadow:0 0 0 3px var(--uc),0 0 44px -8px var(--uc);transition:box-shadow .6s}
+.uocl{align-self:center;display:flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;border:1px solid var(--ln);background:var(--sf);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.uocl i{width:10px;height:10px;border-radius:50%;box-shadow:0 0 10px currentColor}
+.uom{text-align:center;font-weight:650;font-size:16px;margin:0;min-height:22px}.uom small{display:block;font:500 11.5px var(--mono);color:var(--mu);margin-top:4px;letter-spacing:.02em}
+.uc{--cc:#444;--sz:30px;position:relative;flex:none;width:66px;height:100px;border-radius:13px;color:#fff;border:3px solid #fff;display:grid;place-items:center;font-family:Didot,Georgia,serif;user-select:none;-webkit-user-select:none;background:linear-gradient(150deg,color-mix(in srgb,var(--cc) 84%,#fff),var(--cc) 58%,color-mix(in srgb,var(--cc) 80%,#000));box-shadow:0 10px 20px -10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .35s cubic-bezier(.2,.9,.3,1.3),filter .25s,box-shadow .3s}
+.uc::before{content:"";position:absolute;width:76%;height:62%;border-radius:50%;background:rgba(255,255,255,.2);transform:rotate(-24deg)}
+.uc b{position:relative;font-size:var(--sz);font-weight:700;font-style:italic;line-height:1;text-shadow:0 3px 8px rgba(0,0,0,.45)}
+.uc s,.uc i{position:absolute;font-size:12px;font-weight:700;text-decoration:none;font-style:normal;line-height:1}.uc s{left:6px;top:6px}.uc i{right:6px;bottom:6px;transform:rotate(180deg)}
+.uc em{position:absolute;bottom:6px;left:0;right:0;text-align:center;font:700 7px/1 var(--mono);letter-spacing:.06em;font-style:normal;opacity:.95}
+.uc.cR{--cc:#e5484d}.uc.cY{--cc:#f2b01e}.uc.cG{--cc:#2fb36d}.uc.cB{--cc:#3b82f6}
+.uc.cW{--cc:#171a26}.uc.cW::before{background:conic-gradient(#e5484d 0 25%,#f2b01e 0 50%,#2fb36d 0 75%,#3b82f6 0);opacity:1}
+.uc.bk{--cc:#171a26}.uc.bk::before{background:linear-gradient(135deg,#e5484d,#f2b01e);opacity:.92}.uc.bk b{font-size:16px}
+.uoh{display:flex;overflow-x:auto;padding:34px 18px 14px;margin:0 -16px;scrollbar-width:none;touch-action:pan-x}.uoh::-webkit-scrollbar{display:none}
+.uoh .uc+.uc{margin-left:-20px}.uoh .uc.ok{transform:translateY(-18px);box-shadow:0 0 0 2px #fff,0 18px 28px -10px var(--cc)}.uoh .uc.no{filter:saturate(.45) brightness(.7)}
+.uoh .uc.nw{animation:uoin .55s cubic-bezier(.2,.9,.3,1.2)}.uc.pop{animation:uopop .5s cubic-bezier(.2,.9,.25,1.4)}.uc.sh{animation:uosh .4s}
+@keyframes uoin{from{opacity:0;transform:translateY(-130px) scale(.6)}}
+@keyframes uopop{from{opacity:0;transform:translateY(110px) scale(.6) rotate(-16deg)}}
+@keyframes uosh{25%{transform:translateX(-7px)}60%{transform:translateX(6px)}}
+@keyframes uopl{50%{transform:scale(1.06)}}
+.uoa{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:46px}.uoa button{height:44px;padding:0 22px;border-radius:22px;font-size:14px}
+.uoa .uno{background:linear-gradient(135deg,#e5484d,#f2b01e);color:#fff;border:0;font-weight:800;letter-spacing:.06em;animation:uopl 1s infinite}
+.uov{position:absolute;inset:-6px;z-index:5;display:grid;align-content:center;justify-items:center;gap:12px;text-align:center;border-radius:26px;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);animation:uov .5s}
+@keyframes uov{from{opacity:0}}.uov b{font-size:32px;letter-spacing:-.9px}.uov button{width:220px}
+.uopk{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 6px}.uopk button{aspect-ratio:1;height:auto;border-radius:50%;border:3px solid #fff;padding:0;box-shadow:0 12px 22px -10px rgba(0,0,0,.6)}
+`;document.head.appendChild(s)}
+const UE=window.UnoEngine,UCOL={R:"#e5484d",Y:"#f2b01e",G:"#2fb36d",B:"#3b82f6"},CN={R:"Red",Y:"Yellow",G:"Green",B:"Blue"},
+USYM={skip:"⊘",rev:"⇄",d2:"+2",d4:"+4",wd4:"+4",wr4:"+4",w6:"+6",w10:"+10",wild:"W",wcr:"?",da:"ALL",se:"⊘⊘"},
+USUB={wd4:"WILD",wr4:"REVERSE",w6:"WILD",w10:"WILD",wild:"WILD",wcr:"ROULETTE",da:"DISCARD",se:"SKIP ALL"},
+UNM={wild:"Wild",wd4:"Wild +4",wr4:"Wild Reverse +4",w6:"Wild +6",w10:"Wild +10",wcr:"Color Roulette",da:"Discard All",se:"Skip Everyone",skip:"Skip",rev:"Reverse",d2:"+2",d4:"+4"};
+let UO={};
+const uoDead=()=>!$("uoB"),uoNm=c=>(c.c==="W"?"":CN[c.c]+" ")+(UNM[c.t]||c.t);
+function uoCard(c,x){const t=USYM[c.t]||c.t;return `<div class="uc c${c.c}${x||""}" data-uc="${c.id}" style="--sz:${t.length>2?"22px":"30px"}"><s>${t}</s><b>${t}</b><i>${t}</i>${USUB[c.t]?`<em>${USUB[c.t]}</em>`:""}</div>`}
+function uoPick(mode,n,d){sheet(`<h3>UNO</h3><div class="glist">${[["classic","Classic","Standard rules · Wild +4 challenge"],["nomercy","No Mercy","Stack +2/+4/+6/+10 · 7-0 swap · 25 cards = out"]].map(x=>`<button class="gr" data-uv="${x[0]}"><span class="t"><b>${x[1]}</b><small>${x[2]}</small></span><em>›</em></button>`).join("")}</div>`);
+ $("sh").onclick=e=>{const b=e.target.closest("[data-uv]");if(b){closeS();uoStart(b.dataset.uv,mode,n,d)}}}
+function uoStart(v,mode,n,d){clearTimeout(UO.tm);clearTimeout(UO.ct);const ph=mode==="phone",cnt=ph?n:n+1,names=Array.from({length:cnt},(_,i)=>ph?"Player "+(i+1):i?"Robot "+i:"You");
+ UO={v,mode,n,d,ph,lv:["easy","medium","hard"][d]||"medium",s:UE.create({mode:v,names,bots:names.map((_,i)=>!ph&&i>0),seed:Date.now()}),note:"",top:-1,ids:new Set(),cv:-1,busy:0,cover:0};
+ inGame=true;uoDraw();pgIn(1);uoNext()}
+function uoDraw(){const s=UO.s,v=UO.ph?s.turn:0,over=s.phase==="over",mine=!over&&s.turn===v&&!UO.busy&&!s.out[v],nm=i=>!UO.ph&&i===0?"You":s.names[i];
+ if(UO.ph&&!over&&UO.cv!==s.turn)UO.cover=1;
+ const hd=$("uoH"),sl=hd?hd.scrollLeft:0,ps=$("pg").scrollTop,t=s.disc[s.disc.length-1],L=mine&&!UO.cover?UE.legal(s,v):[],lid=new Set(L.map(c=>c.id)),
+ cd=mine&&!UO.cover&&s.phase==="play"&&s.drawn==null&&(!!s.pending||!s.rules.drawUntil||!L.length),
+ hand=s.hands[v].slice().sort((a,b)=>"RYGBW".indexOf(a.c)-"RYGBW".indexOf(b.c)||(a.t>b.t?1:-1)),col=UCOL[s.color];
+ let st,sub=UO.note||"";
+ if(over)st=(!UO.ph&&s.winner===0)?"You win!":nm(s.winner)+" wins!";
+ else if(UO.cover)st="Pass the phone";
+ else if(s.out[v]&&!UO.ph)st="You are out. Watching...";
+ else if(s.turn===v)st=UO.ph?s.names[v]+", your turn":"Your turn";else st=nm(s.turn)+" is thinking...";
+ if(!over&&s.pending)sub="Stack +"+s.pending.n+" · play +"+s.pending.val+" or higher, or draw";
+ if(!over&&s.phase==="challenge")sub="Wild +4 played. Challenge it or draw 4";
+ let ac="";
+ if(!over&&!UO.cover){
+  if(mine&&s.phase==="challenge")ac+=`<button class="pri" data-uo="chal">Challenge</button><button data-uo="acc">Draw 4</button>`;
+  else{if(mine&&s.drawn!=null)ac+=`<button class="pri" data-uo="pass">Keep and pass</button>`;else if(cd)ac+=`<button data-uo="draw">${s.pending?"Draw "+s.pending.n:"Draw"}</button>`;
+   if((mine&&s.hands[v].length<=2&&!s.uno[v])||s.unoPend===v)ac+=`<button class="uno" data-uo="uno">UNO!</button>`}
+  if(s.unoPend>=0&&s.unoPend!==v)ac+=`<button class="pri" data-uo="catch">Catch ${esc(nm(s.unoPend))}</button>`}
+ const chips=s.names.map((n,i)=>`<div class="uopl${s.turn===i&&!over?" on":""}${s.out[i]?" out":""}"><div class="ava" style="background:${g(n)}">${esc(ini(n))}</div>${esc(n)}<em>${s.out[i]?"OUT":s.hands[i].length+" cards"}</em>${s.uno[i]&&s.hands[i].length===1?"<i>UNO</i>":""}</div>`).join("");
+ $("pg").innerHTML=`<div class="sb"><button class="ib" data-pl="exit" aria-label="Back">${A('<path d="M15 18l-6-6 6-6"/>')}</button><h2>UNO</h2><span style="flex:1"></span><button class="ib" data-uo="redo" aria-label="Restart">${A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')}</button></div>
+ <div id="uoB" style="--uc:${UO.pc||col}"><div class="uop">${chips}</div>
+ <div class="uot"><div class="uodp${cd?" hot":""}" data-uo="draw"><div class="uc bk"><b>UNO</b></div><small>${s.deck.length}</small></div><div class="uodc">${uoCard(t,UO.top!==t.id?" pop":"")}</div></div>
+ <div class="uocl"><i style="color:${col};background:${col}"></i>${CN[s.color]} ${s.dir>0?"↻":"↺"} ${s.mode==="nomercy"?"No Mercy":"Classic"}</div>
+ <p class="uom">${st}${sub?`<small>${esc(sub)}</small>`:""}</p><div class="uoa">${ac}</div>
+ <div class="uoh" id="uoH" data-noswipe>${UO.cover?"":hand.map(c=>uoCard(c,(lid.has(c.id)?" ok":mine?" no":"")+(UO.vw===v&&UO.ids.size&&!UO.ids.has(c.id)?" nw":""))).join("")}</div>
+ ${UO.cover&&!over?`<div class="uov"><b>${esc(s.names[s.turn])}</b><p class="note">Pass the phone, then tap Ready</p><button class="pri" data-uo="ready">Ready</button></div>`:""}
+ ${over?`<div class="uov"><b>${st}</b><p class="note">${s.points} points</p><button class="pri" data-uo="redo">Play again</button><button data-pl="exit">Back</button></div>`:""}</div>`;
+ const b=$("uoB");requestAnimationFrame(()=>b.style.setProperty("--uc",col));UO.pc=col;
+ const h2=$("uoH");if(h2)h2.scrollLeft=sl;$("pg").scrollTop=ps;UO.top=t.id;UO.ids=new Set(hand.map(c=>c.id));UO.vw=v}
+function uoFx(ev){const s=UO.s,nm=i=>!UO.ph&&i===0?"You":s.names[i],o=[];
+ ev.forEach(e=>{const k=e.t;if(k==="play")o.push(nm(e.p)+" played "+uoNm(e.card));else if(k==="draw"&&e.n)o.push(nm(e.p)+" drew "+e.n);else if(k==="skip")o.push(nm(e.p)+" skipped");else if(k==="skipall")o.push("Everyone skipped");else if(k==="reverse")o.push("Direction reversed");else if(k==="uno")o.push(nm(e.p)+": UNO!");else if(k==="catch")o.push(nm(e.by)+" caught "+nm(e.p));else if(k==="challenge")o.push(nm(e.by)+" challenged");else if(k==="out")o.push(nm(e.p)+" is out");else if(k==="swap")o.push(nm(e.a)+" swapped with "+nm(e.b));else if(k==="rotate")o.push("Hands passed around");else if(k==="roulette")o.push(nm(e.p)+" drew "+e.n+" for "+CN[e.color]);else if(k==="pass")o.push(nm(e.p)+" passed")});
+ if(o.length)UO.note=o.slice(-2).join(" · ");if(navigator.vibrate&&ev.some(e=>e.t==="play"))navigator.vibrate(8)}
+function uoAct(a){const s=UO.s;if(UO.busy||s.phase==="over")return;const r=UE.act(s,a);if(!r.ok)return ts(r.err.charAt(0).toUpperCase()+r.err.slice(1));uoFx(r.ev);uoDraw();uoNext()}
+function uoNext(){const s=UO.s;if(uoDead()||s.phase==="over")return;clearTimeout(UO.tm);clearTimeout(UO.ct);
+ if(s.unoPend>=0&&!UO.ph)UO.ct=setTimeout(()=>{if(uoDead()||UO.busy)return;const c=UE.botCatch(s,UO.lv);if(c)uoAct(c)},500+Math.random()*350);
+ if(s.bots[s.turn])UO.tm=setTimeout(uoBot,1100)}
+function uoBot(){const s=UO.s;if(uoDead()||s.phase==="over"||!s.bots[s.turn]||UO.busy)return;const acts=UE.plan(s,s.turn,UO.lv);let i=0;UO.busy=1;
+ const run=()=>{if(uoDead())return;const r=UE.act(s,acts[i++]);if(!r.ok){UO.busy=0;return uoDraw()}uoFx(r.ev);if(i>=acts.length){UO.busy=0;uoDraw();return uoNext()}uoDraw();setTimeout(run,520)};run()}
+function uoColor(cb){sheet(`<h3>Choose a colour</h3><div class="uopk">${"RYGB".split("").map(k=>`<button data-k="${k}" style="background:${UCOL[k]}" aria-label="${CN[k]}"></button>`).join("")}</div>`);$("sh").onclick=e=>{const b=e.target.closest("[data-k]");if(b){closeS();cb(b.dataset.k)}}}
+function uoTarget(s,v,cb){sheet(`<h3>Swap hands with</h3>${UE.targets(s,v).map(i=>`<div class="row" data-t="${i}"><div class="ava" style="background:${g(s.names[i])}">${esc(ini(s.names[i]))}</div><div class="t"><b>${esc(s.names[i])}</b><small>${s.hands[i].length} cards</small></div></div>`).join("")}`);$("sh").onclick=e=>{const b=e.target.closest("[data-t]");if(b){closeS();cb(+b.dataset.t)}}}
+$("pg").addEventListener("click",e=>{if(tab!=="play"||uoDead())return;const s=UO.s,v=UO.ph?s.turn:0,b=e.target.closest("[data-uo]"),cd=e.target.closest("[data-uc]");
+ if(b){const k=b.dataset.uo;
+  if(k==="redo")return uoStart(UO.v,UO.mode,UO.n,UO.d);
+  if(k==="ready"){UO.cover=0;UO.cv=s.turn;return uoDraw()}
+  return uoAct({type:{uno:"uno",catch:"catch",draw:"draw",pass:"pass",chal:"challenge",acc:"accept"}[k],p:v})}
+ if(cd&&!UO.cover){const c=s.hands[v].find(x=>x.id==cd.dataset.uc);if(!c)return;if(s.turn!==v||UO.busy)return ts("Wait for your turn");
+  if(!UE.playable(s,v,c)){cd.classList.remove("sh");void cd.offsetWidth;cd.classList.add("sh");if(navigator.vibrate)navigator.vibrate(20);return ts(s.pending?"Play a draw card or draw":s.drawn!=null?"Play the drawn card or pass":"That card cannot be played")}
+  const a={type:"play",p:v,card:c.id},seven=c.t==="7"&&s.rules.seven0&&s.hands[v].length>1,fin=()=>seven?uoTarget(s,v,t=>{a.target=t;uoAct(a)}):uoAct(a);
+  if(UE.WILD[c.t])uoColor(col=>{a.color=col;fin()});else fin()}});
+
 window.enter=enter;
 /* ===== ZNEXORA BACKEND v1: real login, profile, friends, chats, songs (Supabase) ===== */
 {
