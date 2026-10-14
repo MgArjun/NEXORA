@@ -1581,7 +1581,7 @@ const CL_TURN=[];/* TURN server goes here, for example [{urls:["turn:host:3478"]
 const CQ={480:[640,480,1e6],720:[1280,720,2.5e6],1080:[1920,1080,5e6],1440:[2560,1440,8e6],2160:[3840,2160,14e6]};
 const CL0={on:0,role:"",id:"",pid:"",peer:null,pc:null,ls:null,vs:null,vt:null,v:0,cam:0,rcam:0,face:"user",sc:1,lo:0,hi:0,sw:0,pp:null,sb:0,sk:0,t0:0,iv:0,si:0,tm:0,ft:0,ht:0,mute:0,spk:1,fail:0,busy:0};
 const CL=Object.assign({q:[]},CL0),clAu=new Audio(),clOut={},CST={calling:'<span class="clsh">CALLING</span>',ringing:'<span class="clsh">RINGING</span>',incoming:"INCOMING CALL",connecting:'<span class="clsh">CONNECTING</span>'};
-let clRA=null,clRT=0,clLis=0;
+let clRA=null,clRT=0,clLis={};
 clAu.autoplay=true;
 $("ken").insertAdjacentHTML("beforebegin",'<button class="acc" id="kac" aria-label="Accept call"></button>');
 const clCtx=()=>window.znxCtx?window.znxCtx():{};
@@ -1590,10 +1590,10 @@ function clRing(kind){clRingStop();if(!ST2.ringtone)return;
  beat();clRT=setInterval(beat,kind==="in"?2600:3200)}
 function clRingStop(){clearInterval(clRT);clRT=0;if(navigator.vibrate)navigator.vibrate(0)}
 async function clSig(pid,m){const c=clCtx();if(!c.sb||!c.pid)return false;let h=clOut[pid];
- if(!h){h=clOut[pid]={c:c.sb.channel("call:"+pid)};h.p=new Promise(r=>{h.c.subscribe(s=>{if(s==="SUBSCRIBED")r(1)});setTimeout(()=>r(0),5000)})}
+ if(!h){h=clOut[pid]={c:c.sb.channel("call:"+pid+":"+c.pid,{config:{private:true}})};h.p=new Promise(r=>{h.c.subscribe(s=>{if(s==="SUBSCRIBED")r(1)});setTimeout(()=>r(0),5000)})}
  if(!await h.p){try{c.sb.removeChannel(h.c)}catch(e){}delete clOut[pid];return false}
  try{await h.c.send({type:"broadcast",event:"sig",payload:Object.assign({from:c.pid},m)});clKeep(pid);return true}catch(e){return false}}
-function clListen(){const c=clCtx();if(clLis||!c.sb||!c.pid)return;clLis=1;c.sb.channel("call:"+c.pid).on("broadcast",{event:"sig"},p=>clGot(p.payload)).subscribe()}
+/* PATCH-SIG1-V1 */function clListen(){const c=clCtx();if(!c.sb||!c.pid)return;Object.keys(c.byPid||{}).forEach(fp=>{if(clLis[fp])return;clLis[fp]=c.sb.channel("call:"+c.pid+":"+fp,{config:{private:true}}).on("broadcast",{event:"sig"},p=>clGot(Object.assign({},p.payload,{from:fp}))).subscribe()})}
 window.znxCallListen=clListen;
 /* PATCH-FINAL1-V1 */function clKeep(pid){const h=clOut[pid];if(!h)return;clearTimeout(h.z);h.z=setTimeout(()=>{CL.on&&CL.pid===pid?clKeep(pid):clDrop(pid)},60000)}
 function clDrop(pid){const h=clOut[pid];if(!h)return;clearTimeout(h.z);delete clOut[pid];try{clCtx().sb.removeChannel(h.c)}catch(e){}}
@@ -1978,7 +1978,7 @@ const loadChats=async notify=>{
  await Promise.all(U.map(async u=>{if(isEnc(u.l))u.l=await dText(u,u.l)}));try{bellDot()}catch(e){}
  if(tab==="chats"&&!chatOn()&&$("ls"))list();
  if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm)sm.textContent=cur.seen}
- firstLoad=0};
+ firstLoad=0;window.znxCallListen&&window.znxCallListen()};
 
 /* messages */
 /* PATCH-ZNX-E2E-V1 */
