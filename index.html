@@ -8,9 +8,45 @@
 <title>ZNEXORA</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#f5f6fa;--sf:#fff;--tx:#14151c;--mu:#6e7184;--ln:rgba(30,34,60,.09);--bt:linear-gradient(135deg,#6f67f2,#5149d6);--bt-t:#fff;--ac:#5b54e0;--y:#ffdf4a}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0d13;--sf:#141722;--tx:#eceef6;--mu:#8a8fa6;--ln:rgba(255,255,255,.08);--bt:linear-gradient(135deg,#8f88ff,#6a62f0);--bt-t:#fff;--ac:#a39cff;--y:#ffdf4a}}
-:root[data-theme="dark"]{--bg:#0b0d13;--sf:#141722;--tx:#eceef6;--mu:#8a8fa6;--ln:rgba(255,255,255,.08);--bt:linear-gradient(135deg,#8f88ff,#6a62f0);--bt-t:#fff;--ac:#a39cff;--y:#ffdf4a}
+/* PATCH-TOKENS-V1 */
+/* design tokens: colour, type, space, radius, layers, motion, effects */
+@property --bub{syntax:"<color>";inherits:true;initial-value:#5b54e0}
+@property --g2{syntax:"<color>";inherits:true;initial-value:#5ec2b7}
+@property --m1{syntax:"<color>";inherits:true;initial-value:#5b54e0}
+@property --m2{syntax:"<color>";inherits:true;initial-value:#5ec2b7}
+:root{
+ /* colour: light */
+ --bg:#f5f6fa;--sf:#fff;--tx:#14151c;--mu:#6e7184;--ln:rgba(30,34,60,.09);
+ --ac:#5b54e0;--ac-soft:color-mix(in srgb,var(--ac) 14%,transparent);
+ --bt:linear-gradient(135deg,#6f67f2,#5149d6);--bt-t:#fff;--y:#ffdf4a;
+ --e1:rgba(91,84,224,.22);--e2:rgba(30,34,60,.06);--e3:rgba(60,170,160,.18);
+ --edge:linear-gradient(140deg,var(--e1),var(--e2) 45%,var(--e3));
+ --danger:#c9372c;--ok:#167a56;--warn:#8a5a00;
+ --sh-1:0 10px 24px -16px rgba(20,22,60,.28);--sh-2:0 24px 50px -24px rgba(20,22,60,.38);
+ /* type: 6 sizes, 3 weights */
+ --font-ui:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+ --font-display:Didot,"Bodoni MT","Playfair Display",Georgia,serif;
+ --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+ --fs-1:11px;--fs-2:13px;--fs-3:15px;--fs-4:17px;--fs-5:22px;--fs-6:32px;
+ --fw-1:400;--fw-2:600;--fw-3:700;
+ --lh-1:1.2;--lh-2:1.45;
+ --ls-0:0;--ls-1:.04em;--ls-2:.12em;--ls-3:.24em;--ls-brand:.5em;
+ /* space, radius, tap target */
+ --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;--sp-6:32px;
+ --r-1:8px;--r-2:12px;--r-3:16px;--r-4:24px;--r-pill:999px;
+ --hit:44px;
+ /* layers */
+ --z-base:1;--z-sticky:4;--z-dock:8;--z-page:20;--z-overlay:50;--z-sheet:70;--z-toast:80;--z-lock:95;
+ /* motion */
+ --d-1:120ms;--d-2:240ms;--d-3:480ms;
+ --ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.2,.9,.3,1.35);
+ /* effects budget */
+ --blur-1:16px;--blur-2:22px;
+ transition:--bub .6s ease,--g2 .6s ease,--m1 .8s ease,--m2 .8s ease;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0d13;--sf:#141722;--tx:#eceef6;--mu:#8a8fa6;--ln:rgba(255,255,255,.08);--ac:#a39cff;--bt:linear-gradient(135deg,#8f88ff,#6a62f0);--e1:rgba(163,156,255,.40);--e2:rgba(255,255,255,.05);--e3:rgba(77,224,208,.28);--danger:#e5675f;--ok:#4cc9a0;--warn:#e9b949;--sh-1:0 12px 28px -14px rgba(0,0,0,.7);--sh-2:0 30px 60px -24px rgba(0,0,0,.8)}}
+:root[data-theme="dark"]{--bg:#0b0d13;--sf:#141722;--tx:#eceef6;--mu:#8a8fa6;--ln:rgba(255,255,255,.08);--ac:#a39cff;--bt:linear-gradient(135deg,#8f88ff,#6a62f0);--e1:rgba(163,156,255,.40);--e2:rgba(255,255,255,.05);--e3:rgba(77,224,208,.28);--danger:#e5675f;--ok:#4cc9a0;--warn:#e9b949;--sh-1:0 12px 28px -14px rgba(0,0,0,.7);--sh-2:0 30px 60px -24px rgba(0,0,0,.8)}
+:root[data-rm]{--d-1:.01ms;--d-2:.01ms;--d-3:.01ms}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -237,9 +273,6 @@ nav{background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-fil
 #dn,.rc{box-shadow:0 8px 20px -10px rgba(0,0,0,.6)}
 
 /* ===== design system v4: minimal ion / HUD ===== */
-:root{--e1:rgba(91,84,224,.22);--e2:rgba(30,34,60,.06);--e3:rgba(60,170,160,.18);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--e1:rgba(163,156,255,.40);--e2:rgba(255,255,255,.05);--e3:rgba(77,224,208,.28)}}
-:root[data-theme="dark"]{--e1:rgba(163,156,255,.40);--e2:rgba(255,255,255,.05);--e3:rgba(77,224,208,.28)}
 /* ambient field: aurora + fine dot grid */
 #app::before{height:460px;background:radial-gradient(60% 45% at 12% 0,rgba(124,108,255,.24),transparent 70%),radial-gradient(50% 38% at 96% 6%,rgba(77,224,208,.15),transparent 70%),radial-gradient(circle,rgba(150,160,255,.10) 1px,transparent 1.4px);background-size:auto,auto,24px 24px;-webkit-mask:linear-gradient(#000 35%,transparent);mask:linear-gradient(#000 35%,transparent)}
 .top{border-bottom:0;background:transparent;height:58px}
@@ -299,9 +332,6 @@ nav button{position:relative;z-index:1}nav .on::before{display:none}
 #ls.fresh>.row:nth-child(9){animation-delay:320ms}
 
 /* ===== chat control center + theme ===== */
-@property --bub{syntax:"<color>";inherits:true;initial-value:#5b54e0}
-@property --g2{syntax:"<color>";inherits:true;initial-value:#5ec2b7}
-:root{transition:--bub .6s ease,--g2 .6s ease}
 #msgs{background:radial-gradient(120% 55% at 15% 0,color-mix(in srgb,var(--bub,#5b54e0) 24%,transparent),transparent 62%),radial-gradient(90% 45% at 100% 100%,color-mix(in srgb,var(--g2,#5ec2b7) 18%,transparent),transparent 62%),var(--bg)}
 .chips button.on{color:var(--tx);border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--ac) 24%,var(--sf)),color-mix(in srgb,var(--ac) 24%,var(--sf))) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 45%,var(--e3)) border-box;box-shadow:0 0 18px -6px var(--ac)}
 .cc-h{display:flex;align-items:center;gap:14px;margin-bottom:18px}.cc-h .ava{width:56px;height:56px;font-size:19px}.cc-h b{font-size:20px;font-weight:650;letter-spacing:-.4px}.cc-h small{display:block;margin-top:4px;color:var(--mu);font-family:var(--mono);font-size:11px;letter-spacing:.04em}
@@ -342,8 +372,6 @@ main::before{content:"";position:absolute;inset:0;background:radial-gradient(55%
 .row::after{inset:2px -6px}.gr:active::after,.opt:active::after,.row:active::after{opacity:1;transition-duration:.08s}
 .gr:active{background:none;transform:none}.row:active{opacity:1}
 /* ===== orbit player ===== */
-@property --m1{syntax:"<color>";inherits:true;initial-value:#5b54e0}@property --m2{syntax:"<color>";inherits:true;initial-value:#5ec2b7}
-:root{transition:--bub .6s ease,--g2 .6s ease,--m1 .8s ease,--m2 .8s ease}
 #mp{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,0px) 22px calc(18px + env(safe-area-inset-bottom,0px));overflow:hidden;
  background:radial-gradient(90% 55% at 50% 30%,color-mix(in srgb,var(--m1,#5b54e0) 38%,transparent),transparent 70%),radial-gradient(70% 45% at 90% 100%,color-mix(in srgb,var(--m2,#5ec2b7) 28%,transparent),transparent 70%),var(--bg);transform:translateY(105%);transition:transform .6s cubic-bezier(.2,.9,.2,1.03)}
 #mp.on{transform:none}
