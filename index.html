@@ -602,7 +602,7 @@ mark{background:color-mix(in srgb,var(--ac) 50%,transparent);color:inherit;borde
 #mp{padding:env(safe-area-inset-top,0px) 20px calc(20px + env(safe-area-inset-bottom,0px));justify-content:space-between}
 .mphd,.mpstage,.mptt,.mpsk,.mptm,.mpctl,.mpft{width:100%;max-width:440px}
 .mpstage{flex:1;min-height:0;display:grid;place-items:center}
-#mpc{width:min(92vw,360px,46dvh);height:auto;aspect-ratio:1}
+#mpc{width:min(92vw,360px,46dvh);height:auto;aspect-ratio:1;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--m1,#5b54e0) 50%,transparent))}
 .mph{display:none}
 .uoH{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .mptt{margin:0}
@@ -1150,7 +1150,7 @@ $("pg").addEventListener("scroll",()=>document.querySelector(".top").classList.t
 /* PATCH-MUSIC-V1 */
 const MT=[];
 const MN=["All","Soothing","Vibe","Energetic"],MI=[A('<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>'),A('<path d="M3 12c2.5-4 4.5-4 7 0s4.5 4 7 0 2.5-2 4-2"/>'),A('<path d="M12 3l1.9 5.4L19 10l-5.1 1.6L12 17l-1.9-5.4L5 10l5.1-1.6z"/>'),A('<path d="M13 3L5.5 13.5H11L10 21l8-10.5h-5.5z"/>')],PL=A('<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>'),PA=A('<rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/>');
-const MP={i:0,play:0,want:0,vol:.8,sh:1,rp:0,mood:0,on:0,started:0,hideMini:0,raf:0,d:0,xf:0,xo:null,bag:[],hist:[],sig:"",fail:0,t0:0,data:new Uint8Array(32)};
+const MP={i:0,play:0,want:0,vol:.8,sh:1,rp:0,mood:0,on:0,started:0,hideMini:0,raf:0,d:0,xf:0,xo:null,bag:[],hist:[],sig:"",fail:0,t0:0};
 try{const s=JSON.parse(localStorage.getItem("znx_mp")||"{}");if(s.sh===0)MP.sh=0;if(s.rp)MP.rp=1;if(typeof s.vol==="number")MP.vol=Math.max(0,Math.min(1,s.vol))}catch(e){}
 const mpSave=()=>{try{localStorage.setItem("znx_mp",JSON.stringify({sh:MP.sh,rp:MP.rp,vol:MP.vol}))}catch(e){}};
 const mpFmt=v=>Math.floor(v/60)+":"+String(Math.floor(v%60)).padStart(2,"0"),hx=(c,a)=>{const m=parseInt(c.slice(1),16);return `rgba(${m>>16},${m>>8&255},${m&255},${a})`};
@@ -1229,61 +1229,67 @@ if("mediaSession" in navigator){[["play",()=>{if(!MP.play)mpToggle()}],["pause",
 function mpTheme(){const T=MT[MP.i],r=document.documentElement.style;r.setProperty("--m1",T.c[0]);r.setProperty("--m2",T.c[1])}
 function mpUI(){const T=MT[MP.i];if(!T)return;$("mpn").textContent=T.n;$("mpk").textContent=MN[T.m];$("mpp").innerHTML=MP.play?PA:PL;$("mip").innerHTML=MP.play?PA:PL;$("min").textContent=T.n;$("mim").textContent=MN[T.m];$("mio").style.background=`linear-gradient(145deg,${T.c[0]},${T.c[1]})`;$("mps").classList.toggle("on",!!MP.sh);$("mph").classList.toggle("on",LKD.has(mpLk()));$("mpr").classList.toggle("on",!!MP.rp);
  $("mpmo").innerHTML=MN.map((n,i)=>`<button data-mo="${i}" class="${MP.mood===i?"on":""}">${MI[i]}${n}</button>`).join("");mpTheme()}
-/* orb visual: moves with the song mood, not a real spectrum */
-function mpSim(){const t=performance.now()/1000,n=MP.data.length,T=MT[MP.i],m=(T&&T.m)||2,f=[0,.7,1.6,2.6][m],a=[0,.45,.75,1][m],p=Math.pow(Math.max(0,Math.sin(t*Math.PI*2*f)),[0,2,4,6][m]),w=Math.pow(Math.max(0,Math.sin(t*Math.PI*f+1)),3),fl=[0,.06,.18,.4][m],sp=m===3?2.4:1,dec=m===3?.4:.7;for(let k=0;k<n;k++){const e=MP.play?(p*(1-k/n)*.9+w*.3+fl*Math.abs(Math.sin(t*(2+k*.37)*sp+k)))*a*MP.vol:0;MP.data[k]=MP.data[k]*dec+Math.min(1,e)*255*(1-dec)}}
-/*ZNX-HUD-A*/
+/* orb visual: a luminous ring that beats with the song mood (simulated rhythm, not a real spectrum) */
+/* PATCH-RING-V1 */
+const RTAU=Math.PI*2,RG={t:0,ph:0,en:0,kk:0,k:0,tg:0,kg:0,kb:0,sx:0,sv:0,spd:.1,bp:0,step:0,sw:1,mm:-1,q:[],eh:[],beats:[]},
+RGC={AM:[.7,1,1.35],SPD:[.5,.85,1.5],BPM:[72,100,128],SW:[0,.12,0],GH:[[.24,.32],[.15,.22],0],
+PAT:[[1,0,0,0,.6,0,0,0],[1,0,.4,0,.85,0,.5,.3],[1,.4,.6,.4,1,.4,.7,.5]]};
+const rgCol=(h,a,l,s)=>"hsla("+(((h%360)+360)%360).toFixed(0)+","+(s||86)+"%,"+(l||62)+"%,"+Math.max(0,Math.min(1,a)).toFixed(3)+")";
 function mpHue(c){const n=parseInt(c.slice(1),16),r=(n>>16)/255,gg=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,gg,b),d=mx-Math.min(r,gg,b);if(!d)return 0;const h=mx===r?((gg-b)/d)%6:mx===gg?(b-r)/d+2:(r-gg)/d+4;return(h*60+360)%360}
-function mpPulse(t,dt,m,pl){mpSim();let lo=0;for(let k=0;k<4;k++)lo+=MP.data[k];lo/=1020;
- MP.pk=Math.max(lo,(MP.pk||.2)*.996);const nl=pl?.28+.72*Math.min(1,lo/Math.max(.12,MP.pk)):0,sp=[0,.5,.85,1.5][m],en=MP.en||0,spd=MP.spd||sp*.12;
- MP.en=en+(nl-en)*(1-Math.exp(-dt*(nl>en?10:2.4)));
- MP.spd=spd+((pl?sp:sp*.12)-spd)*(1-Math.exp(-dt*3));
- MP.ph=(MP.ph||0)+dt*MP.spd*(1+MP.en*1.2);
- MP.cd=(MP.cd||0)-dt;if(pl&&MP.cd<=0&&lo>MP.pk*.72&&lo>(MP.lp||0)){MP.cd=[0,.5,.38,.24][m];MP.kick=1}
- MP.lp=lo;MP.kick=(MP.kick||0)*Math.exp(-dt*3.5);
- const h=Math.min(dt,.033),tg=MP.en*.06+MP.kick*.05;MP.sv=(MP.sv||0)+((tg-(MP.sx||0))*140-(MP.sv||0)*13)*h;MP.sx=(MP.sx||0)+MP.sv*h;
- const H=MP.eh||(MP.eh=[]);H.push([t,MP.en+MP.kick*.35]);while(H.length>90||(H.length>2&&t-H[0][0]>1.2))H.shift()}
-function mpEAt(t){const H=MP.eh;if(!H||!H.length)return 0;for(let i=H.length-1;i>=0;i--)if(H[i][0]<=t)return H[i][1];return H[0][1]}
-function mpHalo(x,cx,cy,R0,gap,N,t,T,m,lw,full){
- const hA=mpHue(T.c[0]),hB=mpHue(T.c[1]),PH=MP.ph||0,am=[0,.7,1,1.35][m],dly=[0,.14,.1,.06][m],n=MP.data.length,nh=h=>((h%360)+360)%360,dr=t*6;
- let dh=hB-hA;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
- const C=(h,a)=>hx(hsl2hex(nh(h+dr),86,64),a),HS=[hA,hA+dh*.5,hB,hA+dh*.5+34,hA],cn=!!x.createConicGradient;
- x.globalCompositeOperation="lighter";x.lineJoin="round";
- for(let i=0;i<N;i++){const E=mpEAt(t-i*dly),rad=(R0+gap*i)*(1+(MP.sx||0)*am*.6+E*.045*am),amp=.014+.06*E*am,p1=PH*(.5+i*.12)+i*1.7,p2=-PH*(.4+i*.1)+i*2.9,p3=PH*.7+i*.8;
-  x.beginPath();
-  for(let k=0;k<=120;k++){const a=k/120*6.2832,u=Math.abs(k/60-1),dv=MP.data[Math.floor(u*(n-1)*.85)]/255,f=Math.sin(2*a+p1)*.5+Math.sin(3*a+p2)*.32+Math.sin(5*a+p3)*.18+(dv-.3)*E*.5,r=rad*(1+amp*f);
-   k?x.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):x.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}
-  x.closePath();
-  const al=(.92-i*.11)*(.6+.4*Math.min(1,E+.3));
-  for(let w=0;w<2;w++){const a2=w?al:al*.13;let g;
-   if(cn){g=x.createConicGradient(PH*.25+i*.6,cx,cy);HS.forEach((h,j)=>g.addColorStop(j/4,C(h,a2)))}
-   else{g=x.createLinearGradient(cx-rad,cy,cx+rad,cy);g.addColorStop(0,C(hA,a2));g.addColorStop(.5,C(hB,a2));g.addColorStop(1,C(hA+dh*.5,a2))}
-   x.strokeStyle=g;x.lineWidth=w?lw:lw*5;x.stroke()}}
- x.globalCompositeOperation="source-over"}
+/* a beat: soft attack, quick fall with a slow tail */
+function rgHit(s){RG.tg=Math.max(RG.tg,s);RG.kg=Math.max(RG.kg,s);RG.kb=Math.max(RG.kb,s*.9);RG.beats.push({t:RG.t,s})}
+function rgStep(dt,m,pl){const C=RGC,vf=.55+.45*MP.vol;RG.t+=dt;RG.sw=Math.min(1,RG.sw+dt/1.7);
+ if(pl){RG.bp+=dt*C.BPM[m]/60*2;const nd=()=>1+((RG.step&1)?-C.SW[m]:C.SW[m]);while(RG.bp>=nd()){RG.bp-=nd();const s=C.PAT[m][RG.step++%8];if((RG.step-1)%8===0)RG.sw=0;if(s>0){rgHit(Math.min(1,s*(1+(Math.random()-.5)*.08))*vf);if(s>.95&&C.GH[m])RG.q.push({at:RG.t+C.GH[m][0],s:C.GH[m][1]*vf})}}}
+ for(let i=RG.q.length-1;i>=0;i--)if(RG.t>=RG.q[i].at){rgHit(RG.q[i].s);RG.q.splice(i,1)}
+ RG.tg*=Math.exp(-dt*(m===2?6:4.5));RG.kg*=Math.exp(-dt*3.2);RG.kb*=Math.exp(-dt*1.5);
+ RG.k+=(RG.tg-RG.k)*(1-Math.exp(-dt*(RG.tg>RG.k?34:9)));RG.kk+=(RG.kg-RG.kk)*(1-Math.exp(-dt*(RG.kg>RG.kk?30:8)));
+ while(RG.beats.length&&RG.t-RG.beats[0].t>3)RG.beats.shift();
+ const fl=.3+.08*Math.sin(RG.t*.9),nl=pl?fl+(1-fl)*(.78*RG.k+.22*RG.kb):0;
+ RG.en+=(nl-RG.en)*(1-Math.exp(-dt*(nl>RG.en?16:2.4)));
+ RG.spd+=((pl?C.SPD[m]:C.SPD[m]*.12)-RG.spd)*(1-Math.exp(-dt*3));
+ RG.ph+=dt*RG.spd*(1+RG.en*1.2);
+ const h=Math.min(dt,.033),tg=RG.en*.06+RG.kk*.05;RG.sv+=((tg-RG.sx)*140-RG.sv*13)*h;RG.sx+=RG.sv*h;
+ RG.eh.push([RG.t,RG.en+RG.kk*.35]);while(RG.eh.length>260||(RG.eh.length>2&&RG.t-RG.eh[0][0]>1.4))RG.eh.shift()}
+/* runs in small fixed steps, so it is smooth at any frame rate. Song type 1/2/3 = Soothing/Vibe/Energetic */
+function mpPulse(t,dt,m,pl){const k=Math.min(2,Math.max(0,(m||2)-1));if(RG.mm!==k){RG.mm=k;RG.step=0;RG.bp=0;RG.q=[]}for(let r=dt;r>0;){const h=Math.min(r,1/90);rgStep(h,k,pl);r-=h}}
+function mpEAt(t){const H=RG.eh;for(let i=H.length-1;i>=0;i--)if(H[i][0]<=t)return H[i][1];return H.length?H[0][1]:0}
+/* a conic gradient with a bright head and a long fade, so colour flows round a line */
+function rgCone(x,ang,st){if(!x.createConicGradient)return rgCol(st[0][1],st[0][2],66);const g=x.createConicGradient(ang,200,200);st.forEach(s=>g.addColorStop(s[0],rgCol(s[1],s[2],s[3]||66)));return g}
+/* the ring: drawn on a 400 x 400 grid. full = big player, otherwise the small floating orb */
+function mpRing(x,T,full,pr){const m=RG.mm<0?1:RG.mm,h0=mpHue(T.c[0]),h1=mpHue(T.c[1]);let dh=h1-h0;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
+ const dr=Math.sin(RG.t*.12)*8,A=h0+dr,B=h0+dh+dr,mid=(A+B)/2,E=RG.en,am=RGC.AM[m],ph=RG.ph,t=RG.t,an=ph*.3,
+ nx=RGC.PAT[m][RG.step%8],nd=1+((RG.step&1)?-RGC.SW[m]:RGC.SW[m]),fr=MP.play?Math.min(1,RG.bp/nd):0,ant=nx>=.6?Math.pow(Math.max(0,(fr-.7)/.3),2)*nx:0,
+ R0=(full?96:130)*(1+RG.sx*.5-.013*ant);
+ const path=(rad,w)=>{x.beginPath();for(let k=0;k<=200;k++){const a=k/200*RTAU,r=rad*(1+w*(.012*E*am*Math.sin(3*a+ph*.9)+.008*Math.sin(2*a-ph*.6)));k?x.lineTo(200+Math.cos(a)*r,200+Math.sin(a)*r):x.moveTo(200+Math.cos(a)*r,200+Math.sin(a)*r)}x.closePath()},
+ ring=(rad,lw,al,ang,sh)=>{path(rad,1);x.strokeStyle=rgCone(x,ang,[[0,A+sh,al],[.25,mid+sh,al*.55],[.5,B+sh,al*.1],[.75,mid+40+sh,al*.55],[1,A+sh,al]]);x.lineWidth=lw;x.stroke()};
+ x.lineCap="round";x.lineJoin="round";x.globalCompositeOperation="lighter";
+ const gr=(full?219:90)*(1+RG.sx*.9),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.5:.7)*(.14+E*.34),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
+ const ig=x.createRadialGradient(200,200,R0*.25,200,200,R0);ig.addColorStop(0,rgCol(B,0,50));ig.addColorStop(.7,rgCol(mid,.025+E*.035,52));ig.addColorStop(1,rgCol(A,.1+E*.09,60));x.fillStyle=ig;x.beginPath();x.arc(200,200,R0,0,RTAU);x.fill();
+ ring(R0,30,.07+E*.05,an,0);ring(R0,15,.14+E*.08,an,0);
+ const d=.5+E*1.3+RG.kk*2.2;ring(R0-d,2.4,.4+E*.2,an,-24);ring(R0+d,2.4,.4+E*.2,an,24);
+ ring(R0,5+E*3,.92,an,0);
+ path(R0,1);x.strokeStyle=rgCone(x,an,[[0,A,.75,92],[.1,mid,.25,88],[.22,B,0,80],[.9,B,0,80],[.95,mid,.15,88],[1,A,.75,92]]);x.lineWidth=1.3;x.stroke();
+ if(!full){x.globalCompositeOperation="source-over";return}
+ ring(R0*.76,1,.2*Math.min(1,mpEAt(t-.12)*1.6),an+1,0);ring(R0*1.24,1,.16*Math.min(1,mpEAt(t-.22)*1.6),an+2,0);
+ const arc=(rad,ang,al)=>{path(rad,0);x.strokeStyle=rgCone(x,ang,[[0,mid,0],[.06,mid,al],[.13,mid,0],[1,mid,0]]);x.lineWidth=1.2;x.stroke()};
+ arc(R0*1.13,-ph*.22,.5+E*.2);arc(R0*.87,ph*.3+2,.45+E*.2);
+ if(RG.sw<1){const p=1-Math.pow(1-RG.sw,3),al=Math.pow(1-RG.sw,1.4)*.8;path(R0,0);x.strokeStyle=rgCone(x,-Math.PI/2+p*RTAU*1.15,[[0,A,0],[.07,B,al,80],[.14,A,0],[1,A,0]]);x.lineWidth=2.4;x.stroke()}
+ for(const b of RG.beats){const age=t-b.t;if(b.s<.6||age>1.4||age<0)continue;const f=age/1.4;x.strokeStyle=rgCol(A+(B-A)*f,Math.pow(1-f,2)*.2,72);x.lineWidth=.9*(1-f)+.3;x.beginPath();x.arc(200,200,R0*(1.08+f*.8*am),0,RTAU);x.stroke()}
+ const pa=-Math.PI/2+pr*RTAU;x.globalCompositeOperation="source-over";x.lineWidth=1;x.strokeStyle="rgba(255,255,255,.07)";x.beginPath();x.arc(200,200,188,0,RTAU);x.stroke();x.lineWidth=1.3;x.strokeStyle=rgCol(A,.8,68);x.beginPath();x.arc(200,200,188,-Math.PI/2,pa);x.stroke();x.fillStyle="#fff";x.beginPath();x.arc(200+Math.cos(pa)*188,200+Math.sin(pa)*188,2.2,0,RTAU);x.fill()}
 function mpDraw(){const c=$("mpc"),T=MT[MP.i];if(!MP.on||!T){MP.raf=0;return}
- const d=Math.min(2,devicePixelRatio||1),S=300,cx=150,cy=150;if(c.width!==S*d){c.width=c.height=S*d}
+ const d=Math.min(2,devicePixelRatio||1),S=400;if(c.width!==S*d){c.width=c.height=S*d}
  const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);x.globalCompositeOperation="source-over";x.clearRect(0,0,S,S);
- const t=performance.now()/1000,dt=Math.min(.1,t-(MP.tl||t)),m=T.m||2,pl=MP.play?1:0,A=T.c[0],B=T.c[1];MP.tl=t;mpPulse(t,dt,m,pl);
- const e=MP.en,PH=MP.ph,D=mpDur(),pr=D?Math.min(1,mpPos()/D):0;
- x.globalCompositeOperation="lighter";
- const gl=x.createRadialGradient(cx,cy,10,cx,cy,150);gl.addColorStop(0,hx(A,.1+e*.12));gl.addColorStop(.55,hx(B,.05+e*.05));gl.addColorStop(1,hx(B,0));x.fillStyle=gl;x.fillRect(0,0,S,S);
- const cg=x.createRadialGradient(cx,cy,0,cx,cy,40+e*14);cg.addColorStop(0,hx(A,.34+e*.2));cg.addColorStop(1,hx(A,0));x.fillStyle=cg;x.beginPath();x.arc(cx,cy,60,0,7);x.fill();
- x.globalCompositeOperation="source-over";
- mpHalo(x,cx,cy,46,16,5,t,T,m,1.1,true);
- x.fillStyle="rgba(255,255,255,"+(.55+e*.4)+")";x.beginPath();x.arc(cx,cy,2.2+e*1.2,0,7);x.fill();
- x.fillStyle="#fff";for(let k=0;k<16;k++){const a=k*2.4+PH*.05*(1+k%3*.25),r=122+(k%5)*3.5;x.globalAlpha=.14+.16*Math.sin(t*.8+k*1.9)*Math.sin(t*.8+k*1.9);x.beginPath();x.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,.9,0,7);x.fill()}
- x.globalAlpha=1;x.lineCap="round";x.lineWidth=1;x.strokeStyle="rgba(255,255,255,.1)";x.beginPath();x.arc(cx,cy,139,0,6.2832);x.stroke();
- const pa=-Math.PI/2+pr*6.2832;x.lineWidth=1.5;x.strokeStyle=hx(A,.9);x.beginPath();x.arc(cx,cy,139,-Math.PI/2,pa);x.stroke();
- const px=cx+Math.cos(pa)*139,py=cy+Math.sin(pa)*139,hg=x.createRadialGradient(px,py,0,px,py,12);hg.addColorStop(0,"rgba(255,255,255,.5)");hg.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=hg;x.beginPath();x.arc(px,py,12,0,7);x.fill();x.fillStyle="#fff";x.beginPath();x.arc(px,py,2.6,0,7);x.fill();
- $("mp").style.setProperty("--bt",Math.min(1,e*.6+(MP.sx||0)*3).toFixed(3));
+ const t=performance.now()/1000,dt=Math.min(.1,t-(MP.tl||t)),D=mpDur(),pr=D?Math.min(1,mpPos()/D):0;MP.tl=t;mpPulse(t,dt,T.m,MP.play?1:0);
+ mpRing(x,T,true,pr);
+ $("mp").style.setProperty("--bt",Math.min(1,RG.en*.6+RG.sx*3).toFixed(3));
  $("mpf2").style.width=pr*100+"%";$("mpkn").style.left=pr*100+"%";$("mpa").textContent=mpFmt(mpPos());$("mpd").textContent=D?mpFmt(D):"–:––";MP.raf=requestAnimationFrame(mpDraw)}
 function mpMini(){requestAnimationFrame(mpMini);const o=$("morb"),c=$("morbc"),T=MT[MP.i];if(!o||!c||!T||MP.on||document.hidden||!o.classList.contains("on"))return;
  const d=Math.min(2,devicePixelRatio||1),S=64;if(c.width!==S*d){c.width=c.height=S*d}
- const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,S,S);
- const t=performance.now()/1000,dt=Math.min(.1,t-(MP.tm||t)),m=T.m||2,pl=MP.play?1:0;MP.tm=t;mpPulse(t,dt,m,pl);const e=MP.en;
- x.globalCompositeOperation="lighter";const cg=x.createRadialGradient(32,32,0,32,32,16);cg.addColorStop(0,hx(T.c[0],.4+e*.25));cg.addColorStop(1,hx(T.c[0],0));x.fillStyle=cg;x.fillRect(0,0,S,S);x.globalCompositeOperation="source-over";
- mpHalo(x,32,32,9,7.5,3,t,T,m,1,false);
- x.globalCompositeOperation="destination-over";const bg=x.createRadialGradient(32,32,2,32,32,30);bg.addColorStop(0,"rgba(12,14,26,.7)");bg.addColorStop(1,"rgba(6,8,16,.86)");x.fillStyle=bg;x.beginPath();x.arc(32,32,30,0,7);x.fill();
- x.globalCompositeOperation="source-over";x.strokeStyle="rgba(255,255,255,.16)";x.lineWidth=1;x.beginPath();x.arc(32,32,30,0,7);x.stroke()}
+ const x=c.getContext("2d");x.setTransform(d*S/400,0,0,d*S/400,0,0);x.globalCompositeOperation="source-over";x.clearRect(0,0,400,400);
+ const t=performance.now()/1000,dt=Math.min(.1,t-(MP.tm||t));MP.tm=t;mpPulse(t,dt,T.m,MP.play?1:0);
+ mpRing(x,T,false,0);
+ x.globalCompositeOperation="destination-over";const bg=x.createRadialGradient(200,200,12,200,200,188);bg.addColorStop(0,"rgba(12,14,26,.7)");bg.addColorStop(1,"rgba(6,8,16,.86)");x.fillStyle=bg;x.beginPath();x.arc(200,200,188,0,RTAU);x.fill();
+ x.globalCompositeOperation="source-over";x.strokeStyle="rgba(255,255,255,.16)";x.lineWidth=6;x.beginPath();x.arc(200,200,188,0,RTAU);x.stroke()}
 requestAnimationFrame(mpMini);
 function mpOpen(){mpSync();if(!MT.length){ts("Add a song first");return mpAdd()}if(!MP.started)mpToggle();MP.on=1;$("mp").classList.add("on");mpUI();mpVolSet(MP.vol);if(!MP.raf)mpDraw()}
 function mpClose(){MP.on=0;$("mp").classList.remove("on")}
