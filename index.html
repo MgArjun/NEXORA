@@ -2800,6 +2800,36 @@ $("gs").onclick=async()=>{
  BUSY=0};
 if(SB)SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&PID&&booted)location.reload()});
 (async()=>{try{await boot()}catch(e){}})();
+/* ===== ZNEXORA FIX PATCH v3 ===== */
+{const SEL=".row,.gr,.opt,.tile,.fo,.cct";
+ const mark=r=>{(r.querySelectorAll?r.querySelectorAll(SEL):[]).forEach(el=>{if(el.tagName==="BUTTON"||el.hasAttribute("tabindex"))return;el.setAttribute("tabindex","0");el.setAttribute("role","button")})};
+ const mo=new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)mark(n.matches&&n.matches(SEL)?n.parentNode:n)})));
+ ["pg","sh","msgs"].forEach(i=>{const e=$(i);if(e){mark(e);mo.observe(e,{childList:true,subtree:true})}});
+ document.addEventListener("keydown",e=>{const t=e.target;if((e.key==="Enter"||e.key===" ")&&t.getAttribute&&t.getAttribute("role")==="button"&&t.tagName!=="BUTTON"){e.preventDefault();t.click()}})}
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;
+ if($("ov").classList.contains("on"))return closeS();
+ if($("mv").classList.contains("on"))return mvClose(false);
+ if($("vw").classList.contains("on"))return closeView();
+ if($("chat").classList.contains("srch"))return csClose();
+ if($("lk").classList.contains("on"))return;
+ if($("mp").classList.contains("on"))return mpClose()});
+{let last=null;const ov=$("ov");
+ new MutationObserver(()=>{if(ov.classList.contains("on")&&!ov.classList.contains("out")){if(!last)last=document.activeElement;setTimeout(()=>{const f=$("sh").querySelector("input,textarea");if(f&&!matchMedia("(pointer:coarse)").matches)f.focus()},350)}
+  else if(last){try{last.focus&&last.focus({preventScroll:true})}catch(x){}last=null}}).observe(ov,{attributes:true,attributeFilter:["class"]})}
+window.znxDel=async()=>{
+ try{const r=await SB.rpc("nx_delete_me");if(r.error)throw r.error;
+  ["znx_set","znx_pin","znx_fav","znx_liked","znx_mp","znx_tour","znx_hide","znx_seen","znx_opn","znx_e2e_"+PID].forEach(k=>{try{localStorage.removeItem(k)}catch(x){}});
+  try{await SB.auth.signOut()}catch(x){}location.reload()}
+ catch(e){ts("Could not delete the account. Try again.")}};
+if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+document.addEventListener("click",()=>{if(PID&&"Notification" in window&&Notification.permission==="default")Notification.requestPermission().catch(()=>{})},{once:true});
+{const _b3=banner;banner=function(a,b,c,d){_b3(a,b,c,d);
+  if(!document.hidden||!("Notification" in window)||Notification.permission!=="granted"||!ST2.banner||dndOn()||!navigator.serviceWorker)return;
+  navigator.serviceWorker.ready.then(r=>r.showNotification(String(a||"ZNEXORA"),{body:ST2.preview?String(b||""):"New message",tag:"znx-"+(c||0),renotify:true})).catch(()=>{})}}
+document.addEventListener("visibilitychange",()=>{document.documentElement.classList.toggle("bg",document.hidden)});
+{const s=document.createElement("style");s.textContent=".bg *{animation-play-state:paused!important}.bg #cl *,.bg #mp *{animation-play-state:running!important}#msgs .mr{content-visibility:auto;contain-intrinsic-size:auto 56px}#ls .row{content-visibility:auto;contain-intrinsic-size:auto 72px}";document.head.appendChild(s)}
+setInterval(()=>{try{purgeOld()}catch(e){}},600000);
+
 /* ===== ZNEXORA FIX PATCH v2 (koi aur edit nahi chahiye) =====
 PASTE KAHAN: file ke end mein ye line dhundo:
    (async()=>{try{await boot()}catch(e){}})();
