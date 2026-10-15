@@ -2763,7 +2763,7 @@ setInterval(async()=>{if(!SB||!PID)return;
   if(++NXN%20===0){const r=await SB.from("nx_bans").select("user_id").eq("user_id",PID).maybeSingle();if(r.data){try{await SB.auth.signOut()}catch(e){}location.reload()}}
  }catch(e){}},1500);
 /* NX-P2B-V1: keys live on the server */
-window.nxApi=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/nx-proxy?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
+window.nxApi=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/smooth-service?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
 async function nxIce(){try{const r=await window.nxApi("ice");if(!r.ok)return;const j=await r.json();if(Array.isArray(j)&&j.length)window.nxSetTurn(j)}catch(e){}}
 setInterval(()=>{if(PID)nxIce()},3*3600e3);
 const boot=async()=>{
