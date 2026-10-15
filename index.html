@@ -2669,8 +2669,8 @@ const onMsg=async r=>{
  U.sort((a,b)=>(b.lat||0)-(a.lat||0));if(tab==="chats"&&!chatOn()&&$("ls"))list()};
 const onRx=p=>{const rw=(p.new&&p.new.message_id)?p.new:p.old;if(!rw||!rw.message_id)return;const mid=String(rw.message_id);for(const k in MSG){const x=MSG[k].find(z=>String(z.sid)===mid);if(!x)continue;const by=rw.user_id===PID?"me":rw.user_id;x.r=(x.r||[]).filter(z=>z.by!==by);if(p.eventType!=="DELETE"&&p.new&&p.new.emoji)x.r.push({e:p.new.emoji,by:by});if(cur&&MSG[cur.id]===MSG[k]&&chatOn())render(true);break}};
 const onUpd=async r=>{const u=BYC[r.conversation_id];if(!u)return;if(r.sender_id!==PID){const y=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(y&&!y.k&&r.message){const t=mtxt(await dText(u,r.message));if(t&&t!==LOCKED&&t!==y.t){y.t=t;y.ed=1;if(cur===u&&chatOn())render(true)}}return}const x=(MSG[u.id]||[]).find(z=>z.sid===r.id);if(x&&r.read_at&&x.st<2){x.st=2;if(cur===u&&chatOn())render(true)}};
-const subRT=()=>{if(!SB||RT)return;try{RT=SB.channel("znx-msgs").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},p=>onMsg(p.new)).on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},p=>onUpd(p.new)).on("postgres_changes",{event:"*",schema:"public",table:"nx_reactions"},p=>onRx(p)).subscribe(s=>{RTOK=s==="SUBSCRIBED"?1:0})}catch(e){}};
-/* PATCH-CLEAN1-V1 */setInterval(()=>{if(!PID||!vis())return;tick++;if(cur&&chatOn()&&!RTOK)loadHist(cur).then(()=>markRead(cur));if(tick%(RTOK?15:3)===0)loadChats(true)},4000);
+const subRT=()=>{if(!SB||RT)return;try{RT=SB.channel("znx-msgs").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},p=>onMsg(p.new)).on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},p=>onUpd(p.new)).on("postgres_changes",{event:"*",schema:"public",table:"nx_reactions"},p=>onRx(p)).on("postgres_changes",{event:"*",schema:"public",table:"friendships"},()=>loadChats(true)).subscribe(s=>{RTOK=s==="SUBSCRIBED"?1:0})}catch(e){}};
+/* PATCH-CLEAN1-V1 */setInterval(()=>{if(!PID||!vis())return;tick++;if(cur&&chatOn()&&!RTOK)loadHist(cur).then(()=>markRead(cur));if(tick%(RTOK?45:6)===0)loadChats(true)},4000);
 document.addEventListener("visibilitychange",()=>{if(!PID)return;if(vis()){setPres(true);loadChats(true);if(cur&&chatOn())loadHist(cur)}else setPres(false)});
 window.addEventListener("pagehide",()=>setPres(false));
 
@@ -2807,9 +2807,9 @@ Uske TURANT NEECHE ye poora block paste karo, bas. */
 /* ---------- online / last seen sahi ---------- */
 const FR={};
 function applyPres(){U.forEach(u=>{const p=FR[u.pid];if(!p)return;if(p.hide_seen){u.on=0;u.seen="";return}u.on=freshOn(p)?1:0;u.seen=seenT(Object.assign({},p,{online:freshOn(p)}))})}
-async function presRefresh(){if(!SB||!PID||!vis())return;const ids=U.map(u=>u.pid).filter(Boolean);if(!ids.length)return;try{const r=await SB.from("profiles").select("id,online,last_seen,hide_seen").in("id",ids);(r.data||[]).forEach(p=>FR[p.id]=p)}catch(e){}}
+async function presRefresh(){if(!SB||!PID||!vis()||!(tab==="chats"||chatOn()))return;const ids=U.map(u=>u.pid).filter(Boolean);if(!ids.length)return;try{const r=await SB.from("profiles").select("id,online,last_seen,hide_seen").in("id",ids);(r.data||[]).forEach(p=>FR[p.id]=p)}catch(e){}}
 function beat(){if(!SB||!PID||!vis())return;setPres(true);SB.from("profiles").update({last_seen:new Date().toISOString()}).eq("id",PID).then(()=>{},()=>{})}
-setInterval(beat,20000);setInterval(presRefresh,15000);setTimeout(presRefresh,1200);
+/* NX-P2A-V1 */setInterval(beat,45000);setInterval(presRefresh,30000);setTimeout(presRefresh,1200);
 setInterval(()=>{applyPres();if(chatOn()&&cur){const sm=$("cn").querySelector("small");if(sm&&sm.textContent!==cur.seen)sm.textContent=cur.seen}},1000);
 
 
