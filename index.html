@@ -2800,25 +2800,38 @@ $("gs").onclick=async()=>{
  BUSY=0};
 if(SB)SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&PID&&booted)location.reload()});
 (async()=>{try{await boot()}catch(e){}})();
-/* ZNX-ORB-V5: minimal jelly ring, soft colour fade, smooth beats */
+/* ZNX-ORB-V7: minimal jelly ring with a clear beat that follows the mood */
+RGC.PAT[0]=[1,0,.5,0,.85,0,.5,0];
 mpRing=function(x,T,full,pr){
  const m=RG.mm<0?1:RG.mm,h0=mpHue(T.c[0]),h1=mpHue(T.c[1]);let dh=h1-h0;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
  const t=RG.t,dt=Math.min(.1,Math.max(0,t-(RG._l||t)));RG._l=t;
- RG.e2=(RG.e2||0)+(RG.en-(RG.e2||0))*(1-Math.exp(-dt*5));RG.s2=(RG.s2||0)+(RG.sx-(RG.s2||0))*(1-Math.exp(-dt*9));RG.q2=(RG.q2||0)+(RG.sv-(RG.q2||0))*(1-Math.exp(-dt*8));
- const E=RG.e2,S=RG.s2,am=RGC.AM[m],ph=RG.ph,dr=Math.sin(t*.12)*10,A=h0+dr,B=h0+dh+dr,mid=(A+B)/2,an=ph*.3,
- R0=(full?96:130)*(1+S*.5),sq=Math.max(-.03,Math.min(.03,RG.q2*.006)),
- path=(rad,o)=>{x.beginPath();for(let k=0;k<=240;k++){const a=k/240*RTAU,r=rad*(1+.013*E*am*Math.sin(3*a+ph*.9+(o||0))+.009*Math.sin(2*a-ph*.6)+.005*E*Math.sin(5*a+ph*1.7));const px=200+Math.cos(a)*r*(1+sq),py=200+Math.sin(a)*r*(1-sq);k?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()},
+ const bm=[.9,1.15,1.45][m],K=RG.k;
+ RG.e2=RG.e2||0;RG.e2+=(RG.en-RG.e2)*(1-Math.exp(-dt*(RG.en>RG.e2?18:5)));
+ RG.jx=RG.jx||0;RG.jv=RG.jv||0;const tg=(K*.075+RG.kk*.04+RG.e2*.03)*bm;
+ for(let r=dt;r>0;){const h=Math.min(r,.012);RG.jv+=((tg-RG.jx)*150-RG.jv*10)*h;RG.jx+=RG.jv*h;r-=h}
+ RG.jx=Math.max(-.12,Math.min(.2,RG.jx));
+ const E=RG.e2,J=RG.jx,am=RGC.AM[m],ph=RG.ph,dr=Math.sin(t*.12)*10,A=h0+dr,B=h0+dh+dr,mid=(A+B)/2,an=ph*.3,
+ W=E+K*.5,R0=(full?96:130)*(1+J),sq=Math.max(-.045,Math.min(.045,RG.jv*.012)),
+ path=(rad,o)=>{x.beginPath();for(let k=0;k<=240;k++){const a=k/240*RTAU,r=rad*(1+.014*W*am*Math.sin(3*a+ph*.9+(o||0))+.009*Math.sin(2*a-ph*.6)+.006*W*Math.sin(5*a+ph*1.7));const px=200+Math.cos(a)*r*(1+sq),py=200+Math.sin(a)*r*(1-sq);k?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()},
  ring=(rad,lw,al,o)=>{path(rad,o);x.strokeStyle=rgCone(x,an,[[0,A,al],[.18,A+(B-A)*.3,al*.8],[.38,mid,al*.45],[.5,B,al*.18],[.62,mid,al*.45],[.82,A+(B-A)*.3,al*.8],[1,A,al]]);x.lineWidth=lw;x.stroke()};
  x.lineCap="round";x.lineJoin="round";x.globalCompositeOperation="lighter";
- const gr=(full?210:88)*(1+S*.8),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.4:.6)*(.12+E*.3),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
- const cx=200+Math.cos(ph*.8)*R0*.1,cy=200+Math.sin(ph*.6)*R0*.1,ig=x.createRadialGradient(cx,cy,R0*.1,200,200,R0);ig.addColorStop(0,rgCol(B,.03+E*.05,60));ig.addColorStop(1,rgCol(A,.09+E*.07,60));x.fillStyle=ig;path(R0);x.fill();
- ring(R0,28,.05+E*.04);ring(R0,13,.12+E*.07);
- const d=.5+E*1.2+RG.kk*1.6;ring(R0-d,2,.28+E*.14,.5);ring(R0+d,2,.28+E*.14,-.5);
- ring(R0,4.5+E*2.5,.9);
+ const gr=(full?210:88)*(1+J*1.2),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.4:.6)*(.12+E*.3+K*.25),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
+ const cx=200+Math.cos(ph*.8)*R0*.1,cy=200+Math.sin(ph*.6)*R0*.1,ig=x.createRadialGradient(cx,cy,R0*.1,200,200,R0);ig.addColorStop(0,rgCol(B,.03+E*.05+K*.05,60));ig.addColorStop(1,rgCol(A,.09+E*.07+K*.06,60));x.fillStyle=ig;path(R0);x.fill();
+ ring(R0,28,.05+E*.04+K*.05);ring(R0,13,.12+E*.07+K*.08);
+ const d=.5+E*1.2+K*3+RG.kk*1.6;ring(R0-d,2,.28+E*.14+K*.14,.5);ring(R0+d,2,.28+E*.14+K*.14,-.5);
+ ring(R0,4.5+E*2.5+K*3.5,.9);
  if(!full){x.globalCompositeOperation="source-over";return}
- const b=RG.beats[RG.beats.length-1];
- if(b&&b.s>=.6){const age=t-b.t;if(age>=0&&age<1.6){const f=age/1.6,e=1-Math.pow(1-f,3);x.strokeStyle=rgCol(A+(B-A)*f,Math.pow(1-f,2)*.14*b.s,70);x.lineWidth=1.2*(1-f)+.3;x.beginPath();x.arc(200,200,R0*(1.05+e*.55*am),0,RTAU);x.stroke()}}
+ for(const b of RG.beats){const age=t-b.t;if(b.s<.55||age<0||age>1.5)continue;const f=age/1.5,e=1-Math.pow(1-f,3);x.strokeStyle=rgCol(A+(B-A)*f,Math.pow(1-f,2)*.18*b.s,70);x.lineWidth=1.3*(1-f)+.3;x.beginPath();x.arc(200,200,R0*(1.05+e*.5*am),0,RTAU);x.stroke()}
  const pa=-Math.PI/2+pr*RTAU;x.globalCompositeOperation="source-over";x.lineWidth=1;x.strokeStyle="rgba(255,255,255,.07)";x.beginPath();x.arc(200,200,188,0,RTAU);x.stroke();x.lineWidth=1.3;x.strokeStyle=rgCol(A,.7,68);x.beginPath();x.arc(200,200,188,-Math.PI/2,pa);x.stroke();x.fillStyle="#fff";x.beginPath();x.arc(200+Math.cos(pa)*188,200+Math.sin(pa)*188,2,0,RTAU);x.fill()};
+
+/* ZNX-V6: low-end phone mode, offline notice, logout cleanup */
+{const lo=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4);
+ const s=document.createElement("style");s.textContent=".lowfx *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}.lowfx .dot{animation:none!important}";document.head.appendChild(s);document.documentElement.classList.toggle("lowfx",!!lo)}
+addEventListener("offline",()=>ts("You are offline"));
+addEventListener("online",()=>{ts("Back online");try{loadChats(true)}catch(e){}});
+{const _o=window.znxOut;window.znxOut=async()=>{try{Object.values(MEDC).forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}})}catch(e){}return _o()}}
+
+
 
 
 
