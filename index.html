@@ -2949,6 +2949,47 @@ $("sbd").onclick=()=>{const n=sel.size;sheet(`<h3>Delete ${n} message${n>1?"s":"
   [...rm].sort((a,b)=>b-a).forEach(i=>m.splice(i,1));sel.clear();if(cur===c)render(true);paintSel()}};
 
 
+/* ZNX-V8: GIF shows directly, GIF cannot be saved, view-once guard, minimal download ring */
+{const s=document.createElement("style");s.textContent=`@property --p{syntax:"<number>";inherits:true;initial-value:0}
+.dlc{width:auto;padding:0;gap:16px;border:0;background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;justify-items:center;text-align:center;transition:--p .3s linear}
+.dlc>small:first-child,.dlb{display:none}
+.dlc b{position:relative;display:grid;place-items:center;width:104px;height:104px;font:600 20px var(--mono);letter-spacing:-.5px;color:#fff}
+.dlc b::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#8f88ff calc(var(--p)*360deg),rgba(255,255,255,.14) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));filter:drop-shadow(0 0 10px rgba(143,136,255,.55))}
+.dlc small{max-width:240px;text-align:center;white-space:normal}
+.md.zy.ld .zyd{opacity:0}.md.zy.ld::after{display:none}
+.md.zy.ld::before{content:"";position:absolute;left:50%;top:50%;z-index:2;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:conic-gradient(#8f88ff calc(var(--p)*360deg),rgba(255,255,255,.22) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));filter:drop-shadow(0 0 8px rgba(143,136,255,.6))}
+.md.zyg{min-width:150px;min-height:150px}
+.md.zyg::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);transform:translateX(-120%);animation:shm 1.8s ease-in-out infinite}
+.onceview #mvc img,.onceview #mvc video{-webkit-touch-callout:none;pointer-events:none;-webkit-user-select:none;user-select:none}
+.onceview #mv::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background-image:var(--wm);background-size:180px 120px;opacity:.13}
+@media print{#mv,#msgs{display:none!important}}`;document.head.appendChild(s)}
+/* download ring: feed the ring from the existing progress bar */
+{const mc=$("mvc");new MutationObserver(()=>{const b=mc.querySelector(".dlc s");if(!b)return;const d=b.closest(".dlc"),v=((parseFloat(b.style.width)||0)/100).toFixed(3);if(d.style.getPropertyValue("--p")!==v)d.style.setProperty("--p",v)}).observe(mc,{subtree:true,attributes:true,attributeFilter:["style"],childList:true})}
+/* GIFs load by themselves, like WhatsApp */
+zyTile=function(x){const own=x.d==="out",u=/^blob:/.test(x.src||"")?x.src:MEDC[x.src],v=x.k==="vid",gif=!!x.gif,dl=(own||gif)?"":`<button class="zyc" data-dl="1" aria-label="Download">${IC.dl}</button>`;
+ if(u)return `<div class="md zy" data-mv="1">${v?`<video src="${u}#t=0.1" muted playsinline preload="metadata"></video><i class="pl"></i>`:`<img src="${u}" alt="">`}${dl}</div>`;
+ if(gif&&!x._gf){if(!ZYQ.has(x.src)){ZYQ.add(x.src);mediaLoad(x).then(r=>{if(!r)x._gf=1;if(cur&&$("chat").classList.contains("on"))render(true)})}
+  return `<div class="md zy zyo zyg" data-mv="1" style="${x.th?`background-image:url(${x.th})`:""}"></div>`}
+ if(own){if(!v&&!ZYQ.has(x.src)){ZYQ.add(x.src);mediaLoad(x).then(r=>{if(r&&cur&&$("chat").classList.contains("on"))render(true)})}
+  return `<div class="md zy zyo" data-mv="1" style="${x.th?`background-image:url(${x.th})`:""}">${v?`<video src="${x.src}#t=0.1" muted playsinline preload="metadata"></video><i class="pl"></i>`:`<img src="${x.src}" alt="" onerror="this.remove()">`}${dl}</div>`}
+ return `<div class="md zy zyb" data-mv="1">${x.th?`<img src="${x.th}" alt="">`:""}<span class="zyd">${v?PL:IC.dl}<b>${fmtB(x.size||0)}</b></span></div>`};
+/* GIFs cannot be saved */
+{const _zd=zyDl;zyDl=function(x){if(x&&x.gif){ts("GIFs cannot be saved");return}return _zd(x)}}
+{const _su=selUI;selUI=function(){_su();if(sel.size===1&&cur){const o=(MSG[cur.id]||[])[[...sel][0]];if(o&&o.gif)$("sbdl").style.display="none"}}}
+/* view once and timed media: best effort guard (a browser cannot block OS screenshots) */
+{const H=document.documentElement,_mo=mvOpen;
+ mvOpen=function(i){const x=cur&&(MSG[cur.id]||[])[i],once=!!(x&&x.once&&!x.opened);H.classList.toggle("onceview",once);
+  if(once){const t=esc(String(MY.uid||MY.name||"ZNEXORA")).slice(0,24),svg="<svg xmlns='http://www.w3.org/2000/svg' width='180' height='120'><text x='12' y='70' fill='white' font-size='13' font-family='monospace' transform='rotate(-22 90 60)'>ZNEXORA "+t+"</text></svg>";$("mv").style.setProperty("--wm",'url("data:image/svg+xml;utf8,'+encodeURIComponent(svg)+'")')}
+  const p=_mo(i);
+  if(x&&x.gif){$("mvd").style.display="none";$("mvb").querySelectorAll('[data-vb="dl"],[data-vb="sh"]').forEach(b=>b.style.display="none")}
+  return p};
+ const _mc=mvClose;mvClose=function(d){H.classList.remove("onceview");$("mvc").style.opacity="";return _mc(d)};
+ const on=()=>H.classList.contains("onceview");
+ document.addEventListener("visibilitychange",()=>{if(document.hidden&&on())mvClose(true)});
+ addEventListener("blur",()=>{if(on())$("mvc").style.opacity="0"});addEventListener("focus",()=>{if(on())$("mvc").style.opacity=""});
+ document.addEventListener("keyup",e=>{if(e.key==="PrintScreen"&&on()){try{navigator.clipboard.writeText("")}catch(x){}mvClose(true);ts("Screenshots are not allowed for view-once media")}});
+ document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest("#mv"))e.preventDefault()})}
+
 }
 
 })();</script></body></html>
