@@ -958,7 +958,7 @@ function enter(){bellDot();document.querySelector("main").classList.add("hide");
 const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
 const D2={theme:"auto",photo:"everyone",bioV:"everyone",seen:"everyone",online:1,typing:1,ticks:1,invite:1,calls:1,noise:1,voice:0,/* PATCH-P1-V1 */sound:0,vib:0,ds:0,vq:"720",extra:0,msgTone:1,preview:1,banner:1,ringtone:1,vibN:1,dnd:"off",enterSend:1,fontSize:"m",autoDl:"wifi",linkPrev:1,lastPrev:1,applock:0,lockT:"1",rm:0};
 let ST2=Object.assign({},D2);try{Object.assign(ST2,JSON.parse(localStorage.getItem("znx_set")||"{}"))}catch(e){}
-const sv2=()=>{try{localStorage.setItem("znx_set",JSON.stringify(ST2))}catch(e){}};
+const sv2=()=>{try{localStorage.setItem("znx_set",JSON.stringify(ST2))}catch(e){}window.nxSetPush&&window.nxSetPush()};
 const root=document.documentElement,metaT=()=>{ST2.theme==="auto"?root.removeAttribute("data-theme"):root.setAttribute("data-theme",ST2.theme)};
 vq=ST2.vq;
 const Q={480:"480p",720:"720p",1080:"1080p",1440:"2K",2160:"4K"};
@@ -1519,7 +1519,7 @@ const REPORTS=[];
 function reportSheet(id){const u=U.find(x=>x.id===id);if(!u)return;let why="Spam",share=false;
  sheet(`<h3>Report ${esc(u.n)}</h3><div class="seg" id="rpw">${["Spam","Harassment","Inappropriate","Other"].map((w,i)=>`<button data-w="${w}" class="${i?"":"on"}">${w}</button>`).join("")}</div><input id="rpn" placeholder="Add a note (optional)" maxlength="200" autocomplete="off" style="margin:10px 0"><div class="pr2"><div class="t"><b>Share the last 5 messages</b><small>Admins see only what you share. Off by default.</small></div><button class="tg" id="rpsh" aria-label="Share messages"></button></div><button class="pri" style="width:100%;margin-top:12px" id="rpk">Send report</button>`);
  $("sh").onclick=e=>{const b=e.target.closest("#rpw button");if(b){why=b.dataset.w;[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));return}if(e.target.closest("#rpsh")){share=!share;$("rpsh").classList.toggle("on",share);return}
-  if(e.target.closest("#rpk")){const snap=share?(MSG[id]||[]).filter(x=>x.t).slice(-5).map(x=>x.t):[];REPORTS.unshift({id:Date.now(),by:MY.name,tg:u.n,reason:why,note:$("rpn").value.trim(),snap,st:"open"});closeS();ts("Report sent. Thank you.")}}}
+  if(e.target.closest("#rpk")){const snap=share?(MSG[id]||[]).filter(x=>x.t).slice(-5).map(x=>x.t):[];REPORTS.unshift({id:Date.now(),by:MY.name,tg:u.n,reason:why,note:$("rpn").value.trim(),snap,st:"open"});window.nxReport&&window.nxReport(u,why,$("rpn").value.trim(),snap);closeS();ts("Report sent. Thank you.")}}}
 /* ===== admin ===== */
 const AU=[];
 const ADC={signups:true,max:40,statusAll:false,fileMb:50,stSec:30,fav:30,bypass:0},AUD=[];
@@ -2735,6 +2735,33 @@ const loadAdmin=async()=>{try{const r=await SB.from("profiles").select("id,usern
  AU.length=0;(r.data||[]).forEach((p,i)=>AU.push({id:i,pid:p.id,n:p.display_name||"User",user:p.username||"",uid:String(p.uid||"").replace(/^NX-?/,"MG"),ref:0,guest:!!p.is_guest,canSt:false,canFav:false,banned:false,act:p.online?"Online":(p.last_seen?fL(p.last_seen):"")}))}catch(e){}};
 
 /* login */
+/* NX-P1-REAL-V1: block, ban, report, settings in Supabase */
+let NXB=new Set(),NXBAN=new Set(),NXT=0,NXN=0;
+const nxPid=id=>{const u=U.find(x=>x.id===id);return u&&u.pid};
+const nxOut=h=>{const o={};for(const k in (h||{}))o[k]=h[k].map(nxPid).filter(Boolean);return o};
+const nxIn=h=>{const o={};for(const k in (h||{}))o[k]=h[k].map(p=>BYP[p]&&BYP[p].id).filter(Boolean);return o};
+async function nxLoadSync(){
+ try{const r=await SB.from("nx_blocks").select("blocked").eq("blocker",PID);if(!r.error){NXB=new Set((r.data||[]).map(x=>x.blocked));BL.length=0;NXB.forEach(p=>{if(BYP[p])BL.push(BYP[p].id)})}}catch(e){}
+ try{const r=await SB.from("nx_settings").select("data").eq("user_id",PID).maybeSingle(),d=r.data&&r.data.data;if(d){if(d.hide)d.hide=nxIn(d.hide);Object.assign(ST2,d);sv2();metaT();applyPrefs()}}catch(e){}}
+window.nxSetPush=()=>{clearTimeout(NXT);NXT=setTimeout(async()=>{if(!SB||!PID)return;const d=Object.assign({},ST2);delete d.applock;delete d.lockT;delete d.dndAt;d.hide=nxOut(ST2.hide);
+ try{await SB.from("nx_settings").upsert({user_id:PID,data:d,updated_at:new Date().toISOString()});await SB.from("profiles").update({hide_seen:ST2.seen==="nobody"}).eq("id",PID)}catch(e){}},900)};
+window.nxReport=async(u,why,note,snap)=>{try{if(!u.pid)throw 0;const r=await SB.from("nx_reports").insert({reporter:PID,target:u.pid,reason:why,note:note,snap:snap});if(r.error)throw r.error}catch(e){ts("Report could not be saved. Try again.")}};
+async function nxAdminLoad(){await loadAdmin();
+ try{const b=await SB.from("nx_bans").select("user_id");NXBAN=new Set((b.data||[]).map(x=>x.user_id));AU.forEach(u=>{u.banned=NXBAN.has(u.pid)});
+  const r=await SB.from("nx_reports").select("*").order("created_at",{ascending:false}).limit(200);if(r.error)return;
+  const ids=[...new Set((r.data||[]).flatMap(x=>[x.reporter,x.target]))],nm={};
+  if(ids.length){const p=await SB.from("profiles").select("id,display_name").in("id",ids);(p.data||[]).forEach(z=>nm[z.id]=z.display_name||"User")}
+  REPORTS.length=0;(r.data||[]).forEach(x=>REPORTS.push({id:x.id,sid:x.id,sv:x.status,by:nm[x.reporter]||"User",tg:nm[x.target]||"User",reason:x.reason,note:x.note||"",snap:Array.isArray(x.snap)?x.snap:[],st:x.status}))}catch(e){}}
+async function nxAdminSync(){
+ for(const u of AU){if(!u.pid)continue;const b=!!u.banned;if(b!==NXBAN.has(u.pid)){b?NXBAN.add(u.pid):NXBAN.delete(u.pid);const r=b?await SB.from("nx_bans").upsert({user_id:u.pid,by:PID}):await SB.from("nx_bans").delete().eq("user_id",u.pid);if(r.error)ts("Ban not saved")}}
+ for(const x of REPORTS){if(x.sid&&x.st!==x.sv){x.sv=x.st;await SB.from("nx_reports").update({status:x.st}).eq("id",x.sid)}}}
+setInterval(async()=>{if(!SB||!PID)return;
+ try{const want=new Set(BL.map(nxPid).filter(Boolean));
+  for(const p of want)if(!NXB.has(p)){NXB.add(p);const r=await SB.from("nx_blocks").upsert({blocker:PID,blocked:p});if(r.error)ts("Block not saved")}
+  for(const p of [...NXB])if(!want.has(p)&&BYP[p]){NXB.delete(p);await SB.from("nx_blocks").delete().eq("blocker",PID).eq("blocked",p)}
+  if(MY.role==="admin")await nxAdminSync();
+  if(++NXN%20===0){const r=await SB.from("nx_bans").select("user_id").eq("user_id",PID).maybeSingle();if(r.data){try{await SB.auth.signOut()}catch(e){}location.reload()}}
+ }catch(e){}},1500);
 const boot=async()=>{
  if(!SB)return false;
  const{data}=await SB.auth.getSession(),ses=data&&data.session;if(!ses)return false;
@@ -2742,12 +2769,13 @@ const boot=async()=>{
  let ls="";try{const r=await SB.rpc("my_login_status");ls=String(r.data==null?"":r.data)}catch(e){}
  if(/ban|block|reject|denied/i.test(ls)){try{await SB.auth.signOut()}catch(e){}PID=null;say("This account is blocked. Please contact the admin.");return false}
  if(/pend|wait/i.test(ls)){try{await SB.auth.signOut()}catch(e){}PID=null;say("Your account is waiting for admin approval. Try again later.");return false}
+ try{const bn=await SB.from("nx_bans").select("user_id").eq("user_id",PID).maybeSingle();if(bn.data){try{await SB.auth.signOut()}catch(e){}PID=null;say("This account is blocked. Please contact the admin.");return false}}catch(e){}
  let pr=null;for(let i=0;i<4&&!pr;i++){try{const r=await SB.from("profiles").select("*").eq("id",PID).maybeSingle();pr=r.data}catch(e){}if(!pr)await new Promise(z=>setTimeout(z,500))}
  if(!pr){try{const nm=(au.user_metadata&&au.user_metadata.display_name)||"NEXORA User",r=await SB.from("profiles").insert({id:PID,username:"NX_"+PID.replace(/-/g,"").slice(0,8).toUpperCase(),display_name:nm,is_guest:!!au.is_anonymous}).select().maybeSingle();pr=r.data}catch(e){}}
  if(!pr){PID=null;say("Could not load your profile. Please try again.");return false}
  let adm=false;try{const r=await SB.rpc("nx_is_admin");adm=r.data===true}catch(e){}
  Object.assign(MY,{role:adm?"admin":"user",name:pr.display_name||"NEXORA User",user:pr.username||"",uid:String(pr.uid||"").replace(/^NX-?/,"MG"),bio:pr.about||"Hey there! I am using ZNEXORA",about:pr.about||"",email:au.email||"",guest:!!(pr.is_guest||au.is_anonymous),p:safeUrl(pr.avatar_url)});
- setPres(true);await e2eInit(pr);await Promise.all([loadChats(),loadFav()]);if(adm)loadAdmin();subRT();window.znxCallListen();
+ setPres(true);await e2eInit(pr);await Promise.all([loadChats(),loadFav()]);await nxLoadSync();if(adm)nxAdminLoad();subRT();window.znxCallListen();
  if(!booted){booted=1;enter()}else{top2()}
  return true};
 $("go").onclick=async()=>{
