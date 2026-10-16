@@ -650,6 +650,7 @@ mark{background:color-mix(in srgb,var(--ac) 50%,transparent);color:inherit;borde
 #morbc{display:block;width:100%;height:100%;border-radius:50%;pointer-events:none}
 /* ZNX-MUSIC-HUD-END */
 /* PATCH-VCALL-SMOOTH-V1 */#cl .clvd{will-change:transform;backface-visibility:hidden}#cl.vid .clbg,#cl.vid .clav,#clpill i{animation:none!important}
+/* PATCH-MIC-CSS-V1 */.micb{height:auto;border:0;background:none;color:var(--mu);font:500 11px var(--mono);letter-spacing:.03em;padding:6px 10px;margin:0 auto;display:block;flex:none;text-align:center}.micb.on{color:var(--ac)}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="gm" gradientUnits="userSpaceOnUse" x1="10" y1="10" x2="190" y2="110"><stop offset="0" stop-color="#fff3a6"/><stop offset=".5" stop-color="#ffd93d"/><stop offset="1" stop-color="#ff9f8a"/></linearGradient></defs></svg>
@@ -714,7 +715,7 @@ $("eye").onclick=()=>{const p=$("pw");p.type=p.type==="password"?"text":"passwor
 <div class="mptt"><b id="mpn"></b><small id="mpk"></small></div>
 <div class="sl mpsk" id="mpsk"><i id="mpf2"></i><b id="mpkn"></b></div><div class="mptm"><span id="mpa">0:00</span><span id="mpd">0:00</span></div>
 <div class="mpctl"><button class="ib" id="mps" aria-label="Shuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button><button class="ib" id="mpb" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 5v14M19 5L9 12l10 7z"/></svg></button><button id="mpp" aria-label="Play or pause"></button><button class="ib" id="mpf" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button><button class="ib" id="mpr" aria-label="Repeat"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 01-3 3H3"/></svg></button></div>
-<div class="mpft"><div class="mpmo" id="mpmo"></div><div class="mvp" id="mvp"><div class="sl v" id="mvt"><i id="mvf"></i><b id="mvk"></b></div></div></div>
+<button class="micb" id="micb"></button><div class="mpft"><div class="mpmo" id="mpmo"></div><div class="mvp" id="mvp"><div class="sl v" id="mvt"><i id="mvf"></i><b id="mvk"></b></div></div></div>
 <div style="position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"><div id="mpyt0"></div><div id="mpyt1"></div></div></div>
 <div id="mini"><i id="mio"></i><div class="t"><b id="min"></b><small id="mim"></small></div><button class="ib" id="mip" aria-label="Play or pause"></button><button class="ib" id="mix" aria-label="Hide player"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="et"><div class="eth"><button class="ib" id="etb" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ett"><b>Enjoy Together</b><small id="etc"></small></div><div class="ethr"><div class="stk" id="etstk"></div><button class="ib" id="etmic" aria-label="Voice"></button></div></div>
 <div class="seg" id="ets"><button class="on" data-k="w">Watch</button><button data-k="l">Listen</button></div>
@@ -1367,7 +1368,7 @@ function mpHue(c){const n=parseInt(c.slice(1),16),r=(n>>16)/255,gg=(n>>8&255)/25
 /* a beat: soft attack, quick fall with a slow tail */
 function rgHit(s){RG.tg=Math.max(RG.tg,s);RG.kg=Math.max(RG.kg,s);RG.kb=Math.max(RG.kb,s*.9);RG.beats.push({t:RG.t,s})}
 function rgStep(dt,m,pl){const C=RGC,vf=.55+.45*MP.vol;RG.t+=dt;RG.sw=Math.min(1,RG.sw+dt/1.7);
- if(pl){RG.bp+=dt*C.BPM[m]/60*2;const nd=()=>1+((RG.step&1)?-C.SW[m]:C.SW[m]);while(RG.bp>=nd()){RG.bp-=nd();const s=C.PAT[m][RG.step++%8];if((RG.step-1)%8===0)RG.sw=0;if(s>0){rgHit(Math.min(1,s*(1+(Math.random()-.5)*.08))*vf);if(s>.95&&C.GH[m])RG.q.push({at:RG.t+C.GH[m][0],s:C.GH[m][1]*vf})}}}
+ if(pl&&!RG.mic){RG.bp+=dt*C.BPM[m]/60*2;const nd=()=>1+((RG.step&1)?-C.SW[m]:C.SW[m]);while(RG.bp>=nd()){RG.bp-=nd();const s=C.PAT[m][RG.step++%8];if((RG.step-1)%8===0)RG.sw=0;if(s>0){rgHit(Math.min(1,s*(1+(Math.random()-.5)*.08))*vf);if(s>.95&&C.GH[m])RG.q.push({at:RG.t+C.GH[m][0],s:C.GH[m][1]*vf})}}}
  for(let i=RG.q.length-1;i>=0;i--)if(RG.t>=RG.q[i].at){rgHit(RG.q[i].s);RG.q.splice(i,1)}
  RG.tg*=Math.exp(-dt*(m===2?6:4.5));RG.kg*=Math.exp(-dt*3.2);RG.kb*=Math.exp(-dt*1.5);
  RG.k+=(RG.tg-RG.k)*(1-Math.exp(-dt*(RG.tg>RG.k?34:9)));RG.kk+=(RG.kg-RG.kk)*(1-Math.exp(-dt*(RG.kg>RG.kk?30:8)));
@@ -1419,7 +1420,7 @@ function mpMini(){requestAnimationFrame(mpMini);const o=$("morb"),c=$("morbc"),T
  x.globalCompositeOperation="destination-over";const bg=x.createRadialGradient(200,200,12,200,200,188);bg.addColorStop(0,"rgba(12,14,26,.7)");bg.addColorStop(1,"rgba(6,8,16,.86)");x.fillStyle=bg;x.beginPath();x.arc(200,200,188,0,RTAU);x.fill();
  x.globalCompositeOperation="source-over";x.strokeStyle="rgba(255,255,255,.16)";x.lineWidth=6;x.beginPath();x.arc(200,200,188,0,RTAU);x.stroke()}
 requestAnimationFrame(mpMini);
-function mpOpen(){mpSync();if(!MT.length){ts("Add a song first");return mpAdd()}if(!MP.started)mpToggle();MP.on=1;$("mp").classList.add("on");mpUI();mpVolSet(MP.vol);if(!MP.raf)mpDraw()}
+/* PATCH-MIC-V1 */const MIC={s:null,an:null,d:null,ac:null,on:0,raf:0,avg:0,t:0};function micUI(){const b=$("micb");if(!b)return;b.classList.toggle("on",!!MIC.on);b.textContent=MIC.on?"Live beat on. Tap to stop":"Want the beat to follow the real sound? Tap, then allow mic"}async function micOn(){if(MIC.on)return;if(CL.on||VC.on){ts("End the call or voice chat first");return}try{MIC.s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){ts("Microphone not allowed");return}const ac=MIC.ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume();MIC.an=ac.createAnalyser();MIC.an.fftSize=1024;MIC.an.smoothingTimeConstant=.2;ac.createMediaStreamSource(MIC.s).connect(MIC.an);MIC.d=new Uint8Array(MIC.an.frequencyBinCount);MIC.on=1;MIC.avg=0;MIC.t=performance.now()/1000;RG.mic=0;micUI();micLoop();ts("Live beat on")}function micOff(){MIC.on=0;cancelAnimationFrame(MIC.raf);if(MIC.s)MIC.s.getTracks().forEach(t=>t.stop());MIC.s=null;try{MIC.ac&&MIC.ac.close()}catch(e){}MIC.ac=null;RG.mic=0;micUI()}function micLoop(){if(!MIC.on)return;if(!MP.started||CL.on||VC.on||document.hidden){micOff();return}const t=performance.now()/1000;MIC.an.getByteFrequencyData(MIC.d);let e=0;for(let i=1;i<=6;i++)e+=MIC.d[i];e/=1530;MIC.avg+=(e-MIC.avg)*.04;if(MP.play&&e>.22&&e>MIC.avg*1.3+.04&&t-MIC.t>.2){MIC.t=t;RG.mic=1;rgHit(Math.min(1,.55+(e-MIC.avg)*2.2))}if(MP.play&&t-MIC.t>3)RG.mic=0;MIC.raf=requestAnimationFrame(micLoop)}$("micb").onclick=()=>MIC.on?micOff():micOn();micUI();function mpOpen(){mpSync();if(!MT.length){ts("Add a song first");return mpAdd()}if(!MP.started)mpToggle();MP.on=1;$("mp").classList.add("on");mpUI();mpVolSet(MP.vol);if(!MP.raf)mpDraw()}
 function mpClose(){MP.on=0;$("mp").classList.remove("on")}
 function mpSlider(el,fn,vert,tick){let dn=0;const at=e=>{const r=el.getBoundingClientRect(),p=vert?1-(e.clientY-r.top)/r.height:(e.clientX-r.left)/r.width;fn(Math.max(0,Math.min(1,p)))};el.addEventListener("pointerdown",e=>{dn=1;el.classList.add("act");try{el.setPointerCapture(e.pointerId)}catch(x){}at(e);if(tick)tick();if(navigator.vibrate)navigator.vibrate(3)});el.addEventListener("pointermove",e=>{if(dn){at(e);if(tick)tick()}});["pointerup","pointercancel"].forEach(k=>el.addEventListener(k,()=>{dn=0;el.classList.remove("act");if(tick)tick()}))}
 let mvTm=0;function mpVolShow(){const v=$("mvp");v.classList.add("on");clearTimeout(mvTm);mvTm=setTimeout(()=>v.classList.remove("on"),2600)}mpSlider($("mpsk"),p=>mpSeek(p*mpDur()));mpSlider($("mvt"),p=>mpVolSet(p),true,mpVolShow);
@@ -1829,14 +1830,14 @@ function clLay(){const c=$("cl"),r=$("clr"),l=$("clv"),cam=!!(CL.cam&&CL.vs),rc=
  c.classList.toggle("vid",cam||rc);if(!(cam||rc))c.classList.remove("hc")}
 function clCtl(show){const c=$("cl");clearTimeout(CL.ht);c.classList.toggle("hc",!show);if(show&&c.classList.contains("vid")&&CL.t0)CL.ht=setTimeout(()=>c.classList.add("hc"),4500)}
 /* sender tuning: voice first, then frame rate, then sharpness. On a weak network the picture gets smaller, never slower. */
-function clTune(){const s=CL.pc&&CL.pc.getSenders().find(x=>x.track&&x.track.kind==="audio");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)return;Object.assign(p.encodings[0],{maxBitrate:40000,priority:"high",networkPriority:"high"});s.setParameters(p).catch(()=>{})}
+function clTune(){const s=CL.pc&&CL.pc.getSenders().find(x=>x.track&&x.track.kind==="audio");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)return;Object.assign(p.encodings[0],{maxBitrate:64000,priority:"high",networkPriority:"high"});s.setParameters(p).catch(()=>{})}
 function clTuneV(){const s=CL.vt&&CL.vt.sender;if(!s||!s.track)return;const p=s.getParameters(),q=CQ[ST2.smooth&&+ST2.vq>720?"720":ST2.vq]||CQ[720];if(!p.encodings||!p.encodings.length)p.encodings=[{}];Object.assign(p.encodings[0],{maxBitrate:q[2],maxFramerate:30,priority:"medium",networkPriority:"medium",scaleResolutionDownBy:CL.sc});p.degradationPreference="maintain-framerate";s.setParameters(p).catch(()=>{})}
-function clScale(v){CL.sc=Math.max(1,Math.min(4,Math.round(v*100)/100));CL.lo=0;CL.hi=0;clTuneV()}
+function clScale(v){CL.sc=Math.max(1,Math.min(6,Math.round(v*100)/100));CL.lo=0;CL.hi=0;clTuneV()}
 async function clStat(){const pc=CL.pc;if(!pc||pc.connectionState!=="connected")return;let r;try{r=await pc.getStats()}catch(e){return}
  let rtt=null,w=0,h=0,fps=0,rx=0,out=null;
  r.forEach(s=>{if(s.type==="candidate-pair"&&s.nominated&&s.state==="succeeded"&&s.currentRoundTripTime!=null)rtt=s.currentRoundTripTime*1000;else if(s.type==="inbound-rtp"&&s.kind==="video"){w=s.frameWidth||0;h=s.frameHeight||0;fps=s.framesPerSecond||0;rx=s.bytesReceived||0}else if(s.type==="outbound-rtp"&&s.kind==="video"&&s.bytesSent)out=s});
  const n=performance.now(),kb=CL.sb&&rx>=CL.sb?(rx-CL.sb)*8/Math.max(1,n-CL.sk):0;CL.sb=rx;CL.sk=n;
- if(CL.cam&&out&&out.framesPerSecond){const f=out.framesPerSecond;if(f<24){CL.lo++;CL.hi=0}else if(f>=26){CL.hi++;CL.lo=0}else{CL.lo=0;CL.hi=0}if(CL.lo>=2)clScale(CL.sc*1.5);else if(CL.hi>=8&&CL.sc>1)clScale(CL.sc/1.5)}
+ if(CL.cam&&out&&out.framesPerSecond){const f=out.framesPerSecond;const lim=out.qualityLimitationReason;if(f<26||(lim&&lim!=="none"&&f<29)){CL.lo++;CL.hi=0}else if(f>=29&&(!lim||lim==="none")){CL.hi++;CL.lo=0}else{CL.lo=0;CL.hi=0}if(CL.lo>=2||f<18)clScale(CL.sc*1.35);else if(CL.hi>=10&&CL.sc>1)clScale(CL.sc/1.35)}
  if(!$("cl").classList.contains("vid"))return;
  const bad=(rtt!=null&&rtt>400)||(CL.rcam&&fps>0&&fps<15),mid=(rtt!=null&&rtt>200)||(CL.rcam&&fps>0&&fps<22);
  $("clq").innerHTML=`<i class="${bad?"b":mid?"w":""}"></i><span><b>${mpFmt(Math.floor((Date.now()-CL.t0)/1000))}</b></span><span><b>${CL.rcam&&fps?Math.round(fps):(out&&out.framesPerSecond?Math.round(out.framesPerSecond):"-")}</b> fps</span><span><b>${CL.rcam&&h?Math.min(w,h)+"p":(out&&out.frameHeight?Math.min(out.frameWidth,out.frameHeight)+"p":"-")}</b></span>`}
@@ -1854,7 +1855,7 @@ async function clOnOffer(m){if(!CL.pc)return;await CL.pc.setRemoteDescription(m.
 async function clFlush(){while(CL.pc&&CL.q.length)await CL.pc.addIceCandidate(CL.q.shift()).catch(()=>{})}
 function clGuard(){clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&!CL.t0)clEnd("lost")},20000)}
 function clState(s){if(!CL.on||!CL.pc)return;
- if(s==="connected"){clearTimeout(CL.ft);if(!CL.t0){CL.t0=Date.now();clRingStop();CL.iv=setInterval(clTick,500);CL.si=setInterval(clStat,1000);clTune();clTuneV();clCtl(true);if(navigator.vibrate)navigator.vibrate(40)}clUI("live");clTick()}
+ if(s==="connected"){clearTimeout(CL.ft);if(!CL.t0){CL.t0=Date.now();clRingStop();CL.iv=setInterval(clTick,500);CL.si=setInterval(clStat,1000);if((navigator.deviceMemory&&navigator.deviceMemory<=3)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4))CL.sc=Math.max(CL.sc,2);clTune();clTuneV();clCtl(true);if(navigator.vibrate)navigator.vibrate(40)}clUI("live");clTick()}
  else if(s==="disconnected"){clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&CL.pc&&CL.pc.connectionState!=="connected")clRetry()},5000)}
  else if(s==="failed")clRetry()}
 function clRetry(){if(!CL.on)return;if(CL.fail++>=2)return clEnd("lost");
