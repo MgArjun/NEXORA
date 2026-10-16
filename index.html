@@ -649,6 +649,7 @@ mark{background:color-mix(in srgb,var(--ac) 50%,transparent);color:inherit;borde
 @keyframes mxIn{from{opacity:0;transform:scale(.5)}}
 #morbc{display:block;width:100%;height:100%;border-radius:50%;pointer-events:none}
 /* ZNX-MUSIC-HUD-END */
+/* PATCH-VCALL-SMOOTH-V1 */#cl .clvd{will-change:transform;backface-visibility:hidden}#cl.vid .clbg,#cl.vid .clav,#clpill i{animation:none!important}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="gm" gradientUnits="userSpaceOnUse" x1="10" y1="10" x2="190" y2="110"><stop offset="0" stop-color="#fff3a6"/><stop offset=".5" stop-color="#ffd93d"/><stop offset="1" stop-color="#ff9f8a"/></linearGradient></defs></svg>
@@ -1816,7 +1817,7 @@ async function clCamStream(face){if(!navigator.mediaDevices||!navigator.mediaDev
  try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:face||"user",width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:port?9/16:16/9},frameRate:{ideal:30}}}),t=s.getVideoTracks()[0];if(t)t.contentHint="motion";return s}catch(e){ts("Allow the camera to use video");return null}}
 function clCamStop(){if(CL.vs){CL.vs.getTracks().forEach(t=>t.stop());CL.vs=null}}
 /* layout: big picture + small draggable picture, tap the small one to swap */
-/* PATCH-ZNX-VCALL-V2 *//* PATCH-ZNX-FIX3-V1 */function clFit(v){const w=v.clientWidth,h=v.clientHeight;if(!w||!h||!v.videoWidth)return;const m=v.id==="clv"?(CL.face==="user"?-1:1):(CL.rmir?-1:1);if(v.classList.contains("pip")){v.style.objectFit="cover";v.style.transform=m<0?"scaleX(-1)":"";return}const f=ST2.vfill||"bal";if(f==="full"){v.style.objectFit="cover";v.style.transform=m<0?"scaleX(-1)":"";return}const k=v.videoWidth/v.videoHeight/(w/h),s=Math.min(Math.max(k,1/k),f==="fit"?1:1.05);v.style.objectFit="contain";v.style.transform="scale("+m*s+","+s+")"}
+/* PATCH-ZNX-VCALL-V2 *//* PATCH-ZNX-FIX3-V1 */function clFit(v){const w=v.clientWidth,h=v.clientHeight;if(!w||!h||!v.videoWidth)return;const m=v.id==="clv"?(CL.face==="user"?-1:1):(CL.rmir?-1:1);if(v.classList.contains("pip")){v.style.objectFit="cover";v.style.transform=m<0?"scaleX(-1)":"";return}const f=ST2.vfill||"full";if(f==="full"){v.style.objectFit="cover";v.style.transform=m<0?"scaleX(-1)":"";return}const k=v.videoWidth/v.videoHeight/(w/h),s=Math.min(Math.max(k,1/k),f==="fit"?1:1.05);v.style.objectFit="contain";v.style.transform="scale("+m*s+","+s+")"}
 ["clr","clv"].forEach(i=>{$(i).addEventListener("loadedmetadata",()=>clFit($(i)));$(i).addEventListener("resize",()=>clFit($(i)))});
 addEventListener("resize",()=>{clFit($("clr"));clFit($("clv"))});
 function clLay(){const c=$("cl"),r=$("clr"),l=$("clv"),cam=!!(CL.cam&&CL.vs),rc=!!CL.rcam,both=cam&&rc,sw=both&&!!CL.sw;
@@ -1829,16 +1830,16 @@ function clLay(){const c=$("cl"),r=$("clr"),l=$("clv"),cam=!!(CL.cam&&CL.vs),rc=
 function clCtl(show){const c=$("cl");clearTimeout(CL.ht);c.classList.toggle("hc",!show);if(show&&c.classList.contains("vid")&&CL.t0)CL.ht=setTimeout(()=>c.classList.add("hc"),4500)}
 /* sender tuning: voice first, then frame rate, then sharpness. On a weak network the picture gets smaller, never slower. */
 function clTune(){const s=CL.pc&&CL.pc.getSenders().find(x=>x.track&&x.track.kind==="audio");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)return;Object.assign(p.encodings[0],{maxBitrate:40000,priority:"high",networkPriority:"high"});s.setParameters(p).catch(()=>{})}
-function clTuneV(){const s=CL.vt&&CL.vt.sender;if(!s||!s.track)return;const p=s.getParameters(),q=CQ[ST2.smooth&&+ST2.vq>720?"720":ST2.vq]||CQ[720];if(!p.encodings||!p.encodings.length)p.encodings=[{}];Object.assign(p.encodings[0],{maxBitrate:q[2],maxFramerate:30,priority:"low",networkPriority:"low",scaleResolutionDownBy:CL.sc});p.degradationPreference="maintain-framerate";s.setParameters(p).catch(()=>{})}
+function clTuneV(){const s=CL.vt&&CL.vt.sender;if(!s||!s.track)return;const p=s.getParameters(),q=CQ[ST2.smooth&&+ST2.vq>720?"720":ST2.vq]||CQ[720];if(!p.encodings||!p.encodings.length)p.encodings=[{}];Object.assign(p.encodings[0],{maxBitrate:q[2],maxFramerate:30,priority:"medium",networkPriority:"medium",scaleResolutionDownBy:CL.sc});p.degradationPreference="maintain-framerate";s.setParameters(p).catch(()=>{})}
 function clScale(v){CL.sc=Math.max(1,Math.min(4,Math.round(v*100)/100));CL.lo=0;CL.hi=0;clTuneV()}
 async function clStat(){const pc=CL.pc;if(!pc||pc.connectionState!=="connected")return;let r;try{r=await pc.getStats()}catch(e){return}
  let rtt=null,w=0,h=0,fps=0,rx=0,out=null;
  r.forEach(s=>{if(s.type==="candidate-pair"&&s.nominated&&s.state==="succeeded"&&s.currentRoundTripTime!=null)rtt=s.currentRoundTripTime*1000;else if(s.type==="inbound-rtp"&&s.kind==="video"){w=s.frameWidth||0;h=s.frameHeight||0;fps=s.framesPerSecond||0;rx=s.bytesReceived||0}else if(s.type==="outbound-rtp"&&s.kind==="video"&&s.bytesSent)out=s});
  const n=performance.now(),kb=CL.sb&&rx>=CL.sb?(rx-CL.sb)*8/Math.max(1,n-CL.sk):0;CL.sb=rx;CL.sk=n;
- if(CL.cam&&out&&out.framesPerSecond){const f=out.framesPerSecond;if(f<20){CL.lo++;CL.hi=0}else if(f>=26){CL.hi++;CL.lo=0}else{CL.lo=0;CL.hi=0}if(CL.lo>=2)clScale(CL.sc*1.5);else if(CL.hi>=8&&CL.sc>1)clScale(CL.sc/1.5)}
+ if(CL.cam&&out&&out.framesPerSecond){const f=out.framesPerSecond;if(f<24){CL.lo++;CL.hi=0}else if(f>=26){CL.hi++;CL.lo=0}else{CL.lo=0;CL.hi=0}if(CL.lo>=2)clScale(CL.sc*1.5);else if(CL.hi>=8&&CL.sc>1)clScale(CL.sc/1.5)}
  if(!$("cl").classList.contains("vid"))return;
  const bad=(rtt!=null&&rtt>400)||(CL.rcam&&fps>0&&fps<15),mid=(rtt!=null&&rtt>200)||(CL.rcam&&fps>0&&fps<22);
- $("clq").innerHTML=`<i class="${bad?"b":mid?"w":""}"></i><span><b>${mpFmt(Math.floor((Date.now()-CL.t0)/1000))}</b></span><span><b>${rtt==null?"-":Math.round(rtt)}</b> ms</span><span><b>${CL.rcam&&fps?Math.round(fps):"-"}</b> fps</span><span><b>${CL.rcam&&h?Math.min(w,h)+"p":"-"}</b></span><span><b>${CL.rcam&&kb?(kb/1000).toFixed(1):"-"}</b> Mb/s</span>`}
+ $("clq").innerHTML=`<i class="${bad?"b":mid?"w":""}"></i><span><b>${mpFmt(Math.floor((Date.now()-CL.t0)/1000))}</b></span><span><b>${CL.rcam&&fps?Math.round(fps):(out&&out.framesPerSecond?Math.round(out.framesPerSecond):"-")}</b> fps</span><span><b>${CL.rcam&&h?Math.min(w,h)+"p":(out&&out.frameHeight?Math.min(out.frameWidth,out.frameHeight)+"p":"-")}</b></span>`}
 function clPc(){const pc=new RTCPeerConnection({iceServers:[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}].concat(CL_TURN),iceCandidatePoolSize:2}),id=CL.id;CL.pc=pc;
  CL.ls.getTracks().forEach(t=>pc.addTrack(t,CL.ls));
  if(CL.role==="out"){CL.vt=pc.addTransceiver("video",{direction:"sendrecv"});if(CL.vs)CL.vt.sender.replaceTrack(CL.vs.getVideoTracks()[0]).then(clTuneV).catch(()=>{})}
