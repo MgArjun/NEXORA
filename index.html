@@ -3216,9 +3216,6 @@ const _pf=pickFile;pickFile=function(accept,cap,cb){if(accept==="image/*,video/*
 {const mc=$("mvc");let from=null;const _mo=mvOpen;mvOpen=function(i){const el=document.querySelector('#msgs .mr[data-i="'+i+'"] .md');from=el?el.getBoundingClientRect():null;return _mo(i)};
  new MutationObserver(()=>{const m=mc.querySelector("img,video");if(!m||m._fl)return;m._fl=1;const f=from;from=null;if(!f||root.hasAttribute("data-rm"))return;const w=innerWidth,h=innerHeight,s=Math.max(f.width/w,f.height/h);m.animate([{transform:`translate(${f.left+f.width/2-w/2}px,${f.top+f.height/2-h/2}px) scale(${s})`,opacity:.5,filter:"blur(6px)"},{transform:"none",opacity:1,filter:"blur(0)"}],{duration:520,easing:"cubic-bezier(.2,.9,.2,1.03)"})}).observe(mc,{childList:true})}
 }
-/* ===== ZNX-PATCH-V9 =====
-   Live beat (real mic analysis), smoother ring, minimal motion slider, trendy fonts.
-   PASTE: file ke sabse end mein "})();</script>" dhundo, uske TURANT PEHLE ye poora block paste karo. */
 {
 const NB=28,NP=180,TAU=Math.PI*2;
 const LQ={l:document.documentElement.classList.contains("lowfx")?1:0,e:16,n:0,p:0,w:"",a:"",d:""};
@@ -3336,8 +3333,8 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden){if(LB.on)m
    const e=RG.eh;if(e.length)e[e.length-1][1]=RG.en+RG.kk*.35}}}
 
 /* ---------- ring: the frequency spectrum bends the line (live), and it is much cheaper to draw ---------- */
-const CO=new Float32Array(NP+1),SI=new Float32Array(NP+1),FA=[new Float32Array(NP+1),new Float32Array(NP+1),new Float32Array(NP+1)];
-for(let k=0;k<=NP;k++){CO[k]=Math.cos(k/NP*TAU);SI[k]=Math.sin(k/NP*TAU)}
+const CO=new Float32Array(NP+1),SN=new Float32Array(NP+1),FA=[new Float32Array(NP+1),new Float32Array(NP+1),new Float32Array(NP+1)];
+for(let k=0;k<=NP;k++){CO[k]=Math.cos(k/NP*TAU);SN[k]=Math.sin(k/NP*TAU)}
 const spAt=u=>{const t=(u+.25)%1,m=t<.5?t*2:(1-t)*2,f=m*(NB-1),i=f|0,j=i+1<NB?i+1:i,k=f-i;return LB.sp[i]*(1-k)+LB.sp[j]*k};
 mpRing=function(x,T,full,pr){
  const m=RG.mm<0?1:RG.mm,h0=mpHue(T.c[0]),h1=mpHue(T.c[1]);let dh=h1-h0;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
@@ -3351,7 +3348,7 @@ mpRing=function(x,T,full,pr){
  W=E+K*.5,R0=(full?96:130)*(1+J),sq=Math.max(-.045,Math.min(.045,RG.jv*.012)),st=lite?2:1,SA=live?(full?.2:.15):0,F0=FA[0],F1=FA[1],F2=FA[2],cw=.014*W*am;
  for(let k=0;k<=NP;k+=st){const a=k/NP*TAU,base=1+Math.sin(2*a-ph*.6)*.009+Math.sin(5*a+ph*1.7)*.006*W+(SA?spAt(k/NP)*SA:0),u=3*a+ph*.9;
   F0[k]=base+cw*Math.sin(u);F1[k]=base+cw*Math.sin(u+.5);F2[k]=base+cw*Math.sin(u-.5)}
- const path=(rad,F)=>{x.beginPath();for(let k=0;k<=NP;k+=st){const r=rad*F[k],px=200+CO[k]*r*(1+sq),py=200+SI[k]*r*(1-sq);k?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()},
+ const path=(rad,F)=>{x.beginPath();for(let k=0;k<=NP;k+=st){const r=rad*F[k],px=200+CO[k]*r*(1+sq),py=200+SN[k]*r*(1-sq);k?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()},
  ring=(rad,lw,al,F)=>{path(rad,F);x.strokeStyle=rgCone(x,an,[[0,A,al],[.18,A+(B-A)*.3,al*.8],[.38,mid,al*.45],[.5,B,al*.18],[.62,mid,al*.45],[.82,A+(B-A)*.3,al*.8],[1,A,al]]);x.lineWidth=lw;x.stroke()};
  x.lineCap="round";x.lineJoin="round";x.globalCompositeOperation="lighter";
  const gr=(full?210:175)*(1+J*1.2),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.4:.6)*(.12+E*.3+K*.25),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
@@ -3417,6 +3414,47 @@ function fontSheet(){FONTS2.forEach(fontLoad2);
  sheet(`<h3>Font</h3><p class="note">Tap to try. The whole app changes instantly. New fonts need internet the first time.</p><div class="fgrid">${FONTS2.map(f=>`<button class="fb${f.id===curFont2().id?" on":""}" data-fid="${f.id}" style="font-family:${esc(f.s)}"><b>Aa</b><small>${f.n}</small></button>`).join("")}</div>`);
  $("sh").onclick=e=>{const b=e.target.closest("[data-fid]");if(!b)return;ST2.font=b.dataset.fid;sv2();fontApply2();[...$("sh").querySelectorAll(".fb")].forEach(z=>z.classList.toggle("on",z===b));const fo=document.querySelector("[data-fontopen] small");if(fo)fo.textContent=curFont2().n;if(navigator.vibrate)navigator.vibrate(5)}}
 $("pg").addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-fontopen]")){e.stopImmediatePropagation();fontSheet()}},true);
+}
+
+/* ===== ZNX-PATCH-V10: premium minimal design pass (spacing, depth, settings order) ===== */
+{
+const s=document.createElement("style");s.textContent=`
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--e1:rgba(163,156,255,.26);--e3:rgba(77,224,208,.18)}}
+:root[data-theme="dark"]{--e1:rgba(163,156,255,.26);--e3:rgba(77,224,208,.18)}
+:root{--e1:rgba(91,84,224,.16);--e3:rgba(60,170,160,.12)}
+:root[data-theme="dark"]{--e1:rgba(163,156,255,.26);--e3:rgba(77,224,208,.18)}
+#pg{padding:18px 20px 124px}
+.hd{margin-bottom:18px}.sb{margin-bottom:18px}
+.hd h2,.sb h2,.gh h2{font-size:30px;font-weight:650;letter-spacing:-.045em}
+.hd h2::after,.sb h2::after,.gh h2::after{width:6px;height:6px;margin-left:8px;box-shadow:0 0 10px var(--ac)}
+.sec{margin:26px 4px 10px;font-size:10px;letter-spacing:.2em;opacity:.85}
+.card2,.glist{border-radius:22px;box-shadow:none}
+.card2{padding:2px 16px;margin-bottom:10px}
+.sr{min-height:60px;gap:14px}
+.sr i{width:34px;height:34px;border-radius:11px}
+.sr b{font-size:15px;font-weight:550}.sr small{font-size:12px;margin-top:2px}
+.pr2{min-height:58px}
+.prof{padding:18px 16px;gap:16px;margin-bottom:10px}.prof .ava{width:58px;height:58px}.prof b{font-size:18px;letter-spacing:-.02em}
+.gr{min-height:64px;padding:12px 16px}
+.row{padding:13px 0}
+.srch{height:44px;margin-bottom:10px}
+.chips{margin:4px 0 8px}
+nav{height:60px;bottom:calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 14px 34px -18px rgba(0,0,0,.55)}
+nav button{height:58px}
+#sh{border-radius:28px 28px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+#sh h3{font-size:19px;letter-spacing:-.02em;margin-bottom:14px}
+.m{padding:9px 13px 6px}
+.m.out{background:linear-gradient(165deg,var(--bub,#5b54e0),color-mix(in srgb,var(--bub,#5b54e0) 86%,#000));box-shadow:0 6px 14px -10px var(--bub,#5b54e0)}
+.m.in{background:var(--sf);box-shadow:none}
+#app::before{opacity:.7}
+.feat{border-radius:26px}
+.seg{border-radius:14px;padding:3px}
+#pg>.sr.dang{margin-top:22px;border:1px solid var(--ln);border-radius:18px;padding:0 16px}
+`;document.head.appendChild(s);
+function meLabels(){const pg=$("pg");if(tab!=="me"||sub)return;
+ const mk=(q,t)=>{const el=pg.querySelector(q),c=el&&el.closest(".card2"),p=c&&c.previousElementSibling;if(c&&!(p&&p.classList.contains("sec")))c.insertAdjacentHTML("beforebegin",'<div class="sec">'+t+'</div>')};
+ mk('[data-sg^="theme"]',"Look & feel");mk('[data-go="adm"]',"Admin");mk('[data-go="prv"]',"Account & privacy");mk('[data-go="ntf"]',"Preferences");mk('[data-go="adv"]',"More")}
+{const _d=drawMe;drawMe=function(){_d();meLabels()};VIEWS.me=drawMe}
 }
 
 })();</script></body></html>
