@@ -3457,4 +3457,152 @@ function meLabels(){const pg=$("pg");if(tab!=="me"||sub)return;
 {const _d=drawMe;drawMe=function(){_d();meLabels()};VIEWS.me=drawMe}
 }
 
+/* ===== ZNX-PATCH-V11: call fix, no-crop camera, 60+ fonts, smoother app ===== */
+{
+/* ---------- 1. CALLS: stronger connection + shows the real reason when it fails ---------- */
+const STUNS=["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302","stun:stun2.l.google.com:19302","stun:stun.cloudflare.com:3478"];
+const FALL=[{urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}];
+const isTurn=x=>/^turns?:/i.test(x);
+const okSrv=s=>{if(!s||!s.urls)return false;const u=[].concat(s.urls);if(u.some(isTurn))return !!(s.username&&s.credential);return true};
+CL.cs="";CL.ice="";
+
+clPc=function(){
+ const hasT=CL_TURN.some(s=>okSrv(s)&&[].concat(s.urls).some(isTurn));
+ const servers=[{urls:STUNS}].concat(CL_TURN.filter(okSrv),hasT?[]:FALL);
+ let pc;try{pc=new RTCPeerConnection({iceServers:servers,iceCandidatePoolSize:2})}catch(e){pc=new RTCPeerConnection({iceServers:[{urls:STUNS}]})}
+ const id=CL.id;CL.pc=pc;CL.cs="new";CL.ice="new";
+ CL.ls.getTracks().forEach(t=>pc.addTrack(t,CL.ls));
+ if(CL.role==="out"){CL.vt=pc.addTransceiver("video",{direction:"sendrecv"});if(CL.vs)CL.vt.sender.replaceTrack(CL.vs.getVideoTracks()[0]).then(clTuneV).catch(()=>{})}
+ pc.onicecandidate=e=>{if(e.candidate&&CL.id===id)clSig(CL.pid,{t:"ice",id,c:e.candidate.toJSON()})};
+ pc.ontrack=e=>{if(e.track.kind==="video"){$("clr").srcObject=new MediaStream([e.track]);$("clr").play().catch(()=>{})}else{clAu.srcObject=e.streams[0]||new MediaStream([e.track]);clAu.muted=!CL.spk;clAu.play().catch(()=>{})}};
+ pc.oniceconnectionstatechange=()=>{if(CL.pc===pc)CL.ice=pc.iceConnectionState};
+ pc.onconnectionstatechange=()=>{if(CL.pc===pc)clState(pc.connectionState)};
+ return pc};
+
+clGuard=function(){clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&!CL.t0)clEnd("lost")},35000)};
+
+clState=function(s){if(!CL.on||!CL.pc)return;CL.cs=s;
+ if(s==="connected"){clearTimeout(CL.ft);CL.fail=0;
+  if(!CL.t0){CL.t0=Date.now();clRingStop();CL.iv=setInterval(clTick,500);CL.si=setInterval(clStat,1000);
+   if((navigator.deviceMemory&&navigator.deviceMemory<=3)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4))CL.sc=Math.max(CL.sc,2);
+   clTune();clTuneV();clCtl(true);if(navigator.vibrate)navigator.vibrate(40)}
+  clUI("live");clTick()}
+ else if(s==="disconnected"){clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&CL.pc&&CL.pc.connectionState!=="connected")clRetry()},8000)}
+ else if(s==="failed")clRetry()};
+
+clRetry=function(){if(!CL.on)return;if(CL.fail++>=4)return clEnd("lost");
+ if(CL.role==="out")clOffer(true).catch(()=>{});else clSig(CL.pid,{t:"retry",id:CL.id});
+ clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&CL.pc&&CL.pc.connectionState!=="connected")clRetry()},9000)};
+
+{const _g=clGot;clGot=function(m){if(m&&m.t==="retry"&&CL.on&&CL.role==="out"&&m.id===CL.id&&m.from===CL.pid){clOffer(true).catch(()=>{});return}return _g(m)}}
+
+{const _e=clEnd;clEnd=function(w){const had=CL.on,cs=CL.cs,ic=CL.ice;_e(w);CL.cs="";CL.ice="";
+ if(had&&w==="lost")setTimeout(()=>ts("Call failed · "+(cs?"link "+cs+" / "+(ic||"-"):"never reached the other phone")),60)}}
+
+/* ---------- 2. CAMERA: full field of view, nothing cropped ---------- */
+clCamStream=async function(face){
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ts("Camera is not available here");return null}
+ const q=CQ[ST2.smooth&&+ST2.vq>720?"720":ST2.vq]||CQ[720],port=innerHeight>innerWidth,sh=q[1],lg=Math.round(sh*4/3),w=port?sh:lg,h=port?lg:sh,fm={ideal:face||"user"};
+ const tries=[{facingMode:fm,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:w/h},frameRate:{ideal:30,max:30}},{facingMode:fm,width:{ideal:w},height:{ideal:h}},{facingMode:fm}];
+ for(const v of tries){
+  try{const s=await navigator.mediaDevices.getUserMedia({video:v}),t=s.getVideoTracks()[0];
+   if(t){t.contentHint="motion";try{const c=t.getCapabilities&&t.getCapabilities();if(c&&c.zoom)await t.applyConstraints({advanced:[{zoom:c.zoom.min||1}]})}catch(e){}}
+   return s}
+  catch(e){if(e&&/NotAllowed|Permission|Security/i.test(e.name||""))break}}
+ ts("Allow the camera to use video");return null};
+
+/* show the whole picture. "Full" in settings is the only mode that crops. */
+if(!ST2.v11){ST2.v11=1;if(!ST2.vfill||ST2.vfill==="full")ST2.vfill="fit";sv2()}
+clFit=function(v){if(!v||!v.videoWidth)return;
+ const mir=v.id==="clv"?CL.face==="user":!!CL.rmir,f=ST2.vfill||"fit";
+ v.style.objectFit=(f==="full"&&!v.classList.contains("pip"))?"cover":"contain";
+ v.style.transform=mir?"scaleX(-1)":""};
+
+/* ---------- 3. FONTS: many different styles, grouped ---------- */
+const FSS={sans:"system-ui,-apple-system,'Segoe UI',sans-serif",serif:"Georgia,'Times New Roman',serif",hand:"'Comic Sans MS',cursive",mono:"ui-monospace,Menlo,Consolas,monospace"};
+const W2=":wght@400;700";
+const F=(id,n,fam,cat,w,fb)=>({id,n,cat,fam,w:w===undefined?W2:w,s:"'"+fam+"',"+(fb||FSS[cat==="serif"?"serif":cat==="hand"?"hand":cat==="mono"?"mono":"sans"])});
+const FONTS3=[
+ F("def","Bricolage","Bricolage Grotesque","sans"),F("inter","Inter","Inter","sans"),F("pop","Poppins","Poppins","sans"),F("man","Manrope","Manrope","sans"),
+ F("jak","Jakarta","Plus Jakarta Sans","sans"),F("out","Outfit","Outfit","sans"),F("dms","DM Sans","DM Sans","sans"),F("sor","Sora","Sora","sans"),
+ F("urb","Urbanist","Urbanist","sans"),F("spa","Space Grotesk","Space Grotesk","sans"),F("lex","Lexend","Lexend","sans"),F("fig","Figtree","Figtree","sans"),
+ F("mon","Montserrat","Montserrat","sans"),F("ral","Raleway","Raleway","sans"),
+ F("nun","Nunito","Nunito","round"),F("qui","Quicksand","Quicksand","round"),F("fre","Fredoka","Fredoka","round"),F("bal","Baloo 2","Baloo 2","round"),
+ F("com","Comfortaa","Comfortaa","round"),F("var","Varela Round","Varela Round","round",""),F("rub","Rubik","Rubik","round"),F("mul","Mulish","Mulish","round"),
+ F("unb","Unbounded","Unbounded","disp"),F("syn","Syne","Syne","disp"),F("beb","Bebas Neue","Bebas Neue","disp",""),F("ant","Anton","Anton","disp",""),
+ F("rig","Righteous","Righteous","disp",""),F("lil","Lilita One","Lilita One","disp",""),F("bun","Bungee","Bungee","disp",""),F("aud","Audiowide","Audiowide","disp",""),
+ F("arc","Archivo Black","Archivo Black","disp",""),F("abr","Abril Fatface","Abril Fatface","disp",""),F("che","Chewy","Chewy","disp",""),F("bang","Bangers","Bangers","disp",""),
+ F("ply","Playfair","Playfair Display","serif"),F("cor","Cormorant","Cormorant Garamond","serif"),F("dmse","DM Serif","DM Serif Display","serif",""),F("lor","Lora","Lora","serif"),
+ F("fra","Fraunces","Fraunces","serif"),F("lib","Baskerville","Libre Baskerville","serif"),F("mer","Merriweather","Merriweather","serif"),
+ F("cav","Caveat","Caveat","hand"),F("pac","Pacifico","Pacifico","hand",""),F("dan","Dancing Script","Dancing Script","hand"),F("kal","Kalam","Kalam","hand"),
+ F("pat","Patrick Hand","Patrick Hand","hand",""),F("shd","Shadows Light","Shadows Into Light","hand",""),F("sat","Satisfy","Satisfy","hand",""),
+ F("per","Marker","Permanent Marker","hand",""),F("ind","Indie Flower","Indie Flower","hand",""),F("glo","Gloria","Gloria Hallelujah","hand",""),
+ F("jbm","JetBrains Mono","JetBrains Mono","mono"),F("spm","Space Mono","Space Mono","mono"),F("orb","Orbitron","Orbitron","mono"),F("fir","Fira Code","Fira Code","mono"),
+ F("ibm","IBM Plex Mono","IBM Plex Mono","mono"),F("stm","Share Tech","Share Tech Mono","mono",""),F("pre","Press Start","Press Start 2P","mono",""),F("vt","VT323","VT323","mono",""),
+ {id:"sys",n:"System",cat:"sans",fam:"",w:"",s:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"}];
+const FC=[["sans","Modern"],["round","Rounded"],["disp","Display"],["serif","Serif"],["hand","Handwriting"],["mono","Tech & Mono"]];
+const LD=new Set(),LP=new Set();
+const fUrl=(f,txt)=>"https://fonts.googleapis.com/css2?family="+f.fam.replace(/ /g,"+")+f.w+"&display=swap"+(txt?"&text="+encodeURIComponent(txt):"");
+function fLoad(f){if(!f.fam||LD.has(f.id))return;LD.add(f.id);const l=document.createElement("link");l.rel="stylesheet";l.href=fUrl(f);document.head.appendChild(l)}
+function fPrev(f){if(!f.fam||LD.has(f.id)||LP.has(f.id))return;LP.add(f.id);const l=document.createElement("link");l.rel="stylesheet";l.href=fUrl(f,"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789 ");document.head.appendChild(l)}
+if(!document.getElementById("fl11-pc")){const a=document.createElement("link");a.id="fl11-pc";a.rel="preconnect";a.href="https://fonts.googleapis.com";const b=document.createElement("link");b.rel="preconnect";b.href="https://fonts.gstatic.com";b.crossOrigin="";document.head.appendChild(a);document.head.appendChild(b)}
+const cur3=()=>FONTS3.find(x=>x.id===ST2.font)||FONTS3[0];
+function apply3(){const f=cur3();fLoad(f);root.style.setProperty("--font-ui",f.s);const fo=document.querySelector("[data-fontopen] small");if(fo)fo.textContent=f.n}
+{const _a=applyPrefs;applyPrefs=function(){_a();apply3()}}
+apply3();
+function fontSheet3(){let cat="all";FONTS3.forEach(fPrev);
+ sheet(`<h3>Font</h3><div id="fnp" style="font-size:17px;margin:0 4px 12px;line-height:1.4"></div><div class="chips" id="fcc" data-noswipe></div><div class="fgrid" id="fgg"></div>`);
+ const paint=()=>{$("fcc").innerHTML=[["all","All"]].concat(FC).map(c=>`<button data-fc="${c[0]}" class="${c[0]===cat?"on":""}">${c[1]}</button>`).join("");
+  $("fgg").innerHTML=FONTS3.filter(f=>cat==="all"||f.cat===cat).map(f=>`<button class="fb${f.id===cur3().id?" on":""}" data-fid="${f.id}" style="font-family:${esc(f.s)}"><b>Aa</b><small>${esc(f.n)}</small></button>`).join("");
+  const c=cur3();$("fnp").style.fontFamily=c.s;$("fnp").textContent="Kal milte hain! The quick brown fox 0123456789"};
+ paint();
+ $("sh").onclick=e=>{const c=e.target.closest("[data-fc]");if(c){cat=c.dataset.fc;return paint()}
+  const b=e.target.closest("[data-fid]");if(!b)return;ST2.font=b.dataset.fid;sv2();apply3();paint();if(navigator.vibrate)navigator.vibrate(5)}}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-fontopen]")){e.stopImmediatePropagation();e.stopPropagation();fontSheet3()}},true);
+{const _d=drawMe;drawMe=function(){_d();apply3()};VIEWS.me=drawMe}
+
+/* ---------- 4. SMOOTHER APP ---------- */
+{const s=document.createElement("style");s.textContent=`
+html{-webkit-text-size-adjust:100%}
+button,.row,.gr,.opt,.tile,.fo,.cct,.sr,nav button,.fb{touch-action:manipulation}
+#pg,#msgs,#sh,#et,#fv,#ad{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#chat,#sh{will-change:transform}
+.m{contain:layout style}
+nav,.top.sc{-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3)}
+.dot{animation:none}
+.fgrid{grid-template-columns:repeat(3,1fr);gap:8px}
+.fb{padding:12px 6px;overflow:hidden}.fb b{font-size:26px;font-weight:400}.fb small{font-size:11px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+#fcc{margin:0 0 12px}
+#cl .clvd{background:#05060a}
+`;document.head.appendChild(s)}
+/* if the phone is slow, switch off heavy blur effects by itself */
+{const H=document.documentElement;let last=performance.now(),slow=0,n=0,w=0;
+ const tick=t=>{const d=t-last;last=t;
+  if(!document.hidden&&d<500){n++;if(d>34)slow++;if(n>=90){w++;if(slow/n>.35)H.classList.add("lowfx");n=0;slow=0}}else{n=0;slow=0}
+  if(w<8&&!H.classList.contains("lowfx"))requestAnimationFrame(tick)};
+ requestAnimationFrame(tick)}
+}
+
+/* ===== ZNX-PATCH-V12: Live Beat removed, random song start in every section ===== */
+{
+/* ---------- 1. LIVE BEAT: removed (button, mic access, saved setting) ---------- */
+try{localStorage.setItem("znx_live","0")}catch(e){}
+{const s=document.createElement("style");s.textContent=".micb{display:none!important}";document.head.appendChild(s)}
+{const b=document.getElementById("micb");if(b){b.onclick=null;b.remove()}}
+micOn=function(){};
+micOff=function(){};
+try{if(MIC.on)MIC.on=0;if(MIC.s)MIC.s.getTracks().forEach(t=>t.stop())}catch(e){}
+
+/* ---------- 2. MUSIC: every time a random song starts (inside the chosen section) ---------- */
+const pickNew=l=>{let last="";try{last=localStorage.getItem("znx_lastfirst")||""}catch(e){}
+ const c=l.filter(i=>String(MT[i].fid)!==last&&i!==MP.i),a=c.length?c:l,i=a[(Math.random()*a.length)|0];
+ try{localStorage.setItem("znx_lastfirst",String(MT[i].fid))}catch(e){}return i};
+{const _t=mpToggle;
+ mpToggle=function(){if(!MP.started){const l=mpList();if(l.length){mpGo(pickNew(l));return}}_t()}}
+$("mpmo").onclick=e=>{const b=e.target.closest("[data-mo]");if(!b)return;
+ MP.mood=+b.dataset.mo;MP.bag=[];const l=mpList();
+ if(!l.length){mpUI();return}
+ mpGo(pickNew(l),1)};
+}
+
 })();</script></body></html>
