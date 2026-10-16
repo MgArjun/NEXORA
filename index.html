@@ -3216,4 +3216,207 @@ const _pf=pickFile;pickFile=function(accept,cap,cb){if(accept==="image/*,video/*
 {const mc=$("mvc");let from=null;const _mo=mvOpen;mvOpen=function(i){const el=document.querySelector('#msgs .mr[data-i="'+i+'"] .md');from=el?el.getBoundingClientRect():null;return _mo(i)};
  new MutationObserver(()=>{const m=mc.querySelector("img,video");if(!m||m._fl)return;m._fl=1;const f=from;from=null;if(!f||root.hasAttribute("data-rm"))return;const w=innerWidth,h=innerHeight,s=Math.max(f.width/w,f.height/h);m.animate([{transform:`translate(${f.left+f.width/2-w/2}px,${f.top+f.height/2-h/2}px) scale(${s})`,opacity:.5,filter:"blur(6px)"},{transform:"none",opacity:1,filter:"blur(0)"}],{duration:520,easing:"cubic-bezier(.2,.9,.2,1.03)"})}).observe(mc,{childList:true})}
 }
+/* ===== ZNX-PATCH-V9 =====
+   Live beat (real mic analysis), smoother ring, minimal motion slider, trendy fonts.
+   PASTE: file ke sabse end mein "})();</script>" dhundo, uske TURANT PEHLE ye poora block paste karo. */
+{
+const NB=28,NP=180,TAU=Math.PI*2;
+const LQ={l:document.documentElement.classList.contains("lowfx")?1:0,e:16,n:0,p:0,w:"",a:"",d:""};
+const LB={on:0,want:0,busy:0,s:null,ac:null,an:null,fd:null,raf:0,T:0,E:null,init:0,
+ bb:[],bm:[],bh:[],
+ v:new Float32Array(NB),pv:new Float32Array(NB),lo:new Float32Array(NB),hi:new Float32Array(NB),x:new Float32Array(NB),sp:new Float32Array(NB),
+ bass:0,mid:0,hf:0,lvl:0,en:0,rg:0,quiet:0,warned:0,rate:0,idle:0,ui:0,
+ fl:[[],[],[]],pk:[.05,.05,.05],last:[0,0,0],pf:[0,0,0],hit:[]};
+
+/* ---------- CSS ---------- */
+{const s=document.createElement("style");s.textContent=`
+/* perf: no live blur or shadow filters over animated canvases */
+#mpc,#morb{filter:none!important}
+#mp *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.mpmo{background:color-mix(in srgb,var(--sf) 82%,transparent)}
+#mp::after{display:none}
+#mpgl{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;will-change:opacity;background:radial-gradient(70% 45% at 50% 36%,color-mix(in srgb,var(--m1,#5b54e0) 34%,transparent),transparent 72%)}
+/* live beat pill */
+.micb{height:auto;display:flex;width:max-content;align-items:center;gap:9px;margin:2px auto 0;padding:7px 15px;border:1px solid var(--ln);border-radius:999px;background:color-mix(in srgb,var(--sf) 55%,transparent);color:var(--mu);font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.micb::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55}
+.micb.on{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 45%,transparent)}
+.micb.on::before{opacity:1;box-shadow:0 0 10px currentColor;animation:brth 1.6s ease-in-out infinite}
+.micb.dim{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+/* motion slider: hairline, minimal */
+.mtn{padding:14px 0 10px}
+.mth{margin-bottom:2px}
+.mth span{font:500 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ac)}
+.mtk{--pd:11px;height:34px;border-radius:0;border:0;background:none;box-shadow:none}
+.mtk::before{left:var(--pd);right:var(--pd);height:2px;margin-top:-1px;border-radius:2px;background:color-mix(in srgb,var(--tx) 13%,transparent)}
+.mtf{left:calc(var(--pd) + (100% - 2*var(--pd))*var(--a));width:calc((100% - 2*var(--pd))*var(--w));height:2px;border-radius:2px;background:var(--ac);box-shadow:0 0 12px var(--ac)}
+.mtk s{left:calc(var(--pd) + (100% - 2*var(--pd))*var(--k));width:3px;height:3px;margin:-1.5px 0 0 -1.5px;background:color-mix(in srgb,var(--tx) 30%,transparent);opacity:1}
+.mtb{top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;left:calc(var(--pd) + (100% - 2*var(--pd))*var(--p));background:var(--tx);box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 18%,transparent),0 0 16px -2px var(--ac)}
+.mtk.drag .mtb{transform:scale(1.25)}
+.mtc{margin-top:0;font:500 9.5px var(--mono);letter-spacing:.16em}
+/* fonts */
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.fgrid{grid-template-columns:1fr 1fr 1fr;gap:8px}
+.fb{padding:12px 10px;border-radius:16px;gap:2px}.fb b{font-size:24px;font-weight:600}.fb small{font-size:11px;white-space:nowrap}
+`;document.head.appendChild(s)}
+if(!$("mpgl"))$("mp").insertAdjacentHTML("afterbegin",'<i id="mpgl"></i>');
+
+/* ---------- live beat: real mic analysis ---------- */
+function lbSetup(){const sr=LB.ac.sampleRate,bw=sr/LB.an.fftSize,top=Math.min(14000,sr/2*.92),f0=45,E=new Int16Array(NB+1);
+ for(let i=0;i<=NB;i++){const f=f0*Math.pow(top/f0,i/NB);E[i]=Math.max(i?E[i-1]+1:1,Math.round(f/bw))}
+ LB.E=E;LB.bb=[];LB.bm=[];LB.bh=[];
+ for(let i=0;i<NB;i++){const fc=(E[i]+E[i+1])/2*bw;(fc<170?LB.bb:fc<1500?LB.bm:LB.bh).push(i)}
+ if(!LB.bb.length)LB.bb.push(0)}
+const lbSave=v=>{try{localStorage.setItem("znx_live",v?"1":"0")}catch(e){}};
+function micUI2(){const b=$("micb");if(!b)return;const on=!!LB.on,dim=on&&LB.quiet>3,tx=on?(dim?"Can't hear music":"Live beat on"):"Live beat · tap to enable";b.classList.toggle("on",on&&!dim);b.classList.toggle("dim",dim);if(b.textContent!==tx)b.textContent=tx}
+function lbFrame(){
+ if(!LB.on)return;
+ if(!MP.started||CL.on||VC.on){micOff2(true);return}
+ LB.raf=requestAnimationFrame(lbFrame);
+ const now=performance.now()/1000,dt=Math.min(.1,Math.max(.001,now-(LB.T||now)));LB.T=now;
+ const fd=LB.fd,E=LB.E,k60=dt*60;LB.an.getByteFrequencyData(fd);
+ const first=!LB.init;LB.init=1;let rg=0;
+ for(let i=0;i<NB;i++){let s=0;const a=E[i],b=E[i+1];for(let k=a;k<b;k++)s+=fd[k];const v=s/(b-a)/255;
+  LB.pv[i]=first?v:LB.v[i];LB.v[i]=v;
+  if(first){LB.lo[i]=v;LB.hi[i]=v+.05}
+  if(v<LB.lo[i])LB.lo[i]=v;else LB.lo[i]+=(v-LB.lo[i])*.004*k60;
+  if(v>LB.hi[i])LB.hi[i]=v;else LB.hi[i]-=(LB.hi[i]-LB.lo[i])*.0025*k60;
+  const r=Math.max(LB.hi[i]-LB.lo[i],.22),xs=Math.max(0,Math.min(1,(v-LB.lo[i])/r));LB.x[i]=xs;rg+=LB.hi[i]-LB.lo[i];
+  const sp=LB.sp[i];LB.sp[i]=sp+(xs-sp)*(1-Math.exp(-dt*(xs>sp?42:9)))}
+ LB.rg=rg/NB;
+ const av=l=>{let s=0;for(const i of l)s+=LB.x[i];return l.length?s/l.length:0};
+ LB.bass=av(LB.bb);LB.mid=av(LB.bm);LB.hf=av(LB.bh);
+ const lv=LB.bass*.5+LB.mid*.32+LB.hf*.18;LB.lvl+=(lv-LB.lvl)*(1-Math.exp(-dt*(lv>LB.lvl?30:6)));
+ /* onsets: spectral flux with an adaptive threshold, per band group (kick / body / hats) */
+ const G=[LB.bb,LB.bm,LB.bh],W=[1,.6,.4],R=[.13,.11,.065];
+ for(let g=0;g<3;g++){const l=G[g];let f=0;for(const i of l){const d=LB.v[i]-LB.pv[i];if(d>0)f+=d}f=l.length?f/l.length:0;
+  const h=LB.fl[g];h.push(f);if(h.length>48)h.shift();
+  let m=0;for(const z of h)m+=z;m/=h.length;let sd=0;for(const z of h)sd+=(z-m)*(z-m);sd=Math.sqrt(sd/h.length);
+  LB.pk[g]=Math.max(f,LB.pk[g]*Math.pow(.997,k60),.06);
+  if(h.length>12&&f>m+1.9*sd+.02&&f>=LB.pf[g]*.9&&now-LB.last[g]>R[g]){LB.last[g]=now;rgHit(Math.max(.3,Math.min(1,f/(LB.pk[g]*.85)))*W[g]);LB.hit.push(now)}
+  LB.pf[g]=f}
+ while(LB.hit.length&&now-LB.hit[0]>2)LB.hit.shift();LB.rate=LB.hit.length/2;
+ /* can the mic hear anything? */
+ if(MP.play&&LB.rg<.09)LB.quiet+=dt;else LB.quiet=0;
+ if(LB.rg>.15)LB.warned=0;
+ if(LB.quiet>6&&!LB.warned){LB.warned=1;ts("Mic cannot hear the music. Turn the volume up and use the speaker")}
+ if(!MP.play){LB.idle+=dt;if(LB.idle>120){micOff2(false);ts("Live beat off (music is paused)");return}}else LB.idle=0;
+ if(now-LB.ui>.5){LB.ui=now;micUI2()}}
+async function micOn2(auto){
+ if(LB.on||LB.busy)return;
+ if(CL.on||VC.on){if(!auto)ts("End the call or voice chat first");return}
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){if(!auto)ts("Microphone is not available here");return}
+ LB.busy=1;let st;
+ try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}})}catch(e){LB.busy=0;if(!auto)ts("Microphone not allowed");return}
+ LB.busy=0;
+ if(CL.on||VC.on||LB.on||!MP.started){st.getTracks().forEach(t=>t.stop());return}
+ const AC=window.AudioContext||window.webkitAudioContext;let ac;
+ try{ac=new AC({latencyHint:"interactive"})}catch(e){ac=new AC()}
+ try{await ac.resume()}catch(e){}
+ const an=ac.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=0;an.minDecibels=-100;an.maxDecibels=-25;
+ ac.createMediaStreamSource(st).connect(an);
+ Object.assign(LB,{on:1,want:1,s:st,ac,an,fd:new Uint8Array(an.frequencyBinCount),init:0,T:0,quiet:0,warned:0,idle:0,hit:[],lvl:0,en:0,bass:0,mid:0,hf:0,rate:0});
+ LB.fl=[[],[],[]];LB.pk=[.05,.05,.05];LB.last=[0,0,0];LB.pf=[0,0,0];LB.sp.fill(0);
+ const tr=st.getAudioTracks()[0];if(tr)tr.onended=()=>{if(LB.on)micOff2(true)};
+ lbSetup();MIC.on=1;RG.mic=1;lbSave(1);micUI2();LB.raf=requestAnimationFrame(lbFrame);if(!auto)ts("Live beat on")}
+function micOff2(keep){LB.on=0;MIC.on=0;cancelAnimationFrame(LB.raf);if(LB.s)LB.s.getTracks().forEach(t=>t.stop());LB.s=null;try{LB.ac&&LB.ac.close()}catch(e){}LB.ac=null;LB.an=null;RG.mic=0;
+ RGC.SPD[0]=.5;RGC.SPD[1]=.85;RGC.SPD[2]=1.5;LB.sp.fill(0);if(!keep){LB.want=0;lbSave(0)}micUI2()}
+micOn=micOn2;micOff=micOff2;micUI=micUI2;micUI2();
+function lbAuto(){let w="";try{w=localStorage.getItem("znx_live")}catch(e){}if(w!=="1"||LB.on)return;
+ try{navigator.permissions.query({name:"microphone"}).then(r=>{if(r.state==="granted"&&MP.started&&!LB.on)micOn2(true)}).catch(()=>{})}catch(e){}}
+{const _o=mpOpen;mpOpen=function(){_o();lbAuto()}}
+document.addEventListener("visibilitychange",()=>{if(document.hidden){if(LB.on)micOff2(true)}else if(LB.want&&!LB.on&&MP.started)micOn2(true)});
+
+/* the beat drives the existing ring physics */
+{const _mpPulse=mpPulse;
+ mpPulse=function(t,dt,m,pl){
+  if(LB.on){RG.mic=1;const sp=pl?.16+LB.lvl*1.05+Math.min(2,LB.rate)*.12:.05;RGC.SPD[0]=RGC.SPD[1]=RGC.SPD[2]=sp;
+   if(pl){RG.tg=Math.max(RG.tg,LB.bass*.6);RG.kg=Math.max(RG.kg,LB.hf*.3)}}
+  _mpPulse(t,dt,m,pl);
+  if(LB.on){const T=pl?.08+.92*Math.pow(Math.min(1,LB.lvl*1.15),1.3):.05;LB.en+=(T-LB.en)*(1-Math.exp(-dt*(T>LB.en?30:7)));RG.en=LB.en;
+   const e=RG.eh;if(e.length)e[e.length-1][1]=RG.en+RG.kk*.35}}}
+
+/* ---------- ring: the frequency spectrum bends the line (live), and it is much cheaper to draw ---------- */
+const CO=new Float32Array(NP+1),SI=new Float32Array(NP+1),FA=[new Float32Array(NP+1),new Float32Array(NP+1),new Float32Array(NP+1)];
+for(let k=0;k<=NP;k++){CO[k]=Math.cos(k/NP*TAU);SI[k]=Math.sin(k/NP*TAU)}
+const spAt=u=>{const t=(u+.25)%1,m=t<.5?t*2:(1-t)*2,f=m*(NB-1),i=f|0,j=i+1<NB?i+1:i,k=f-i;return LB.sp[i]*(1-k)+LB.sp[j]*k};
+mpRing=function(x,T,full,pr){
+ const m=RG.mm<0?1:RG.mm,h0=mpHue(T.c[0]),h1=mpHue(T.c[1]);let dh=h1-h0;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
+ const t=RG.t,dt=Math.min(.1,Math.max(0,t-(RG._l||t)));RG._l=t;
+ const lite=!!LQ.l||!full,live=LB.on?1:0,bm=[.9,1.15,1.45][m],K=RG.k;
+ RG.e2=RG.e2||0;RG.e2+=(RG.en-RG.e2)*(1-Math.exp(-dt*(RG.en>RG.e2?(live?42:18):(live?9:5))));
+ RG.jx=RG.jx||0;RG.jv=RG.jv||0;const tg=(K*.075+RG.kk*.04+RG.e2*.03)*bm;
+ for(let r=dt;r>0;){const h=Math.min(r,.012);RG.jv+=((tg-RG.jx)*150-RG.jv*10)*h;RG.jx+=RG.jv*h;r-=h}
+ RG.jx=Math.max(-.12,Math.min(.2,RG.jx));
+ const E=RG.e2,J=RG.jx,am=RGC.AM[m],ph=RG.ph,dr=Math.sin(t*.12)*10,A=h0+dr,B=h0+dh+dr,mid=(A+B)/2,an=ph*.3,
+ W=E+K*.5,R0=(full?96:130)*(1+J),sq=Math.max(-.045,Math.min(.045,RG.jv*.012)),st=lite?2:1,SA=live?(full?.2:.15):0,F0=FA[0],F1=FA[1],F2=FA[2],cw=.014*W*am;
+ for(let k=0;k<=NP;k+=st){const a=k/NP*TAU,base=1+Math.sin(2*a-ph*.6)*.009+Math.sin(5*a+ph*1.7)*.006*W+(SA?spAt(k/NP)*SA:0),u=3*a+ph*.9;
+  F0[k]=base+cw*Math.sin(u);F1[k]=base+cw*Math.sin(u+.5);F2[k]=base+cw*Math.sin(u-.5)}
+ const path=(rad,F)=>{x.beginPath();for(let k=0;k<=NP;k+=st){const r=rad*F[k],px=200+CO[k]*r*(1+sq),py=200+SI[k]*r*(1-sq);k?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()},
+ ring=(rad,lw,al,F)=>{path(rad,F);x.strokeStyle=rgCone(x,an,[[0,A,al],[.18,A+(B-A)*.3,al*.8],[.38,mid,al*.45],[.5,B,al*.18],[.62,mid,al*.45],[.82,A+(B-A)*.3,al*.8],[1,A,al]]);x.lineWidth=lw;x.stroke()};
+ x.lineCap="round";x.lineJoin="round";x.globalCompositeOperation="lighter";
+ const gr=(full?210:175)*(1+J*1.2),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.4:.6)*(.12+E*.3+K*.25),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
+ const cx=200+Math.cos(ph*.8)*R0*.1,cy=200+Math.sin(ph*.6)*R0*.1,ig=x.createRadialGradient(cx,cy,R0*.1,200,200,R0);ig.addColorStop(0,rgCol(B,.03+E*.05+K*.05,60));ig.addColorStop(1,rgCol(A,.09+E*.07+K*.06,60));x.fillStyle=ig;path(R0,F0);x.fill();
+ if(!lite)ring(R0,28,.05+E*.04+K*.05,F0);
+ ring(R0,13,.12+E*.07+K*.08,F0);
+ const d=.5+E*1.2+K*3+RG.kk*1.6;ring(R0-d,2,.28+E*.14+K*.14,F1);ring(R0+d,2,.28+E*.14+K*.14,F2);
+ ring(R0,4.5+E*2.5+K*3.5,.9,F0);
+ if(!full){x.globalCompositeOperation="source-over";return}
+ for(const b of RG.beats){const age=t-b.t;if(b.s<.55||age<0||age>1.5)continue;const f=age/1.5,e=1-Math.pow(1-f,3);x.strokeStyle=rgCol(A+(B-A)*f,Math.pow(1-f,2)*.18*b.s,70);x.lineWidth=1.3*(1-f)+.3;x.beginPath();x.arc(200,200,R0*(1.05+e*.5*am),0,TAU);x.stroke()}
+ const pa=-Math.PI/2+pr*TAU;x.globalCompositeOperation="source-over";x.lineWidth=1;x.strokeStyle="rgba(255,255,255,.07)";x.beginPath();x.arc(200,200,188,0,TAU);x.stroke();x.lineWidth=1.3;x.strokeStyle=rgCol(A,.7,68);x.beginPath();x.arc(200,200,188,-Math.PI/2,pa);x.stroke();x.fillStyle="#fff";x.beginPath();x.arc(200+Math.cos(pa)*188,200+Math.sin(pa)*188,2,0,TAU);x.fill()};
+
+/* draw loop: capped pixel ratio, adaptive quality, no per-frame DOM churn */
+mpDraw=function(){const c=$("mpc"),T=MT[MP.i];if(!MP.on||!T){MP.raf=0;return}
+ const tn=performance.now(),fd=tn-(LQ.p||tn);LQ.p=tn;
+ if(fd<250){LQ.e+=(fd-LQ.e)*.06;if(++LQ.n>120&&LQ.e>27&&!LQ.l)LQ.l=1}
+ const d=LQ.l?1:Math.min(1.5,devicePixelRatio||1),S=400,px=Math.round(S*d);if(c.width!==px)c.width=c.height=px;
+ const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);x.globalCompositeOperation="source-over";x.clearRect(0,0,S,S);
+ const t=tn/1000,dt=Math.min(.1,t-(MP.tl||t)),D=mpDur(),P=mpPos(),pr=D?Math.min(1,P/D):0;MP.tl=t;
+ mpPulse(t,dt,T.m,MP.play?1:0);mpRing(x,T,true,pr);
+ const gl=$("mpgl");if(gl)gl.style.opacity=Math.min(1,RG.en*.6+RG.sx*3).toFixed(2);
+ const w=(pr*100).toFixed(2)+"%";if(w!==LQ.w){LQ.w=w;$("mpf2").style.width=w;$("mpkn").style.left=w}
+ const a=mpFmt(P);if(a!==LQ.a){LQ.a=a;$("mpa").textContent=a}
+ const dd=D?mpFmt(D):"–:––";if(dd!==LQ.d){LQ.d=dd;$("mpd").textContent=dd}
+ MP.raf=requestAnimationFrame(mpDraw)};
+
+/* ---------- motion slider: minimal, rebuilt ---------- */
+function mt2(){const o=$("mtk");if(!o||o.dataset.v9)return;const n=o.cloneNode(true);n.dataset.v9="1";o.replaceWith(n);
+ const L=["Minimal","Calm","Default","Rich","Ultra"],cv=()=>ST2.mot==null?(ST2.rm?0:2):ST2.mot;let dr=0;
+ const paint=v=>{const p=v/4;n.style.setProperty("--p",p);n.style.setProperty("--a",Math.min(.5,p));n.style.setProperty("--w",Math.abs(p-.5));const l=$("mtl");if(l)l.textContent=L[Math.round(v)]},
+ at=e=>{const r=n.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left-11)/(r.width-22)))*4},
+ mv=e=>{if(!dr)return;const v=at(e),k=Math.round(v);paint(v);if(k!==cv()){ST2.mot=k;applyPrefs();if(navigator.vibrate)navigator.vibrate(6)}},
+ up=()=>{if(!dr)return;dr=0;n.classList.remove("drag");paint(cv());sv2()};
+ paint(cv());
+ n.onpointerdown=e=>{dr=1;n.classList.add("drag");try{n.setPointerCapture(e.pointerId)}catch(x){}mv(e)};n.onpointermove=mv;n.onpointerup=up;n.onpointercancel=up;
+ const fo=document.querySelector("[data-fontopen] small");if(fo)fo.textContent=curFont2().n}
+{const _d=drawMe;drawMe=function(){_d();mt2()};VIEWS.me=drawMe}
+
+/* ---------- fonts: current Gen Z / Alpha favourites ---------- */
+const FSTK=",system-ui,-apple-system,'Segoe UI',sans-serif";
+const FONTS2=[
+ {id:"def",n:"Bricolage",s:"'Bricolage Grotesque'"+FSTK,g:"Bricolage+Grotesque:wght@400;500;600;700"},
+ {id:"jak",n:"Jakarta",s:"'Plus Jakarta Sans'"+FSTK,g:"Plus+Jakarta+Sans:wght@400;500;600;700"},
+ {id:"out",n:"Outfit",s:"Outfit"+FSTK,g:"Outfit:wght@400;500;600;700"},
+ {id:"sat",n:"Satoshi",s:"Satoshi"+FSTK,u:"https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"},
+ {id:"cab",n:"Cabinet",s:"'Cabinet Grotesk'"+FSTK,u:"https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap"},
+ {id:"unb",n:"Unbounded",s:"Unbounded"+FSTK,g:"Unbounded:wght@400;500;600;700"},
+ {id:"syn",n:"Syne",s:"Syne"+FSTK,g:"Syne:wght@400;500;600;700"},
+ {id:"urb",n:"Urbanist",s:"Urbanist"+FSTK,g:"Urbanist:wght@400;500;600;700"},
+ {id:"lex",n:"Lexend",s:"Lexend"+FSTK,g:"Lexend:wght@400;500;600;700"},
+ {id:"fig",n:"Figtree",s:"Figtree"+FSTK,g:"Figtree:wght@400;500;600;700"},
+ {id:"spa",n:"Space Grotesk",s:"'Space Grotesk'"+FSTK,g:"Space+Grotesk:wght@400;500;600;700"},
+ {id:"gab",n:"Gabarito",s:"Gabarito"+FSTK,g:"Gabarito:wght@400;500;600;700"},
+ {id:"dms",n:"DM Sans",s:"'DM Sans'"+FSTK,g:"DM+Sans:wght@400;500;600;700"},
+ {id:"sys",n:"System",s:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"}];
+const curFont2=()=>FONTS2.find(x=>x.id===ST2.font)||FONTS2[0];
+if(!document.getElementById("fl9-pc")){const a=document.createElement("link");a.id="fl9-pc";a.rel="preconnect";a.href="https://fonts.googleapis.com";const b=document.createElement("link");b.rel="preconnect";b.href="https://fonts.gstatic.com";b.crossOrigin="";document.head.appendChild(a);document.head.appendChild(b)}
+function fontLoad2(f){if(f.id==="sys"||document.getElementById("fl9-"+f.id))return;const l=document.createElement("link");l.id="fl9-"+f.id;l.rel="stylesheet";l.href=f.u||"https://fonts.googleapis.com/css2?family="+f.g+"&display=swap";document.head.appendChild(l)}
+function fontApply2(){const f=curFont2();fontLoad2(f);root.style.setProperty("--font-ui",f.s)}
+{const _a=applyPrefs;applyPrefs=function(){_a();fontApply2()}}
+fontApply2();
+function fontSheet(){FONTS2.forEach(fontLoad2);
+ sheet(`<h3>Font</h3><p class="note">Tap to try. The whole app changes instantly. New fonts need internet the first time.</p><div class="fgrid">${FONTS2.map(f=>`<button class="fb${f.id===curFont2().id?" on":""}" data-fid="${f.id}" style="font-family:${esc(f.s)}"><b>Aa</b><small>${f.n}</small></button>`).join("")}</div>`);
+ $("sh").onclick=e=>{const b=e.target.closest("[data-fid]");if(!b)return;ST2.font=b.dataset.fid;sv2();fontApply2();[...$("sh").querySelectorAll(".fb")].forEach(z=>z.classList.toggle("on",z===b));const fo=document.querySelector("[data-fontopen] small");if(fo)fo.textContent=curFont2().n;if(navigator.vibrate)navigator.vibrate(5)}}
+$("pg").addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-fontopen]")){e.stopImmediatePropagation();fontSheet()}},true);
+}
+
 })();</script></body></html>
