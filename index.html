@@ -1133,7 +1133,7 @@ function gmInvite(u){if(!u||!u.pid)return ts("This friend cannot be invited");va
  clSig(u.pid,{t:"gminv",g:"ttt",code:code,name:MY.name}).then(function(ok){if(!ok&&GMX.code===code){closeS();ts("Could not reach "+u.n.split(" ")[0]);gmEnd(false)}});
  GMX.tm=setTimeout(function(){if(!GMX.st&&GMX.code===code){closeS();ts("No answer");clSig(u.pid,{t:"gmcan",code:code});gmEnd(false)}},60000)}
 function gmInvIn(m){if(m.g!=="ttt"||!m.code||!/^[A-Z0-9]{4,10}$/.test(m.code))return;var c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
- if(!ST2.invite||(u&&BL.includes(u.id))||CL.on||GMX.ch){clSig(m.from,{t:"gmdec",code:m.code});return}
+ if(!ST2.invite||(u&&BL.includes(u.id))||CL.on||GMX.ch||UG){clSig(m.from,{t:"gmdec",code:m.code});return}
  var nm=String(m.name||"A friend").slice(0,30);GMX.pend=m.code;
  sheet('<div class="ci"><div class="ava ciav" style="width:72px;height:72px;font-size:26px;cursor:default;background:'+g(nm)+'">'+esc(ini(nm))+'</div><b>'+esc(nm)+'</b><small>invited you to play Tic-Tac-Toe</small></div><div class="grid" style="grid-template-columns:1fr 1fr"><button id="gmd">Decline</button><button class="pri" id="gmj">Join</button></div>');
  $("sh").onclick=function(e){if(e.target.closest("#gmd")){closeS();GMX.pend="";clSig(m.from,{t:"gmdec",code:m.code})}else if(e.target.closest("#gmj")){closeS();gmAccept(m,u,nm)}};
@@ -1143,9 +1143,75 @@ function gmAccept(m,u,nm){if(GMX.pend!==m.code){ts("Invite is no longer availabl
  GMX.peer=peer;GMX.me="O";ts("Joining...")}
 function gmDecIn(m){if(!GMX.ch||m.code!==GMX.code||GMX.st)return;var n=GMX.peer?GMX.peer.n.split(" ")[0]:"Friend";closeS();ts(n+" declined");gmEnd(false)}
 function gmCanIn(m){if(GMX.pend===m.code){GMX.pend="";closeS();ts("Invite cancelled")}}
-function gmPick(u){sheet('<h3>Invite '+esc(u.n.split(" ")[0])+'</h3><div class="glist"><button class="gr" data-g="ttt"><i>'+GI.ttt+'</i><span class="t"><b>Tic-Tac-Toe</b><small>5x5, four in a row</small></span><em>›</em></button><button class="gr off" data-g="uno"><i>'+GI.uno+'</i><span class="t"><b>UNO</b><small>Online coming next</small></span></button></div>');
- $("sh").onclick=function(e){var b=e.target.closest("[data-g]");if(!b)return;if(b.dataset.g==="uno")return ts("Online UNO comes next");closeS();setTimeout(function(){gmInvite(u)},280)}}
-function gmSend(){var u=U.find(function(x){return x.id===[...INV.sel][0]});if(INV.id!=="ttt")return ts("Online UNO comes next. Tic-Tac-Toe works now");if(u)gmInvite(u)}
+var UG=null,UGP="";
+function ugTx(m){if(UG&&UG.ch&&UG.live){try{UG.ch.send({type:"broadcast",event:"m",payload:Object.assign({from:clCtx().pid},m)})}catch(e){}}}
+function ugEnd(){if(!UG)return;clearInterval(UG.rt);var ch=UG.ch;UG=null;if(ch)setTimeout(function(){try{clCtx().sb.removeChannel(ch)}catch(e){}},700)}
+function ugOpen(code,host,mode,cb){var c=clCtx();if(!c.sb||!c.pid){ts("Not connected yet.");return false}gmEnd(false);ugEnd();var ch=c.sb.channel("gm:"+code,{config:{broadcast:{self:false}}});
+ UG={ch:ch,code:code,host:host,mode:mode,pl:[],inv:[],live:0,st:0,rt:0,tries:0,hostPid:"",me:0};
+ ch.on("broadcast",{event:"m"},function(p){ugGot(p.payload)}).subscribe(function(s){if(!UG||UG.ch!==ch)return;if(s==="SUBSCRIBED"){UG.live=1;cb&&cb()}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")ts("Game connection is weak")});return true}
+function ugBegin(pre){var ids=pre||[...INV.sel];if(!ids.length)return;
+ sheet('<h3>UNO</h3><div class="glist"><button class="gr" data-uv="classic"><span class="t"><b>Classic</b><small>Standard rules · Wild +4 challenge</small></span><em>›</em></button><button class="gr" data-uv="nomercy"><span class="t"><b>No Mercy</b><small>Stack +2/+4/+6/+10 · 7-0 swap · 25 cards = out</small></span><em>›</em></button></div>');
+ $("sh").onclick=function(e){var b=e.target.closest("[data-uv]");if(b){closeS();setTimeout(function(){ugHost(b.dataset.uv,ids)},280)}}}
+function ugHost(mode,ids){var c=clCtx(),us=ids.map(function(i){return U.find(function(x){return x.id===i})}).filter(function(u){return u&&u.pid});if(!us.length)return ts("These friends cannot be invited");
+ var code=Math.random().toString(36).slice(2,10).toUpperCase();if(!ugOpen(code,1,mode))return;
+ UG.pl=[{pid:c.pid,n:MY.name}];UG.inv=us;us.forEach(function(u){clSig(u.pid,{t:"gminv",g:"uno",code:code,name:MY.name,mode:mode})});ugLobby()}
+function ugLobby(){if(!UG||UG.st)return;var h=UG.host,me=clCtx().pid,av=function(n){return '<div class="ava" style="background:'+g(n)+';width:42px;height:42px;font-size:14px;flex:none">'+esc(ini(n))+'</div>'},
+ row=function(n,s,d){return '<div class="gr"'+(d?' style="opacity:.55"':'')+'>'+av(n)+'<span class="t"><b>'+esc(n)+'</b><small class="mono">'+s+'</small></span></div>'},
+ rows=UG.pl.map(function(p,i){return row(p.n+(p.pid===me?" (You)":""),i===0?"Host":"Ready")}).join("")+(h?UG.inv.filter(function(u){return !UG.pl.some(function(p){return p.pid===u.pid})}).map(function(u){return row(u.n,"Invited · waiting",1)}).join(""):""),
+ html='<div id="uglb"><h3>UNO · '+(UG.mode==="nomercy"?"No Mercy":"Classic")+'</h3><div class="glist">'+rows+'</div>'+(h?'<button class="pri" style="width:100%;margin-top:12px'+(UG.pl.length<2?';opacity:.5':'')+'" id="ugs">Start game</button>':'<p class="note" style="margin:12px 4px">Waiting for the host to start...</p>')+'<button style="width:100%;margin-top:8px" id="ugx">'+(h?'Cancel':'Leave')+'</button></div>';
+ if($("ov").classList.contains("on")&&$("sh").querySelector("#uglb")){$("sh").innerHTML='<i class="grab"></i>'+html;return}
+ sheet(html);$("sh").onclick=function(e){if(e.target.closest("#ugx")){ugLeave();closeS()}else if(e.target.closest("#ugs")){if(!UG||UG.pl.length<2)return ts("Wait for a friend to join");UG.st=1;closeS();ugStart()}}}
+function ugStart(){var pl=UG.pl.filter(function(p){return !p.left});if(pl.length<2){ts("Not enough players");ugLeave();return}UG.pl=pl;UG.st=1;var names=pl.map(function(p){return p.n}),
+ s=UE.create({mode:UG.mode,names:names,bots:names.map(function(){return false}),seed:Date.now()});
+ if($("chat").classList.contains("on"))$("cb").click();if(UO){clearTimeout(UO.tm);clearTimeout(UO.ct)}
+ UO={v:UG.mode,mode:"online",n:names.length,d:1,ph:0,lv:"medium",s:s,note:"",top:-1,ids:new Set(),cv:-1,busy:0,cover:0,pn:0,lp:-1,cb:null,tg:null,net:1,host:1};
+ inGame=true;uoMount();uoDraw();ugBroadcast(null)}
+function ugView(s,me){var n=s.n,R=function(a){return a.map(function(_,k){return a[(k+me)%n]})},rv=function(i){return i<0?-1:(i-me+n)%n},dm=function(h){return h.map(function(){return {id:-1,c:"W",t:"x"}})};
+ return {mode:s.mode,rules:s.rules,n:n,names:R(s.names),bots:R(s.bots),rs:0,deck:dm(s.deck),disc:[s.disc[s.disc.length-1]],hands:R(s.hands.map(function(h,i){return i===me?h:dm(h)})),dir:s.dir,turn:rv(s.turn),color:s.color,pending:s.pending,drawn:s.drawn,phase:s.phase,challenge:s.challenge?{by:rv(s.challenge.by),victim:rv(s.challenge.victim),bluff:s.challenge.bluff}:null,winner:rv(s.winner),out:R(s.out),uno:R(s.uno),unoPend:rv(s.unoPend),stall:s.stall,points:s.points}}
+function ugEv(ev,me,n){if(!ev)return null;var rv=function(i){return(i-me+n)%n};return ev.map(function(e){var o=Object.assign({},e);["p","by","target","a","b"].forEach(function(k){if(typeof o[k]==="number")o[k]=rv(o[k])});if(Array.isArray(o.order))o.order=o.order.map(rv);return o})}
+function ugBroadcast(ev){var s=UO.s,n=s.n;UG.pl.forEach(function(p,i){if(i===0||p.left)return;ugTx({t:"vw",to:p.pid,me:i,s:ugView(s,i),ev:ugEv(ev,i,n)})})}
+function ugLob(){ugTx({t:"lob",pl:UG.pl.map(function(p){return{pid:p.pid,n:p.n}})})}
+function ugDrop(i){var s=UO&&UO.s,p=UG.pl[i];if(!p||p.left)return;p.left=1;ts(p.n.split(" ")[0]+" left the game");if(!s||s.phase==="over"||s.out[i])return;
+ s.deck.unshift.apply(s.deck,s.hands[i]);s.hands[i]=[];s.out[i]=true;s.uno[i]=false;if(s.unoPend===i)s.unoPend=-1;
+ if(s.challenge&&(s.challenge.by===i||s.challenge.victim===i)){var wasT=s.turn===i;s.phase="play";s.challenge=null;if(wasT)s.turn=UE.next(s,i)}
+ else if(s.turn===i){s.drawn=null;s.pending=null;s.turn=UE.next(s,i)}
+ if(UE.aliveN(s)===1){s.phase="over";s.winner=s.out.indexOf(false);s.points=0;s.pending=null;s.drawn=null;s.challenge=null}
+ ugBroadcast([]);uoDraw();uoNext()}
+function ugGot(m){if(!UG||!m||!m.t)return;var me=clCtx().pid;
+ if(UG.host){var i=UG.pl.findIndex(function(p){return p.pid===m.from});
+  if(m.t==="join"){if(i>=0){if(!UG.st)ugLob();return}if(UG.st||UG.pl.length>=4||!UG.inv.some(function(u){return u.pid===m.from}))return;UG.pl.push({pid:m.from,n:String(m.n||"Friend").slice(0,30)});ugLob();ugLobby();ts(String(m.n||"Friend").split(" ")[0]+" joined")}
+  else if(i<0)return;
+  else if(m.t==="act"){if(!UO||!UO.net||!UO.host||!UG.st||UG.pl[i].left)return;var a=m.a||{},b={type:String(a.type),p:i};if(a.card!=null)b.card=a.card;if(a.color)b.color=a.color;if(a.target!=null)b.target=a.target;
+   var r=UE.act(UO.s,b);if(!r.ok){ugTx({t:"err",to:m.from,err:r.err});return}uoFx(r.ev);ugBroadcast(r.ev);uoDraw();uoNext()}
+  else if(m.t==="redo"){if(UO&&UO.s.phase==="over")ugStart()}
+  else if(m.t==="leave"){if(UG.st)ugDrop(i);else{UG.pl.splice(i,1);ugLob();ugLobby()}}
+ }else{if(m.from!==UG.hostPid)return;
+  if(m.t==="lob"){UG.pl=m.pl||[];ugLobby()}
+  else if(m.t==="vw"){if(m.to===me)ugApply(m)}
+  else if(m.t==="err"){if(m.to===me){var e=String(m.err||"");ts(e.charAt(0).toUpperCase()+e.slice(1))}}
+  else if(m.t==="end"){var inG=UO&&UO.net;closeS();ts("The host ended the game");ugEnd();if(inG){UO.net=0;uoExit()}}}}
+function ugApply(m){if(!UG)return;UG.me=m.me;UG.st=1;
+ if(!UO||!UO.net){closeS();if($("chat").classList.contains("on"))$("cb").click();if(UO){clearTimeout(UO.tm);clearTimeout(UO.ct)}
+  UO={v:m.s.mode,mode:"online",n:m.s.n,d:1,ph:0,lv:"medium",s:m.s,note:"",top:-1,ids:new Set(),cv:-1,busy:0,cover:0,pn:0,lp:-1,cb:null,tg:null,net:1,host:0};inGame=true;uoMount()}
+ else UO.s=m.s;
+ if(m.ev)uoFx(m.ev);uoDraw()}
+function ugSendAct(a){var b={type:a.type};if(a.card!=null)b.card=a.card;if(a.color)b.color=a.color;if(a.target!=null)b.target=(a.target+UG.me)%UO.s.n;ugTx({t:"act",a:b})}
+function ugRedo(){if(!UG||!UO)return;if(UG.host)return ugStart();if(UO.s.phase!=="over")return ts("Only the host can restart");ugTx({t:"redo"});ts("Asking the host...")}
+function ugLeave(){if(!UG){if(UO)UO.net=0;return}if(UG.host){ugTx({t:"end"});if(!UG.st)UG.inv.forEach(function(u){clSig(u.pid,{t:"gmcan",g:"uno",code:UG.code})})}else ugTx({t:"leave"});if(UO)UO.net=0;ugEnd()}
+function ugInvIn(m){if(!m.code||!/^[A-Z0-9]{4,10}$/.test(m.code))return;var c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
+ if(!ST2.invite||(u&&BL.includes(u.id))||CL.on||GMX.ch||UG){clSig(m.from,{t:"gmdec",g:"uno",code:m.code});return}
+ var nm=String(m.name||"A friend").slice(0,30),md=m.mode==="nomercy"?"nomercy":"classic";UGP=m.code;
+ sheet('<div class="ci"><div class="ava ciav" style="width:72px;height:72px;font-size:26px;cursor:default;background:'+g(nm)+'">'+esc(ini(nm))+'</div><b>'+esc(nm)+'</b><small>invited you to play UNO · '+(md==="nomercy"?"No Mercy":"Classic")+'</small></div><div class="grid" style="grid-template-columns:1fr 1fr"><button id="ugd">Decline</button><button class="pri" id="ugj">Join</button></div>');
+ $("sh").onclick=function(e){if(e.target.closest("#ugd")){closeS();UGP="";clSig(m.from,{t:"gmdec",g:"uno",code:m.code})}else if(e.target.closest("#ugj")){closeS();ugAccept(m,md)}};
+ if(navigator.vibrate)navigator.vibrate([20,40,20]);ping()}
+function ugAccept(m,md){if(UGP!==m.code){ts("Invite is no longer available");return}UGP="";
+ if(!ugOpen(m.code,0,md,function(){ugTx({t:"join",n:MY.name});UG.rt=setInterval(function(){if(!UG||UG.pl.length||UG.st){clearInterval(UG&&UG.rt);return}if(++UG.tries>6){clearInterval(UG.rt);ts("Game is no longer available");closeS();ugEnd();return}ugTx({t:"join",n:MY.name})},1500)}))return;
+ UG.hostPid=m.from;ugLobby()}
+function ugDecIn(m){if(!UG||!UG.host||UG.st||m.code!==UG.code)return;var u=UG.inv.find(function(x){return x.pid===m.from});UG.inv=UG.inv.filter(function(x){return x.pid!==m.from});ts((u?u.n.split(" ")[0]:"Friend")+" declined");ugLobby()}
+function ugCanIn(m){if(UGP===m.code){UGP="";closeS();ts("Invite cancelled")}}
+function gmPick(u){sheet('<h3>Invite '+esc(u.n.split(" ")[0])+'</h3><div class="glist"><button class="gr" data-g="ttt"><i>'+GI.ttt+'</i><span class="t"><b>Tic-Tac-Toe</b><small>5x5, four in a row</small></span><em>›</em></button><button class="gr" data-g="uno"><i>'+GI.uno+'</i><span class="t"><b>UNO</b><small>2 to 4 players</small></span></button></div>');
+ $("sh").onclick=function(e){var b=e.target.closest("[data-g]");if(!b)return;if(b.dataset.g==="uno"){closeS();return setTimeout(function(){ugBegin([u.id])},280)}closeS();setTimeout(function(){gmInvite(u)},280)}}
+function gmSend(){var u=U.find(function(x){return x.id===[...INV.sel][0]});if(INV.id==="uno")return ugBegin();if(u)gmInvite(u)}
 function tPlace(i){T.last=i;T.b[i]=T.turn;const w=tWin(T.b);if(w){T.over=1;T.win=w}else if(T.b.every(Boolean))T.over=1;else T.turn=T.turn==="X"?"O":"X";tDraw();
  if(!T.over&&T.mode==="bot"&&T.turn==="O"){const t=T;setTimeout(()=>{if(T===t&&!t.over)tPlace(tBot())},450)}}
 $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-pl]");if(!b)return;const a=b.dataset.pl,k=a.split(":")[0],v=a.split(":")[1];
@@ -1446,8 +1512,8 @@ function mediaPreview(f){/* PATCH-ZNX-FILE-V1 */const isV=f.type.startsWith("vid
 async function recOpen(){let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){return ts("Microphone is not available here")}
  const mr=new MediaRecorder(st),ch=[],ac=new(window.AudioContext||window.webkitAudioContext)(),an=ac.createAnalyser();an.fftSize=64;ac.createMediaStreamSource(st).connect(an);const d=new Uint8Array(an.frequencyBinCount),t0=Date.now(),wf=[];let raf=0,cancel=0;
  mr.ondataavailable=e=>ch.push(e.data);mr.start();
- sheet(`<h3>Voice message</h3><div class="rec"><div class="rb" id="rb">${"<s></s>".repeat(30)}</div><b id="rt">0:00</b></div><div class="grid" style="grid-template-columns:1fr 1fr"><button id="rcx">Cancel</button><button class="pri" id="rcs">Send</button></div>`);
- const bars=[...$("rb").children],tick=()=>{if(!$("rb"))return;an.getByteFrequencyData(d);bars.forEach((b,i)=>b.style.height=(5+d[i%d.length]/255*36)+"px");$("rt").textContent=mpFmt((Date.now()-t0)/1000);if(Math.random()<.4&&wf.length<60)wf.push(Math.round(6+Math.max(...d)/255*20));raf=requestAnimationFrame(tick)};tick();
+ (()=>{if(document.getElementById('vrcss'))return;const s2=document.createElement('style');s2.id='vrcss';s2.textContent='.vrc{display:grid;gap:20px;justify-items:center;padding:8px 0 4px}.vrt{display:flex;align-items:center;gap:10px}.vrt i{width:8px;height:8px;border-radius:50%;background:#e5675f;animation:vrp 1.4s ease-in-out infinite}@keyframes vrp{50%{opacity:.25}}.vrt b{font:600 30px var(--mono);letter-spacing:-1px}.vrw{display:flex;align-items:center;justify-content:center;gap:3px;height:36px;width:100%}.vrw s{display:block;width:3px;height:3px;border-radius:2px;background:var(--tx);opacity:.5;transition:height .12s}.vrb{display:flex;gap:28px;align-items:center}.vrb button{width:56px;height:56px;border-radius:50%;padding:0;display:grid;place-items:center}.vrb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.vrs{background:var(--bt);color:#fff;border-color:transparent}.vrx{color:var(--mu)}';document.head.appendChild(s2)})();sheet(`<div class="vrc"><div class="vrt"><i></i><b id="rt">0:00</b></div><div class="vrw" id="rb">${"<s></s>".repeat(40)}</div><div class="vrb"><button class="vrx" id="rcx" aria-label="Cancel">${IC.trash}</button><button class="vrs" id="rcs" aria-label="Send">${IC.send}</button></div></div>`);
+ const bars=[...$("rb").children],hs=Array(bars.length).fill(0);let lt=0;const tick=()=>{if(!$("rb"))return;an.getByteFrequencyData(d);const now=performance.now();if(now-lt>70){lt=now;let a=0;for(const v of d)a+=v;a=Math.min(1,a/d.length/255*2.6);hs.shift();hs.push(a);bars.forEach((b,i)=>b.style.height=(3+hs[i]*30)+"px")}$("rt").textContent=mpFmt((Date.now()-t0)/1000);if(Math.random()<.4&&wf.length<60)wf.push(Math.round(6+Math.max(...d)/255*20));raf=requestAnimationFrame(tick)};tick();
  const stop=()=>{cancelAnimationFrame(raf);try{mr.state==="recording"&&mr.stop()}catch(e){}st.getTracks().forEach(x=>x.stop());ac.close()};
  mr.onstop=()=>{if(cancel)return;const blob=new Blob(ch,{type:mr.mimeType||"audio/webm"});sendMedia({k:"voice",src:URL.createObjectURL(blob),dur:(Date.now()-t0)/1000,wf:wfNorm(wf)})};
  $("sh").onclick=e=>{if(e.target.closest("#rcx")){cancel=1;stop();closeS()}else if(e.target.closest("#rcs")){stop();closeS()}};
@@ -1777,7 +1843,7 @@ function clState(s){if(!CL.on||!CL.pc)return;
  else if(s==="failed")clRetry()}
 function clRetry(){if(!CL.on)return;if(CL.fail++>=2)return clEnd("lost");
  if(CL.role==="out")clOffer(true).catch(()=>{});else{clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&CL.pc&&CL.pc.connectionState!=="connected")clEnd("lost")},15000)}}
-function clGot(m){if(!m||!m.t||!m.from)return;/* PATCH-ZNX-ROOM-V1 */if(m.t==="gminv")return gmInvIn(m);if(m.t==="gmdec")return gmDecIn(m);if(m.t==="gmcan")return gmCanIn(m);if(m.t==="etinv")return etInvIn(m);if(m.t==="etdec")return etDecIn(m);
+function clGot(m){if(!m||!m.t||!m.from)return;/* PATCH-ZNX-ROOM-V1 */if(m.t==="gminv")return m.g==="uno"?ugInvIn(m):gmInvIn(m);if(m.t==="gmdec")return m.g==="uno"?ugDecIn(m):gmDecIn(m);if(m.t==="gmcan")return m.g==="uno"?ugCanIn(m):gmCanIn(m);if(m.t==="etinv")return etInvIn(m);if(m.t==="etdec")return etDecIn(m);
  if(m.t==="invite"){const c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
   if(CL.on||(u&&BL.includes(u.id))||!ST2.calls){clSig(m.from,{t:CL.on?"busy":"decline",id:m.id});return}
   Object.assign(CL,CL0,{on:1,role:"in",id:m.id,pid:m.from,peer:u||{n:String(m.name||"Unknown").slice(0,30),p:0},v:m.v?1:0,q:[]});
@@ -2503,7 +2569,7 @@ function uoCard(c,x,st){const t=USYM[c.t]||c.t;return `<div class="uc c${c.c}${x
 function uoPick(mode,n,d){sheet(`<h3>UNO</h3><div class="glist">${[["classic","Classic","Standard rules · Wild +4 challenge"],["nomercy","No Mercy","Stack +2/+4/+6/+10 · 7-0 swap · 25 cards = out"]].map(x=>`<button class="gr" data-uv="${x[0]}"><span class="t"><b>${x[1]}</b><small>${x[2]}</small></span><em>›</em></button>`).join("")}</div>`);
  $("sh").onclick=e=>{const b=e.target.closest("[data-uv]");if(b){closeS();uoStart(b.dataset.uv,mode,n,d)}}}
 function uoMount(){let r=$("uoR");if(r)r.remove();r=document.createElement("div");r.id="uoR";r.innerHTML='<div id="uoS"></div><div class="uoH" id="uoH" data-noswipe></div><div id="uoP"></div>';document.body.appendChild(r);r.addEventListener("click",uoClick)}
-function uoExit(){clearTimeout(UO.tm);clearTimeout(UO.ct);const r=$("uoR");if(r)r.remove();inGame=false;if(tab==="play"){drawPlay();pgIn(-1)}}
+function uoExit(){if(UO.net)ugLeave();clearTimeout(UO.tm);clearTimeout(UO.ct);const r=$("uoR");if(r)r.remove();inGame=false;if(tab==="play"){drawPlay();pgIn(-1)}}
 function uoStart(v,mode,n,d){clearTimeout(UO.tm);clearTimeout(UO.ct);const ph=mode==="phone",cnt=ph?n:n+1,names=Array.from({length:cnt},(_,i)=>ph?"Player "+(i+1):i?"Robot "+i:"You");
  UO={v,mode,n,d,ph,lv:["easy","medium","hard"][d]||"medium",s:UE.create({mode:v,names,bots:names.map((_,i)=>!ph&&i>0),seed:Date.now()}),note:"",top:-1,ids:new Set(),cv:-1,busy:0,cover:0,pn:0,lp:-1,cb:null,tg:null};
  inGame=true;uoMount();uoDraw();uoNext()}
@@ -2547,7 +2613,7 @@ function uoDraw(){if(uoDead())return;const s=UO.s,v=UO.ph?s.turn:0,over=s.phase=
 function uoFx(ev){const s=UO.s,nm=i=>!UO.ph&&i===0?"You":s.names[i],o=[];
  ev.forEach(e=>{const k=e.t;if(k==="play"){UO.lp=e.p;o.push(nm(e.p)+" played "+uoNm(e.card))}else if(k==="draw"&&e.n)o.push(nm(e.p)+" drew "+e.n);else if(k==="skip")o.push(nm(e.p)+" skipped");else if(k==="skipall")o.push("Everyone skipped");else if(k==="reverse")o.push("Direction reversed");else if(k==="uno")o.push(nm(e.p)+": UNO!");else if(k==="catch")o.push(nm(e.by)+" caught "+nm(e.p));else if(k==="challenge")o.push(nm(e.by)+" challenged");else if(k==="out")o.push(nm(e.p)+" is out");else if(k==="swap")o.push(nm(e.a)+" swapped with "+nm(e.b));else if(k==="rotate")o.push("Hands passed around");else if(k==="roulette")o.push(nm(e.p)+" drew "+e.n+" for "+CN[e.color]);else if(k==="pass")o.push(nm(e.p)+" passed")});
  if(o.length)UO.note=o.slice(-2).join(" · ");if(navigator.vibrate&&ev.some(e=>e.t==="play"))navigator.vibrate(8)}
-function uoAct(a){const s=UO.s;if(UO.busy||s.phase==="over")return;const r=UE.act(s,a);if(!r.ok)return ts(r.err.charAt(0).toUpperCase()+r.err.slice(1));uoFx(r.ev);uoDraw();uoNext()}
+function uoAct(a){const s=UO.s;if(UO.busy||s.phase==="over")return;if(UO.net&&!UO.host){ugSendAct(a);return}const r=UE.act(s,a);if(!r.ok)return ts(r.err.charAt(0).toUpperCase()+r.err.slice(1));uoFx(r.ev);if(UO.net)ugBroadcast(r.ev);uoDraw();uoNext()}
 function uoNext(){const s=UO.s;if(uoDead()||s.phase==="over")return;clearTimeout(UO.tm);clearTimeout(UO.ct);
  if(s.unoPend>=0&&!UO.ph)UO.ct=setTimeout(()=>{if(uoDead()||UO.busy||UO.pn)return;const c=UE.botCatch(s,UO.lv);if(c)uoAct(c)},500+Math.random()*350);
  if(s.bots[s.turn])UO.tm=setTimeout(uoBot,1100)}
@@ -2561,7 +2627,7 @@ function uoClick(e){if(uoDead())return;const s=UO.s,v=UO.ph?s.turn:0,t=e.target;
  if(b=t.closest("[data-tg]")){const f=UO.tg;UO.tg=null;uoPanelX();return f&&f(+b.dataset.tg)}
  if(b=t.closest("[data-uo]")){const k=b.dataset.uo;
   if(k==="exit")return uoExit();
-  if(k==="redo")return uoStart(UO.v,UO.mode,UO.n,UO.d);
+  if(k==="redo")return UO.net?ugRedo():uoStart(UO.v,UO.mode,UO.n,UO.d);
   if(k==="ready"){UO.cover=0;UO.cv=s.turn;return uoDraw()}
   return uoAct({type:{uno:"uno",catch:"catch",draw:"draw",pass:"pass",chal:"challenge",acc:"accept"}[k],p:v})}
  const cd=t.closest("[data-uc]");if(!cd||UO.cover)return;const c=s.hands[v].find(x=>x.id==cd.dataset.uc);if(!c)return;if(s.turn!==v||UO.busy)return ts("Wait for your turn");
