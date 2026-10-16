@@ -994,7 +994,7 @@ function drawSub(k){sub=k;let b="";
  <div class="card2">${tgR("sound","Sound","Soft tap sounds on buttons and games")}${tgR("vib","Vibration","Feedback on actions")}</div>`;
  if(k==="dat")b=`<div class="card2"><div class="pr2"><div class="t"><b>Device storage</b><small id="est">Checking...</small></div></div>${tgR("ds","Data saver for files","On: photos and videos are compressed. Off: original quality")}</div><button class="sr dang" style="padding:0 14px" data-act="cc"><span class="t"><b>Clear cached chats on this phone</b><small>Messages on the server stay</small></span></button><div class="sec">Media in chats</div>${mediaUsage()}`;
  if(k==="adv")b=`<div class="card2">${tgR("extra","Extra features","Random chat, random call and online games with random people")}</div><p class="note">Off = these stay hidden everywhere. When you turn it on, new sections appear in Chats and Enjoy.</p>`;
- if(k==="abt")b=`<div class="card2" style="text-align:center;padding:22px 14px"><div class="brand" style="font-size:34px">Z</div><b style="letter-spacing:.5em;font-weight:300;font-size:13px;padding-left:.5em">NEXORA</b><p class="note" style="margin:14px 0 4px">Version 1.0 · build R4</p><p class="note" style="margin:0">Powered by Suraj Kumar</p></div>
+ if(k==="abt")b=`<div class="card2" style="text-align:center;padding:22px 14px"><div class="brand" style="font-size:34px">Z</div><b style="letter-spacing:.5em;font-weight:300;font-size:13px;padding-left:.5em">NEXORA</b><p class="note" style="margin:14px 0 4px">Version 1.0 · build R5</p><p class="note" style="margin:0">Powered by Suraj Kumar</p></div>
  `;
  if(SUBX[k])b=SUBX[k]();
  $("pg").innerHTML=`<div class="sb"><button class="ib" data-go="" aria-label="Back">${A('<path d="M15 18l-6-6 6-6"/>')}</button><h2>${TT[k]}</h2></div>${b}`;
@@ -1891,7 +1891,7 @@ async function clFlip(){if(!CL.cam||!CL.vt)return;const f=CL.face==="user"?"envi
  if(!vs){CL.cam=0;clSig(CL.pid,{t:"cam",id:CL.id,on:0})}else clSig(CL.pid,{t:"cam",id:CL.id,on:1});clLay();clPaint();clTuneV()}
 function clEnd(why){if(!CL.on)return;const out=CL.role==="out",vid=!!CL.v,secs=CL.t0?Math.floor((Date.now()-CL.t0)/1000):0,peer=CL.peer,pid=CL.pid,id=CL.id,
   up=why==="hang"?(secs?"end":out?"cancel":"decline"):why==="timeout"?"cancel":why==="lost"?"end":"";
- clearInterval(CL.iv);clearInterval(CL.si);clearTimeout(CL.tm);clearTimeout(CL.ft);clearTimeout(CL.ht);clRingStop();
+ try{$("cl").classList.remove("on","inc","hc","ph");$("clpill").classList.remove("on")}catch(e){}clearInterval(CL.iv);clearInterval(CL.si);clearTimeout(CL.tm);clearTimeout(CL.ft);clearTimeout(CL.ht);clRingStop();
  if(CL.pc){try{CL.pc.close()}catch(e){}}if(CL.ls)CL.ls.getTracks().forEach(t=>t.stop());clCamStop();clAu.srcObject=null;$("clr").srcObject=null;
  Object.assign(CL,CL0,{q:[]});clLay();
  $("cl").classList.remove("on","inc","hc");$("clpill").classList.remove("on");$("clq").innerHTML="";
@@ -1924,8 +1924,10 @@ $("cc").onclick=()=>clOpen(0);$("cv").onclick=()=>clOpen(1);
   cl.classList.add("ph");h.style.left=L?"0":"auto";h.style.right=L?"auto":"0";h.style.borderRadius=L?"0 14px 14px 0":"14px 0 0 14px";h.innerHTML='<svg viewBox="0 0 24 24"><path d="'+(L?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")+'"/></svg>'});
  cl.addEventListener("touchstart",function(e){var v=e.target.closest&&e.target.closest(".clvd.pip");if(v&&e.touches.length===2){var a=e.touches;t0=Math.hypot(a[0].clientX-a[1].clientX,a[0].clientY-a[1].clientY)||1;w0=v.offsetWidth}else t0=0},{passive:true});
  cl.addEventListener("touchmove",function(e){if(!t0||e.touches.length!==2)return;var a=e.touches,k=Math.hypot(a[0].clientX-a[1].clientX,a[0].clientY-a[1].clientY)/t0;cl.style.setProperty("--pw",Math.round(Math.max(76,Math.min(innerWidth*.62,w0*k)))+"px")},{passive:true});
- new MutationObserver(function(){if(!cl.classList.contains("on")&&cl.classList.contains("ph"))cl.classList.remove("ph")}).observe(cl,{attributes:true,attributeFilter:["class"]})})();
+ })();
 (function(){var s3=document.createElement("style");s3.textContent="#cl.vid *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}#cl.vid .clbg{display:none}#cl.vid #clq{background:rgba(14,16,26,.55)}#cl.vid .clk{background:rgba(14,16,26,.5)}#cl.vid .clvd.pip{box-shadow:none}";document.head.appendChild(s3)})();
+addEventListener("error",function(e){try{ts("Error: "+String(e.message||"unknown").slice(0,70)+(e.lineno?" (line "+e.lineno+")":""))}catch(x){}});
+addEventListener("unhandledrejection",function(e){try{ts("Error: "+String((e.reason&&e.reason.message)||e.reason||"unknown").slice(0,70))}catch(x){}});
 /* ===== in-app notification banner ===== */
 let BANT=0,BANID=0;
 function banner(title,text,id,force){if(!force&&(!ST2.banner||dndOn()))return;ping();const b=$("ban"),av=$("banav");av.style.background=g(title);av.textContent=ini(title);$("banb").textContent=title;$("bant").textContent=text;BANID=id||0;b.style.transition="";b.style.transform="";b.classList.add("on");if(navigator.vibrate)navigator.vibrate([14,40,14]);clearTimeout(BANT);BANT=setTimeout(banHide,4600)}
