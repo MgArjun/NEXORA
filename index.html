@@ -3607,12 +3607,12 @@ setTimeout(()=>{try{
 
 /* ---------- 1. LIVE: open chat har 1 sec, chat list har 5 sec ---------- */
 let B1=0,B2=0;
-setInterval(async()=>{if(B1||!PID||!vis()||!cur||!chatOn()||!cur.cid)return;B1=1;
+setInterval(async()=>{if(B1||typeof PID==="undefined"||!PID||!vis()||!cur||!chatOn()||!cur.cid)return;B1=1;
  try{const u=cur,r=await SB.from("messages").select("id,read_at,sender_id").eq("conversation_id",u.cid).order("created_at",{ascending:false}).limit(1),row=r.data&&r.data[0];
   if(row&&cur===u){const f=(MSG[u.id]||[]).find(x=>x.sid===row.id);
    if(row.sender_id!==PID?(!f&&!HIDE.has(row.id)):(f&&row.read_at&&f.st<2)){await loadHist(u);markRead(u)}}}catch(e){}
  B1=0},1000);
-setInterval(()=>{if(B2||!PID||!vis())return;B2=1;const k=RTOK;RTOK=0;
+setInterval(()=>{if(B2||typeof PID==="undefined"||!PID||!vis())return;B2=1;const k=RTOK;RTOK=0;
  loadChats(true).catch(()=>{}).finally(()=>{RTOK=k;B2=0})},5000);
 
 /* ---------- 2. CALLS: invite jab tak "ring" na aaye, dobara bhejo ---------- */
