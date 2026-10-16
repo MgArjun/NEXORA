@@ -804,10 +804,10 @@ function chatMenu(){const u=cur,TL=[["dp",CMI.img,"Photo"],["th",CMI.pal,"Theme"
  sheet(`<div class="cc-h"><div class="ava" style="${u.p?`background-image:url(${u.p})`:`background:${g(u.n)}`}">${u.p?"":esc(ini(u.n))}</div><div><b>${esc(u.n)}</b><small>${esc(u.seen||"")}</small></div></div>
  <div class="cc-t">${TL.map(t=>`<button class="cct${t[0]==="mu"&&u.mute?" on":""}" data-o="${t[0]}">${t[1]}<span>${t[2]}</span></button>`).join("")}</div>
  <div class="sec">Video call quality</div><div class="seg">${["480","720","1080","1440","2160"].map(v=>`<button data-q="${v}" class="${vq===v?"on":""}">${{480:"480p",720:"720p",1080:"1080p",1440:"2K",2160:"4K"}[v]}</button>`).join("")}</div>
- <div class="glist" style="margin-top:6px">${RW("gm",A('<rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10v5M4.5 12.5h5"/>'),"Play a game","Invite to a game")}${RW("srch",CMI.search,"Search in chat","Find any message")}${RW("info",CMI.user,"Contact info","Media, UID and more")}<div class="gr"><i class="gi">${CMI.bolt}</i><span class="t"><b>Data saver</b><small>Compress files before sending</small></span><button class="tg ${ST2.ds?"on":""}" data-o="ds" aria-label="Data saver"></button></div><button class="gr dang" data-o="bl"><i class="gi">${CMI.block}</i><span class="t"><b>Block ${esc(u.n)}</b></span></button></div>`);
+ <div class="glist" style="margin-top:6px">${RW("gm",A('<rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10v5M4.5 12.5h5"/>'),"Play a game","Invite to a game")}${RW("rn",CMI.user,"Rename","Change how this name shows to you")}${RW("srch",CMI.search,"Search in chat","Find any message")}${RW("info",CMI.user,"Contact info","Media, UID and more")}<div class="gr"><i class="gi">${CMI.bolt}</i><span class="t"><b>Data saver</b><small>Compress files before sending</small></span><button class="tg ${ST2.ds?"on":""}" data-o="ds" aria-label="Data saver"></button></div><button class="gr dang" data-o="bl"><i class="gi">${CMI.block}</i><span class="t"><b>Block ${esc(u.n)}</b></span></button></div>`);
  $("sh").onclick=e=>{const q2=e.target.closest("[data-q]");if(q2){vq=q2.dataset.q;ST2.vq=vq;sv2();[...q2.parentNode.children].forEach(b=>b.classList.toggle("on",b===q2));return}
   const o=e.target.closest("[data-o]");if(!o)return;const k=o.dataset.o;
-  if(k==="th")return themeSheet();
+  if(k==="rn")return rnSheet(u);if(k==="th")return themeSheet();
   if(k==="srch"){closeS();return setTimeout(csOpen,260)}
   if(k==="info"){closeS();return setTimeout(()=>contactInfo(u.id),280)}
   if(k==="dp")return dpSheet();
@@ -956,7 +956,7 @@ function enter(){bellDot();document.querySelector("main").classList.add("hide");
 
 /* ===== Me tab ===== */
 const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
-const D2={theme:"auto",photo:"everyone",bioV:"everyone",seen:"everyone",online:1,typing:1,ticks:1,invite:1,calls:1,noise:1,voice:0,/* PATCH-P1-V1 */sound:0,vib:0,ds:0,vq:"720",extra:0,msgTone:1,preview:1,banner:1,ringtone:1,vibN:1,dnd:"off",enterSend:1,fontSize:"m",autoDl:"wifi",linkPrev:1,lastPrev:1,applock:0,lockT:"1",rm:0};
+const D2={theme:"auto",photo:"everyone",bioV:"everyone",seen:"everyone",online:1,typing:1,ticks:1,invite:1,calls:1,noise:1,voice:0,/* PATCH-P1-V1 */sound:0,vib:0,ds:0,mirror:1,vq:"720",extra:0,msgTone:1,preview:1,banner:1,ringtone:1,vibN:1,dnd:"off",enterSend:1,fontSize:"m",autoDl:"wifi",linkPrev:1,lastPrev:1,applock:0,lockT:"1",rm:0};
 let ST2=Object.assign({},D2);try{Object.assign(ST2,JSON.parse(localStorage.getItem("znx_set")||"{}"))}catch(e){}
 const sv2=()=>{try{localStorage.setItem("znx_set",JSON.stringify(ST2))}catch(e){}window.nxSetPush&&window.nxSetPush()};
 const root=document.documentElement,metaT=()=>{ST2.theme==="auto"?root.removeAttribute("data-theme"):root.setAttribute("data-theme",ST2.theme)};
@@ -989,7 +989,7 @@ function drawSub(k){sub=k;let b="";
  <p class="note">"Friends" means only people you have added. Use the lists below to hide something from specific people.</p><div class="card2">${["photo","bioV","seen"].map(k=>`<button class="sr" data-ex="${k}"><span class="t"><b>Hide ${({photo:"profile photo",bioV:"bio",seen:"last seen"})[k]} from...</b><small>${(ST2.hide&&ST2.hide[k]||[]).length?ST2.hide[k].length+(ST2.hide[k].length>1?" people":" person"):"No one"}</small></span><em>›</em></button>`).join("")}</div>
  <div class="card2">${tgR("online","Show online status","Others see when you are online")}${tgR("typing","Show typing","Others see when you are typing")}${tgR("ticks","Read receipts (blue ticks)","If off, you also do not see theirs")}${tgR("invite","Allow game invites","Off = invites are declined")}</div>
  <p class="note">When you hide last seen and online, you cannot see theirs too.</p>`;
- if(k==="snd")b=`<div class="card2">${tgR("calls","Allow incoming calls","Off = every call is declined")}${tgR("noise","Noise cancellation","Reduces background noise and echo")}${tgR("voice","Enhance voice","Clearer, steadier voice")}</div>
+ if(k==="snd")b=`<div class="card2">${tgR("calls","Allow incoming calls","Off = every call is declined")}${tgR("noise","Noise cancellation","Reduces background noise and echo")}${tgR("voice","Enhance voice","Clearer, steadier voice")}${tgR("mirror","Mirror my video","Others see you exactly like your own preview")}</div>
  <div class="card2"><div style="padding:10px 0"><b style="font-size:15px;font-weight:600">Video call quality</b><small style="display:block;color:var(--mu);margin-top:2px">Default 720p. Higher = sharper, more data</small><div class="seg" style="margin:10px 0 2px">${Object.keys(Q).map(v=>`<button data-sg="vq:${v}" class="${ST2.vq===v?"on":""}">${Q[v]}</button>`).join("")}</div></div></div>
  <div class="card2">${tgR("sound","Sound","Soft tap sounds on buttons and games")}${tgR("vib","Vibration","Feedback on actions")}</div>`;
  if(k==="dat")b=`<div class="card2"><div class="pr2"><div class="t"><b>Device storage</b><small id="est">Checking...</small></div></div>${tgR("ds","Data saver for files","On: photos and videos are compressed. Off: original quality")}</div><button class="sr dang" style="padding:0 14px" data-act="cc"><span class="t"><b>Clear cached chats on this phone</b><small>Messages on the server stay</small></span></button><div class="sec">Media in chats</div>${mediaUsage()}`;
@@ -1209,6 +1209,12 @@ function ugAccept(m,md){if(UGP!==m.code){ts("Invite is no longer available");ret
  UG.hostPid=m.from;ugLobby()}
 function ugDecIn(m){if(!UG||!UG.host||UG.st||m.code!==UG.code)return;var u=UG.inv.find(function(x){return x.pid===m.from});UG.inv=UG.inv.filter(function(x){return x.pid!==m.from});ts((u?u.n.split(" ")[0]:"Friend")+" declined");ugLobby()}
 function ugCanIn(m){if(UGP===m.code){UGP="";closeS();ts("Invite cancelled")}}
+function rnSheet(u){if(!u.pid)return ts("This name cannot be changed");var rn=u.rn||u.n,has=ST2.nick&&ST2.nick[u.pid];
+ sheet('<h3>Rename</h3><p class="note">Only you see this name. Their real name is '+esc(rn)+'.</p><input id="rni" maxlength="30" value="'+esc(u.n)+'" autocomplete="off" style="margin-bottom:10px"><button class="pri" style="width:100%" id="rnk">Save</button>'+(has?'<button class="opt rd" style="justify-content:center;margin-top:6px" id="rnr">Use original name</button>':''));
+ var set=function(v){ST2.nick=ST2.nick||{};if(v&&v!==rn)ST2.nick[u.pid]=v;else delete ST2.nick[u.pid];u.n=ST2.nick[u.pid]||rn;sv2();closeS();
+  if(cur===u&&$("chat").classList.contains("on")){$("cn").querySelector("b").textContent=u.n;if(!u.p){$("ca").textContent=ini(u.n);$("ca").style.background=g(u.n)}}
+  if(tab==="chats"&&$("ls"))list();ts(v&&v!==rn?"Renamed":"Original name restored")};
+ $("sh").onclick=function(e){if(e.target.closest("#rnk")){var v=$("rni").value.trim();if(!v)return ts("Name cannot be empty");set(v)}else if(e.target.closest("#rnr"))set("")}}
 function gmPick(u){sheet('<h3>Invite '+esc(u.n.split(" ")[0])+'</h3><div class="glist"><button class="gr" data-g="ttt"><i>'+GI.ttt+'</i><span class="t"><b>Tic-Tac-Toe</b><small>5x5, four in a row</small></span><em>›</em></button><button class="gr" data-g="uno"><i>'+GI.uno+'</i><span class="t"><b>UNO</b><small>2 to 4 players</small></span></button></div>');
  $("sh").onclick=function(e){var b=e.target.closest("[data-g]");if(!b)return;if(b.dataset.g==="uno"){closeS();return setTimeout(function(){ugBegin([u.id])},280)}closeS();setTimeout(function(){gmInvite(u)},280)}}
 function gmSend(){var u=U.find(function(x){return x.id===[...INV.sel][0]});if(INV.id==="uno")return ugBegin();if(u)gmInvite(u)}
@@ -1563,13 +1569,13 @@ function contactInfo(id){const u=U.find(x=>x.id===id);if(!u)return;const media=(
  sheet(`<div class="ci"><div class="ava ciav" id="ciav" style="${u.p?`background-image:url(${u.p})`:`background:${g(u.n)}`}">${u.p?"":esc(ini(u.n))}</div><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user||"user")} · ${esc(u.uid||"MG----")}</small><span class="cis${u.on?" on":""}">${u.on?"Online":esc(u.seen||"")}</span></div>
  <div class="cc-t" style="grid-template-columns:repeat(3,1fr)">${[["msg",SI.chat,"Message"],["call",IC.phone,"Voice"],["mu",SI.bell,u.mute?"Muted":"Mute"]].map(t=>`<button class="cct${t[0]==="mu"&&u.mute?" on":""}" data-c="${t[0]}">${t[1]}<span>${t[2]}</span></button>`).join("")}</div>
  <div class="sec">About</div><div class="glist"><div class="gr"><span class="t"><b>${esc(u.about||"Hey there! I am using ZNEXORA")}</b></span></div></div>
- <div class="glist"><button class="gr" data-c="safe"><span class="t"><b>Verify encryption</b><small>Compare a safety code</small></span><em>›</em></button></div><div class="sec">Details</div><div class="glist"><div class="gr"><span class="t"><small class="mono">UID</small><b>${esc(u.uid||"MG----")}</b></span><button class="gb" data-c="cuid">Copy</button></div><div class="gr"><span class="t"><small class="mono">Username</small><b>@${esc(u.user||"user")}</b></span></div><div class="gr"><span class="t"><small class="mono">Status</small><b>${u.on?"Online now":esc(u.seen||"Offline")}</b></span></div></div>
+ <div class="glist"><button class="gr" data-c="safe"><span class="t"><b>Verify encryption</b><small>Compare a safety code</small></span><em>›</em></button></div><div class="sec">Details</div><div class="glist"><div class="gr"><span class="t"><small class="mono">UID</small><b>${esc(u.uid||"MG----")}</b></span><button class="gb" data-c="cuid">Copy</button></div><div class="gr"><span class="t"><small class="mono">Name</small><b>${esc(u.n)}</b></span><button class="gb" data-c="rn">Rename</button></div><div class="gr"><span class="t"><small class="mono">Username</small><b>@${esc(u.user||"user")}</b></span></div><div class="gr"><span class="t"><small class="mono">Status</small><b>${u.on?"Online now":esc(u.seen||"Offline")}</b></span></div></div>
  <div class="sec">Shared media · ${media.length}</div>${media.length?`<div class="smg">${media.map(o=>`<button class="sm" data-sm="${o.i}">${o.x.k==="img"?`<img src="${MEDC[o.x.src]||o.x.src}" alt="">`:`<video src="${o.x.src}#t=0.1" muted playsinline preload="metadata"></video>`}</button>`).join("")}</div>`:'<div class="empty" style="padding:16px">No photos or videos yet.</div>'}
  <div class="glist" style="margin-top:14px"><button class="gr dang" data-c="report"><span class="t"><b>Report</b></span></button><button class="gr dang" data-c="block"><span class="t"><b>Block ${esc(u.n.split(" ")[0])}</b></span></button><button class="gr dang" data-c="del"><span class="t"><b>Delete chat</b></span></button></div>`);
  $("sh").onclick=e=>{const sm=e.target.closest("[data-sm]");if(sm){closeS();return setTimeout(()=>mvOpen(+sm.dataset.sm),300)}
   if(e.target.closest("#ciav")){closeS();return setTimeout(()=>view(id),300)}
   const b=e.target.closest("[data-c]");if(!b)return;const k=b.dataset.c;
-  if(k==="safe")return eSafety(u);if(k==="cuid")return navigator.clipboard&&navigator.clipboard.writeText(u.uid||"").then(()=>ts("UID copied"),()=>ts("Copy failed"));
+  if(k==="rn")return rnSheet(u);if(k==="safe")return eSafety(u);if(k==="cuid")return navigator.clipboard&&navigator.clipboard.writeText(u.uid||"").then(()=>ts("UID copied"),()=>ts("Copy failed"));
   if(k==="mu"){u.mute=!u.mute;b.classList.toggle("on",!!u.mute);b.querySelector("span").textContent=u.mute?"Muted":"Mute";return ts(u.mute?"Notifications muted":"Notifications on")}
   closeS();if(k==="msg")return;if(k==="report")return setTimeout(()=>reportSheet(id),260);if(k==="call")return setTimeout(()=>clOpen(0),250);
   if(k==="block"){BL.includes(id)||BL.push(id);$("cb").click();return ts(u.n+" blocked")}
@@ -1782,7 +1788,7 @@ function clRingStop(){clearInterval(clRT);clRT=0;if(navigator.vibrate)navigator.
 async function clSig(pid,m){const c=clCtx();if(!c.sb||!c.pid)return false;let h=clOut[pid];
  if(!h){h=clOut[pid]={c:c.sb.channel("call:"+pid+":"+c.pid,{config:{private:true}})};h.p=new Promise(r=>{h.c.subscribe(s=>{if(s==="SUBSCRIBED")r(1)});setTimeout(()=>r(0),5000)})}
  if(!await h.p){try{c.sb.removeChannel(h.c)}catch(e){}delete clOut[pid];return false}
- try{await h.c.send({type:"broadcast",event:"sig",payload:Object.assign({from:c.pid},m)});clKeep(pid);return true}catch(e){return false}}
+ try{await h.c.send({type:"broadcast",event:"sig",payload:Object.assign({from:c.pid},m,m.t==="cam"?{mir:ST2.mirror!==0&&CL.face==="user"?1:0}:{})});clKeep(pid);return true}catch(e){return false}}
 /* PATCH-SIG1-V1 */function clListen(){const c=clCtx();if(!c.sb||!c.pid)return;Object.keys(c.byPid||{}).forEach(fp=>{if(clLis[fp])return;clLis[fp]=c.sb.channel("call:"+c.pid+":"+fp,{config:{private:true}}).on("broadcast",{event:"sig"},p=>clGot(Object.assign({},p.payload,{from:fp}))).subscribe()})}
 window.znxCallListen=clListen;
 /* PATCH-FINAL1-V1 */function clKeep(pid){const h=clOut[pid];if(!h)return;clearTimeout(h.z);h.z=setTimeout(()=>{CL.on&&CL.pid===pid?clKeep(pid):clDrop(pid)},60000)}
@@ -1797,11 +1803,11 @@ async function clMic(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUs
  try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:!!ST2.noise,autoGainControl:!!ST2.voice,voiceIsolation:!!ST2.voice,channelCount:1}})}catch(e){ts("Allow the microphone to make calls");return null}}
 /* camera: raw front or back camera, never mirrored, so you and the other person see the same picture */
 async function clCamStream(face){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ts("Camera is not available here");return null}
- const q=CQ[ST2.vq]||CQ[720],port=innerHeight>innerWidth,sh=q[1],lg=Math.round(sh*8/5),w=port?sh:lg,h=port?lg:sh;
- try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:face||"user",width:{ideal:w},height:{ideal:h},frameRate:{ideal:30}}}),t=s.getVideoTracks()[0];if(t)t.contentHint="motion";return s}catch(e){ts("Allow the camera to use video");return null}}
+ const q=CQ[ST2.vq]||CQ[720],port=innerHeight>innerWidth,sh=q[1],lg=Math.round(sh*16/9),w=port?sh:lg,h=port?lg:sh;
+ try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:face||"user",width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:port?9/16:16/9},frameRate:{ideal:30}}}),t=s.getVideoTracks()[0];if(t)t.contentHint="motion";return s}catch(e){ts("Allow the camera to use video");return null}}
 function clCamStop(){if(CL.vs){CL.vs.getTracks().forEach(t=>t.stop());CL.vs=null}}
 /* layout: big picture + small draggable picture, tap the small one to swap */
-/* PATCH-ZNX-VCALL-V2 *//* PATCH-ZNX-FIX3-V1 */function clFit(v){const w=v.clientWidth,h=v.clientHeight;if(!w||!h||!v.videoWidth)return;const m=v.id==="clv"&&CL.face==="user"?-1:1;if(v.classList.contains("pip")){v.style.objectFit="cover";v.style.transform=m<0?"scaleX(-1)":"";return}const k=v.videoWidth/v.videoHeight/(w/h),s=Math.min(Math.max(k,1/k),1/.88);v.style.objectFit="contain";v.style.transform="scale("+m*s+","+s+")"}
+/* PATCH-ZNX-VCALL-V2 *//* PATCH-ZNX-FIX3-V1 */function clFit(v){const w=v.clientWidth,h=v.clientHeight;if(!w||!h||!v.videoWidth)return;const m=v.id==="clv"?(CL.face==="user"?-1:1):(CL.rmir?-1:1);v.style.objectFit="cover";v.style.transform=m<0?"scaleX(-1)":""}
 ["clr","clv"].forEach(i=>{$(i).addEventListener("loadedmetadata",()=>clFit($(i)));$(i).addEventListener("resize",()=>clFit($(i)))});
 addEventListener("resize",()=>{clFit($("clr"));clFit($("clv"))});
 function clLay(){const c=$("cl"),r=$("clr"),l=$("clv"),cam=!!(CL.cam&&CL.vs),rc=!!CL.rcam,both=cam&&rc,sw=both&&!!CL.sw;
@@ -1856,7 +1862,7 @@ function clGot(m){if(!m||!m.t||!m.from)return;/* PATCH-ZNX-ROOM-V1 */if(m.t==="g
  else if(m.t==="busy")clEnd("busy");
  else if(m.t==="cancel")clEnd(CL.pc?"remote":"missed");
  else if(m.t==="end")clEnd("remote");
- else if(m.t==="cam"){CL.rcam=m.on?1:0;clLay()}
+ else if(m.t==="cam"){CL.rcam=m.on?1:0;CL.rmir=m.mir?1:0;clLay()}
  else if(m.t==="offer")clOnOffer(m).catch(()=>{});
  else if(m.t==="answer"&&CL.pc)CL.pc.setRemoteDescription(m.s).then(clFlush).catch(()=>{});
  else if(m.t==="ice"&&CL.pc){CL.pc.remoteDescription?CL.pc.addIceCandidate(m.c).catch(()=>{}):CL.q.push(m.c)}}
@@ -1882,7 +1888,7 @@ async function clFlip(){if(!CL.cam||!CL.vt)return;const f=CL.face==="user"?"envi
  let vs=await clCamStream(f);if(vs)CL.face=f;else vs=await clCamStream(CL.face);
  if(!CL.on){if(vs)vs.getTracks().forEach(t=>t.stop());return}
  CL.vs=vs;await CL.vt.sender.replaceTrack(vs?vs.getVideoTracks()[0]:null).catch(()=>{});
- if(!vs){CL.cam=0;clSig(CL.pid,{t:"cam",id:CL.id,on:0})}clLay();clPaint();clTuneV()}
+ if(!vs){CL.cam=0;clSig(CL.pid,{t:"cam",id:CL.id,on:0})}else clSig(CL.pid,{t:"cam",id:CL.id,on:1});clLay();clPaint();clTuneV()}
 function clEnd(why){if(!CL.on)return;const out=CL.role==="out",vid=!!CL.v,secs=CL.t0?Math.floor((Date.now()-CL.t0)/1000):0,peer=CL.peer,pid=CL.pid,id=CL.id,
   up=why==="hang"?(secs?"end":out?"cancel":"decline"):why==="timeout"?"cancel":why==="lost"?"end":"";
  clearInterval(CL.iv);clearInterval(CL.si);clearTimeout(CL.tm);clearTimeout(CL.ft);clearTimeout(CL.ht);clRingStop();
@@ -1910,6 +1916,15 @@ $("cc").onclick=()=>clOpen(0);$("cv").onclick=()=>clOpen(1);
  cl.addEventListener("pointerup",up);cl.addEventListener("pointercancel",up);
  cl.addEventListener("click",e=>{if(!CL.on||!cl.classList.contains("vid")||e.target.closest(".clvd.pip"))return;clCtl(e.target.closest("button")?true:cl.classList.contains("hc"))})}
 
+(function(){var s2=document.createElement("style");s2.textContent="#cl .clvd.pip{width:var(--pw,104px);height:calc(var(--pw,104px)*1.42)}#clph{position:absolute;z-index:5;display:none;top:calc(env(safe-area-inset-top,0px) + 156px);width:22px;height:84px;margin:0;padding:0;border:0;color:#fff;background:rgba(14,16,26,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}#cl.ph #clph{display:grid;place-items:center}#cl.ph .clvd.pip{display:none}#clph svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}";document.head.appendChild(s2);
+ var cl=$("cl"),h=document.createElement("button"),hd=null,t0=0,w0=104;h.id="clph";h.setAttribute("aria-label","Show small video");cl.appendChild(h);
+ h.onclick=function(e){e.stopPropagation();cl.classList.remove("ph")};
+ cl.addEventListener("pointerdown",function(e){var v=e.target.closest&&e.target.closest(".clvd.pip");hd=v?{x:e.clientX}:null});
+ cl.addEventListener("pointerup",function(e){if(!hd)return;var dx=e.clientX-hd.x;hd=null;var v=cl.querySelector(".clvd.pip");if(!v||Math.abs(dx)<60)return;var r=v.getBoundingClientRect(),L=r.left<=14,R=r.right>=innerWidth-14;if(!L&&!R)return;
+  cl.classList.add("ph");h.style.left=L?"0":"auto";h.style.right=L?"auto":"0";h.style.borderRadius=L?"0 14px 14px 0":"14px 0 0 14px";h.innerHTML='<svg viewBox="0 0 24 24"><path d="'+(L?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")+'"/></svg>'});
+ cl.addEventListener("touchstart",function(e){var v=e.target.closest&&e.target.closest(".clvd.pip");if(v&&e.touches.length===2){var a=e.touches;t0=Math.hypot(a[0].clientX-a[1].clientX,a[0].clientY-a[1].clientY)||1;w0=v.offsetWidth}else t0=0},{passive:true});
+ cl.addEventListener("touchmove",function(e){if(!t0||e.touches.length!==2)return;var a=e.touches,k=Math.hypot(a[0].clientX-a[1].clientX,a[0].clientY-a[1].clientY)/t0;cl.style.setProperty("--pw",Math.round(Math.max(76,Math.min(innerWidth*.62,w0*k)))+"px")},{passive:true});
+ new MutationObserver(function(){if(!cl.classList.contains("on"))cl.classList.remove("ph")}).observe(cl,{attributes:true,attributeFilter:["class"]})})();
 /* ===== in-app notification banner ===== */
 let BANT=0,BANID=0;
 function banner(title,text,id,force){if(!force&&(!ST2.banner||dndOn()))return;ping();const b=$("ban"),av=$("banav");av.style.background=g(title);av.textContent=ini(title);$("banb").textContent=title;$("bant").textContent=text;BANID=id||0;b.style.transition="";b.style.transform="";b.classList.add("on");if(navigator.vibrate)navigator.vibrate([14,40,14]);clearTimeout(BANT);BANT=setTimeout(banHide,4600)}
@@ -2654,7 +2669,7 @@ const freshOn=p=>!!(p.online&&p.last_seen&&Date.now()-Date.parse(p.last_seen)<75
 /* PATCH-SEC1-V1 */const safeUrl=s=>{s=String(s||"");return /^https:\/\/[^\s"'()<>\\]+$/.test(s)?s:0};
 const safeTh=s=>/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s||"")?s:"";
 const mkU=p=>{let u=BYP[p.id];if(!u){u={id:NID++,n:"User",l:"",t:"",u:0,on:0,seen:"",p:0,pid:p.id,lat:0};BYP[p.id]=u;U.push(u)}
- if(p.display_name)u.n=p.display_name;if(p.username)u.user=p.username;if(p.uid)u.uid=String(p.uid).replace(/^NX-?/,"MG");
+ if(p.display_name){u.rn=p.display_name;u.n=(ST2.nick&&ST2.nick[p.id])||p.display_name}if(p.username)u.user=p.username;if(p.uid)u.uid=String(p.uid).replace(/^NX-?/,"MG");
  u.p=safeUrl(p.avatar_url);u.about=p.about||"Hey there! I am using ZNEXORA";
  if(p.hide_seen){u.on=0;u.seen=""}else{u.on=freshOn(p)?1:0;u.seen=seenT(Object.assign({},p,{online:freshOn(p)}))}return u};
 
@@ -2840,7 +2855,7 @@ const nxOut=h=>{const o={};for(const k in (h||{}))o[k]=h[k].map(nxPid).filter(Bo
 const nxIn=h=>{const o={};for(const k in (h||{}))o[k]=h[k].map(p=>BYP[p]&&BYP[p].id).filter(Boolean);return o};
 async function nxLoadSync(){
  try{const r=await SB.from("nx_blocks").select("blocked").eq("blocker",PID);if(!r.error){NXB=new Set((r.data||[]).map(x=>x.blocked));BL.length=0;NXB.forEach(p=>{if(BYP[p])BL.push(BYP[p].id)})}}catch(e){}
- try{const r=await SB.from("nx_settings").select("data").eq("user_id",PID).maybeSingle(),d=r.data&&r.data.data;if(d){if(d.hide)d.hide=nxIn(d.hide);Object.assign(ST2,d);sv2();metaT();applyPrefs()}}catch(e){}}
+ try{const r=await SB.from("nx_settings").select("data").eq("user_id",PID).maybeSingle(),d=r.data&&r.data.data;if(d){if(d.hide)d.hide=nxIn(d.hide);Object.assign(ST2,d);sv2();metaT();applyPrefs();U.forEach(u=>{if(u.pid&&u.rn)u.n=(ST2.nick&&ST2.nick[u.pid])||u.rn})}}catch(e){}}
 window.nxSetPush=()=>{clearTimeout(NXT);NXT=setTimeout(async()=>{if(!SB||!PID)return;const d=Object.assign({},ST2);delete d.applock;delete d.lockT;delete d.dndAt;d.hide=nxOut(ST2.hide);
  try{await SB.from("nx_settings").upsert({user_id:PID,data:d,updated_at:new Date().toISOString()});await SB.from("profiles").update({hide_seen:ST2.seen==="nobody"}).eq("id",PID)}catch(e){}},900)};
 window.nxReport=async(u,why,note,snap)=>{try{if(!u.pid)throw 0;const r=await SB.from("nx_reports").insert({reporter:PID,target:u.pid,reason:why,note:note,snap:snap});if(r.error)throw r.error}catch(e){ts("Report could not be saved. Try again.")}};
