@@ -804,14 +804,14 @@ function chatMenu(){const u=cur,TL=[["dp",CMI.img,"Photo"],["th",CMI.pal,"Theme"
  sheet(`<div class="cc-h"><div class="ava" style="${u.p?`background-image:url(${u.p})`:`background:${g(u.n)}`}">${u.p?"":esc(ini(u.n))}</div><div><b>${esc(u.n)}</b><small>${esc(u.seen||"")}</small></div></div>
  <div class="cc-t">${TL.map(t=>`<button class="cct${t[0]==="mu"&&u.mute?" on":""}" data-o="${t[0]}">${t[1]}<span>${t[2]}</span></button>`).join("")}</div>
  <div class="sec">Video call quality</div><div class="seg">${["480","720","1080","1440","2160"].map(v=>`<button data-q="${v}" class="${vq===v?"on":""}">${{480:"480p",720:"720p",1080:"1080p",1440:"2K",2160:"4K"}[v]}</button>`).join("")}</div>
- <div class="glist" style="margin-top:6px">${RW("srch",CMI.search,"Search in chat","Find any message")}${RW("info",CMI.user,"Contact info","Media, UID and more")}<div class="gr"><i class="gi">${CMI.bolt}</i><span class="t"><b>Data saver</b><small>Compress files before sending</small></span><button class="tg ${ST2.ds?"on":""}" data-o="ds" aria-label="Data saver"></button></div><button class="gr dang" data-o="bl"><i class="gi">${CMI.block}</i><span class="t"><b>Block ${esc(u.n)}</b></span></button></div>`);
+ <div class="glist" style="margin-top:6px">${RW("gm",A('<rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10v5M4.5 12.5h5"/>'),"Play a game","Invite to a game")}${RW("srch",CMI.search,"Search in chat","Find any message")}${RW("info",CMI.user,"Contact info","Media, UID and more")}<div class="gr"><i class="gi">${CMI.bolt}</i><span class="t"><b>Data saver</b><small>Compress files before sending</small></span><button class="tg ${ST2.ds?"on":""}" data-o="ds" aria-label="Data saver"></button></div><button class="gr dang" data-o="bl"><i class="gi">${CMI.block}</i><span class="t"><b>Block ${esc(u.n)}</b></span></button></div>`);
  $("sh").onclick=e=>{const q2=e.target.closest("[data-q]");if(q2){vq=q2.dataset.q;ST2.vq=vq;sv2();[...q2.parentNode.children].forEach(b=>b.classList.toggle("on",b===q2));return}
   const o=e.target.closest("[data-o]");if(!o)return;const k=o.dataset.o;
   if(k==="th")return themeSheet();
   if(k==="srch"){closeS();return setTimeout(csOpen,260)}
   if(k==="info"){closeS();return setTimeout(()=>contactInfo(u.id),280)}
   if(k==="dp")return dpSheet();
-  if(k==="ds"){ST2.ds=ST2.ds?0:1;sv2();o.classList.toggle("on",!!ST2.ds);return}
+  if(k==="gm"){closeS();return setTimeout(()=>gmPick(u),280)}if(k==="ds"){ST2.ds=ST2.ds?0:1;sv2();o.classList.toggle("on",!!ST2.ds);return}
   if(k==="mu"){u.mute=!u.mute;o.classList.toggle("on",u.mute);o.firstElementChild.outerHTML=u.mute?CMI.bellx:CMI.bell;o.querySelector("span").textContent=u.mute?"Muted":"Mute";ts(u.mute?"Notifications muted":"Notifications on");return}
   closeS();ts(k==="bl"?(BL.includes(u.id)||BL.push(u.id),u.n+" blocked"):(setTimeout(()=>enjoyWith(u),280),"Opening Enjoy Together"))}}
 function themeSheet(){let gp="All",pv=thi;const GP=["All","Cool","Warm","Nature","Vivid"],grid=()=>{$("thg").innerHTML=THEMES.map((x,i)=>({x,i})).filter(o=>gp==="All"||o.x.k===gp).map((o,n)=>`<button class="thc${o.i===pv?" on":""}" data-i="${o.i}" style="--oa:${o.x.a};--og:${o.x.g};animation-delay:${n*22}ms"><i></i><span>${o.x.n}</span></button>`).join("")};
@@ -1110,20 +1110,52 @@ function tBot(){const b=T.b,e=[];b.forEach((v,i)=>{if(!v)e.push(i)});if(Math.ran
  const find=m=>{for(const i of e){b[i]=m;const w=tWin(b);b[i]="";if(w&&w.v===m)return i}return null};let p=find("O");if(p==null)p=find("X");
  if(p==null){let best=-1;e.forEach(i=>{const sc=10-Math.abs((i/N5|0)-2)-Math.abs(i%N5-2)+Math.random()*3;if(sc>best){best=sc;p=i}})}return p}
 function tStart(mode,d){inGame=true;T={mode,d,b:Array(25).fill(""),turn:"X",over:0,win:null,msg:"",last:-1};tDraw()}
-function tDraw(){const bot=T.mode==="bot",nm=m=>bot?(m==="X"?"You":"Robot"):(m==="X"?"Player 1":"Player 2");
- const msg=T.over?(T.win?(bot&&T.win.v==="X"?"You won!":nm(T.win.v)+" won!"):"It's a draw"):(bot&&T.turn==="O"?'Robot is thinking<i class="dots"></i>':nm(T.turn)+"'s turn ("+T.turn+")");
+function tDraw(){if(tab!=="play")return;const bot=T.mode==="bot",net=T.mode==="net",nm=m=>net?(m===T.me?"You":T.pn):bot?(m==="X"?"You":"Robot"):(m==="X"?"Player 1":"Player 2");
+ const msg=T.over?(T.win?(bot&&T.win.v==="X"?"You won!":nm(T.win.v)+" won!"):"It's a draw"):(bot&&T.turn==="O"?'Robot is thinking<i class="dots"></i>':(net&&T.turn===T.me?"Your turn ("+T.turn+")":nm(T.turn)+"'s turn ("+T.turn+")"));
  $("pg").innerHTML=`<div class="sb"><button class="ib" data-pl="exit" aria-label="Back">${A('<path d="M15 18l-6-6 6-6"/>')}</button><h2>Tic-Tac-Toe</h2><span style="flex:1"></span><button class="ib" data-pl="redo" aria-label="Restart">${A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')}</button></div><p class="gm ${T.over?"fin":""}">${msg}</p><div class="bd${T.over&&T.win?" fin":""}">${T.b.map((v,i)=>{const k=T.win?T.win.cs.indexOf(i):-1;return `<button class="cl ${v}${k>=0?" w":""}${i===T.last&&v?" new":""}" ${k>=0?`style="--k:${k}"`:""} data-pl="t:${i}" aria-label="Cell ${i+1}">${v==="X"?'<svg viewBox="0 0 24 24"><path pathLength="1" d="M6 6l12 12"/><path pathLength="1" d="M18 6L6 18"/></svg>':v==="O"?'<svg viewBox="0 0 24 24"><circle pathLength="1" cx="12" cy="12" r="7.2"/></svg>':""}</button>`}).join("")}${T.win?tLine():""}</div>${T.over?`<button class="pri" style="width:100%;max-width:420px;margin:16px auto 0;display:block" data-pl="redo">Play again</button>`:`<p class="note" style="text-align:center;margin-top:14px">Get four in a row to win. Rows, columns and diagonals count.</p>`}`}
 function tLine(){const c=T.win.cs,p=i=>[(i%5+.5)*20,((i/5|0)+.5)*20],a=p(c[0]),z=p(c[c.length-1]);return `<svg class="wl" viewBox="0 0 100 100"><defs><linearGradient id="wlg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0"><stop offset="0" stop-color="#8f88ff"/><stop offset="1" stop-color="#5ec2b7"/></linearGradient></defs><path pathLength="1" d="M${a[0]} ${a[1]}L${z[0]} ${z[1]}"/></svg>`}
+var GMX={ch:null,code:"",me:"X",peer:null,live:0,st:0,pend:"",tm:0,rt:0,tries:0};
+function gmTx(m){if(GMX.ch&&GMX.live){try{GMX.ch.send({type:"broadcast",event:"m",payload:Object.assign({from:clCtx().pid},m)})}catch(e){}}}
+function gmEnd(tell){clearTimeout(GMX.tm);clearInterval(GMX.rt);if(tell)gmTx({t:"leave"});var ch=GMX.ch;GMX.ch=null;GMX.live=0;GMX.st=0;GMX.pend="";GMX.code="";GMX.tries=0;if(ch){try{clCtx().sb.removeChannel(ch)}catch(e){}}if(T&&T.mode==="net")T.over=1}
+function gmOpen(code,cb){var c=clCtx();if(!c.sb||!c.pid){ts("Not connected yet.");return false}gmEnd(false);var ch=c.sb.channel("gm:"+code,{config:{broadcast:{self:false}}});GMX.ch=ch;GMX.code=code;ch.on("broadcast",{event:"m"},function(p){gmGot(p.payload)}).subscribe(function(s){if(GMX.ch!==ch)return;if(s==="SUBSCRIBED"){GMX.live=1;cb&&cb()}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")ts("Game connection is weak")});return true}
+function gmGo(){if($("chat").classList.contains("on"))$("cb").click();if(tab!=="play")show("play")}
+function gmStart(){tStart("net",0);T.me=GMX.me;T.pn=GMX.peer.n.split(" ")[0];tDraw()}
+function gmGot(m){if(!m||!GMX.peer||m.from!==GMX.peer.pid)return;
+ if(m.t==="join"&&GMX.me==="X"&&!GMX.st){GMX.st=1;clearTimeout(GMX.tm);closeS();gmTx({t:"start"});gmGo();gmStart()}
+ else if(m.t==="start"&&GMX.me==="O"&&!GMX.st){GMX.st=1;clearInterval(GMX.rt);closeS();gmGo();gmStart()}
+ else if(m.t==="mv"){if(T&&T.mode==="net"&&!T.over&&T.turn!==T.me&&m.i>=0&&m.i<25&&!T.b[m.i])tPlace(m.i)}
+ else if(m.t==="redo"){if(T&&T.mode==="net")gmStart()}
+ else if(m.t==="leave"){if(GMX.st){ts(GMX.peer.n.split(" ")[0]+" left the game");if(T&&T.mode==="net"){T.over=1;if(tab==="play")tDraw()}}}}
+function gmInvite(u){if(!u||!u.pid)return ts("This friend cannot be invited");var code=Math.random().toString(36).slice(2,10).toUpperCase();
+ if(!gmOpen(code))return;GMX.peer=u;GMX.me="X";
+ sheet('<div class="ci"><div class="rdo"><i></i><i></i><i></i></div><b>Waiting for '+esc(u.n.split(" ")[0])+'...</b><small>Tic-Tac-Toe invite sent</small></div><button style="width:100%" id="gmx">Cancel</button>');
+ $("sh").onclick=function(e){if(e.target.closest("#gmx")){clSig(u.pid,{t:"gmcan",code:code});gmEnd(false);closeS()}};
+ clSig(u.pid,{t:"gminv",g:"ttt",code:code,name:MY.name}).then(function(ok){if(!ok&&GMX.code===code){closeS();ts("Could not reach "+u.n.split(" ")[0]);gmEnd(false)}});
+ GMX.tm=setTimeout(function(){if(!GMX.st&&GMX.code===code){closeS();ts("No answer");clSig(u.pid,{t:"gmcan",code:code});gmEnd(false)}},60000)}
+function gmInvIn(m){if(m.g!=="ttt"||!m.code||!/^[A-Z0-9]{4,10}$/.test(m.code))return;var c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
+ if(!ST2.invite||(u&&BL.includes(u.id))||CL.on||GMX.ch){clSig(m.from,{t:"gmdec",code:m.code});return}
+ var nm=String(m.name||"A friend").slice(0,30);GMX.pend=m.code;
+ sheet('<div class="ci"><div class="ava ciav" style="width:72px;height:72px;font-size:26px;cursor:default;background:'+g(nm)+'">'+esc(ini(nm))+'</div><b>'+esc(nm)+'</b><small>invited you to play Tic-Tac-Toe</small></div><div class="grid" style="grid-template-columns:1fr 1fr"><button id="gmd">Decline</button><button class="pri" id="gmj">Join</button></div>');
+ $("sh").onclick=function(e){if(e.target.closest("#gmd")){closeS();GMX.pend="";clSig(m.from,{t:"gmdec",code:m.code})}else if(e.target.closest("#gmj")){closeS();gmAccept(m,u,nm)}};
+ if(navigator.vibrate)navigator.vibrate([20,40,20]);ping()}
+function gmAccept(m,u,nm){if(GMX.pend!==m.code){ts("Invite is no longer available");return}var peer=u||{pid:m.from,n:nm};
+ if(!gmOpen(m.code,function(){gmTx({t:"join"});GMX.rt=setInterval(function(){if(GMX.st||!GMX.ch){clearInterval(GMX.rt);return}if(++GMX.tries>6){clearInterval(GMX.rt);ts("Game is no longer available");gmEnd(false);return}gmTx({t:"join"})},1500)}))return;
+ GMX.peer=peer;GMX.me="O";ts("Joining...")}
+function gmDecIn(m){if(!GMX.ch||m.code!==GMX.code||GMX.st)return;var n=GMX.peer?GMX.peer.n.split(" ")[0]:"Friend";closeS();ts(n+" declined");gmEnd(false)}
+function gmCanIn(m){if(GMX.pend===m.code){GMX.pend="";closeS();ts("Invite cancelled")}}
+function gmPick(u){sheet('<h3>Invite '+esc(u.n.split(" ")[0])+'</h3><div class="glist"><button class="gr" data-g="ttt"><i>'+GI.ttt+'</i><span class="t"><b>Tic-Tac-Toe</b><small>5x5, four in a row</small></span><em>›</em></button><button class="gr off" data-g="uno"><i>'+GI.uno+'</i><span class="t"><b>UNO</b><small>Online coming next</small></span></button></div>');
+ $("sh").onclick=function(e){var b=e.target.closest("[data-g]");if(!b)return;if(b.dataset.g==="uno")return ts("Online UNO comes next");closeS();setTimeout(function(){gmInvite(u)},280)}}
+function gmSend(){var u=U.find(function(x){return x.id===[...INV.sel][0]});if(INV.id!=="ttt")return ts("Online UNO comes next. Tic-Tac-Toe works now");if(u)gmInvite(u)}
 function tPlace(i){T.last=i;T.b[i]=T.turn;const w=tWin(T.b);if(w){T.over=1;T.win=w}else if(T.b.every(Boolean))T.over=1;else T.turn=T.turn==="X"?"O":"X";tDraw();
  if(!T.over&&T.mode==="bot"&&T.turn==="O"){const t=T;setTimeout(()=>{if(T===t&&!t.over)tPlace(tBot())},450)}}
 $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-pl]");if(!b)return;const a=b.dataset.pl,k=a.split(":")[0],v=a.split(":")[1];
  if(k==="pick"){const uid=+v;sheet(`<h3>Invite to a game</h3>${GAMES.map(x=>`<button class="opt" data-g="${x.id}">${GI[x.id]}${x.n}</button>`).join("")}`);$("sh").onclick=e=>{const b=e.target.closest("[data-g]");if(b){closeS();inviteScreen(b.dataset.g,uid)}};return}
- if(k==="open"){openGame(v);return pgIn(b.closest(".sb")?-1:1)}if(k==="home"||k==="exit"){drawPlay();return pgIn(-1)}
+ if(k==="open"){openGame(v);return pgIn(b.closest(".sb")?-1:1)}if(k==="home"||k==="exit"){if(GMX.ch)gmEnd(true);inGame=false;drawPlay();return pgIn(-1)}
  if(k==="online"){inviteScreen(v);return pgIn(1)}if(k==="bot"||k==="phone")return cfgSheet(v,k);
  if(k==="tg"){const x=gOf(INV.id),id=+v;if(INV.sel.has(id))INV.sel.delete(id);else{if(x.max===2)INV.sel.clear();else if(INV.sel.size>=x.max-1)return ts("You can invite up to "+(x.max-1));INV.sel.add(id)}return fl()}
- if(k==="send"){if(INV.sel.size){lobby();pgIn(1)}return}if(k==="cancel"){openGame(INV.id);return pgIn(-1)}if(k==="vc")return ts("Voice chat in the room comes with the calls step");if(k==="mu")return ts("Music in the room comes with the Enjoy step");
- if(k==="t"){const i=+v;if(!T||T.over||T.b[i]||(T.mode==="bot"&&T.turn!=="X"))return;return tPlace(i)}
- if(k==="redo")return tStart(T.mode,T.d)});
+ if(k==="send"){if(INV.sel.size)gmSend();return}if(k==="cancel"){openGame(INV.id);return pgIn(-1)}if(k==="vc")return ts("Voice chat in the room comes with the calls step");if(k==="mu")return ts("Music in the room comes with the Enjoy step");
+ if(k==="t"){const i=+v;if(!T||T.over||T.b[i]||(T.mode==="bot"&&T.turn!=="X")||(T.mode==="net"&&T.turn!==T.me))return;if(T.mode==="net")gmTx({t:"mv",i});return tPlace(i)}
+ if(k==="redo")return T.mode==="net"?(gmTx({t:"redo"}),gmStart()):tStart(T.mode,T.d)});
 
 /* ===== motion system: springs, gestures, shared-element ===== */
 const ORD2=ORDER;
@@ -1463,7 +1495,7 @@ function encInfo(){const n=esc((cur&&cur.n||"").split(" ")[0]);sheet(`<div class
 $("msgs").addEventListener("click",e=>{if(e.target.closest("[data-enc]"))encInfo()});
 function contactInfo(id){const u=U.find(x=>x.id===id);if(!u)return;const media=(MSG[id]||[]).map((x,i)=>({x,i})).filter(o=>(o.x.k==="img"||o.x.k==="vid")&&o.x.src&&!o.x.once).slice(-9).reverse();
  sheet(`<div class="ci"><div class="ava ciav" id="ciav" style="${u.p?`background-image:url(${u.p})`:`background:${g(u.n)}`}">${u.p?"":esc(ini(u.n))}</div><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user||"user")} · ${esc(u.uid||"MG----")}</small><span class="cis${u.on?" on":""}">${u.on?"Online":esc(u.seen||"")}</span></div>
- <div class="cc-t">${[["msg",SI.chat,"Message"],["call",IC.phone,"Voice"],["en",CMI.play,"Enjoy"],["mu",SI.bell,u.mute?"Muted":"Mute"]].map(t=>`<button class="cct${t[0]==="mu"&&u.mute?" on":""}" data-c="${t[0]}">${t[1]}<span>${t[2]}</span></button>`).join("")}</div>
+ <div class="cc-t" style="grid-template-columns:repeat(3,1fr)">${[["msg",SI.chat,"Message"],["call",IC.phone,"Voice"],["mu",SI.bell,u.mute?"Muted":"Mute"]].map(t=>`<button class="cct${t[0]==="mu"&&u.mute?" on":""}" data-c="${t[0]}">${t[1]}<span>${t[2]}</span></button>`).join("")}</div>
  <div class="sec">About</div><div class="glist"><div class="gr"><span class="t"><b>${esc(u.about||"Hey there! I am using ZNEXORA")}</b></span></div></div>
  <div class="glist"><button class="gr" data-c="safe"><span class="t"><b>Verify encryption</b><small>Compare a safety code</small></span><em>›</em></button></div><div class="sec">Details</div><div class="glist"><div class="gr"><span class="t"><small class="mono">UID</small><b>${esc(u.uid||"MG----")}</b></span><button class="gb" data-c="cuid">Copy</button></div><div class="gr"><span class="t"><small class="mono">Username</small><b>@${esc(u.user||"user")}</b></span></div><div class="gr"><span class="t"><small class="mono">Status</small><b>${u.on?"Online now":esc(u.seen||"Offline")}</b></span></div></div>
  <div class="sec">Shared media · ${media.length}</div>${media.length?`<div class="smg">${media.map(o=>`<button class="sm" data-sm="${o.i}">${o.x.k==="img"?`<img src="${MEDC[o.x.src]||o.x.src}" alt="">`:`<video src="${o.x.src}#t=0.1" muted playsinline preload="metadata"></video>`}</button>`).join("")}</div>`:'<div class="empty" style="padding:16px">No photos or videos yet.</div>'}
@@ -1473,7 +1505,7 @@ function contactInfo(id){const u=U.find(x=>x.id===id);if(!u)return;const media=(
   const b=e.target.closest("[data-c]");if(!b)return;const k=b.dataset.c;
   if(k==="safe")return eSafety(u);if(k==="cuid")return navigator.clipboard&&navigator.clipboard.writeText(u.uid||"").then(()=>ts("UID copied"),()=>ts("Copy failed"));
   if(k==="mu"){u.mute=!u.mute;b.classList.toggle("on",!!u.mute);b.querySelector("span").textContent=u.mute?"Muted":"Mute";return ts(u.mute?"Notifications muted":"Notifications on")}
-  closeS();if(k==="msg")return;if(k==="en")return setTimeout(()=>enjoyWith(u),280);if(k==="report")return setTimeout(()=>reportSheet(id),260);if(k==="call")return setTimeout(()=>clOpen(0),250);
+  closeS();if(k==="msg")return;if(k==="report")return setTimeout(()=>reportSheet(id),260);if(k==="call")return setTimeout(()=>clOpen(0),250);
   if(k==="block"){BL.includes(id)||BL.push(id);$("cb").click();return ts(u.n+" blocked")}
   if(k==="del"){setTimeout(()=>{sheet(`<h3>Delete this chat?</h3><button class="opt rd" data-d="me">${IC.trash}Delete for me</button><button class="opt rd" data-d="all">${IC.trash}Delete for everyone</button>`);$("sh").onclick=ev=>{const d=ev.target.closest("[data-d]");if(!d)return;closeS();MSG[id]=[];u.l="";if(d.dataset.d==="me")U=U.filter(x=>x.id!==id);ts(d.dataset.d==="me"?"Chat deleted for you":"Chat deleted for both");$("cb").click()}},280)}}}
 
@@ -1745,7 +1777,7 @@ function clState(s){if(!CL.on||!CL.pc)return;
  else if(s==="failed")clRetry()}
 function clRetry(){if(!CL.on)return;if(CL.fail++>=2)return clEnd("lost");
  if(CL.role==="out")clOffer(true).catch(()=>{});else{clearTimeout(CL.ft);CL.ft=setTimeout(()=>{if(CL.on&&CL.pc&&CL.pc.connectionState!=="connected")clEnd("lost")},15000)}}
-function clGot(m){if(!m||!m.t||!m.from)return;/* PATCH-ZNX-ROOM-V1 */if(m.t==="etinv")return etInvIn(m);if(m.t==="etdec")return etDecIn(m);
+function clGot(m){if(!m||!m.t||!m.from)return;/* PATCH-ZNX-ROOM-V1 */if(m.t==="gminv")return gmInvIn(m);if(m.t==="gmdec")return gmDecIn(m);if(m.t==="gmcan")return gmCanIn(m);if(m.t==="etinv")return etInvIn(m);if(m.t==="etdec")return etDecIn(m);
  if(m.t==="invite"){const c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
   if(CL.on||(u&&BL.includes(u.id))||!ST2.calls){clSig(m.from,{t:CL.on?"busy":"decline",id:m.id});return}
   Object.assign(CL,CL0,{on:1,role:"in",id:m.id,pid:m.from,peer:u||{n:String(m.name||"Unknown").slice(0,30),p:0},v:m.v?1:0,q:[]});
