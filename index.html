@@ -244,7 +244,7 @@ nav .on svg{stroke:var(--ac);filter:drop-shadow(0 0 7px var(--ac))}
 .feat{position:relative;overflow:hidden;border-radius:24px;padding:20px 20px 18px;margin-bottom:6px;color:#fff;background:linear-gradient(150deg,#1f1b5c,#3a30a8 55%,#5b54e0)}
 .feat::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 1px,transparent 1px 34px),repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0 1px,transparent 1px 34px);-webkit-mask:radial-gradient(90% 90% at 100% 0,#000,transparent 75%);mask:radial-gradient(90% 90% at 100% 0,#000,transparent 75%)}
 .feat>*{position:relative}.feat .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.75}.feat b{display:block;font-size:24px;font-weight:650;margin:6px 0 2px;letter-spacing:-.4px}.feat p{margin:0 0 16px;font-size:13.5px;opacity:.8}
-.feat .fbx{display:flex;gap:8px}.feat .fbx button{height:40px;padding:0 16px;border-radius:20px;border:0;background:#fff;color:#1f1b5c;font-weight:650;font-size:13.5px}.feat .fbx .gh2{background:rgba(255,255,255,.16);color:#fff}
+.feat .fbxx{display:flex;gap:8px}.feat .fbxx button{height:40px;padding:0 16px;border-radius:20px;border:0;background:#fff;color:#1f1b5c;font-weight:650;font-size:13.5px}.feat .fbxx .gh2{background:rgba(255,255,255,.16);color:#fff}
 .feat .fg{position:absolute;right:16px;top:16px;opacity:.35}.feat .fg svg{width:54px;height:54px;fill:none;stroke:#fff;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .strip{display:flex;gap:16px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}.strip::-webkit-scrollbar{display:none}
 .fo{display:grid;justify-items:center;gap:6px;border:0;background:none;height:auto;color:var(--tx);font-size:12px;font-weight:550;padding:0;flex:none}.fo .ava{width:54px;height:54px;font-size:17px}.fo span{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1387,33 +1387,7 @@ function mpEAt(t){const H=RG.eh;for(let i=H.length-1;i>=0;i--)if(H[i][0]<=t)retu
 /* a conic gradient with a bright head and a long fade, so colour flows round a line */
 function rgCone(x,ang,st){if(!x.createConicGradient)return rgCol(st[0][1],st[0][2],66);const g=x.createConicGradient(ang,200,200);st.forEach(s=>g.addColorStop(s[0],rgCol(s[1],s[2],s[3]||66)));return g}
 /* the ring: drawn on a 400 x 400 grid. full = big player, otherwise the small floating orb */
-function mpRing(x,T,full,pr){const m=RG.mm<0?1:RG.mm,h0=mpHue(T.c[0]),h1=mpHue(T.c[1]);let dh=h1-h0;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
- const dr=Math.sin(RG.t*.12)*8,A=h0+dr,B=h0+dh+dr,mid=(A+B)/2,E=RG.en,am=RGC.AM[m],ph=RG.ph,t=RG.t,an=ph*.3,
- nx=RGC.PAT[m][RG.step%8],nd=1+((RG.step&1)?-RGC.SW[m]:RGC.SW[m]),fr=MP.play?Math.min(1,RG.bp/nd):0,ant=nx>=.6?Math.pow(Math.max(0,(fr-.7)/.3),2)*nx:0,
- R0=(full?96:130)*(1+RG.sx*.5-.013*ant);
- const path=(rad,w)=>{x.beginPath();for(let k=0;k<=200;k++){const a=k/200*RTAU,r=rad*(1+w*(.012*E*am*Math.sin(3*a+ph*.9)+.008*Math.sin(2*a-ph*.6)));k?x.lineTo(200+Math.cos(a)*r,200+Math.sin(a)*r):x.moveTo(200+Math.cos(a)*r,200+Math.sin(a)*r)}x.closePath()},
- ring=(rad,lw,al,ang,sh)=>{path(rad,1);x.strokeStyle=rgCone(x,ang,[[0,A+sh,al],[.25,mid+sh,al*.55],[.5,B+sh,al*.1],[.75,mid+40+sh,al*.55],[1,A+sh,al]]);x.lineWidth=lw;x.stroke()};
- x.lineCap="round";x.lineJoin="round";x.globalCompositeOperation="lighter";
- const gr=(full?219:90)*(1+RG.sx*.9),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.5:.7)*(.14+E*.34),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
- const ig=x.createRadialGradient(200,200,R0*.25,200,200,R0);ig.addColorStop(0,rgCol(B,0,50));ig.addColorStop(.7,rgCol(mid,.025+E*.035,52));ig.addColorStop(1,rgCol(A,.1+E*.09,60));x.fillStyle=ig;x.beginPath();x.arc(200,200,R0,0,RTAU);x.fill();
- ring(R0,30,.07+E*.05,an,0);ring(R0,15,.14+E*.08,an,0);
- const d=.5+E*1.3+RG.kk*2.2;ring(R0-d,2.4,.4+E*.2,an,-24);ring(R0+d,2.4,.4+E*.2,an,24);
- ring(R0,5+E*3,.92,an,0);
- path(R0,1);x.strokeStyle=rgCone(x,an,[[0,A,.75,92],[.1,mid,.25,88],[.22,B,0,80],[.9,B,0,80],[.95,mid,.15,88],[1,A,.75,92]]);x.lineWidth=1.3;x.stroke();
- if(!full){x.globalCompositeOperation="source-over";return}
- ring(R0*.76,1,.2*Math.min(1,mpEAt(t-.12)*1.6),an+1,0);ring(R0*1.24,1,.16*Math.min(1,mpEAt(t-.22)*1.6),an+2,0);
- const arc=(rad,ang,al)=>{path(rad,0);x.strokeStyle=rgCone(x,ang,[[0,mid,0],[.06,mid,al],[.13,mid,0],[1,mid,0]]);x.lineWidth=1.2;x.stroke()};
- arc(R0*1.13,-ph*.22,.5+E*.2);arc(R0*.87,ph*.3+2,.45+E*.2);
- if(RG.sw<1){const p=1-Math.pow(1-RG.sw,3),al=Math.pow(1-RG.sw,1.4)*.8;path(R0,0);x.strokeStyle=rgCone(x,-Math.PI/2+p*RTAU*1.15,[[0,A,0],[.07,B,al,80],[.14,A,0],[1,A,0]]);x.lineWidth=2.4;x.stroke()}
- for(const b of RG.beats){const age=t-b.t;if(b.s<.6||age>1.4||age<0)continue;const f=age/1.4;x.strokeStyle=rgCol(A+(B-A)*f,Math.pow(1-f,2)*.2,72);x.lineWidth=.9*(1-f)+.3;x.beginPath();x.arc(200,200,R0*(1.08+f*.8*am),0,RTAU);x.stroke()}
- const pa=-Math.PI/2+pr*RTAU;x.globalCompositeOperation="source-over";x.lineWidth=1;x.strokeStyle="rgba(255,255,255,.07)";x.beginPath();x.arc(200,200,188,0,RTAU);x.stroke();x.lineWidth=1.3;x.strokeStyle=rgCol(A,.8,68);x.beginPath();x.arc(200,200,188,-Math.PI/2,pa);x.stroke();x.fillStyle="#fff";x.beginPath();x.arc(200+Math.cos(pa)*188,200+Math.sin(pa)*188,2.2,0,RTAU);x.fill()}
-function mpDraw(){const c=$("mpc"),T=MT[MP.i];if(!MP.on||!T){MP.raf=0;return}
- const d=Math.min(2,devicePixelRatio||1),S=400;if(c.width!==S*d){c.width=c.height=S*d}
- const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);x.globalCompositeOperation="source-over";x.clearRect(0,0,S,S);
- const t=performance.now()/1000,dt=Math.min(.1,t-(MP.tl||t)),D=mpDur(),pr=D?Math.min(1,mpPos()/D):0;MP.tl=t;mpPulse(t,dt,T.m,MP.play?1:0);
- mpRing(x,T,true,pr);
- $("mp").style.setProperty("--bt",Math.min(1,RG.en*.6+RG.sx*3).toFixed(3));
- $("mpf2").style.width=pr*100+"%";$("mpkn").style.left=pr*100+"%";$("mpa").textContent=mpFmt(mpPos());$("mpd").textContent=D?mpFmt(D):"–:––";MP.raf=requestAnimationFrame(mpDraw)}
+let mpRing,mpDraw;
 function mpMini(){requestAnimationFrame(mpMini);const o=$("morb"),c=$("morbc"),T=MT[MP.i];if(!o||!c||!T||MP.on||document.hidden||!o.classList.contains("on"))return;
  const d=Math.min(2,devicePixelRatio||1),S=64;if(c.width!==S*d){c.width=c.height=S*d}
  const x=c.getContext("2d");x.setTransform(d*S/400,0,0,d*S/400,0,0);x.globalCompositeOperation="source-over";x.clearRect(0,0,400,400);
@@ -3006,27 +2980,6 @@ if(SB)SB.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&PID&&booted)location.
 (async()=>{try{await boot()}catch(e){}window.znxBooted=1})();
 
 RGC.PAT[0]=[1,0,.5,0,.85,0,.5,0];
-mpRing=function(x,T,full,pr){
- const m=RG.mm<0?1:RG.mm,h0=mpHue(T.c[0]),h1=mpHue(T.c[1]);let dh=h1-h0;if(dh>180)dh-=360;if(dh<-180)dh+=360;if(Math.abs(dh)<50)dh=dh<0?-80:80;
- const t=RG.t,dt=Math.min(.1,Math.max(0,t-(RG._l||t)));RG._l=t;
- const bm=[.9,1.15,1.45][m],K=RG.k;
- RG.e2=RG.e2||0;RG.e2+=(RG.en-RG.e2)*(1-Math.exp(-dt*(RG.en>RG.e2?18:5)));
- RG.jx=RG.jx||0;RG.jv=RG.jv||0;const tg=(K*.075+RG.kk*.04+RG.e2*.03)*bm;
- for(let r=dt;r>0;){const h=Math.min(r,.012);RG.jv+=((tg-RG.jx)*150-RG.jv*10)*h;RG.jx+=RG.jv*h;r-=h}
- RG.jx=Math.max(-.12,Math.min(.2,RG.jx));
- const E=RG.e2,J=RG.jx,am=RGC.AM[m],ph=RG.ph,dr=Math.sin(t*.12)*10,A=h0+dr,B=h0+dh+dr,mid=(A+B)/2,an=ph*.3,
- W=E+K*.5,R0=(full?96:130)*(1+J),sq=Math.max(-.045,Math.min(.045,RG.jv*.012)),
- path=(rad,o)=>{x.beginPath();for(let k=0;k<=240;k++){const a=k/240*RTAU,r=rad*(1+.014*W*am*Math.sin(3*a+ph*.9+(o||0))+.009*Math.sin(2*a-ph*.6)+.006*W*Math.sin(5*a+ph*1.7));const px=200+Math.cos(a)*r*(1+sq),py=200+Math.sin(a)*r*(1-sq);k?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()},
- ring=(rad,lw,al,o)=>{path(rad,o);x.strokeStyle=rgCone(x,an,[[0,A,al],[.18,A+(B-A)*.3,al*.8],[.38,mid,al*.45],[.5,B,al*.18],[.62,mid,al*.45],[.82,A+(B-A)*.3,al*.8],[1,A,al]]);x.lineWidth=lw;x.stroke()};
- x.lineCap="round";x.lineJoin="round";x.globalCompositeOperation="lighter";
- const gr=(full?210:175)*(1+J*1.2),gg=x.createRadialGradient(200,200,0,200,200,gr);gg.addColorStop(0,rgCol(A,(full?.4:.6)*(.12+E*.3+K*.25),62));gg.addColorStop(1,rgCol(A,0,62));x.fillStyle=gg;x.fillRect(0,0,400,400);
- const cx=200+Math.cos(ph*.8)*R0*.1,cy=200+Math.sin(ph*.6)*R0*.1,ig=x.createRadialGradient(cx,cy,R0*.1,200,200,R0);ig.addColorStop(0,rgCol(B,.03+E*.05+K*.05,60));ig.addColorStop(1,rgCol(A,.09+E*.07+K*.06,60));x.fillStyle=ig;path(R0);x.fill();
- ring(R0,28,.05+E*.04+K*.05);ring(R0,13,.12+E*.07+K*.08);
- const d=.5+E*1.2+K*3+RG.kk*1.6;ring(R0-d,2,.28+E*.14+K*.14,.5);ring(R0+d,2,.28+E*.14+K*.14,-.5);
- ring(R0,4.5+E*2.5+K*3.5,.9);
- if(!full){x.globalCompositeOperation="source-over";return}
- for(const b of RG.beats){const age=t-b.t;if(b.s<.55||age<0||age>1.5)continue;const f=age/1.5,e=1-Math.pow(1-f,3);x.strokeStyle=rgCol(A+(B-A)*f,Math.pow(1-f,2)*.18*b.s,70);x.lineWidth=1.3*(1-f)+.3;x.beginPath();x.arc(200,200,R0*(1.05+e*.5*am),0,RTAU);x.stroke()}
- const pa=-Math.PI/2+pr*RTAU;x.globalCompositeOperation="source-over";x.lineWidth=1;x.strokeStyle="rgba(255,255,255,.07)";x.beginPath();x.arc(200,200,188,0,RTAU);x.stroke();x.lineWidth=1.3;x.strokeStyle=rgCol(A,.7,68);x.beginPath();x.arc(200,200,188,-Math.PI/2,pa);x.stroke();x.fillStyle="#fff";x.beginPath();x.arc(200+Math.cos(pa)*188,200+Math.sin(pa)*188,2,0,RTAU);x.fill()};
 
 {const lo=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4);
  const s=document.createElement("style");s.textContent=".lowfx *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}.lowfx .dot{animation:none!important}";document.head.appendChild(s);document.documentElement.classList.toggle("lowfx",!!lo)}
@@ -3509,12 +3462,6 @@ nav,.top.sc{-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blu
 
 {
 /* ---------- 1. LIVE BEAT: removed (button, mic access, saved setting) ---------- */
-try{localStorage.setItem("znx_live","0")}catch(e){}
-{const s=document.createElement("style");s.textContent=".micb{display:none!important}";document.head.appendChild(s)}
-{const b=document.getElementById("micb");if(b){b.onclick=null;b.remove()}}
-micOn=function(){};
-micOff=function(){};
-try{if(MIC.on)MIC.on=0;if(MIC.s)MIC.s.getTracks().forEach(t=>t.stop())}catch(e){}
 
 /* ---------- 2. MUSIC: every time a random song starts (inside the chosen section) ---------- */
 const pickNew=l=>{let last="";try{last=localStorage.getItem("znx_lastfirst")||""}catch(e){}
