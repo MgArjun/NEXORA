@@ -3001,18 +3001,18 @@ setInterval(()=>{if(PID)nxIce()},3*3600e3);
 const boot=async()=>{
  if(!SB)return false;
  const{data}=await SB.auth.getSession(),ses=data&&data.session;if(!ses)return false;
- const au=ses.user;PID=au.id;
- let ls="";try{const r=await SB.rpc("my_login_status");ls=String(r.data==null?"":r.data)}catch(e){}
+ const au=ses.user;PID=au.id;/*ZNX-V18*/const _pP=SB.from("profiles").select("*").eq("id",PID).maybeSingle().then(r=>r.data,()=>null),_pA=SB.rpc("nx_is_admin").then(r=>r.data===true,()=>false),_pL=SB.rpc("my_login_status").then(r=>String(r.data==null?"":r.data),()=>""),_pB=SB.from("nx_bans").select("user_id").eq("user_id",PID).maybeSingle().then(r=>!!r.data,()=>false);
+ let ls=await _pL;
  if(/ban|block|reject|denied/i.test(ls)){try{await SB.auth.signOut()}catch(e){}PID=null;say("This account is blocked. Please contact the admin.");return false}
  if(/pend|wait/i.test(ls)){try{await SB.auth.signOut()}catch(e){}PID=null;say("Your account is waiting for admin approval. Try again later.");return false}
- try{const bn=await SB.from("nx_bans").select("user_id").eq("user_id",PID).maybeSingle();if(bn.data){try{await SB.auth.signOut()}catch(e){}PID=null;say("This account is blocked. Please contact the admin.");return false}}catch(e){}
- let pr=null;for(let i=0;i<4&&!pr;i++){try{const r=await SB.from("profiles").select("*").eq("id",PID).maybeSingle();pr=r.data}catch(e){}if(!pr)await new Promise(z=>setTimeout(z,500))}
+ try{if(await _pB){try{await SB.auth.signOut()}catch(e){}PID=null;say("This account is blocked. Please contact the admin.");return false}}catch(e){}
+ let pr=await _pP;for(let i=0;i<4&&!pr;i++){try{const r=await SB.from("profiles").select("*").eq("id",PID).maybeSingle();pr=r.data}catch(e){}if(!pr)await new Promise(z=>setTimeout(z,500))}
  if(!pr){try{const nm=(au.user_metadata&&au.user_metadata.display_name)||"NEXORA User",r=await SB.from("profiles").insert({id:PID,username:"NX_"+PID.replace(/-/g,"").slice(0,8).toUpperCase(),display_name:nm,is_guest:!!au.is_anonymous}).select().maybeSingle();pr=r.data}catch(e){}}
  if(!pr){PID=null;say("Could not load your profile. Please try again.");return false}
- let adm=false;try{const r=await SB.rpc("nx_is_admin");adm=r.data===true}catch(e){}
+ let adm=await _pA;
  Object.assign(MY,{role:adm?"admin":"user",name:pr.display_name||"NEXORA User",user:pr.username||"",uid:String(pr.uid||"").replace(/^NX-?/,"MG"),bio:pr.about||"Hey there! I am using ZNEXORA",about:pr.about||"",email:au.email||"",guest:!!(pr.is_guest||au.is_anonymous),p:safeUrl(pr.avatar_url)});
- setPres(true);await e2eInit(pr);await Promise.all([loadChats(),loadFav()]);await nxLoadSync();nxIce();if(adm)nxAdminLoad();subRT();window.znxCallListen();
- if(!booted){booted=1;enter()}else{top2()}
+ setPres(true);await e2eInit(pr);const _bg=Promise.all([loadChats(),loadFav()]).then(()=>nxLoadSync()).then(()=>{try{if(tab==="chats"&&!chatOn()&&$("ls"))list()}catch(e){}}).catch(()=>{});nxIce();if(adm)nxAdminLoad();subRT();window.znxCallListen();
+ if(!booted){booted=1;enter()}else{top2();await _bg}
  return true};
 $("go").onclick=async()=>{
  if(BUSY)return;const em=$("em").value.trim();
@@ -3688,8 +3688,8 @@ if(has){
  var sp=g("sp"),t0=Date.now(),fin=0,iv=0;
  try{done=1}catch(e){}
  var ready=function(){return !g("app").classList.contains("hide")};
- var leave=function(){if(fin)return;fin=1;clearInterval(iv);H.classList.remove("ses");if(sp&&sp.isConnected){sp.classList.add("out");setTimeout(function(){sp.remove()},550)}};
- iv=setInterval(function(){var el=Date.now()-t0;if(el<2900)return;if(ready()||window.znxBooted||el>20000)leave()},150);
+ var leave=function(){if(fin)return;fin=1;clearInterval(iv);H.classList.remove("ses");if(sp&&sp.isConnected){sp.classList.add("out");setTimeout(function(){sp.remove()},350)}};
+ iv=setInterval(function(){var el=Date.now()-t0;if(el<1300)return;if(ready()||window.znxBooted||el>20000)leave()},150);
  if(sp)sp.addEventListener("click",function(){if(Date.now()-t0>=900&&(ready()||window.znxBooted))leave()});
 }
 
