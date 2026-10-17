@@ -707,8 +707,8 @@ const P=(c,x,y,e)=>`<g transform="translate(${x} ${y})"><path class="${c}" pathL
 const logo=P("sh",4,5)+P("mn",0,0)+P("inl",0,0)+P("hl",-1.2,-1.2);
 ["lg1","lg2"].forEach(i=>document.getElementById(i).innerHTML=logo);
 const $=i=>document.getElementById(i),sp=$("sp");
-let done=0;const hideSp=()=>{if(done)return;done=1;sp.classList.add("out");setTimeout(()=>sp.remove(),550)};
-sp.onclick=hideSp;setTimeout(hideSp,2900);
+let done=0;const hideSp=()=>{if(done)return;done=1;sp.classList.add("out");setTimeout(()=>sp.remove(),350)};
+sp.onclick=hideSp;setTimeout(hideSp,1400);
 let su=false,st=1;
 const say=t=>$("msg").textContent=t,gl=$("gl");
 function paint(){$("fnm").classList.toggle("hide",!su||st===2);gl.classList.toggle("on2",st===2);$("ttl").textContent=st===2?(su?"Set a password":"Enter your password"):(su?"Create your ID":"Welcome back");$("sub").style.display=st===2?"none":"";
@@ -3727,6 +3727,85 @@ setInterval(function(){
   if(v&&enabled()&&now-lastCh<3500){if(act!==pid||now-lastTx>2500){if(tx(pid,1)){act=pid;lastTx=now}}}
   else if(act===pid){tx(pid,0);act=0}}
  paint()},400);
+})();
+</script>
+<script>
+/* ===== ZNX-PATCH-V17: faster splash, WhatsApp-style flat chat, instant press effect, smoother app ===== */
+(function(){
+var H=document.documentElement,$=function(i){return document.getElementById(i)};
+
+/* ---------- CSS ---------- */
+var s=document.createElement("style");
+s.textContent=`
+/* 1. splash: animation rahegi, bas jaldi khatam */
+.logo path{animation-duration:.6s!important}
+.logo .g{animation-delay:.2s!important}
+.logo .inl{animation-delay:.35s!important}
+.wm{animation-duration:.5s!important;animation-delay:.4s!important}
+.wm .ln{animation-duration:.5s!important;animation-delay:.65s!important}
+.pb{animation-duration:.4s!important;animation-delay:.7s!important}
+#sp{transition-duration:.3s!important}
+
+/* 2. chat: saari lines hata di (WhatsApp jaisa flat) */
+.row+.row::before,.row.sel+.row::before{display:none!important}
+.ch{border-bottom:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--bg)!important}
+.ch::after{display:none!important}
+.cp{border-top:0!important}
+#csb{border-bottom:0!important}
+.m.in{border:0!important;box-shadow:none!important}
+.m.out{box-shadow:none!important}
+.rc{box-shadow:none!important}
+
+/* 3. smooth: heavy effects band */
+#pg{filter:none!important}
+#ls.fresh>.row{animation:none!important}
+.row{transition:none!important}
+.row:active{transform:none!important;opacity:1!important}
+#chat{transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+#sbar,#csb,.top.sc{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* 4. touch effect: haath lagte hi turant */
+.row::after{transition:opacity .4s ease!important}
+.row.prs::after{opacity:1!important;transition:none!important}
+.row.prs{background:color-mix(in srgb,var(--tx) 7%,transparent);border-radius:18px}
+`;
+document.head.appendChild(s);
+
+/* ---------- instant press effect (chat list) ---------- */
+var pg=$("pg"),curRow=null,t0=0,tm=0;
+function clr(){
+ var r=curRow;if(!r)return;
+ var wait=Math.max(0,140-(Date.now()-t0));
+ clearTimeout(tm);
+ tm=setTimeout(function(){r.classList.remove("prs")},wait);
+ curRow=null}
+pg.addEventListener("pointerdown",function(e){
+ var r=e.target.closest&&e.target.closest("#ls .row");
+ if(!r)return;
+ var b=r.getBoundingClientRect();
+ r.style.setProperty("--mx",(e.clientX-b.left)+"px");
+ r.style.setProperty("--my",(e.clientY-b.top)+"px");
+ clearTimeout(tm);
+ if(curRow&&curRow!==r)curRow.classList.remove("prs");
+ curRow=r;t0=Date.now();r.classList.add("prs")},{passive:true});
+["pointerup","pointercancel"].forEach(function(k){document.addEventListener(k,clr,true)});
+
+/* ---------- splash: jaldi band ---------- */
+var st=performance.now();
+var iv=setInterval(function(){
+ var sp=$("sp");
+ if(!sp||!sp.isConnected){clearInterval(iv);return}
+ if(performance.now()-st<1200)return;
+ var ses=H.classList.contains("ses"),appUp=!$("app").classList.contains("hide");
+ if(!ses){
+  try{hideSp()}catch(e){sp.classList.add("out");setTimeout(function(){if(sp.isConnected)sp.remove()},350)}
+  clearInterval(iv)}
+ else if(appUp||window.znxBooted){
+  if(!appUp)H.classList.remove("ses");
+  sp.classList.add("out");
+  setTimeout(function(){if(sp.isConnected)sp.remove()},350);
+  clearInterval(iv)}
+},100);
 })();
 </script>
 </body></html>
