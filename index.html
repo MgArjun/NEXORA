@@ -708,7 +708,7 @@ const logo=P("sh",4,5)+P("mn",0,0)+P("inl",0,0)+P("hl",-1.2,-1.2);
 ["lg1","lg2"].forEach(i=>document.getElementById(i).innerHTML=logo);
 const $=i=>document.getElementById(i),sp=$("sp");
 let done=0;const hideSp=()=>{if(done)return;done=1;sp.classList.add("out");setTimeout(()=>sp.remove(),350)};
-sp.onclick=hideSp;setTimeout(hideSp,1400);
+sp.onclick=hideSp;setTimeout(hideSp,600);
 let su=false,st=1;
 const say=t=>$("msg").textContent=t,gl=$("gl");
 function paint(){$("fnm").classList.toggle("hide",!su||st===2);gl.classList.toggle("on2",st===2);$("ttl").textContent=st===2?(su?"Set a password":"Enter your password"):(su?"Create your ID":"Welcome back");$("sub").style.display=st===2?"none":"";
@@ -3658,7 +3658,7 @@ try{matchMedia("(prefers-color-scheme:dark)").addEventListener("change",bg2)}cat
 bg2();
 function bgSheet2(){
  const tile=p=>'<button class="bgc'+(p[0]===bgCur2()[0]?" on":"")+'" data-bg2="'+p[0]+'" style="--b:'+p[2]+";--x:"+p[4]+";--y:"+p[5]+'"><i></i><span>'+p[1]+"</span></button>";
- sheet('<h3>Background</h3><p class="note">Tap to try. Poora app turant badal jata hai.</p><div class="bgg">'+BG2.map(tile).join("")+"</div>");
+ sheet('<h3>Background</h3><p class="note">Tap to try. The whole app changes instantly.</p><div class="bgg">'+BG2.map(tile).join("")+"</div>");
  $("sh").onclick=e=>{const b=e.target.closest("[data-bg2]");if(!b)return;
   ST2.bg2=b.dataset.bg2;ST2.bgt="mid";sv2();bg2();
   [...$("sh").querySelectorAll(".bgc")].forEach(z=>z.classList.toggle("on",z===b));
@@ -3808,4 +3808,19 @@ var iv=setInterval(function(){
 },100);
 })();
 </script>
+
+/* ===== HIG PATCH START ===== */
+<style>
+/* touch */.ib,.plus,.eye,.gb,.chips button,.abar .ib,#sbar .ib,.srcb .ib,.etk .ib,.mpctl .ib{min-width:44px!important;min-height:44px!important}.rc{position:relative}.rc::before{content:'';position:absolute;inset:-10px}.sr,.gr,.opt,.pr2{min-height:44px}
+/* tabs */nav button{font-size:11px!important;gap:2px!important}nav button:not(.on){font-size:11px!important}
+/* text */.mono,.sec,.chip,.foot,.mpt1 small,.mptt small,.mptm,.mph,.row .r span,.clc small,.clh small,.lkt small,.etn small,.ett small,.mtc,.mth span,.uoCap{font-size:11px!important}.mph,.mptt small,.mptm,.mpt1 small,.sec{opacity:.85!important}@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--mu:#555a70}}:root[data-theme="light"]{--mu:#555a70}
+/* dyn */html{font-size:100%;-webkit-text-size-adjust:100%}body{font-size:1rem}
+/* calm */.pri.shm::after,.emb,.emf::before,.dot,#clpill i,.clbg,.clav,.uodp.hot .uc,.uoDc::before{animation:none!important}#app::before,#app::after,main::before{opacity:.35!important}
+/* glass */.card,.card2,.glist,.srch,.cpf,.srcb,.chips button,#mini,.feat,.uopl,.uocl{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style>
+<script>
+/* dyn */document.documentElement.style.webkitTextSizeAdjust='100%';
+/* a11y */(function(){var t=document.getElementById('ts');if(t){t.setAttribute('role','status');t.setAttribute('aria-live','polite')}var s=document.getElementById('sh');if(s){s.setAttribute('role','dialog');s.setAttribute('aria-modal','true')}var n=document.getElementById('nav');function lab(){if(n)n.querySelectorAll('button').forEach(function(b){if(!b.getAttribute('aria-label')){var m=b.dataset.t;if(m)b.setAttribute('aria-label',m)}});document.querySelectorAll('.ava:not([aria-label])').forEach(function(a){a.setAttribute('role','img');a.setAttribute('aria-label',(a.textContent||'Profile').trim()||'Profile')})}lab();new MutationObserver(lab).observe(document.body,{childList:true,subtree:true})})();
+</script>
+/* ===== HIG PATCH END ===== */
 </body></html>
