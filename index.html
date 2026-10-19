@@ -981,7 +981,26 @@ $("svd").onclick=()=>{sv.p=1;sheet(`<h3>Delete this status?</h3><button class="o
 /* press and hold = pause */
 const hold=el=>{el.addEventListener("pointerdown",()=>{sv.p=1;sv.vid&&sv.vid.pause()});["pointerup","pointercancel","pointerleave"].forEach(v=>el.addEventListener(v,()=>{if(!document.activeElement||document.activeElement.id!=="svi"){sv.p=0;sv.vid&&sv.vid.play&&sv.vid.play().catch(()=>{})}}))};
 hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
-function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();show("chats");appIn();lockOnEnter();tourCheck()}
+var SOLO=(function(){var q=new URLSearchParams(location.search),i=q.get("song")||"";return /^[A-Za-z0-9_-]{11}$/.test(i)?{id:i,n:String(q.get("n")||"Gaana").slice(0,80)}:null})();
+if(SOLO){var _sb=document.getElementById("sub");if(_sb)_sb.textContent="Gaana sunne ke liye login karo."}
+function soloShare(){var T=MT[MP.i];if(!MP.started||!T)return ts("Pehle koi gaana chalao");if(!T.src||T.src.t!=="yt")return ts("Sirf YouTube gaane share ho sakte hain");
+ var u=location.origin+location.pathname+"?song="+T.src.id+"&n="+encodeURIComponent(String(T.n).slice(0,80));
+ if(navigator.share)navigator.share({title:T.n,text:"Ye gaana ZNEXORA par suno",url:u}).catch(function(){});
+ else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){ts("Link copy ho gaya")},function(){ts("Copy nahi hua")});else ts(u)}
+function soloOpen(){
+ if(!$("mpsh")&&$("mpl")){$("mpl").insertAdjacentHTML("beforebegin",'<button class="ib" id="mpsh" aria-label="Gaana share karo">'+SI.share+'</button>');$("mpsh").onclick=soloShare}
+ if(!SOLO||SOLO.on)return;SOLO.on=1;try{history.replaceState(null,"",location.pathname)}catch(e){}
+ if(MP.play)mpStopAll();
+ var st=document.createElement("style");st.textContent="#solo{position:fixed;inset:0;z-index:33;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);background:radial-gradient(90% 55% at 50% 32%,color-mix(in srgb,var(--ac) 30%,transparent),transparent 70%),var(--bg)}#solo .sl-in{display:grid;justify-items:center;gap:16px;width:min(360px,100%);text-align:center}#slx{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px}.sl-orb{width:190px;height:190px;border-radius:50%;margin-bottom:8px;background:conic-gradient(var(--ac),#5ec2b7,#8f88ff,var(--ac));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));filter:drop-shadow(0 0 18px color-mix(in srgb,var(--ac) 50%,transparent))}.sl-orb.on{animation:soo 6s linear infinite}@keyframes soo{to{transform:rotate(360deg)}}#slt{font-size:18px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#solo small{color:var(--mu);font-size:12.5px}.sl-tm{display:flex;justify-content:space-between;width:100%;margin-top:-6px;font:11px var(--mono);color:var(--mu)}#slp{width:64px;height:64px;margin-top:4px;border-radius:50%;padding:0;display:grid;place-items:center;border:0;background:var(--bt);color:#fff}#slp svg{width:24px;height:24px}";document.head.appendChild(st);
+ var d=document.createElement("div");d.id="solo";
+ d.innerHTML='<button class="ib" id="slx" aria-label="Band karo">'+XI+'</button><div class="sl-in"><div class="sl-orb" id="slo"></div><b id="slt"></b><small>Kisi ne tumhe ye gaana bheja hai</small><div class="sl" id="sls" style="width:100%"><i id="slf"></i><b id="slk"></b></div><div class="sl-tm"><span id="sla">0:00</span><span id="sld">0:00</span></div><button id="slp" aria-label="Play">'+PL+'</button></div><div style="position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"><div id="slyt"></div></div>';
+ document.body.appendChild(d);$("slt").textContent=SOLO.n;
+ var P=null,ok=0,iv=setInterval(function(){if(!ok)return;var D=P.getDuration()||0,t=P.getCurrentTime()||0,p=D?t/D*100:0;$("slf").style.width=p+"%";$("slk").style.left=p+"%";$("sla").textContent=mpFmt(t);$("sld").textContent=D?mpFmt(D):"0:00"},300);
+ ytLoad().then(function(){P=new YT.Player("slyt",{videoId:SOLO.id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1},events:{onReady:function(){ok=1;P.setVolume(80)},onStateChange:function(e){$("slp").innerHTML=e.data===1?PA:PL;$("slo").classList.toggle("on",e.data===1)},onError:function(){ts("Ye gaana yahan nahi chal sakta")}}})},function(){ts("YouTube load nahi hua")});
+ $("slp").onclick=function(){if(!ok)return;P.getPlayerState()===1?P.pauseVideo():P.playVideo()};
+ mpSlider($("sls"),function(p){if(!ok)return;var D=P.getDuration();if(D)P.seekTo(p*D,true)});
+ $("slx").onclick=function(){clearInterval(iv);try{P&&P.destroy&&P.destroy()}catch(e){}d.remove()}}
+function enter(){bellDot();document.querySelector("main").classList.add("hide");$("app").classList.remove("hide");setTh(0);top2();applyPrefs();purgeOld();show("chats");appIn();lockOnEnter();tourCheck();soloOpen()}
 
 /* ===== Me tab ===== */
 const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
