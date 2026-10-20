@@ -2020,7 +2020,7 @@ const plVol=v=>{P2.vol=Math.max(0,Math.min(100,v));if(P2.kind==="yt"){P2.yt&&P2.
 const plBr=b=>{P2.bright=Math.max(.35,Math.min(1.15,b));$("etdim").style.opacity=String(Math.max(0,1-P2.bright)*.85)};
 function etKill(){if(P2.yt&&P2.yt.destroy){try{P2.yt.destroy()}catch(e){}}P2.yt=null;P2.kind="";const w=$("etyw");if(w)w.innerHTML='<div id="etyt"></div>'}
 function ytLoad(){return new Promise((res,rej)=>{if(window.YT&&YT.Player)return res();const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";sc.onerror=()=>rej();window.onYouTubeIframeAPIReady=()=>res();document.head.appendChild(sc);setTimeout(()=>rej(),7000)})}
-async function etLoad(src,title){if(!etCan())return ts("Only the host controls playback");const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";if(src.t==="yt"||!/^blob:/.test(src.url||""))etTx({t:"src",src:src,title:ET.title,kind:ET.kind});else if(ET.ch)ts("Device files play only on your phone");$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
+async function etLoad(src,title){if(!etCan())return ts("Only the host controls playback");if(src&&src.t==="yt"&&window.ytRec)window.ytRec(src.id,title);const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";if(src.t==="yt"||!/^blob:/.test(src.url||""))etTx({t:"src",src:src,title:ET.title,kind:ET.kind});else if(ET.ch)ts("Device files play only on your phone");$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
  if(src.t==="yt"){v.pause();v.removeAttribute("src");v.style.display="none";P2.kind="yt";
   try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById(src.id)}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{etMask(e.data);if(e.data===0)etNext()}}})}}
   catch(x){P2.kind="";ET.cur=null;$("etg").classList.remove("on");$("etn").style.display="";$("etn").innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>YouTube cannot load in this preview</b><small>This preview blocks outside players. On your own site it plays here with your controls.</small><button class="pri" id="etpick">From device</button>'}}
@@ -2293,8 +2293,8 @@ const st=document.createElement("style");st.textContent=`
 .etg.sm{width:66%;margin-left:auto;margin-right:auto}
 .ytd{position:absolute;right:8px;bottom:8px;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.75);color:#fff;font:600 11px var(--mono);text-decoration:none}
 .ytc .mt .ib{flex:none}`;document.head.appendChild(st);
-const YCQ={Trending:"trending now",Songs:"new hindi songs",Comedy:"comedy",Gaming:"gaming",News:"news live",Podcast:"podcast"},YC=new Map();
-let YR=[],YS=0,YL="Trending",YE="";
+const YCQ={"For you":"for you",Trending:"trending now",Songs:"new hindi songs",Comedy:"comedy",Gaming:"gaming",News:"news live",Podcast:"podcast"},YC=new Map();
+let YR=[],YS=0,YL="For you",YE="";
 const ytDec=s=>{const t=document.createElement("textarea");t.innerHTML=String(s||"");return t.value};
 const PLUS=A('<path d="M12 5v14M5 12h14"/>');
 const STAR=A('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>');
@@ -2306,14 +2306,16 @@ function ytChips(){const c=$("ytch");if(c)c.innerHTML=Object.keys(YCQ).map(q=>`<
 function ytList(){const l=$("ytl");if(!l)return;
  if(YE){l.innerHTML=`<div class="empty" style="padding:24px 10px">${esc(YE)}</div>`;return}
  l.innerHTML=YR.length?YR.map(v=>`<div class="ytc" data-yp="${v.id}"><div class="th"><img src="${esc(v.th)}" alt="" loading="lazy"><i></i>${v.d?`<u class="ytd">${esc(v.d)}</u>`:""}</div><div class="mt"><span><b>${esc(v.t)}</b><small>${esc(v.c)}${v.v?" \u00b7 "+esc(v.v)+" views":""}</small></span><button class="ib" data-yf="${v.id}" aria-label="Save to favourites">${STAR}</button><button class="ib" data-yq="${v.id}" aria-label="Add to queue">${PLUS}</button></div></div>`).join(""):'<div class="empty" style="padding:24px 10px">Search anything.</div>'}
+window.ytRec=function(id,t){if(!/^[\w-]{11}$/.test(id||""))return;try{var k="znx_yth_"+((window.znxCtx&&window.znxCtx().pid)||"x"),a=JSON.parse(localStorage.getItem(k)||"[]").filter(function(x){return x.id!==id});a.unshift({id:id,n:String(t||"").slice(0,80),t:Date.now()});localStorage.setItem(k,JSON.stringify(a.slice(0,40)))}catch(e){}};
+function ytHist(k){if(k!=="for you")return"";var ids=[];try{var a=JSON.parse(localStorage.getItem("znx_yth_"+((window.znxCtx&&window.znxCtx().pid)||"x"))||"[]");a.slice(0,10).forEach(function(x){ids.push(x.id)})}catch(e){}try{FAV.filter(function(f){return f.kind==="watch"}).slice(0,6).forEach(function(f){var s=parseSrc(f.url);if(s&&s.t==="yt")ids.push(s.id)})}catch(e){}ids=ids.filter(function(v,i){return ids.indexOf(v)===i}).slice(0,12);return ids.length?"&h="+ids.join(","):""}
 async function ytSearch(q){q=String(q||"").trim();if(q.length<2)return;const my=++YS,k=q.toLowerCase(),c=YC.get(k);
- if(c&&Date.now()-c.t<6e5){YR=c.r;YE="";return ytList()}
+ if(c&&k!=="for you"&&Date.now()-c.t<6e5){YR=c.r;YE="";return ytList()}
  $("ytl").innerHTML='<div class="yts"></div><div class="yts"></div>';
- try{if(!window.nxFn)throw 0;const r=await window.nxFn("yts","&q="+encodeURIComponent(q)),j=await r.json();if(my!==YS)return;
-  if(!r.ok||j.error)throw 1;
+ try{if(!window.nxFn)throw 0;window.ytErr="";const r=await window.nxYt("yts","&q="+encodeURIComponent(q)+ytHist(k)),j=await r.json();if(my!==YS)return;
+  if(!r.ok||j.error){window.ytErr=String(j.error||("HTTP "+r.status));throw 1}
   YR=(j.items||[]).filter(x=>/^[\w-]{11}$/.test(x.id||"")).map(x=>({id:x.id,t:ytDec(x.t),c:ytDec(x.c),th:/^https:\/\/i\.ytimg\.com\//.test(x.th||"")?x.th:"",d:String(x.d||"").slice(0,9),v:String(x.v||"").slice(0,12)}));
   YE=YR.length?"":"No results found.";YC.set(k,{t:Date.now(),r:YR});ytList()}
- catch(e){if(my!==YS)return;YR=[];YE="Search is unavailable right now. Please try again.";ytList()}}
+ catch(e){if(my!==YS)return;YR=[];YE="Search is unavailable right now. Please try again."+(MY.role==="admin"&&window.ytErr?" ["+String(window.ytErr).slice(0,300)+"]":"");ytList()}}
 function ytPlay(id,title){if(!/^[\w-]{11}$/.test(id))return;ET.kind="watch";etKind();$("etlink").value="https://youtu.be/"+id;etLoad({t:"yt",id},title||"");$("et").scrollTo({top:0,behavior:"smooth"})}
 function ytDraw(){const p=$("etp_yt");
  if(!p.dataset.i){p.dataset.i=1;
@@ -3175,6 +3177,7 @@ setInterval(async()=>{if(!SB||!PID)return;
 window.nxApi=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/smooth-service?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
 window.nxFn=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/zx-api?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
 window.nxZexo=async h=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),25000);try{return await fetch(SB_URL+"/functions/v1/zexo-ai?m="+encodeURIComponent(JSON.stringify(h)),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk},signal:ac.signal})}catch(e){zx.dbg=e&&e.name==="AbortError"?"timeout":"network";throw e}finally{clearTimeout(tm)}};
+window.nxYt=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);try{return await fetch(SB_URL+"/functions/v1/zx-yt?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk},signal:ac.signal})}catch(e){window.ytErr=e&&e.name==="AbortError"?"timeout":"network";throw e}finally{clearTimeout(tm)}};
 async function nxIce(){try{const r=await window.nxApi("ice");if(!r.ok)return;const j=await r.json();if(Array.isArray(j)&&j.length)window.nxSetTurn(j)}catch(e){}}
 setInterval(()=>{if(PID)nxIce()},3*3600e3);
 const boot=async()=>{
