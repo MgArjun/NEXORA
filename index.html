@@ -2276,6 +2276,66 @@ $("fvscope").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;FS.sc
 $("fvsearch").oninput=e=>{FS.q=e.target.value;fvDraw()};
 $("fvlist").onclick=e=>{const fr=e.target.closest("[data-fs]");if(fr){const id=+fr.dataset.fs;FS.sel.has(id)?FS.sel.delete(id):FS.sel.add(id);return fvDraw()}const p=e.target.closest("[data-fp]");if(p){const x=FAV.find(z=>z.id==p.dataset.fp);return x&&fvPlay(x)}const m=e.target.closest("[data-fm]");if(m)fvMenu(m.dataset.fm)};
 $("pg").addEventListener("click",e=>{if(tab==="enjoy"&&e.target.closest("[data-en=fav]"))fvOpen()});
+/*ZNX-PATCH-V1 youtube*/
+{
+const st=document.createElement("style");st.textContent=`
+.ytb{display:flex;gap:8px;margin:2px 0 14px}.ytb .gb{flex:1;height:40px}
+.ytc{display:grid;gap:9px;margin-bottom:18px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.ytc .th{position:relative;aspect-ratio:16/9;border-radius:20px;overflow:hidden;background:#05060a;border:1px solid var(--ln);box-shadow:0 18px 36px -24px var(--ac)}
+.ytc .th img{width:100%;height:100%;object-fit:cover;display:block}
+.ytc .th i{position:absolute;inset:0;margin:auto;width:48px;height:48px;border-radius:50%;background:rgba(10,12,20,.55);border:1px solid rgba(255,255,255,.25)}
+.ytc .th i::after{content:"";position:absolute;left:19px;top:14px;border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent}
+.ytc:active .th{transform:scale(.985)}.ytc .th{transition:transform .35s cubic-bezier(.2,.9,.3,1.3)}
+.ytc .mt{display:flex;gap:8px;align-items:flex-start}.ytc .mt>span{flex:1;min-width:0}
+.ytc b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14.5px;font-weight:600;line-height:1.3}
+.ytc small{display:block;color:var(--mu);font-size:12px;margin-top:3px}
+.yts{aspect-ratio:16/9;border-radius:20px;margin-bottom:18px;background:linear-gradient(100deg,var(--sf) 30%,color-mix(in srgb,var(--ac) 14%,var(--sf)) 50%,var(--sf) 70%);background-size:250% 100%;animation:clsh 1.6s linear infinite}
+.etg.sm{width:66%;margin-left:auto;margin-right:auto}`;document.head.appendChild(st);
+const YCQ={Trending:"trending now",Songs:"new hindi songs",Comedy:"comedy",Gaming:"gaming",News:"news live",Podcast:"podcast"},YC=new Map();
+let YR=[],YS=0,YL="Trending",YE="";
+const ytDec=s=>{const t=document.createElement("textarea");t.innerHTML=String(s||"");return t.value};
+const PLUS=A('<path d="M12 5v14M5 12h14"/>');
+function ytChips(){const c=$("ytch");if(c)c.innerHTML=Object.keys(YCQ).map(q=>`<button data-yc="${q}" class="${q===YL?"on":""}">${q}</button>`).join("")}
+function ytList(){const l=$("ytl");if(!l)return;
+ if(YE){l.innerHTML=`<div class="empty" style="padding:24px 10px">${esc(YE)}</div>`;return}
+ l.innerHTML=YR.length?YR.map(v=>`<div class="ytc" data-yp="${v.id}"><div class="th"><img src="${esc(v.th)}" alt="" loading="lazy"><i></i></div><div class="mt"><span><b>${esc(v.t)}</b><small>${esc(v.c)}</small></span><button class="ib" data-yq="${v.id}" aria-label="Add to queue">${PLUS}</button></div></div>`).join(""):'<div class="empty" style="padding:24px 10px">Kuch bhi search karo.</div>'}
+async function ytSearch(q){q=String(q||"").trim();if(q.length<2)return;const my=++YS,k=q.toLowerCase(),c=YC.get(k);
+ if(c&&Date.now()-c.t<6e5){YR=c.r;YE="";return ytList()}
+ $("ytl").innerHTML='<div class="yts"></div><div class="yts"></div>';
+ try{if(!window.nxFn)throw 0;const r=await window.nxFn("yts","&q="+encodeURIComponent(q)),j=await r.json();if(my!==YS)return;
+  if(!r.ok||j.error)throw 1;
+  YR=(j.items||[]).filter(x=>/^[\w-]{11}$/.test(x.id||"")).map(x=>({id:x.id,t:ytDec(x.t),c:ytDec(x.c),th:/^https:\/\/i\.ytimg\.com\//.test(x.th||"")?x.th:""}));
+  YE=YR.length?"":"Kuch nahi mila.";YC.set(k,{t:Date.now(),r:YR});ytList()}
+ catch(e){if(my!==YS)return;YR=[];YE="YouTube search abhi chalu nahi hai. Neeche link paste karke bhi chala sakte ho.";ytList()}}
+function ytPlay(id,title){if(!/^[\w-]{11}$/.test(id))return;ET.kind="watch";etKind();$("etlink").value="https://youtu.be/"+id;etLoad({t:"yt",id},title||"");$("et").scrollTo({top:0,behavior:"smooth"})}
+function ytDraw(){const p=$("etp_yt");
+ if(!p.dataset.i){p.dataset.i=1;
+  p.innerHTML=`<div class="srcb" style="margin-bottom:10px"><input id="ytq" placeholder="Search YouTube" autocomplete="off" data-noswipe><button class="ib" id="ytgo" aria-label="Search">${IC.search}</button></div><div class="chips" id="ytch" data-noswipe></div><div class="ytb"><button class="gb" id="ytsz">Chhota / Bada</button><button class="gb pri" id="ytiv">Dost ko bulao</button></div><div id="ytl"></div>`;
+  ytChips();
+  const go=()=>{const v=$("ytq").value.trim();if(v.length<2)return ts("Kuch likho");YL="";ytChips();ytSearch(v)};
+  $("ytq").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+  p.addEventListener("click",e=>{const t=e.target;let b;
+   if(t.closest("#ytgo"))return go();
+   if(b=t.closest("[data-yc]")){YL=b.dataset.yc;ytChips();$("ytq").value="";return ytSearch(YCQ[YL])}
+   if(t.closest("#ytsz")){const s=$("etg").classList.toggle("sm");return ts(s?"Chhota player":"Bada player")}
+   if(t.closest("#ytiv")){if(ET.mem.length+ET.inv.length>=5)return ts("Room full hai");return etInvite()}
+   if(b=t.closest("[data-yq]")){const v=YR.find(x=>x.id===b.dataset.yq);if(!v)return;ET.q.push({src:{t:"yt",id:v.id},title:v.t});etTx({t:"q",q:ET.q});return ts("Queue me add hua")}
+   if(b=t.closest("[data-yp]")){const v=YR.find(x=>x.id===b.dataset.yp);if(v)ytPlay(v.id,v.t)}});
+  ytSearch(YCQ[YL])}
+ ytList()}
+const _etPane=etPane;
+etPane=function(k){
+ if(k!=="yt"){$("etp_yt").classList.add("hide");return _etPane(k)}
+ ET.pane="yt";ET.sm=false;ET.sel.clear();
+ [...$("ettabs").children].forEach(b=>b.classList.toggle("on",b.dataset.p==="yt"));
+ ["chat","queue","saved","room"].forEach(p=>$("etp_"+p).classList.add("hide"));
+ $("etp_yt").classList.remove("hide");ytDraw()};
+$("ettabs").children[0].insertAdjacentHTML("afterend",'<button data-p="yt">YouTube</button>');
+$("etp_room").insertAdjacentHTML("afterend",'<div class="etpane hide" id="etp_yt"></div>');
+{const _de=drawEnjoy;VIEWS.enjoy=function(){_de();const l=document.querySelector("#pg .glist");
+ if(l)l.insertAdjacentHTML("afterbegin",'<button class="gr" data-en="yt"><i>'+IC.play+'</i><span class="t"><b>YouTube</b><small>Search karo, yahin dekho, dost ke saath</small></span><em>\u203a</em></button>')}}
+$("pg").addEventListener("click",e=>{if(tab==="enjoy"&&e.target.closest("[data-en=yt]")){etOpen();etPane("yt")}});
+}
 
 const FSI=A('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'),FSO=A('<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>');
 document.body.insertAdjacentHTML("beforeend",'<button id="fsb" aria-label="Full screen"></button>');
@@ -2819,6 +2879,26 @@ async function zxSend(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.busy)
  var t0=Date.now(),out="Abhi busy hu, thodi der baad try karo.";
  try{var r=await c.sb.rpc("zexo_ask",{msgs:zx.msgs.slice(-6).map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw).slice(0,500)}})});if(r.data)out=String(r.data);else if(r.error&&MY.role==="admin")out="[admin debug] "+String(r.error.message||r.error)}catch(e){if(MY.role==="admin")out="[admin debug] "+String((e&&e.message)||e)}
  if(sid!==zx.sid)return;zx.busy=0;zx.msgs.push({r:"a",raw:out,t:new Date()});if(MY.role==="admin")ts("Jawab "+((Date.now()-t0)/1000).toFixed(1)+" sec me aaya");zxStore("model",out);zxDraw()}
+/*ZNX-PATCH-V1 zexo-fast*/
+zxSend=async function(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.busy)return ts("Zexo jawab de raha hai");if(Date.now()-zx.last<600)return;zx.last=Date.now();
+ var c=zxC();if(!c.sb||!c.pid)return ts("Abhi connect nahi hua");var sid=zx.sid;
+ zx.msgs.push({r:"u",raw:txt.slice(0,1000),t:new Date()});zx.busy=1;zxDraw();zxStore("user",txt);
+ var bot={r:"a",raw:"",t:new Date()},t0=Date.now(),shown=0,h=zx.msgs.slice(-4).map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw).slice(0,300)}});
+ try{
+  if(!window.nxFn)throw 0;
+  var r=await window.nxFn("zexo","&m="+encodeURIComponent(JSON.stringify(h)));
+  if(!r.ok||!r.body)throw 0;
+  var rd=r.body.getReader(),dc=new TextDecoder();
+  for(;;){var d=await rd.read();if(d.done)break;if(sid!==zx.sid)return;
+   bot.raw+=dc.decode(d.value,{stream:true});
+   if(bot.raw&&!shown){shown=1;zx.busy=0;zx.msgs.push(bot);if(MY.role==="admin")ts("Pehla shabd "+((Date.now()-t0)/1000).toFixed(1)+" sec me")}
+   if(shown)zxDraw()}
+ }catch(e){}
+ if(sid!==zx.sid)return;
+ if(!bot.raw){try{var rr=await c.sb.rpc("zexo_ask",{msgs:h});if(rr.data)bot.raw=String(rr.data)}catch(e){}}
+ if(!bot.raw)bot.raw="Abhi busy hu, thodi der baad try karo.";
+ if(!shown){zx.busy=0;zx.msgs.push(bot)}
+ zxStore("model",bot.raw);zxDraw()};
 function zxGo(k){var g=ZG[k];if(!g)return;zxClose();setTimeout(function(){goTab(g[0]);if(!g[1])return;setTimeout(function(){var el=document.querySelector(g[1]);if(!el)return;el.scrollIntoView({block:"center",behavior:"smooth"});el.classList.add("zxhl");setTimeout(function(){el.classList.remove("zxhl")},4600)},700)},250)}
 function zxGrow(){var i=$("zxi");i.style.height="auto";i.style.height=Math.min(130,i.scrollHeight+2)+"px"}
 function zxRow(){var ls=$("ls");if(!ls||SHOWARCH||!zx.msgs.length||ls.querySelector("[data-zx]"))return;var s=q.trim().toLowerCase();if(s&&"zexo ai".indexOf(s)<0)return;var l=zx.msgs[zx.msgs.length-1],e=ls.querySelector(".empty");if(e)e.remove();
@@ -3084,6 +3164,7 @@ setInterval(async()=>{if(!SB||!PID)return;
  }catch(e){}},4000);
 
 window.nxApi=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/smooth-service?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
+window.nxFn=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/znx-fast?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
 async function nxIce(){try{const r=await window.nxApi("ice");if(!r.ok)return;const j=await r.json();if(Array.isArray(j)&&j.length)window.nxSetTurn(j)}catch(e){}}
 setInterval(()=>{if(PID)nxIce()},3*3600e3);
 const boot=async()=>{
