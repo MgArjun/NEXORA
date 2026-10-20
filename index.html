@@ -3800,6 +3800,84 @@ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[da
 
 }catch(err){console.error(err)}},500);
 
+
+/* ===== ZNX-PATCH-V2: save to music, 3 zoom levels, center play/pause, no shorts, own-player feel, Zexo MCQ, premium look ===== */
+{
+const addCss=t=>{const s=document.createElement("style");s.textContent=t;const f=()=>document.body.appendChild(s);document.readyState==="loading"?document.addEventListener("DOMContentLoaded",f):f()};
+addCss(`
+html body #app::before{opacity:.9!important}html body #app::after{opacity:.7!important}html body main::before{opacity:.9!important}
+html:not(.lowfx) body .card,html:not(.lowfx) body .feat,html:not(.lowfx) body .srcb,html:not(.lowfx) body .cpf{-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important}
+@media (prefers-reduced-motion:no-preference){html:not(.lowfx) body .pri.shm::after{animation:shm 3.8s ease-in-out infinite!important}html:not(.lowfx) body .emb{animation:flt 6s ease-in-out infinite!important}}
+.ytc .th{border:1px solid transparent;background:linear-gradient(#05060a,#05060a) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 45%,var(--e3)) border-box;box-shadow:0 22px 44px -26px var(--ac)}
+.ytc .th::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(5,6,12,.55));pointer-events:none}
+.ytc .th i,.ytc .th u{z-index:1}
+.ytc .th i{background:rgba(14,16,26,.5);box-shadow:0 0 26px -4px var(--ac)}
+.ytd{padding:3px 8px;border-radius:8px;background:rgba(14,16,26,.72);border:1px solid rgba(255,255,255,.14);letter-spacing:.04em}
+.ytb .gb{height:42px;border-radius:21px}
+.srcb:focus-within{box-shadow:0 0 0 1px color-mix(in srgb,var(--ac) 60%,transparent),0 0 30px -8px var(--ac)}
+.etg.on{box-shadow:0 26px 54px -26px var(--ac)}
+.etg.on::before{content:"ZNX \\00b7 PLAYER";position:absolute;left:12px;top:10px;z-index:5;pointer-events:none;font:600 9px var(--mono);letter-spacing:.22em;color:rgba(255,255,255,.55)}
+html body .etmk{height:12%}html body .etmk.b{height:14%}
+#etcb{display:none!important}
+#etcc{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;padding:0;z-index:7;border-radius:50%;display:grid;place-items:center;color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(14,16,26,.55);box-shadow:0 0 34px -6px var(--ac);opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .25s,transform .4s cubic-bezier(.2,.9,.3,1.4)}
+#etcc.on{opacity:1;transform:none;pointer-events:auto}#etcc svg{width:26px;height:26px}
+#zxm .note{display:none}
+#zxm .mw:has(div[style*="margin-top:8px"]>.zxo){max-width:92%;width:92%}
+#zxm div[style*="margin-top:8px"]>b{display:block;font-size:14.5px;line-height:1.4}
+#zxm div[style*="margin-top:8px"]>.zxo{flex-direction:column;flex-wrap:nowrap;gap:8px;margin-top:10px;counter-reset:zo}
+#zxm div[style*="margin-top:8px"]>.zxo button{counter-increment:zo;display:flex;align-items:center;gap:12px;width:100%;height:auto;min-height:46px;padding:8px 14px 8px 8px;border-radius:16px;text-align:left;font-size:14px;border:1px solid transparent;background:linear-gradient(var(--sf),var(--sf)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box}
+#zxm div[style*="margin-top:8px"]>.zxo button::before{content:counter(zo,upper-alpha);width:30px;height:30px;border-radius:10px;display:grid;place-items:center;flex:none;font:700 12px var(--mono);color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 28%,transparent)}
+#zxm div[style*="margin-top:8px"]>.zxo button:active{background:color-mix(in srgb,var(--ac) 22%,var(--sf));box-shadow:0 0 22px -6px var(--ac)}
+`);
+
+/* 1. Save: Videos or Music (Soothing / Vibe / Energetic) */
+const SAVEC=[["w",0,"Videos","Watch list",IC.vid],["l",1,"Music \u00b7 Soothing","Calm and slow",IC.aud],["l",2,"Music \u00b7 Vibe","Mood and groove",IC.aud],["l",3,"Music \u00b7 Energetic","High energy",IC.aud]];
+function ytSave(id,title){
+ if(!/^[\w-]{11}$/.test(id||""))return;const url="https://youtu.be/"+id;let sc="private";
+ sheet(`<h3>Save</h3><div class="fld"><label>Name</label><input id="ysn" maxlength="60" value="${esc(String(title||"").slice(0,60))}" autocomplete="off"></div><div class="sec">Save to</div><div class="glist">${SAVEC.map((c,i)=>`<button class="gr" data-ys="${i}"><i class="gi">${c[4]}</i><span class="t"><b>${c[2]}</b><small>${c[3]}</small></span><em>\u203a</em></button>`).join("")}</div><div class="sec">Visible to</div><div class="seg" id="ysv"><button data-s="private" class="on">Private</button><button data-s="global">Global</button></div>`);
+ $("sh").onclick=e=>{const v=e.target.closest("#ysv button");if(v){[...v.parentNode.children].forEach(x=>x.classList.toggle("on",x===v));sc=v.dataset.s;return}
+  const b=e.target.closest("[data-ys]");if(!b)return;const c=SAVEC[+b.dataset.ys],kind=c[0]==="l"?"listen":"watch",nm=$("ysn").value.trim();
+  if(!nm)return ts("Give it a name");
+  if(FAV.some(f=>{const s=parseSrc(f.url);return f.kind===kind&&s&&s.t==="yt"&&s.id===id}))return ts("Already saved in "+(kind==="listen"?"Music":"Videos"));
+  FAV.unshift({id:Date.now(),kind,title:nm,url,scope:sc,type:c[1]});favSave();mpSync();closeS();ts("Saved to "+c[2])}}
+document.addEventListener("click",e=>{const t=e.target;if(!t||!t.closest)return;
+ const f=t.closest("#etp_yt [data-yf]");
+ if(f){e.stopImmediatePropagation();e.preventDefault();const c=f.closest(".ytc"),b=c&&c.querySelector(".mt b");ytSave(f.dataset.yf,b?b.textContent:"");return}
+ if(t.closest("#etp_yt #ytst")){e.stopImmediatePropagation();e.preventDefault();const s=ET.cur;if(!s||s.t!=="yt")return ts("Play a video first, then save it");ytSave(s.id,ET.title||"")}},true);
+
+/* 2. Zoom: Fit (full video) + 3 levels */
+const ZL=[1,1.18,1.4,1.7],ZN=["Fit \u00b7 full video","Zoom 1","Zoom 2","Zoom 3"];
+$("etzm").onclick=e=>{e.stopPropagation();let i=0,d=9;ZL.forEach((z,k)=>{if(Math.abs(z-ETM.z)<d){d=Math.abs(z-ETM.z);i=k}});i=(i+1)%ZL.length;etZoom(ZL[i],0,0);ts(ZN[i])};
+
+/* 3. Center play / pause toggle */
+const cc=document.createElement("button");cc.id="etcc";cc.setAttribute("aria-label","Play or pause");$("etg").appendChild(cc);
+cc.onclick=e=>{e.stopPropagation();plToggle()};
+let lastSrc="";
+setInterval(()=>{const g=$("etg"),live=g.classList.contains("on")&&!!P2.kind&&!g.classList.contains("aud"),p=live&&plPaused(),show=live&&(p||$("etk").classList.contains("on"));
+ cc.classList.toggle("on",!!show);const k=p?"p":"a";if(cc.dataset.i!==k){cc.dataset.i=k;cc.innerHTML=p?PL:PA}
+ const sk=JSON.stringify(ET.cur||"");if(sk!==lastSrc){lastSrc=sk;if(ETM.z!==1)etZoom(1,0,0)}},250);
+
+/* 4. Own-player feel: no "YouTube" text, no Shorts */
+const yp=$("etp_yt"),secs=s=>{const a=s.trim().split(":").map(Number);return a.some(isNaN)?-1:a.reduce((t,v)=>t*60+v,0)};
+function polish(){const q=$("ytq");if(q&&q.dataset.pz!=="1"){q.dataset.pz="1";q.placeholder="Find videos & audio";q.setAttribute("aria-label","Find videos and audio")}
+ const st=$("ytst");if(st&&st.textContent!=="Save")st.textContent="Save";
+ yp.querySelectorAll(".ytc").forEach(c=>{const d=c.querySelector(".ytd"),t=(c.querySelector(".mt b")||{}).textContent||"",n=d?secs(d.textContent):-1;if((n>=0&&n<=60)||/#shorts?\b/i.test(t))c.remove()})}
+new MutationObserver(polish).observe(yp,{childList:true,subtree:true});polish();
+{const _e=VIEWS.enjoy;VIEWS.enjoy=function(){_e();const r=document.querySelector("[data-en=yt]");if(r){r.querySelector("b").textContent="Watch & Listen";r.querySelector("small").textContent="Find videos and audio, enjoy together"}}}
+
+/* 5. Zexo: very short answers, MCQ quiz one question at a time */
+{const _z=window.nxZexo;if(_z)window.nxZexo=function(h){h=(h||[]).map(x=>({role:x.role,text:x.text}));
+ for(let i=h.length-1;i>=0;i--)if(h[i].role==="user"){h[i].text="[Rules: reply in 1 word, else 1 short sentence. ZNEXORA developer is Suraj Kumar. For a quiz ask ONE MCQ per message exactly like: Q: question | opt1/opt2/opt3/opt4. Light/Dark mode is in Me > Appearance [go:theme]; chat colours are inside a chat, 3 dots > Chat colour. Keep [go:x] tags.] "+h[i].text;break}
+ return _z(h)}}
+
+/* 6. Two different "theme" places get two clear names */
+if(typeof ZG!=="undefined"&&ZG.theme)ZG.theme[2]="Light / Dark mode";
+const ren=()=>{const a=document.querySelector('#sh [data-o="th"] span');if(a&&a.textContent!=="Chat colour")a.textContent="Chat colour";
+ const h=document.querySelector("#sh h3");if(h&&h.textContent==="Chat theme")h.textContent="Chat colours";
+ document.querySelectorAll("#pg .card2 b").forEach(b=>{if(b.textContent==="Appearance")b.textContent="Light / Dark mode"})};
+new MutationObserver(ren).observe($("sh"),{childList:true,subtree:true});new MutationObserver(ren).observe($("pg"),{childList:true,subtree:true});ren();
+}
+
 })();</script><script>
 
 (function(){
