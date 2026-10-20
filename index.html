@@ -2317,7 +2317,7 @@ function ytDraw(){const p=$("etp_yt");
   p.addEventListener("click",e=>{const t=e.target;let b;
    if(t.closest("#ytgo"))return go();
    if(b=t.closest("[data-yc]")){YL=b.dataset.yc;ytChips();$("ytq").value="";return ytSearch(YCQ[YL])}
-   if(t.closest("#ytst"))return $("etst").click();if(t.closest("#ytsz")){const s=$("etg").classList.toggle("sm");return ts(s?"Small player":"Large player")}
+   if(t.closest("#ytst"))return $("etst").click();if(t.closest("#ytst"))return $("etst").click();if(t.closest("#ytsz")){const s=$("etg").classList.toggle("sm");return ts(s?"Small player":"Large player")}
    if(t.closest("#ytiv")){if(ET.mem.length+ET.inv.length>=5)return ts("Room is full");return etInvite()}
    if(b=t.closest("[data-yq]")){const v=YR.find(x=>x.id===b.dataset.yq);if(!v)return;ET.q.push({src:{t:"yt",id:v.id},title:v.t});etTx({t:"q",q:ET.q});return ts("Added to queue")}
    if(b=t.closest("[data-yp]")){const v=YR.find(x=>x.id===b.dataset.yp);if(v)ytPlay(v.id,v.t)}});
@@ -3037,7 +3037,7 @@ const loadHist=async u=>{
  const ch=sig(merged)!==sig(old),grew=merged.length>old.length;
  merged.forEach(dec);qfix(merged);await loadRx(merged);MSG[u.id]=merged;
  if(ch&&cur===u&&chatOn()){if(grew){NEWI=merged.length-1;render();NEWI=-1}else render(true)}};
-const _oc=openChat;openChat=id=>{_oc(id);const u=U.find(x=>x.id===id);if(!u)return;u.u=0;clWarm(u);loadHist(u).then(()=>markRead(u))};
+const _oc=openChat;openChat=id=>{_oc(id);const u=U.find(x=>x.id===id);if(!u)return;u.u=0;clWarm(u);loadHist(u).then(()=>markRead(u))};let PRE=new Set();setInterval(async()=>{if(!PID||!vis())return;const l=U.filter(u=>u.cid&&!PRE.has(u.id)&&!(MSG[u.id]||[]).length).slice(0,3);for(const u of l){PRE.add(u.id);try{await loadHist(u)}catch(e){}}},1500);
 
 const doSend=async(c,x)=>{
  try{
@@ -3164,7 +3164,7 @@ setInterval(async()=>{if(!SB||!PID)return;
  }catch(e){}},4000);
 
 window.nxApi=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/smooth-service?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
-window.nxFn=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/znx-fast?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
+window.nxFn=async(t,extra)=>{let tk=SB_KEY;try{const s=(await SB.auth.getSession()).data.session;if(s)tk=s.access_token}catch(e){}return fetch(SB_URL+"/functions/v1/zx-api?t="+t+(extra||""),{headers:{apikey:SB_KEY,Authorization:"Bearer "+tk}})};
 async function nxIce(){try{const r=await window.nxApi("ice");if(!r.ok)return;const j=await r.json();if(Array.isArray(j)&&j.length)window.nxSetTurn(j)}catch(e){}}
 setInterval(()=>{if(PID)nxIce()},3*3600e3);
 const boot=async()=>{
@@ -3964,4 +3964,4 @@ if($('ban'))$('ban').setAttribute('role','status');if($('clst'))$('clst').setAtt
 var sw=$('sw');if(sw)sw.addEventListener('click',function(){setTimeout(function(){try{$('pw').autocomplete=su?'new-password':'current-password'}catch(x){}},0)});
 var lt=0;function sched(){if(lt||document.hidden)return;lt=setTimeout(function(){lt=0;fix()},250)}
 new MutationObserver(sched).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});fix();
-})();</script><style>#ets,#ettabs,#et>.srcb,#etn,#etp_chat,#etp_queue,#etp_saved,#etp_room,.etg:not(.on){display:none!important}#et .etg.on{position:sticky;top:0;z-index:8}</style></body></html>
+})();</script><style>#ets,#ettabs,#et>.srcb,#etn,#etp_chat,#etp_queue,#etp_saved,#etp_room,.etg:not(.on){display:none!important}#et .etg.on{position:sticky;top:0;z-index:8}</style><style>#ets,#ettabs,#et>.srcb,#etn,#etp_chat,#etp_queue,#etp_saved,#etp_room,.etg:not(.on){display:none!important}#et .etg.on{position:sticky;top:0;z-index:8}</style></body></html>
