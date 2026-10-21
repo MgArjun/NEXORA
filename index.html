@@ -3114,7 +3114,7 @@ const _iv=inviteScreen;inviteScreen=function(id,pre){if(id==="chain"){ts("Online
 GAMES.push({id:"c3d",n:"Chained Up 3D",max:1,d:"3D climbing. Chain + lava.",r:1});
 GI.c3d=A('<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>');
 const TURL="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-const R=.4,H=1.7,SPD=7,JV=9.5,GR=28,STEP=.35,FIX=1/120;
+const R=.4,H=1.7,SPD=7,JV=12.5,GR=28,STEP=.35,FIX=1/120;
 let TH=null,S=null,raf=0,onR=null;
 const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 const mk=(x,z,top,w,d)=>({x:x,z:z,w:w||4,d:d||w||4,y:-1,h:top+1});
@@ -3135,7 +3135,7 @@ function phys(s,dt,p,I){const L=s.L,a=Math.min(1,(p.on?14:5)*dt);p.cl2=p.clb;p.c
  p.vx+=(I.ix*SPD-p.vx)*a;p.vz+=(I.iz*SPD-p.vz)*a;
  p.coy=p.on?.1:p.coy-dt;p.jb-=dt;if(I.jp){p.jb=.12;I.jp=0}
  if(p.jb>0&&p.coy>0){p.vy=JV;p.jb=0;p.coy=0;p.on=false}
- p.vy-=GR*dt*(p.vy>0&&!I.jh?2:1);if(p.vy<-35)p.vy=-35;
+ p.vy-=GR*dt*(p.vy>0&&!I.jh?1.7:1);if(p.vy<-35)p.vy=-35;
  p.x+=p.vx*dt;
  for(const b of L)if(hit(p,b)){const t=b.y+b.h;if((p.on||p.cl2)&&t-p.y<=STEP)p.y=t;else{p.x=p.vx>0?b.x-b.w/2-R:b.x+b.w/2+R;p.vx=0;if(t-p.y<=3.2)p.clb=1}}
  p.z+=p.vz*dt;
@@ -3159,21 +3159,25 @@ async function start(){stop();inGame=true;document.documentElement.classList.add
  try{TH=TH||await import(TURL)}catch(e){exit();ts("3D engine load nahi hua. Internet check karo");return}
  if(!document.getElementById("c3R"))return;
  const rn=new TH.WebGLRenderer({antialias:false,powerPreference:"high-performance"});rn.setPixelRatio(Math.min(devicePixelRatio||1,1.5));rn.setSize(innerWidth,innerHeight);r.prepend(rn.domElement);
- const sc=new TH.Scene();sc.background=new TH.Color(0x7fb8ff);sc.fog=new TH.Fog(0x7fb8ff,25,80);
+ const sc=new TH.Scene();const skc=document.createElement("canvas");skc.width=2;skc.height=256;const skx=skc.getContext("2d"),skg=skx.createLinearGradient(0,0,0,256);skg.addColorStop(0,"#2b5fd0");skg.addColorStop(.6,"#7fb8ff");skg.addColorStop(1,"#ffd9a8");skx.fillStyle=skg;skx.fillRect(0,0,2,256);const skt=new TH.CanvasTexture(skc);skt.colorSpace=TH.SRGBColorSpace;sc.background=skt;sc.fog=new TH.Fog(0xa9d2ff,30,90);
  sc.add(new TH.HemisphereLight(0xffffff,0x445566,1.1));const dl=new TH.DirectionalLight(0xffffff,.9);dl.position.set(5,12,6);sc.add(dl);
  const cam=new TH.PerspectiveCamera(60,innerWidth/innerHeight,.1,120);
  const L=level();
- L.forEach((b,i)=>{const m=new TH.Mesh(new TH.BoxGeometry(b.w,b.h,b.d),new TH.MeshLambertMaterial({color:b.goal?0xffd93d:b.s?0x6b7390:new TH.Color().setHSL((i*.07)%1,.55,.58)}));m.position.set(b.x,b.y+b.h/2,b.z);sc.add(m);
+ const rcv=document.createElement("canvas");rcv.width=rcv.height=128;const rcx=rcv.getContext("2d");rcx.fillStyle="#9a9488";rcx.fillRect(0,0,128,128);for(let k=0;k<900;k++){const v=100+Math.random()*100|0;rcx.fillStyle="rgba("+v+","+(v-8)+","+(v-22)+",.35)";rcx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*10,1+Math.random()*4)}
+ const rockT=new TH.CanvasTexture(rcv);rockT.wrapS=rockT.wrapT=TH.RepeatWrapping;rockT.colorSpace=TH.SRGBColorSpace;
+ L.forEach((b,i)=>{const tx=rockT.clone();tx.needsUpdate=true;tx.repeat.set(Math.max(1,b.w/2),Math.max(1,b.h/2));const m=new TH.Mesh(new TH.BoxGeometry(b.w,b.h,b.d),new TH.MeshLambertMaterial({map:tx,color:b.goal?0xffe27a:b.s?0x8a90a8:new TH.Color().setHSL((i*.07)%1,.3,.78)}));m.position.set(b.x,b.y+b.h/2,b.z);sc.add(m);
+  const cap=new TH.Mesh(new TH.BoxGeometry(b.w+.16,.24,b.d+.16),new TH.MeshLambertMaterial({color:b.goal?0xffd93d:0x5fbf6a}));cap.position.set(b.x,b.y+b.h-.12,b.z);sc.add(cap);
   if(b.goal){const po=new TH.Mesh(new TH.CylinderGeometry(.05,.05,3),new TH.MeshLambertMaterial({color:0xdddddd}));po.position.set(b.x,b.y+b.h+1.5,b.z);sc.add(po);const fl=new TH.Mesh(new TH.BoxGeometry(1,.6,.05),new TH.MeshLambertMaterial({color:0xff6b8b}));fl.position.set(b.x+.5,b.y+b.h+2.6,b.z);sc.add(fl)}});
  const lava=new TH.Mesh(new TH.PlaneGeometry(300,300),new TH.MeshBasicMaterial({color:0xff5a2a}));lava.rotation.x=-Math.PI/2;lava.position.y=-5;sc.add(lava);
  const root=new TH.Group(),M=(c)=>new TH.MeshLambertMaterial({color:c});
- const part=(w,h,d,c,x,y,z)=>{const m=new TH.Mesh(new TH.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);return m};
- root.add(part(.5,.7,.3,0x5b54e0,0,.85,0));root.add(part(.38,.38,.38,0xffd9b8,0,1.45,0));
- root.add(part(.06,.08,.02,0x111111,-.09,1.48,.2),part(.06,.08,.02,0x111111,.09,1.48,.2));
- const pv=(x,y,w,h,c)=>{const g=new TH.Group();g.position.set(x,y,0);const m=part(w,h,w,c,0,-h/2,0);g.add(m);root.add(g);return g};
- const aL=pv(-.34,1.17,.14,.6,0xffd9b8),aR=pv(.34,1.17,.14,.6,0xffd9b8),lL=pv(-.13,.5,.18,.5,0x2c3050),lR=pv(.13,.5,.18,.5,0x2c3050);
+ const part=(w,h,d,c,x,y,z)=>{const r=Math.min(w,d)/2,m=new TH.Mesh(new TH.CapsuleGeometry(r,Math.max(0,h-2*r),6,14),M(c));m.scale.set(w/(2*r),1,d/(2*r));m.position.set(x,y,z);return m};
+ root.add(part(.52,.75,.32,0x4f7cff,0,.88,0));root.add(part(.4,.5,.4,0xffd9b8,0,1.5,0));
+ [-1,1].forEach(k=>{const w=new TH.Mesh(new TH.SphereGeometry(.06,10,8),M(0xffffff));w.scale.set(1,1.2,.5);w.position.set(k*.09,1.52,.18);root.add(w);const pu=new TH.Mesh(new TH.SphereGeometry(.03,8,6),M(0x111111));pu.position.set(k*.09,1.52,.2);root.add(pu)});
+ const hr=new TH.Mesh(new TH.SphereGeometry(.215,14,8,0,6.29,0,1.45),M(0x3a2a20));hr.position.set(0,1.54,-.01);root.add(hr);
+ const pv=(x,y,w,h,c)=>{const g=new TH.Group();g.position.set(x,y,0);const m=part(w,h,w,c,0,-h/2,0);g.add(m);const hd=new TH.Mesh(new TH.SphereGeometry(w*.6,10,8),M(c));hd.position.y=-h+.02;g.add(hd);if(h>.55)for(let k=0;k<4;k++){const f=new TH.Mesh(new TH.CapsuleGeometry(.017,.05,3,6),M(c));f.position.set((k-1.5)*.034,-h-.05,.02);g.add(f)}root.add(g);return g};
+ const aL=pv(-.36,1.15,.14,.6,0xffd9b8),aR=pv(.36,1.15,.14,.6,0xffd9b8),lL=pv(-.13,.58,.18,.5,0x33406b),lR=pv(.13,.58,.18,.5,0x33406b);
  sc.add(root);
- const root2=root.clone(true);root2.children[0].material=M(0xff6b8b);sc.add(root2);const a2L=root2.children[4],a2R=root2.children[5],l2L=root2.children[6],l2R=root2.children[7];
+ const root2=root.clone(true);root2.children[0].material=M(0xff6b8b);sc.add(root2);const ch2=root2.children,n2=ch2.length,a2L=ch2[n2-4],a2R=ch2[n2-3],l2L=ch2[n2-2],l2R=ch2[n2-1];
  const beads=[];for(let i=0;i<9;i++){const m=new TH.Mesh(new TH.SphereGeometry(.08,6,6),M(0xffd93d));sc.add(m);beads.push(m)}
  const s=S={rn:rn,sc:sc,cam:cam,L:L,lava:lava,root:root,p:{x:0,y:0,z:3,vx:0,vy:0,vz:0,on:false,coy:0,jb:0,falls:0},ix:0,iz:0,jp:0,jh:0,jx:0,jy:0,kx:0,ky:0,yaw:0,pit:.45,face:0,t:0,acc:0,lt:0,won:0,shake:0,hud:"",lastY:0,q:{x:1.2,y:0,z:3,vx:0,vy:0,vz:0,on:false,coy:0,jb:0,falls:0,stuck:0,in:{ix:0,iz:0,jp:0,jh:0}},ly:-5,t0:3};
  onR=()=>{rn.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()};addEventListener("resize",onR);
