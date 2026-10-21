@@ -3129,7 +3129,7 @@ function ntApply(m){if(!S||!S.guest)return;
  if(m.k>S.tries){S.tries=m.k;S.flash=1;S.shk=.4;S.cam=null;S.ps.forEach(p=>{p.x=p.tx;p.y=p.ty})}
  if(m.o&&!S.shown){S.over=1;S.win=m.o===2;showEnd()}}
 setInterval(()=>{if(S&&S.guest){const n=performance.now();S.ps.forEach(p=>{if(p.tx!==undefined){const a=Math.min(.12,(n-(p.tt||n))/1000),ex=p.tx+p.vx*a,ey=p.g?p.ty:p.ty+p.vy*a,k=Math.hypot(ex-p.x,ey-p.y)>80?1:.35;p.x+=(ex-p.x)*k;p.y+=(ey-p.y)*k}})}},16);
-function ntGot(m){if(!m||!m.t)return;if(m.t==="vsig"){gvAttach();vcGot(m);return}
+function ntGot(m){if(!m||!m.t)return;if(m.t==="vsig"){gvAttach();vcGot(m);return}if(m.t==="vsig"){gvAttach();vcGot(m);return}
  if(CHN.host){const i=CHN.pl.findIndex(p=>p.pid===m.from);
   if(m.t==="join"){if(i<0&&!CHN.st&&CHN.pl.length<4&&CHN.inv.some(u=>u.pid===m.from))CHN.pl.push({pid:m.from,n:String(m.n||"Friend").slice(0,30)});if(!CHN.st){ntTx({t:"lob",pl:CHN.pl});ntLobby()}}
   else if(i<0)return;
@@ -3151,6 +3151,8 @@ function ntAccept(m){if(CHN.pend!==m.code)return ts("Invite is no longer availab
  if(!ntOpen(m.code,()=>{ntTx({t:"join",n:MY.name});let k=0;CHN.jt=setInterval(()=>{if(CHN.pl.length||!CHN.ch){clearInterval(CHN.jt);return}if(++k>6){clearInterval(CHN.jt);ts("Game is no longer available");ntLeave();closeS();return}ntTx({t:"join",n:MY.name})},1500)}))return;
  CHN.hp=m.from;ntLobby()}
 {const _cx=chExit;chExit=function(){if(S&&S.net)ntLeave();_cx()}}
+window.chVoice=function(){if(!CHN.ch||!CHN.live||!CHN.st)return null;const me=()=>clCtx().pid;return{key:"g",tx:m=>ntTx(m),me,ids:()=>CHN.pl.filter(p=>p.pid&&p.pid!==me()).map(p=>p.pid),ui:gvPaint}};
+function ntMic(){if($("chMic"))return;const b=document.createElement("button");b.className="ib";b.id="chMic";b.setAttribute("aria-label","Voice chat");b.innerHTML=CI.mic;b.onclick=()=>gvToggle();$("chRs").before(b)}
 window.chVoice=function(){if(!CHN.ch||!CHN.live||!CHN.st)return null;const me=()=>clCtx().pid;return{key:"g",tx:m=>ntTx(m),me,ids:()=>CHN.pl.filter(p=>p.pid&&p.pid!==me()).map(p=>p.pid),ui:gvPaint}};
 function ntMic(){if($("chMic"))return;const b=document.createElement("button");b.className="ib";b.id="chMic";b.setAttribute("aria-label","Voice chat");b.innerHTML=CI.mic;b.onclick=()=>gvToggle();$("chRs").before(b)}
 /*CHN-NET-END*/
@@ -4141,15 +4143,12 @@ zyTile=function(x){const own=x.d==="out",u=/^blob:/.test(x.src||"")?x.src:MEDC[x
 }
 
 {
-const FONTS=[{id:"def",n:"Default",s:"Inter,system-ui,-apple-system,'Segoe UI',sans-serif"},{id:"pop",n:"Poppins",s:"Poppins,system-ui,sans-serif",g:"Poppins:wght@400;500;600;700"},{id:"nun",n:"Nunito",s:"Nunito,system-ui,sans-serif",g:"Nunito:wght@400;500;600;700"},{id:"man",n:"Manrope",s:"Manrope,system-ui,sans-serif",g:"Manrope:wght@400;500;600;700"},{id:"sor",n:"Sora",s:"Sora,system-ui,sans-serif",g:"Sora:wght@400;500;600;700"},{id:"spa",n:"Space Grotesk",s:"'Space Grotesk',system-ui,sans-serif",g:"Space+Grotesk:wght@400;500;600;700"},{id:"ply",n:"Playfair",s:"'Playfair Display',Georgia,serif",g:"Playfair+Display:wght@400;500;600;700"},{id:"jbm",n:"JetBrains Mono",s:"'JetBrains Mono',ui-monospace,monospace",g:"JetBrains+Mono:wght@400;500;600;700"},{id:"sys",n:"System",s:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"}];
-const fontLoad=f=>{if(f.g&&!document.getElementById("fl-"+f.id)){const l=document.createElement("link");l.id="fl-"+f.id;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+f.g+"&display=swap";document.head.appendChild(l)}};
-const curFont=()=>FONTS.find(x=>x.id===ST2.font)||FONTS[0];
-function applyFont(){const f=curFont();fontLoad(f);root.style.setProperty("--font-ui",f.s)}
+
 const MOTL=["Minimal","Calm","Default","Rich","Ultra"],motV=()=>ST2.mot==null?(ST2.rm?0:2):ST2.mot;
 function applyMot(){const m=motV(),c=root.classList;root.toggleAttribute("data-rm",m===0||matchMedia("(prefers-reduced-motion:reduce)").matches);c.toggle("mot-calm",m===1);c.toggle("mot-hi",m>=3);c.toggle("mot-max",m===4);ST2.rm=m===0?1:0}
-const _ap=applyPrefs;applyPrefs=function(){_ap();applyMot();applyFont()};applyMot();applyFont();
+const _ap=applyPrefs;applyPrefs=function(){_ap();applyMot()};applyMot();
 function me2(){const t=document.querySelector('[data-tg="rm"]');if(!t)return;const row=t.closest(".pr2"),m=motV();
- row.outerHTML=`<div class="mtn"><div class="mth"><b>Motion</b><span id="mtl"></span></div><div class="mtk" id="mtk" data-noswipe><i class="mtf" id="mtf"></i>${[0,1,2,3,4].map(k=>`<s style="--k:${k/4}"></s>`).join("")}<b class="mtb"></b></div><div class="mtc"><span>Reduce</span><span>Default</span><span>Enhance</span></div></div><button class="sr" data-fontopen="1"><span class="t"><b>Font</b><small>${curFont().n}</small></span><em>›</em></button>`;
+ row.outerHTML=`<div class="mtn"><div class="mth"><b>Motion</b><span id="mtl"></span></div><div class="mtk" id="mtk" data-noswipe><i class="mtf" id="mtf"></i>${[0,1,2,3,4].map(k=>`<s style="--k:${k/4}"></s>`).join("")}<b class="mtb"></b></div><div class="mtc"><span>Reduce</span><span>Default</span><span>Enhance</span></div></div><button class="sr" data-fontopen="1"><span class="t"><b>Font</b><small></small></span><em>›</em></button>`;
  const mk=$("mtk");let drag=0;
  const paint=v=>{const p=v/4;mk.style.setProperty("--p",p);mk.style.setProperty("--a",Math.min(.5,p));mk.style.setProperty("--w",Math.abs(p-.5));$("mtl").textContent=MOTL[Math.round(v)]},
  at=e=>{const r=mk.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left-23)/(r.width-46)))*4},
@@ -4157,9 +4156,7 @@ function me2(){const t=document.querySelector('[data-tg="rm"]');if(!t)return;con
  up=()=>{if(!drag)return;drag=0;mk.classList.remove("drag");paint(motV());sv2()};
  paint(m);mk.onpointerdown=e=>{drag=1;mk.classList.add("drag");try{mk.setPointerCapture(e.pointerId)}catch(x){}mv(e)};mk.onpointermove=mv;mk.onpointerup=up;mk.onpointercancel=up}
 const _dm=drawMe;drawMe=function(){_dm();me2()};VIEWS.me=drawMe;
-$("pg").addEventListener("click",e=>{if(!(e.target.closest&&e.target.closest("[data-fontopen]")))return;FONTS.forEach(fontLoad);
- sheet(`<h3>Font</h3><p class="note">Applies everywhere in the app. New fonts need internet the first time.</p><div class="fgrid">${FONTS.map(f=>`<button class="fb${f.id===curFont().id?" on":""}" data-fid="${f.id}" style="font-family:${esc(f.s)}"><b>Aa</b><small>${f.n}</small></button>`).join("")}</div>`);
- $("sh").onclick=ev=>{const b=ev.target.closest("[data-fid]");if(!b)return;ST2.font=b.dataset.fid;sv2();applyFont();closeS();ts(curFont().n+" font applied");if(tab==="me"&&!sub)drawMe()}});
+
 const _rx=react;react=function(i,e){_rx(i,e);try{const el=document.querySelector('#msgs .mr[data-i="'+i+'"] .rc.me');if(el)el.classList.add("pop2")}catch(x){}};
 async function multiSend(fs){const l=fs.filter(f=>/^(image|video)\//.test(f.type));if(!l.length)return ts("Choose photos or videos");if(l.length>10)ts("Sending the first 10");const c=cur;for(const f of l.slice(0,10)){if(cur!==c)break;const v=f.type.startsWith("video/");if(!v&&ST2.ds){const r=await dsImg(f);sendMedia({k:"img",src:r.url,name:f.name,size:r.size,once:0})}else sendMedia({k:v?"vid":"img",src:URL.createObjectURL(f),name:f.name,size:f.size,once:0})}}
 const _pf=pickFile;pickFile=function(accept,cap,cb){if(accept==="image/*,video/*"&&!cap&&cb===mediaPreview){const i=document.createElement("input");i.type="file";i.accept=accept;i.multiple=true;i.onchange=()=>{const fs=[...i.files];if(fs.length>1)multiSend(fs);else if(fs[0])cb(fs[0])};i.click();return}return _pf(accept,cap,cb)};
@@ -4249,36 +4246,11 @@ function mt2(){const o=$("mtk");if(!o||o.dataset.v9)return;const n=o.cloneNode(t
  up=()=>{if(!dr)return;dr=0;n.classList.remove("drag");paint(cv());sv2()};
  paint(cv());
  n.onpointerdown=e=>{dr=1;n.classList.add("drag");try{n.setPointerCapture(e.pointerId)}catch(x){}mv(e)};n.onpointermove=mv;n.onpointerup=up;n.onpointercancel=up;
- const fo=document.querySelector("[data-fontopen] small");if(fo)fo.textContent=curFont2().n}
+ }
 {const _d=drawMe;drawMe=function(){_d();mt2()};VIEWS.me=drawMe}
 
 /* ---------- fonts: current Gen Z / Alpha favourites ---------- */
-const FSTK=",system-ui,-apple-system,'Segoe UI',sans-serif";
-const FONTS2=[
- {id:"def",n:"Bricolage",s:"'Bricolage Grotesque'"+FSTK,g:"Bricolage+Grotesque:wght@400;500;600;700"},
- {id:"jak",n:"Jakarta",s:"'Plus Jakarta Sans'"+FSTK,g:"Plus+Jakarta+Sans:wght@400;500;600;700"},
- {id:"out",n:"Outfit",s:"Outfit"+FSTK,g:"Outfit:wght@400;500;600;700"},
- {id:"sat",n:"Satoshi",s:"Satoshi"+FSTK,u:"https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"},
- {id:"cab",n:"Cabinet",s:"'Cabinet Grotesk'"+FSTK,u:"https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap"},
- {id:"unb",n:"Unbounded",s:"Unbounded"+FSTK,g:"Unbounded:wght@400;500;600;700"},
- {id:"syn",n:"Syne",s:"Syne"+FSTK,g:"Syne:wght@400;500;600;700"},
- {id:"urb",n:"Urbanist",s:"Urbanist"+FSTK,g:"Urbanist:wght@400;500;600;700"},
- {id:"lex",n:"Lexend",s:"Lexend"+FSTK,g:"Lexend:wght@400;500;600;700"},
- {id:"fig",n:"Figtree",s:"Figtree"+FSTK,g:"Figtree:wght@400;500;600;700"},
- {id:"spa",n:"Space Grotesk",s:"'Space Grotesk'"+FSTK,g:"Space+Grotesk:wght@400;500;600;700"},
- {id:"gab",n:"Gabarito",s:"Gabarito"+FSTK,g:"Gabarito:wght@400;500;600;700"},
- {id:"dms",n:"DM Sans",s:"'DM Sans'"+FSTK,g:"DM+Sans:wght@400;500;600;700"},
- {id:"sys",n:"System",s:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"}];
-const curFont2=()=>FONTS2.find(x=>x.id===ST2.font)||FONTS2[0];
-if(!document.getElementById("fl9-pc")){const a=document.createElement("link");a.id="fl9-pc";a.rel="preconnect";a.href="https://fonts.googleapis.com";const b=document.createElement("link");b.rel="preconnect";b.href="https://fonts.gstatic.com";b.crossOrigin="";document.head.appendChild(a);document.head.appendChild(b)}
-function fontLoad2(f){if(f.id==="sys"||document.getElementById("fl9-"+f.id))return;const l=document.createElement("link");l.id="fl9-"+f.id;l.rel="stylesheet";l.href=f.u||"https://fonts.googleapis.com/css2?family="+f.g+"&display=swap";document.head.appendChild(l)}
-function fontApply2(){const f=curFont2();fontLoad2(f);root.style.setProperty("--font-ui",f.s)}
-{const _a=applyPrefs;applyPrefs=function(){_a();fontApply2()}}
-fontApply2();
-function fontSheet(){FONTS2.forEach(fontLoad2);
- sheet(`<h3>Font</h3><p class="note">Tap to try. The whole app changes instantly. New fonts need internet the first time.</p><div class="fgrid">${FONTS2.map(f=>`<button class="fb${f.id===curFont2().id?" on":""}" data-fid="${f.id}" style="font-family:${esc(f.s)}"><b>Aa</b><small>${f.n}</small></button>`).join("")}</div>`);
- $("sh").onclick=e=>{const b=e.target.closest("[data-fid]");if(!b)return;ST2.font=b.dataset.fid;sv2();fontApply2();[...$("sh").querySelectorAll(".fb")].forEach(z=>z.classList.toggle("on",z===b));const fo=document.querySelector("[data-fontopen] small");if(fo)fo.textContent=curFont2().n;if(navigator.vibrate)navigator.vibrate(5)}}
-$("pg").addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-fontopen]")){e.stopImmediatePropagation();fontSheet()}},true);
+
 }
 
 {
@@ -4463,18 +4435,7 @@ $("mpmo").onclick=e=>{const b=e.target.closest("[data-mo]");if(!b)return;
 
 {
 /* ---- background themes (Me > Look & feel > Background) ---- */
-const BGS=[
- ["mid","Midnight"],
- ["ink","Ink",["#080b12","#111623","rgba(70,110,200,.22)","rgba(90,170,200,.10)"],["#f3f5fa","rgba(70,110,200,.13)","rgba(90,170,200,.08)"]],
- ["ocean","Deep Ocean",["#07111c","#0f1b2a","rgba(56,130,246,.26)","rgba(34,211,238,.14)"],["#eef4fb","rgba(56,130,246,.14)","rgba(34,211,238,.09)"]],
- ["aurora","Aurora",["#08130f","#10201a","rgba(45,212,160,.22)","rgba(99,102,241,.16)"],["#f0f7f4","rgba(45,212,160,.14)","rgba(99,102,241,.09)"]],
- ["plum","Plum",["#0f0a16","#1a1224","rgba(168,85,247,.24)","rgba(236,72,153,.13)"],["#f6f1fa","rgba(168,85,247,.13)","rgba(236,72,153,.08)"]],
- ["dusk","Dusk",["#110b14","#1b1220","rgba(251,146,60,.18)","rgba(192,132,252,.17)"],["#faf2f4","rgba(251,146,60,.13)","rgba(192,132,252,.10)"]],
- ["ember","Ember",["#130d0c","#1e1513","rgba(251,113,60,.20)","rgba(244,63,94,.12)"],["#faf3f0","rgba(251,113,60,.13)","rgba(244,63,94,.08)"]],
- ["forest","Forest",["#08110e","#101b17","rgba(52,211,153,.17)","rgba(163,230,53,.10)"],["#f0f7f1","rgba(52,211,153,.12)","rgba(163,230,53,.08)"]],
- ["graphite","Graphite",["#0c0c0e","#161618","rgba(160,160,185,.14)","rgba(120,130,150,.08)"],["#f4f4f5","rgba(120,120,150,.10)","rgba(120,130,150,.06)"]]];
-const bgCur=()=>BGS.find(p=>p[0]===ST2.bgt)||BGS[0];
-function bgApply(){const p=bgCur();p[0]==="mid"?root.removeAttribute("data-bgt"):root.setAttribute("data-bgt",p[0])}
+
 {let css=":root{--bga:rgba(124,108,255,.24);--bgb:rgba(77,224,208,.15)}"+
  "#app::before{background:radial-gradient(60% 45% at 12% 0,var(--bga),transparent 70%),radial-gradient(50% 38% at 96% 6%,var(--bgb),transparent 70%),radial-gradient(circle,rgba(150,160,255,.08) 1px,transparent 1.4px);background-size:auto,auto,24px 24px;transition:background .6s}"+
  "#app::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;background:radial-gradient(80% 70% at 50% 115%,var(--bgb),transparent 72%);opacity:.65;pointer-events:none}"+
@@ -4482,23 +4443,9 @@ function bgApply(){const p=bgCur();p[0]==="mid"?root.removeAttribute("data-bgt")
  ".bgc{height:auto;display:grid;gap:7px;padding:0;border:0;background:none;color:var(--mu);font-size:11.5px;font-weight:600}"+
  ".bgc i{display:block;height:68px;border-radius:20px;border:2px solid var(--ln);background:radial-gradient(90% 80% at 15% 0,var(--x),transparent 70%),radial-gradient(80% 70% at 100% 100%,var(--y),transparent 70%),var(--b);transition:transform .45s cubic-bezier(.2,.9,.3,1.5),box-shadow .3s,border-color .3s}"+
  ".bgc.on{color:var(--tx)}.bgc.on i{transform:scale(1.05);border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent)}";
- BGS.forEach(p=>{if(!p[2])return;const d=p[2],l=p[3],a='[data-bgt="'+p[0]+'"]',
-  dv="--bg:"+d[0]+";--sf:"+d[1]+";--bga:"+d[2]+";--bgb:"+d[3],lv="--bg:"+l[0]+";--bga:"+l[1]+";--bgb:"+l[2];
-  css+=':root[data-theme="dark"]'+a+"{"+dv+"}@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"])"+a+"{"+dv+"}}"+
-   ':root[data-theme="light"]'+a+"{"+lv+"}@media (prefers-color-scheme:light){:root:not([data-theme=\"dark\"])"+a+"{"+lv+"}}"});
+ 
  const s=document.createElement("style");s.textContent=css;document.head.appendChild(s)}
-function bgSheet(){
- const tile=p=>{const d=p[2]||["#0b0d13","","rgba(124,108,255,.24)","rgba(77,224,208,.15)"];
-  return '<button class="bgc'+(p[0]===bgCur()[0]?" on":"")+'" data-bg="'+p[0]+'" style="--b:'+d[0]+";--x:"+d[2]+";--y:"+d[3]+'"><i></i><span>'+p[1]+"</span></button>"};
- sheet('<h3>Background</h3><p class="note">Tap to try. The whole app changes instantly.</p><div class="bgg">'+BGS.map(tile).join("")+"</div>");
- $("sh").onclick=e=>{const b=e.target.closest("[data-bg]");if(!b)return;ST2.bgt=b.dataset.bg;sv2();bgApply();
-  [...$("sh").querySelectorAll(".bgc")].forEach(z=>z.classList.toggle("on",z===b));
-  const s=document.querySelector("[data-bgopen] small");if(s)s.textContent=bgCur()[1];if(navigator.vibrate)navigator.vibrate(5)}}
-{const _a=applyPrefs;applyPrefs=function(){_a();bgApply()}}
-bgApply();
-{const _d=drawMe;drawMe=function(){_d();const f=document.querySelector("[data-fontopen]");
- if(f&&!document.querySelector("[data-bgopen]"))f.insertAdjacentHTML("beforebegin",'<button class="sr" data-bgopen="1"><span class="t"><b>Background</b><small>'+bgCur()[1]+'</small></span><em>›</em></button>')};VIEWS.me=drawMe}
-document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-bgopen]")){e.stopImmediatePropagation();e.stopPropagation();bgSheet()}},true);
+
 }
 
 setTimeout(()=>{try{
