@@ -3050,27 +3050,34 @@ function rope(s,dt,A1,B1){const P=s.rp,n=P.length,seg=RL/(n-1)*1.18,L=s.B.filter
   if(i===0){q.x-=dx*k;q.y-=dy*k;q.z-=dz*k}else if(i===n-2){p.x+=dx*k;p.y+=dy*k;p.z+=dz*k}else{p.x+=dx*k/2;p.y+=dy*k/2;p.z+=dz*k/2;q.x-=dx*k/2;q.y-=dy*k/2;q.z-=dz*k/2}}
   for(let i=1;i<n-1;i++)rcol(L,P[i])}
  for(let i=1;i<n-1;i++){const o=P[i];if(o.hit){o.ox=o.x-(o.x-o.ox)*.5;o.oz=o.z-(o.z-o.oz)*.5;o.oy=o.y;o.hit=0}}}
-function mkChar2(col,capc){const g=new TH.Group(),M=c=>new TH.MeshLambertMaterial({color:c}),SK=M(0xe8b894),SH=M(col),PA=M(0x2f3f7a),HR=M(0x2b1d17),CP=M(capc),
+function mkChar2(v){const g=new TH.Group(),A=v===0,M=c=>new TH.MeshLambertMaterial({color:c}),
+ SK=M(A?0xa8683f:0xf3c9a5),HR=M(A?0x2e1b14:0x3b2a22),TOP=M(A?0x62625f:0x1c1c1f),TD=M(A?0x4b4b49:0x2a2a2e),BOT=M(A?0x5f84b5:0xe9e4da),CF=M(A?0xb9b6af:0xf3efe6),SHO=M(A?0xf0ece6:0x1a1a1a),SOL=M(A?0xd9d2c7:0xf5f5f5),WH=M(0xffffff),
  sp=(r,m,x,y,z,sx,sy,sz,par)=>{const o=new TH.Mesh(new TH.SphereGeometry(r,14,12),m);o.position.set(x,y,z);if(sx!==undefined)o.scale.set(sx,sy,sz);(par||g).add(o);return o},
- cp=(r,l,m,x,y,z,par)=>{const o=new TH.Mesh(new TH.CapsuleGeometry(r,l,4,10),m);o.position.set(x,y,z);par.add(o);return o},
+ cp=(r,l,m,x,y,z,par)=>{const o=new TH.Mesh(new TH.CapsuleGeometry(r,l,4,12),m);o.position.set(x,y,z);par.add(o);return o},
  bx=(w,h,d,m,x,y,z,par)=>{const o=new TH.Mesh(new TH.BoxGeometry(w,h,d),m);o.position.set(x,y,z);par.add(o);return o},
+ cy=(r,h,m,x,y,z,par)=>{const o=new TH.Mesh(new TH.CylinderGeometry(r,r,h,16),m);o.position.set(x,y,z);par.add(o);return o},
  jt=(par,x,y)=>{const o=new TH.Group();o.position.set(x,y,0);par.add(o);return o};
- const hp=jt(g,0,.9),ch=jt(g,0,.95);cp(.19,.08,PA,0,.02,0,hp).scale.set(1.25,1,.9);
- const tor=cp(.23,.2,SH,0,.22,0,ch);tor.scale.set(1,1,.78);
- const aL=jt(ch,-.31,.38),aR=jt(ch,.31,.38),eL=jt(aL,0,-.34),eR=jt(aR,0,-.34);
- [[aL,eL],[aR,eR]].forEach(a=>{cp(.062,.22,SH,0,-.17,0,a[0]);cp(.054,.2,SK,0,-.15,0,a[1]);sp(.065,SK,0,-.3,0,1,1,1,a[1])});
- const lL=jt(hp,-.11,0),lR=jt(hp,.11,0),kL=jt(lL,0,-.44),kR=jt(lR,0,-.44);
- [[lL,kL],[lR,kR]].forEach(a=>{cp(.09,.26,PA,0,-.22,0,a[0]);cp(.07,.3,PA,0,-.22,0,a[1]);bx(.14,.08,.26,M(0x20232f),0,-.43,.05,a[1])});
- cp(.055,.06,SK,0,.45,0,ch);
- const hd=jt(ch,0,.5),lids=[];
- sp(.24,SK,0,.2,0,1,1.08,1,hd);sp(.245,HR,0,.2,-.03,1,1.05,1,hd);
- const cap=new TH.Mesh(new TH.SphereGeometry(.26,14,8,0,6.29,0,1.35),CP);cap.position.set(0,.22,0);hd.add(cap);bx(.24,.02,.14,CP,0,.3,.24,hd);
- [-1,1].forEach(k=>{sp(.06,M(0xffffff),k*.095,.2,.2,1,.9,.5,hd);sp(.036,M(0x4a2e1c),k*.095,.2,.225,1,1,1,hd);sp(.02,M(0x050505),k*.095,.2,.24,1,1,1,hd);sp(.01,M(0xffffff),k*.095+.012,.212,.255,1,1,1,hd);
-  lids.push(sp(.066,SK,k*.095,.205,.208,1,.001,.6,hd));bx(.11,.018,.03,HR,k*.095,.285,.205,hd).rotation.z=-k*.12;sp(.04,SK,k*.24,.2,0,.6,1,1,hd)});
- sp(.03,SK,0,.14,.245,1,1,1,hd);bx(.08,.012,.01,M(0x8a3b3b),0,.06,.232,hd);
+ const hp=jt(g,0,.86),ch=jt(g,0,.88);cp(.17,.06,BOT,0,0,0,hp).scale.set(1.2,1,.9);
+ cp(.21,.2,TOP,0,.2,0,ch).scale.set(A?1.18:1.1,1,.86);cy(.235,.07,TD,0,.03,0,ch).scale.set(1.1,1,.82);
+ cy(.065,.12,SK,0,.42,0,ch);if(A)cy(.085,.03,TD,0,.43,0,ch);else cy(.085,.1,TOP,0,.46,0,ch);
+ const aL=jt(ch,-.3,.34),aR=jt(ch,.3,.34),eL=jt(aL,0,-.31),eR=jt(aR,0,-.31);
+ [[aL,eL],[aR,eR]].forEach(a=>{cp(.075,.2,TOP,0,-.15,0,a[0]);if(A){cp(.06,.2,SK,0,-.14,0,a[1]);cy(.08,.06,TD,0,-.01,0,a[1])}else cp(.07,.2,TOP,0,-.14,0,a[1]);sp(.06,SK,0,-.3,0,1,1,.9,a[1])});
+ const lL=jt(hp,-.1,0),lR=jt(hp,.1,0),kL=jt(lL,0,-.36),kR=jt(lR,0,-.36);
+ [[lL,kL,-1],[lR,kR,1]].forEach(a=>{const l=a[0],k=a[1];
+  if(A){cp(.075,.2,SK,0,-.18,0,l);cy(.115,.26,BOT,0,-.13,0,l);cy(.12,.05,CF,0,-.27,0,l);cp(.062,.22,SK,0,-.18,0,k)}
+  else{cp(.105,.18,BOT,0,-.18,0,l);bx(.05,.13,.1,BOT,a[2]*.12,-.17,0,l);cp(.095,.2,BOT,0,-.17,0,k);cy(.105,.06,CF,0,-.3,0,k);cy(.05,.1,WH,0,-.36,0,k)}
+  bx(.15,.08,.28,SHO,0,-.41,.05,k);bx(.16,.035,.3,SOL,0,-.46,.05,k);sp(.07,A?SHO:WH,0,-.41,.14,1,.75,1.2,k)});
+ const hd=jt(ch,0,.5),lids=[];sp(.25,SK,0,.2,0,1,1.06,1.02,hd);
+ [-1,1].forEach(k=>{sp(.07,WH,k*.1,.22,.215,1,1.05,.5,hd);sp(.045,M(A?0x4a2412:0x6b4a2a),k*.1,.22,.235,1,1,1,hd);sp(.026,M(0x050505),k*.1,.22,.25,1,1,1,hd);sp(.014,WH,k*.1+.016,.236,.262,1,1,1,hd);
+  lids.push(sp(.076,SK,k*.1,.225,.222,1,.001,.55,hd));bx(A?.15:.12,A?.04:.026,.04,HR,k*.1,.35,.215,hd).rotation.z=k*(A?.1:-.08);sp(.05,SK,k*.25,.2,0,.5,1,.8,hd);if(!A)sp(.035,M(0xf2a08a),k*.15,.12,.215,1,.8,.4,hd)});
+ sp(A?.045:.03,SK,0,.14,.26,1,1,1,hd);
+ const mo=new TH.Mesh(new TH.TorusGeometry(.05,.009,6,14,Math.PI),M(0x7a3a30));mo.rotation.z=Math.PI;mo.position.set(0,.085,.247);hd.add(mo);
+ if(A){sp(.27,HR,0,.3,-.02,1,.72,1,hd);for(let i=0;i<26;i++){const a=i*2.4,th=Math.sqrt((i+.5)/26)*1.5,x=.27*Math.sin(th)*Math.cos(a),y=.2+.27*Math.cos(th),z=.27*Math.sin(th)*Math.sin(a);if(z>.1&&y<.4)continue;sp(.075,HR,x,y,z,1,1,1,hd)}}
+ else{const c=new TH.Mesh(new TH.SphereGeometry(.265,14,10,0,6.29,0,1.45),HR);c.position.set(0,.2,-.01);hd.add(c);
+  for(let i=0;i<12;i++){const a=i/12*6.283,o=new TH.Mesh(new TH.ConeGeometry(.06,.2,6),HR);o.position.set(Math.cos(a)*.13,.43,Math.sin(a)*.13-.03);o.rotation.z=-Math.cos(a)*.55;o.rotation.x=Math.sin(a)*.55;hd.add(o)}}
  g.scale.setScalar(.9);
- return{g,body:ch,hp,aL,aR,eL,eR,lL,lR,kL,kR,hd,lids,s:{}}}
-function mkChar(col,capc){return mkChar2(col,capc)}function mkChar0(col,capc){const g=new TH.Group(),M=c=>new TH.MeshLambertMaterial({color:c}),
+ return{g,body:ch,hp,aL,aR,eL,eR,lL,lR,kL,kR,hd,lids,s:{},hy:.86,cy:.88}}
+function mkChar(col,capc){return mkChar2(col===0x4f7cff?0:1)}function mkChar0(col,capc){const g=new TH.Group(),M=c=>new TH.MeshLambertMaterial({color:c}),
  sph=(r,c,x,y,z,sx,sy,sz)=>{const m=new TH.Mesh(new TH.SphereGeometry(r,14,12),M(c));m.position.set(x,y,z);if(sx)m.scale.set(sx,sy,sz);return m},
  body=new TH.Mesh(new TH.CapsuleGeometry(.25,.4,6,14),M(col));body.position.y=.95;g.add(body);
  g.add(sph(.3,0xf5cfa8,0,1.64,0));
@@ -3087,9 +3094,9 @@ function pose2(c,sw,air,t){const S=c.s=c.s||{},L=(k,v,r)=>{const o=S[k]===undefi
  c.kL.rotation.x=L("k",air?.7:.12+.6*Math.max(0,lL));c.kR.rotation.x=L("q",air?.35:.12+.6*Math.max(0,lR));
  const br=Math.sin(t*2.1),bob=L("bob",air?0:-Math.abs(Math.sin(t*12))*.045*m);
  c.body.scale.set(1+br*.025,1+br*.02,1+br*.035);c.body.rotation.x=L("lean",air?-.05:.09*m);c.body.rotation.z=L("sway",air?0:Math.sin(t*12)*.05*m);
- c.hp.position.y=.9+bob;c.body.position.y=.95+bob;
+ c.hp.position.y=c.hy+bob;c.body.position.y=c.cy+bob;
  c.hd.rotation.x=L("hx",air?-.12:-.05*m);c.hd.rotation.y=Math.sin(t*.7)*.12*(1-m);
- const ld=L("lid",(t%3.7)>3.58?1:0,.6);c.lids.forEach(o=>o.scale.set(1,ld*.95+.001,.6))}
+ const ld=L("lid",(t%3.7)>3.58?1:0,.6);c.lids.forEach(o=>o.scale.set(1,ld*.95+.001,.55))}
 function pose(c,sw,air,t){return pose2(c,sw,air,t)}function pose0(c,sw,air,t){if(air){c.aL.rotation.x=c.aR.rotation.x=-2.4;c.lL.rotation.x=.5;c.lR.rotation.x=-.5}else{c.aL.rotation.x=-sw;c.aR.rotation.x=sw;c.lL.rotation.x=sw;c.lR.rotation.x=-sw}c.body.scale.y=1+Math.sin(t*3)*.02}
 function netTex(w,d){const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d");x.fillStyle="#b88a52";x.fillRect(0,0,64,64);x.strokeStyle="#4a2e14";x.lineWidth=6;x.strokeRect(0,0,64,64);const t=new TH.CanvasTexture(c);t.wrapS=t.wrapT=TH.RepeatWrapping;t.repeat.set(Math.round(w/.8),Math.round(d/.8));return t}
 if(!document.getElementById("c3css")){const st=document.createElement("style");st.id="c3css";
