@@ -6,6 +6,7 @@
 <meta name="description" content="ZNEXORA - chat, call and enjoy together.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b0d13'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23ffd93d' font-family='Georgia,serif' font-style='italic'%3EZ%3C/text%3E%3C/svg%3E">
 <title>ZNEXORA</title>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <link rel="preconnect" href="https://ktwluvpmzisonmootdqc.supabase.co" crossorigin><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 
@@ -3145,7 +3146,55 @@ function mkSoldier(v){
  const aL=arm(-1),aR=arm(1);
  g.scale.setScalar(.96);
  return{g,body:ch,hp,aL:aL.a,aR:aR.a,eL:aL.e,eR:aR.e,lL:lL.l,lR:lR.l,kL:lL.k,kR:lR.k,fL:lL.f,fR:lR.f,hd,lids,s:{},hy:.93,cy:.93}}
-function poseS(c,spd,air,t,vy){
+/*ZNX-CHAR-V2: rigged GLB characters (many players) with AnimationMixer; falls back to the built-in soldier*/
+var C3_CFG=/*CFG*/{"models":["https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb"],"anims":{},"rot":0}/*ENDCFG*/;
+var C3_GL="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",C3_SU="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/SkeletonUtils.js";
+async function c3Models(){
+ const cf=C3_CFG;if(!cf.models||!cf.models.length)return null;
+ const hd=document.getElementById("c3H"),say=t=>{if(hd)hd.textContent=t};
+ try{
+  const[G,U]=await Promise.all([import(C3_GL),import(C3_SU)]),ld=new G.GLTFLoader(),an=cf.anims||{},tot=cf.models.length+Object.keys(an).length;let n=0;
+  const load=u=>new Promise((ok,no)=>{const tm=setTimeout(()=>no(new Error("timeout")),30000);ld.load(u,g=>{clearTimeout(tm);n++;say("LOADING CHARACTERS "+Math.round(n/tot*100)+"%");ok(g)},undefined,e=>{clearTimeout(tm);no(e)})});
+  const m=await Promise.all(cf.models.map(u=>load(u))),ex={};
+  await Promise.all(Object.keys(an).map(async k=>{const g=await load(an[k]);if(g.animations&&g.animations[0])ex[k]=g.animations[0]}));
+  const RX={idle:/idle|stand|breath/i,walk:/walk/i,run:/run|sprint|jog/i,jump:/jump/i,fall:/fall|air/i,land:/land/i};
+  m.forEach(g=>{g.cl={};g.animations.forEach(a=>{for(const k in RX)if(!g.cl[k]&&RX[k].test(a.name))g.cl[k]=a});for(const k in ex)g.cl[k]=ex[k];if(!Object.keys(g.cl).length&&g.animations[0])g.cl.idle=g.animations[0]});
+  if(!m.some(g=>Object.keys(g.cl).length))throw new Error("no animations in the files");
+  return{m,clone:U.clone,cfg:cf}
+ }catch(e){console.warn("c3 models:",e);ts("Character model load nahi hua. Purana soldier chal raha hai");return null}
+}
+function mkPlayer(i,MD){
+ try{
+  if(!MD)throw 0;
+  const n=i%MD.m.length,b=MD.m[n],root=MD.clone(b.scene),g=new TH.Group(),box=new TH.Box3().setFromObject(b.scene),h=Math.max(.1,box.max.y-box.min.y),k=1.75/h;
+  root.scale.setScalar(k);root.position.set(-(box.min.x+box.max.x)/2*k,-box.min.y*k,-(box.min.z+box.max.z)/2*k);root.rotation.y=(MD.cfg.rot||0)*Math.PI/180;
+  const PT=["","#9db8ff","#ffb4a0","#a8e6b0"],tn=i>=MD.m.length?PT[i%4]:"";
+  root.traverse(o=>{if(o.isMesh){o.frustumCulled=false;if(tn&&o.material){const one=x=>{const c=x.clone();if(c.color)c.color.multiply(new TH.Color(tn));return c};o.material=Array.isArray(o.material)?o.material.map(one):one(o.material)}}});
+  g.add(root);
+  const cl=Object.assign({},b.cl),hl=!!cl.land,FB={walk:"run",run:"walk",jump:"fall",fall:"jump",land:"idle"};
+  for(const k in FB)if(!cl[k]&&cl[FB[k]])cl[k]=cl[FB[k]];
+  if(!cl.idle)cl.idle=cl.walk||cl.run;
+  for(const k in FB)if(!cl[k])cl[k]=cl.run||cl.idle;
+  const mx=new TH.AnimationMixer(root),act={};
+  for(const k in cl){const c=cl[k].clone();c.tracks.forEach(t=>{if(/hips.*\.position$/i.test(t.name)){const v=t.values;for(let q=0;q<v.length;q+=3){v[q]=v[0];v[q+2]=v[2]}}});const a=mx.clipAction(c);if(k==="jump"||k==="land"){a.setLoop(TH.LoopOnce,1);a.clampWhenFinished=true}act[k]=a}
+  act.idle.play();
+  return{g,mx,act,hl,s:{act:act.idle,cur:"idle",pt:null,air:false,lt:0}}
+ }catch(e){if(e)console.warn("c3 player:",e);return mkChar(i%2?0xff6b8b:0x4f7cff,0)}
+}
+function poseM(c,spd,air,t,vy){
+ const S=c.s,dt=Math.min(.08,Math.max(.001,S.pt==null?.016:t-S.pt));S.pt=t;
+ if(S.air&&!air&&spd<.4&&c.hl)S.lt=.35;
+ S.air=air;S.lt=Math.max(0,(S.lt||0)-dt);
+ let st;
+ if(air)st=vy>.5?"jump":"fall";
+ else if(S.lt>0)st="land";
+ else st=spd>(S.cur==="run"?.4:.5)?"run":spd>.1?"walk":"idle";
+ if(st!==S.cur){const nx=c.act[st],old=S.act;if(nx){nx.reset().setEffectiveWeight(1).play();if(old&&old!==nx)old.crossFadeTo(nx,st==="jump"?.12:.25,false);S.act=nx;S.cur=st}}
+ const a=S.act,sp=spd*6.8;
+ a.timeScale=S.cur==="run"?Math.max(.7,Math.min(1.35,sp/5.5)):S.cur==="walk"?Math.max(.6,Math.min(1.4,sp/1.8)):S.cur==="jump"?1.25:1;
+ c.mx.update(dt)}
+
+function poseS(c,spd,air,t,vy){if(c.mx)return poseM(c,spd,air,t,vy);
  const S=c.s=c.s||{},dt=Math.min(.08,Math.max(.001,S.pt==null?.016:t-S.pt));S.pt=t;
  const L=(k,v,r)=>{const o=S[k]==null?v:S[k];return S[k]=o+(v-o)*(1-Math.exp(-dt*(r||12)))},cl2=(v,a,b)=>Math.max(a,Math.min(b,v));
  const mv=L("mv",air?0:cl2(spd*1.15,0,1),9);
@@ -3209,7 +3258,7 @@ async function start(nt){stop();inGame=true;
  const r=document.createElement("div");r.id="c3R";
  r.innerHTML='<div class="c3T"><button class="ib" id="c3X" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="c3H">LOADING 3D...</b><button class="ib" id="c3M" style="display:none" aria-label="Mic">'+CI.mic+'</button><button class="ib" id="c3Rs" aria-label="Restart">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div id="c3J"><i></i></div><button id="c3B" aria-label="Jump">\u25b2</button><div id="c3O"></div>';
  document.body.appendChild(r);$("c3X").onclick=exit;$("c3Rs").onclick=()=>start();
- try{TH=TH||await import(TURL)}catch(e){exit();ts("3D engine load nahi hua. Internet check karo");return}
+ try{TH=TH||await import(TURL)}catch(e){exit();ts("3D engine load nahi hua. Internet check karo");return}const MD=await c3Models();if(!document.getElementById("c3R"))return;
  if(!document.getElementById("c3R"))return;
  const rn=new TH.WebGLRenderer({antialias:false,powerPreference:"high-performance"});rn.setPixelRatio(Math.min(devicePixelRatio||1,1.5));rn.setSize(innerWidth,innerHeight);r.prepend(rn.domElement);
  const sc=new TH.Scene();sc.fog=new TH.Fog(0xbcd9d0,80,330);
@@ -3270,7 +3319,7 @@ async function start(nt){stop();inGame=true;
  const bc=new TH.Mesh(new TH.CylinderGeometry(.6,.6,90,12,1,true),new TH.MeshBasicMaterial({color:0xffd93d,transparent:true,opacity:.35,depthWrite:false,fog:false}));bc.position.set(goal.x,goal.t0+45,goal.z);sc.add(bc);
  const PN=140,pg=new TH.BufferGeometry(),pa=new Float32Array(PN*3);for(let i=0;i<PN;i++){pa[i*3]=(Math.random()-.5)*30;pa[i*3+1]=Math.random()*20-6;pa[i*3+2]=(Math.random()-.5)*30}
  pg.setAttribute("position",new TH.BufferAttribute(pa,3));const pm=new TH.PointsMaterial({color:0xff6a2a,size:.28,transparent:true,opacity:.9,depthWrite:false,blending:TH.AdditiveBlending,fog:false}),pts=new TH.Points(pg,pm);pts.frustumCulled=false;sc.add(pts);
- const c1=mkChar(0x4f7cff,0xff6b8b),c2=mkChar(0xff6b8b,0x4f7cff);sc.add(c1.g);sc.add(c2.g);
+ const c1=mkPlayer(0,MD),c2=mkPlayer(1,MD);sc.add(c1.g);sc.add(c2.g);
  const links=[],lg=new TH.TorusGeometry(.11,.035,6,10);lg.rotateY(PI/2);
  for(let i=0;i<NL-1;i++){const g=new TH.Group(),m=new TH.Mesh(lg,mt(0xb7bcc9));m.scale.z=1.6;if(i%2)m.rotation.z=PI/2;g.add(m);sc.add(g);links.push(g)}
  const mk=()=>({x:0,y:0,z:0,vx:0,vy:0,vz:0,on:null,coy:0,jb:0}),
