@@ -2955,7 +2955,7 @@ window.enter=enter;
 GAMES.push({id:"c3d",n:"Chained Together",max:2,d:"Climb from Hell to Heaven. Solo or with a friend.",r:1});
 GI.c3d=A('<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>');
 const TURL="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",PI=Math.PI;
-const R=.38,H=1.7,SPD=6.8,JV=11.5,GR=30,STEP=.45,FIX=1/120,RL=5.2,NL=14,ZN=["HELL","EARTH","HEAVEN"],SID=[0x3a2020,0x8a6a4a,0xdde8ff];
+const CHS=0.68,R=.38*CHS,H=1.7*CHS,SPD=6.8,JV=11.5,GR=30,STEP=.45*CHS,FIX=1/120,RL=5.2,NL=14,ZN=["HELL","EARTH","HEAVEN"],SID=[0x3a2020,0x8a6a4a,0xdde8ff];
 const PAL=[
  {top:0x12060a,mid:0x8a2a14,bot:0x1d0808,fog:0x4a1810,sun:0xff3a1a,cloud:0x4a3030,pt:0xff6a2a,hemi:.85},
  {top:0x4a90e2,mid:0xcfe8f5,bot:0x7fa070,fog:0xbcd9d0,sun:0xfff6c0,cloud:0xffffff,pt:0xd8ff8a,hemi:1.15},
@@ -3037,7 +3037,7 @@ function chain(s){const a=s.p,b=s.q,dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,d=Math.hypo
 function seed(s){const b=s.cp,f=surf(b,b.z),p=s.p,q=s.q;p.x=b.x;p.z=b.z;p.y=f;q.x=b.x+1;q.z=b.z+1.4;q.y=f;
  for(const o of[p,q]){o.vx=o.vy=o.vz=0;o.on=b;o.jb=0;o.coy=0}
  s.pp=[p.x,p.y,p.z];s.qp=[q.x,q.y,q.z];
- s.rp=Array.from({length:NL},(_,i)=>{const u=i/(NL-1),x=p.x+(q.x-p.x)*u,z=p.z+(q.z-p.z)*u;return{x:x,y:f+1,z:z,ox:x,oy:f+1,oz:z}});
+ s.rp=Array.from({length:NL},(_,i)=>{const u=i/(NL-1),x=p.x+(q.x-p.x)*u,z=p.z+(q.z-p.z)*u;return{x:x,y:f+H*.59,z:z,ox:x,oy:f+H*.59,oz:z}});
  for(const o of s.B)if(o.crm&&o.off){o.off=0;o.t=0;if(o.m)o.m.visible=true}}
 /* chain points now bounce off every side of a slab, not only its top */
 function rcol(L,o){for(const b of L){if(b.off)continue;const hx2=b.w/2+.12,hz=b.d/2+.12;if(Math.abs(o.x-b.x)>=hx2||Math.abs(o.z-b.z)>=hz)continue;
@@ -3045,7 +3045,7 @@ function rcol(L,o){for(const b of L){if(b.off)continue;const hx2=b.w/2+.12,hz=b.
  const a=[top-o.y,o.y-bot,b.x+hx2-o.x,o.x-(b.x-hx2),b.z+hz-o.z,o.z-(b.z-hz)];let m=0;for(let i=1;i<6;i++)if(a[i]<a[m])m=i;
  if(m===0)o.y=top;else if(m===1)o.y=bot;else if(m===2)o.x=b.x+hx2;else if(m===3)o.x=b.x-hx2;else if(m===4)o.z=b.z+hz;else o.z=b.z-hz;o.hit=1}}
 function rope(s,dt,A1,B1){const P=s.rp,n=P.length,seg=RL/(n-1)*1.18,L=s.B.filter(b=>Math.abs(b.z-A1[2])<RL+10);
- P[0].x=A1[0];P[0].y=A1[1]+1;P[0].z=A1[2];P[n-1].x=B1[0];P[n-1].y=B1[1]+1;P[n-1].z=B1[2];
+ P[0].x=A1[0];P[0].y=A1[1]+H*.59;P[0].z=A1[2];P[n-1].x=B1[0];P[n-1].y=B1[1]+H*.59;P[n-1].z=B1[2];
  for(let i=1;i<n-1;i++){const o=P[i],vx=(o.x-o.ox)*.96,vy=(o.y-o.oy)*.96,vz=(o.z-o.oz)*.96;o.ox=o.x;o.oy=o.y;o.oz=o.z;o.x+=vx;o.y+=vy-9*dt*dt;o.z+=vz}
  for(let it=0;it<6;it++){for(let i=0;i<n-1;i++){const p=P[i],q=P[i+1],dx=q.x-p.x,dy=q.y-p.y,dz=q.z-p.z,d=Math.hypot(dx,dy,dz)||1e-4,k=(d-seg)/d;
   if(i===0){q.x-=dx*k;q.y-=dy*k;q.z-=dz*k}else if(i===n-2){p.x+=dx*k;p.y+=dy*k;p.z+=dz*k}else{p.x+=dx*k/2;p.y+=dy*k/2;p.z+=dz*k/2;q.x-=dx*k/2;q.y-=dy*k/2;q.z-=dz*k/2}}
@@ -3144,7 +3144,7 @@ function mkSoldier(v){
   sph(.017,GL,h,-s*.045,-.07,.015);sph(.013,SK,h,-s*.05,-.1,.025);
   return{a,e}};
  const aL=arm(-1),aR=arm(1);
- g.scale.setScalar(.96);
+ g.scale.setScalar(.96*CHS);
  return{g,body:ch,hp,aL:aL.a,aR:aR.a,eL:aL.e,eR:aR.e,lL:lL.l,lR:lR.l,kL:lL.k,kR:lR.k,fL:lL.f,fR:lR.f,hd,lids,s:{},hy:.93,cy:.93}}
 /*ZNX-CHAR-V2: rigged GLB characters (many players) with AnimationMixer; falls back to the built-in soldier*/
 var C3_CFG=/*CFG*/{"models":["https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb"],"anims":{},"rot":0}/*ENDCFG*/;
@@ -3166,7 +3166,7 @@ async function c3Models(){
 function mkPlayer(i,MD){
  try{
   if(!MD)throw 0;
-  const n=i%MD.m.length,b=MD.m[n],root=MD.clone(b.scene),g=new TH.Group(),box=new TH.Box3().setFromObject(b.scene),h=Math.max(.1,box.max.y-box.min.y),k=1.75/h;
+  const n=i%MD.m.length,b=MD.m[n],root=MD.clone(b.scene),g=new TH.Group(),box=new TH.Box3().setFromObject(b.scene),h=Math.max(.1,box.max.y-box.min.y),k=1.75*CHS/h;
   root.scale.setScalar(k);root.position.set(-(box.min.x+box.max.x)/2*k,-box.min.y*k,-(box.min.z+box.max.z)/2*k);root.rotation.y=(MD.cfg.rot||0)*Math.PI/180;
   const PT=["","#9db8ff","#ffb4a0","#a8e6b0"],tn=i>=MD.m.length?PT[i%4]:"";
   root.traverse(o=>{if(o.isMesh){o.frustumCulled=false;if(tn&&o.material){const one=x=>{const c=x.clone();if(c.color)c.color.multiply(new TH.Color(tn));return c};o.material=Array.isArray(o.material)?o.material.map(one):one(o.material)}}});
@@ -3320,7 +3320,7 @@ async function start(nt){stop();inGame=true;
  const PN=140,pg=new TH.BufferGeometry(),pa=new Float32Array(PN*3);for(let i=0;i<PN;i++){pa[i*3]=(Math.random()-.5)*30;pa[i*3+1]=Math.random()*20-6;pa[i*3+2]=(Math.random()-.5)*30}
  pg.setAttribute("position",new TH.BufferAttribute(pa,3));const pm=new TH.PointsMaterial({color:0xff6a2a,size:.28,transparent:true,opacity:.9,depthWrite:false,blending:TH.AdditiveBlending,fog:false}),pts=new TH.Points(pg,pm);pts.frustumCulled=false;sc.add(pts);
  const c1=mkPlayer(0,MD),c2=mkPlayer(1,MD);sc.add(c1.g);sc.add(c2.g);
- const links=[],lg=new TH.TorusGeometry(.11,.035,6,10);lg.rotateY(PI/2);
+ const links=[],lg=new TH.TorusGeometry(.11*CHS,.035*CHS,6,10);lg.rotateY(PI/2);
  for(let i=0;i<NL-1;i++){const g=new TH.Group(),m=new TH.Mesh(lg,mt(0xb7bcc9));m.scale.z=1.6;if(i%2)m.rotation.z=PI/2;g.add(m);sc.add(g);links.push(g)}
  const mk=()=>({x:0,y:0,z:0,vx:0,vy:0,vz:0,on:null,coy:0,jb:0}),
  s=S={rn:rn,B:B,H:B.H,cp:B[0],p:mk(),q:mk(),I:{ix:0,iz:0,jp:0,jh:0},qi:{ix:0,iz:0,jp:0,jh:0},jx:0,jy:0,yaw:0,pit:.38,fc:0,fq:0,t:0,acc:0,lt:0,won:0,shake:0,falls:0,zz:0,hud:"",pp:[0,0,0],qp:[0,0,0],cx:0,cy:0,cz:0,ci:0,net:nt?nt.role:0,solo:solo,gi:{ix:0,iz:0,jp:0,jh:0},st:null};
@@ -3382,7 +3382,7 @@ async function start(nt){stop();inGame=true;
   hemi.intensity=lerp(hemi.intensity,PAL[s.zz].hemi,kk);glow.intensity=lerp(glow.intensity,s.zz===0?1.8:0,kk);lav.material.color.setRGB(1,.33+.08*Math.sin(s.t*2),.1);
   pm.opacity=s.zz===0?.9:.7;
   /* camera */
-  const M1=s.net===2?Q1:P1,d=7.5,po=Math.max(s.pit,.06),tx=M1[0],ty=M1[1]+1.3,tz=M1[2],
+  const M1=s.net===2?Q1:P1,d=7.5,po=Math.max(s.pit,.06),tx=M1[0],ty=M1[1]+H*.76,tz=M1[2],
    ex=tx+Math.sin(s.yaw)*Math.cos(po)*d,ey=Math.max(ty+Math.sin(po)*d,ty-1.0),ez=tz+Math.cos(s.yaw)*Math.cos(po)*d;
   if(!s.ci){s.cx=ex;s.cy=ey;s.cz=ez;s.ci=1}const ck=1-Math.exp(-dt*9);s.cx+=(ex-s.cx)*ck;s.cy+=(ey-s.cy)*ck;s.cz+=(ez-s.cz)*ck;
   s.shake=Math.max(0,s.shake-dt);const shk=s.shake*.3;cam.position.set(s.cx+(shk?(Math.random()-.5)*shk:0),s.cy,s.cz);cam.lookAt(tx,ty+Math.max(0,-s.pit)*18,tz);
