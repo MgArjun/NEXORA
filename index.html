@@ -3410,7 +3410,7 @@ $("pg").addEventListener("click",e=>{if(tab!=="play")return;{const b=e.target.cl
 GAMES.push({id:"devil",n:"Level Devil",max:1,d:"15 long trap levels. Trust nothing.",r:1});
 GI.devil=A('<path d="M5 3l3 5M19 3l-3 5"/><circle cx="12" cy="13.5" r="7"/><path d="M9 12.5h.01M15 12.5h.01M9.5 17c1.5.9 3.5.9 5 0"/>');
 
-const W=640,H=360,PW=18,PH=26,SPD=200,G=1650,JV=560,FIX=1/120,EPS=.01,KEY="znx_ld";
+const W=640,H=360,PW=18,PH=26,SPD=200,G=1650,JV=560,FIX=1/120,EPS=.01,KEY="znx_ld2";
 const TAUNT=["Ouch.","Seriously?","Skill issue.","I told you.","Again!","So close.","Trust issues?","The devil laughs.","Nice try.","Almost!","Did you see that coming?","Classic."];
 const inp={l:0,r:0,j:0,jp:0};
 let D=null,raf=0,AC=null;
@@ -3611,6 +3611,54 @@ const G=[];for(let j=0;j<NG;j++){const d=.15+.85*j/(NG-1),k=j%5;G.push({n:KN[k]+
 LV.splice(LV.length-1,0,...G);
 }
 /*ZNX-GEN-END*/
+/*ZNX-LD3*/
+
+{
+const R=Math.random,rr2=(a,b)=>a+R()*(b-a);
+LV.length=0;
+LV.push(
+{n:"Easy Start",h:"Easy. Just go right.",hint:"Jump when the spike pops.",b:()=>({w:1700,sp:[40,274],e:[
+ ...route(0,300,[[520,80],[420,80],[520,0]]),T(60,300,"Easy. Just go right."),
+ tp(650,40,560,300),C(760,300),dr(880,40,780,300),E(1560,262)]})},
+{n:"Fake Floor",h:"Looks solid.",hint:"Floors can lie. Jump early.",b:()=>({w:2200,sp:[40,274],e:[
+ gr(0,420,300),T(60,300,"Looks solid."),gr(420,90,300,{fake:1}),gr(510,330,300),C(560,300),
+ gr(840,80,300,{fake:1}),gr(920,300,300),gr(1220,70,300,{fake:1}),gr(1290,70,300),gr(1360,70,300,{fake:1}),
+ gr(1430,520,300),C(1460,300),tp(1700,40,1630,300),E(1850,262)]})},
+{n:"Vanishing Act",h:"Do not stand still.",hint:"Keep moving. One tile is fake.",b:()=>{const e=[gr(0,320,300),T(60,300,"Do not stand still."),C(240,300)];
+ for(let i=0;i<7;i++)e.push(pl(380+i*80,300,50,i===2?{fake:1}:{u:crumble(.25)}));
+ e.push(gr(950,420,300),tp(1100,40,1040,300),E(1300,262));return{w:1400,sp:[40,274],e}}},
+{n:"Spike Rain",h:"Look up.",hint:"Spikes fall a little differently every try.",b:()=>{const e=[gr(0,2000,300),T(60,300,"Look up."),C(625,300),C(1225,300)];
+ for(let i=0;i<9;i++){const x=400+i*150;e.push(dr(x,40,x-rr2(70,150),300))}
+ e.push(E(1900,262));return{w:2000,sp:[40,274],e}}},
+{n:"Shy Door",h:"The exit is shy.",hint:"Do not stop. The door tires out.",b:()=>({w:2100,sp:[40,274],e:[
+ ...route(0,300,[[700,90],[500,90],[600,0]]),T(60,300,"The exit is shy."),tp(450,40,390,300),C(820,300),
+ E(1000,262,{fake:1,msg:"Nope!"}),tp(1100,40,1040,300),C(1420,300),E(1650,262,{u:run(1500,1900,150),msg:"Too slow!"})]})},
+{n:"Upside Down",h:"Gravity has opinions.",hint:"In the flipped zone, jump toward the floor.",b:()=>({w:2000,sp:[40,274],lu:gz([[600,1250]]),e:[
+ gr(0,2000,300),S(550,-60,750,100,{g:1}),T(100,300,"Gravity has opinions."),C(420,300),
+ P(750,40,50,16,690,{d:1}),P(1000,40,50,16,940,{d:1}),tp(1330,40,1270,300),C(1500,300),E(1800,262)]})},
+{n:"Blink",h:"Some ledges are hiding.",hint:"Ledges flash every two seconds.",b:()=>({w:1800,y0:-60,sp:[40,274],e:[
+ gr(0,420,300),T(60,300,"Some ledges are hiding."),C(340,300),Hd(480,270),Hd(610,240),Hd(740,270),Hd(550,170,{fake:1}),
+ gr(880,900,300),tp(1000,40,940,300),C(1100,300),E(1650,262)]})},
+{n:"Stone Walk",h:"Patience is a weapon.",hint:"Wait until the stone rises.",b:()=>({w:2000,sp:[40,274],e:[
+ gr(0,2000,300),T(60,300,"Patience is a weapon."),Th(450),Th(640),C(800,300),Th(900),Th(1060),C(1230,300),tp(1330,40,1270,300),Th(1460),E(1850,262)]})},
+{n:"Run!",h:"Do not look back.",hint:"Jump early. Never stop.",b:()=>({w:3500,sp:[40,274],e:[
+ ...route(0,300,[[500,90],[300,95,-20],[280,90,20],[300,95],[280,90,-20],[300,95],[280,90],[500,0]]),
+ X(-90,-400,70,1200,{big:1,u:chase(165),msg:"Caught!"}),C(450,300),tp(760,40,700,300),C(1450,300),tp(1900,40,1840,300),C(2250,280),tp(2650,40,2590,280),E(3250,242)]})},
+{n:"Spring Surprise",h:"Do not touch the spring.",hint:"The spring is the way up.",b:()=>({w:1800,y0:-60,sp:[40,274],e:[
+ gr(0,380,300),T(60,300,"Do not touch the spring."),B(290,300),gr(440,300,150),C(470,150),tp(640,40,560,150),
+ gr(740,1000,300),dr(900,40,820,300),E(1650,262)]})},
+{n:"Saw Alley",h:"Time it right.",hint:"Saws move differently every try.",b:()=>{const e=[gr(0,2200,300),T(60,300,"Time it right."),C(900,300),C(1500,300)];
+ for(let i=0;i<10;i++)e.push(Wd(450+i*130,272,14,"y",34,rr2(2,3.4),rr2(0,6.28)));
+ e.push(E(2050,262));return{w:2200,sp:[40,274],e}}},
+{n:"Devil Final",h:"Everything is a lie.",hint:"Learn the pattern. Then run.",b:()=>({w:3000,sp:[40,274],e:[
+ gr(0,380,300),T(60,300,"Everything is a lie."),C(300,300),gr(380,90,300,{fake:1}),gr(470,300,300),tp(640,40,570,300),
+ pl(840,300,50,{u:crumble(.25)}),pl(920,300,50,{u:crumble(.25)}),pl(1000,300,50,{fake:1}),pl(1080,300,50,{u:crumble(.25)}),
+ gr(1180,1820,300),C(1220,300),dr(1360,40,1260,300),Th(1600),Th(1800),C(1950,300),tp(2100,40,2040,300),
+ Wd(2400,272,14,"y",34,rr2(2,3.4),rr2(0,6.28)),E(2250,262,{fake:1,msg:"Fake!"}),E(2800,262,{hid:1,u:(e,L)=>{if(L.p.x>2500)e.hid=0}})]})}
+);
+}
+
+
 /* ---------- game flow ---------- */
 function camT(px,py){return[cl(px+PW/2-W/2,0,Math.max(0,D.W-W)),cl(py+PH/2-(D.g>0?H*.58:H*.42),D.y0,Math.max(D.y0,D.y1-H))]}
 function ldLoad(i,fresh){if(fresh){D.cp=null;D.dv=0}const b=LV[i].b();D.lv=i;D.ents=b.e;D.W=b.w;D.y0=b.y0==null?0:b.y0;D.y1=b.y1||360;D.lava=null;
@@ -3622,12 +3670,12 @@ function ldLoad(i,fresh){if(fresh){D.cp=null;D.dv=0}const b=LV[i].b();D.lv=i;D.e
  const c=camT(sx,sy);D.cx=c[0];D.cy=c[1];
  if(fresh){D.ld=0;D.pa=[];D.say(LV[i].h,3.2);$("ldSk").style.display="none"}
  $("ldH").textContent="Level "+(i+1)+"/"+LV.length+" \u00b7 "+LV[i].n}
-function die(e){if(globalThis.__NODIE&&e)return;if(D.st!=="play")return;D.st="dead";D.dd=.6;D.deaths++;D.ld++;const p=D.p;
+function die(e){if(globalThis.__NODIE&&e)return;if(D.st!=="play")return;D.st="dead";D.dd=.35;D.deaths++;D.ld++;const p=D.p;
  for(let i=0;i<30;i++)D.pa.push({x:p.x+PW/2,y:p.y+PH/2,vx:rnd(-260,260),vy:rnd(-340,120),l:rnd(.4,.9),m:.9,c:i%3?"255,77,109":"255,255,255",r:rnd(2,4),g:900});
  D.shake=.35;
  if(D.ld===6&&LV[D.lv].hint)D.say("Hint: "+LV[D.lv].hint,3.6);else D.say(e&&e.msg||TAUNT[(Math.random()*TAUNT.length)|0],1.2);
  vib([30,40,70]);sfx(260,50,.35,.07,"sawtooth");
- $("ldSk").style.display=(D.ld>=30&&D.lv<LV.length-1)?"":"none"}
+ $("ldSk").style.display=(D.ld>=12&&D.lv<LV.length-1)?"":"none"}
 function win(){if(D.st!=="play")return;const last=D.lv>=LV.length-1;ldSave(Math.min(LV.length-1,D.lv+1));
  const p=D.p;for(let i=0;i<70;i++)D.pa.push({x:p.x+PW/2,y:p.y,vx:rnd(-200,200),vy:rnd(-480,-120),l:rnd(.8,1.6),m:1.6,c:["255,217,61","94,194,183","143,136,255","255,107,139"][i%4],r:rnd(2,4),g:600});
  sfx(500,1100,.3,.05,"triangle");vib([20,40,20]);D.st=last?"end":"clear";D.ct=last?.9:1;D.say(last?"You beat the Devil!":"Level cleared!",1.2)}
@@ -3788,6 +3836,18 @@ function drawSolid0(c,e,hu,t){
  c.fillStyle="hsl("+hu+",38%,22%)";c.fillRect(e.x+ox,e.y,e.w,e.h);c.fillStyle="hsl("+hu+",75%,62%)";c.fillRect(e.x+ox,e.y,e.w,3);
  if(e.y<=0&&e.y+e.h<=60)c.fillRect(e.x,e.y+e.h-3,e.w,3);
  c.fillStyle="rgba(255,255,255,.05)";c.fillRect(e.x+ox,e.y+3,e.w,Math.min(e.h-3,10))}
+
+function drawPm(c,p,t,gs){
+ c.save();c.translate(p.x+PW/2,p.y+PH/2);c.scale(1+p.sq*.6,gs*(1-p.sq));
+ var f=p.face||1,run=p.g&&Math.abs(p.vx)>30,ph=run?Math.sin(p.run):0,air=!p.g,bl=(t%3.4)>3.28,a=air?3:ph*4;
+ c.lineCap="round";c.lineJoin="round";c.strokeStyle="#ff4d6d";c.lineWidth=3;
+ c.beginPath();c.moveTo(-2.5,5);c.lineTo(-2.5+a,12);c.moveTo(2.5,5);c.lineTo(2.5-a,12);c.stroke();
+ c.fillStyle="#ff4d6d";rr(c,-5,-3,10,11,4);c.fill();
+ c.beginPath();c.moveTo(-3.5,-11);c.lineTo(-5,-15);c.lineTo(-1.5,-12);c.moveTo(3.5,-11);c.lineTo(5,-15);c.lineTo(1.5,-12);c.fill();
+ c.fillStyle="#ffe6d8";c.beginPath();c.arc(0,-7,5,0,6.3);c.fill();
+ if(!bl){c.fillStyle="#1a1030";c.beginPath();c.arc(f*1.2-1.8,-7.3,.9,0,6.3);c.arc(f*1.2+1.8,-7.3,.9,0,6.3);c.fill()}
+ c.restore()}
+
 function draw(t){const c=D.ctx,cv=D.cv,dpr=Math.min(2,devicePixelRatio||1),cw=innerWidth,ch=innerHeight;
  if(cv.width!==Math.round(cw*dpr)||cv.height!==Math.round(ch*dpr)){cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr)}
  const a=cl(D.acc/FIX,0,1),p=D.p,ipx=p.qx+(p.x-p.qx)*a,ipy=p.qy+(p.y-p.qy)*a;
@@ -3811,7 +3871,7 @@ function draw(t){const c=D.ctx,cv=D.cv,dpr=Math.min(2,devicePixelRatio||1),cw=in
   else if(e.k==="c")drawFlag(c,e,t)
   else if(e.k==="t")drawSign(c,e);
   if(mvd)c.restore()}
- if(D.st!=="dead")drawP(c,{x:ipx,y:ipy,sq:p.sq,face:p.face,g:p.g,vx:p.vx,run:p.run},t,D.g);
+ if(D.st!=="dead")drawPm(c,{x:ipx,y:ipy,sq:p.sq,face:p.face,g:p.g,vx:p.vx,run:p.run},t,D.g);
  for(const q of D.pa){const al=cl(q.l/q.m,0,1);c.fillStyle="rgba("+q.c+","+(al*.9).toFixed(2)+")";c.fillRect(q.x-q.r/2,q.y-q.r/2,q.r,q.r)}
  if(D.lava!=null){const lg=c.createLinearGradient(0,D.lava-60,0,D.lava+30);lg.addColorStop(0,"rgba(255,110,40,0)");lg.addColorStop(.35,"rgba(255,110,40,.55)");lg.addColorStop(1,"#ff5a2a");c.fillStyle=lg;c.fillRect(D.cx-10,D.lava-60,W+20,Math.max(0,D.cy+H+40-D.lava+60))}
  c.restore();
