@@ -3017,12 +3017,12 @@ function world(s,t){for(const b of s.B){
  if(b.bl){const ph=(t+b.ph)%b.bl,on=ph<b.bl*.8;b.off=!on;b.warn=on&&ph>b.bl*.8-1.2}}}
 function mv(s,p,c,d){if(!d)return;p[c]+=d;
  for(const b of s.B)if(ins(p,b,R)){const f=surf(b,p.z);if(p.y<f-.02&&p.y+H>f-b.th){if(f-p.y<=STEP){p.y=f;if(p.vy<0)p.vy=0}else{p[c]-=d;p["v"+c]=0;break}}}}
-function phys(s,dt,p,I){const k=Math.min(1,(p.on?(p.on.kind==="ice"?1.6:18):6)*dt);
+function phys(s,dt,p,I){const gd=!!p.on,mvIn=Math.hypot(I.ix,I.iz)>.05,k=Math.min(1,(gd?(p.on.kind==="ice"?1.4:(mvIn?16:22)):(mvIn?5:.6))*dt);
  p.vx+=(I.ix*SPD-p.vx)*k;p.vz+=(I.iz*SPD-p.vz)*k;
  if(p.on&&p.on.dx)p.x+=p.on.dx;if(p.on&&p.on.dz)p.z+=p.on.dz;
  p.coy=p.on?.12:p.coy-dt;p.jb-=dt;if(I.jp){p.jb=.14;I.jp=0}
- if(p.jb>0&&p.coy>0){p.vy=JV;p.jb=0;p.coy=0;p.on=null}
- else p.vy=Math.max(-32,p.vy-GR*dt*(p.vy>0&&!I.jh?1.8:1));
+ if(p.jb>0&&p.coy>0){if(p.on){if(p.on.dx)p.vx+=p.on.dx/FIX*.8;if(p.on.dz)p.vz+=p.on.dz/FIX*.8}p.vy=JV;p.jb=0;p.coy=0;p.on=null}
+ else p.vy=Math.max(-32,p.vy-GR*dt*(p.vy>0&&!I.jh?1.8:p.vy<0?1.2:1));
  mv(s,p,"x",p.vx*dt);mv(s,p,"z",p.vz*dt);
  const py=p.y,pb=p.on;p.y+=p.vy*dt;p.on=null;
  for(const b of s.B)if(ins(p,b,0)){const f=surf(b,p.z);if(p.vy<=0&&py>=f-.15&&p.y<=f){p.y=f;p.vy=b.kind==="bounce"?JV*1.65:0;p.on=b.kind==="bounce"?null:b}}
@@ -3077,7 +3077,57 @@ function mkChar2(v){const g=new TH.Group(),A=v===0,M=c=>new TH.MeshLambertMateri
   for(let i=0;i<12;i++){const a=i/12*6.283,o=new TH.Mesh(new TH.ConeGeometry(.06,.2,6),HR);o.position.set(Math.cos(a)*.13,.43,Math.sin(a)*.13-.03);o.rotation.z=-Math.cos(a)*.55;o.rotation.x=Math.sin(a)*.55;hd.add(o)}}
  g.scale.setScalar(.9);
  return{g,body:ch,hp,aL,aR,eL,eR,lL,lR,kL,kR,hd,lids,s:{},hy:.86,cy:.88}}
-function mkChar(col,capc){return mkSoldier(col===0x4f7cff?0:1)}
+/*C3D-REAL-V2*/
+function tube(pts,seg){seg=seg||18;const M=Math.max(10,(pts.length-1)*4),pos=[],idx=[],cr=(a,b,c,d,t)=>.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t);
+ for(let i=0;i<=M;i++){const f=i/M*(pts.length-1),k=Math.min(pts.length-2,Math.floor(f)),t=f-k,P0=pts[Math.max(0,k-1)],P1=pts[k],P2=pts[k+1],P3=pts[Math.min(pts.length-1,k+2)],q=[];
+  for(let c=0;c<5;c++)q.push(cr(P0[c]||0,P1[c]||0,P2[c]||0,P3[c]||0,t));
+  const rx=Math.max(.0008,q[1]),rz=Math.max(.0008,q[2]);
+  for(let j=0;j<seg;j++){const a=j/seg*6.2832;pos.push((q[4]||0)+rx*Math.cos(a),q[0],q[3]+rz*Math.sin(a))}}
+ for(let i=0;i<M;i++)for(let j=0;j<seg;j++){const a=i*seg+j,b=i*seg+(j+1)%seg,c=(i+1)*seg+j,d=(i+1)*seg+(j+1)%seg;idx.push(a,c,b,b,c,d)}
+ const g=new TH.BufferGeometry();g.setAttribute("position",new TH.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g}
+function mkReal(v){
+ const A=v===0,mat=(c,r,m)=>new TH.MeshStandardMaterial({color:c,roughness:r==null?.85:r,metalness:m||0}),
+ SK=mat(A?0xb97d56:0xe9bc98,.62),LP=mat(A?0x8e4a3c:0xc9766b,.55),SH=mat(A?0x5a6b43:0x7e7358,.95),VS=mat(A?0x1f2224:0x262b31,.9),PN=mat(A?0x4d5159:0x3a3f49,.92),BT=mat(0x16120f,.75),GL=mat(0x1c1c1e,.8),HR=mat(A?0x120d0a:0x3a2a1c,.85),HM=mat(A?0x46523b:0x2f353c,.7,.1),BP=mat(A?0x30362b:0x2a2e34,.95),WH=mat(0xf2f0ea,.3),IR=mat(A?0x2b1b11:0x3b5a73,.4),DK=mat(0x0b0b0c,.6);
+ const jt=(par,x,y,z)=>{const o=new TH.Group();o.position.set(x||0,y||0,z||0);par.add(o);return o},
+ mm=(g,m,par,x,y,z)=>{const o=new TH.Mesh(g,m);o.position.set(x||0,y||0,z||0);par.add(o);return o},
+ sp=(r,m,par,x,y,z,sx,sy,sz)=>{const o=mm(new TH.SphereGeometry(r,12,10),m,par,x,y,z);if(sx)o.scale.set(sx,sy,sz);return o},
+ g=new TH.Group(),hp=jt(g,0,.93,0),ch=jt(g,0,.93,0);
+ const T={
+  torso:tube([[-.04,.001,.001,0],[-.02,.15,.1,0],[.06,.145,.095,0],[.2,.165,.105,.005],[.32,.2,.115,.01],[.44,.215,.105,.005],[.5,.15,.085,0],[.54,.07,.065,0],[.56,.001,.001,0]],20),
+  vest:tube([[.09,.001,.001,.006],[.1,.168,.108,.008],[.22,.178,.112,.012],[.34,.21,.12,.016],[.45,.218,.11,.01],[.49,.14,.08,.004],[.5,.001,.001,.004]],20),
+  pack:tube([[.08,.001,.001,-.19],[.1,.12,.06,-.19],[.3,.13,.075,-.2],[.5,.115,.06,-.19],[.52,.001,.001,-.19]],16),
+  pelv:tube([[-.1,.001,.001,0],[-.09,.1,.09,0],[-.02,.17,.11,0],[.06,.16,.1,0],[.07,.001,.001,0]],20),
+  neck:tube([[.47,.001,.001,0],[.5,.055,.058,0],[.6,.046,.05,.005],[.64,.001,.001,.005]],14),
+  thigh:tube([[-.46,.001,.001,0],[-.44,.062,.065,0],[-.36,.07,.075,.004],[-.22,.088,.095,.005],[-.1,.098,.1,0],[0,.09,.09,0],[.04,.001,.001,0]],16),
+  calf:tube([[-.45,.001,.001,0],[-.41,.044,.05,0],[-.36,.05,.055,0],[-.22,.062,.07,-.012],[-.1,.07,.075,-.008],[0,.065,.068,0],[.03,.001,.001,0]],16),
+  boot:tube([[-.42,.001,.001,0],[-.41,.055,.06,0],[-.34,.06,.066,0],[-.27,.064,.07,0],[-.25,.001,.001,0]],16),
+  foot:tube([[-.075,.001,.001,.012],[-.065,.045,.05,.012],[-.02,.052,.056,.012],[.06,.055,.052,.012],[.14,.056,.04,.022],[.2,.042,.026,.036],[.225,.001,.001,.036]],16).rotateX(Math.PI/2),
+  up:tube([[-.3,.001,.001,0],[-.29,.045,.045,0],[-.2,.052,.054,0],[-.1,.062,.062,0],[0,.07,.068,0],[.05,.001,.001,0]],16),
+  fore:tube([[-.27,.001,.001,0],[-.26,.032,.026,0],[-.2,.036,.034,.004],[-.08,.046,.044,0],[0,.048,.048,0],[.03,.001,.001,0]],16),
+  palm:tube([[-.37,.001,.001,.01],[-.35,.034,.014,.01],[-.31,.04,.017,.008],[-.27,.036,.02,0],[-.25,.001,.001,0]],14),
+  fing:tube([[-.41,.001,.001,.016],[-.4,.009,.009,.016],[-.36,.011,.011,.014],[-.33,.001,.001,.01]],8),
+  thumb:tube([[-.03,.001,.001,0],[-.02,.01,.01,0],[.02,.011,.011,0],[.035,.001,.001,0]],8),
+  head:tube([[-.02,.001,.001,.06],[0,.03,.03,.06],[.03,.065,.07,.03],[.07,.083,.09,.012],[.12,.09,.1,.006],[.17,.092,.104,.006],[.22,.086,.1,0],[.26,.06,.08,-.01],[.285,.03,.04,-.012],[.295,.001,.001,-.012]],22),
+  helm:tube([[.2,.001,.001,-.006],[.205,.108,.121,-.006],[.23,.11,.123,-.008],[.27,.092,.108,-.01],[.31,.052,.07,-.012],[.328,.001,.001,-.012]],22),
+  hair:tube([[.12,.001,.001,-.012],[.13,.096,.108,-.012],[.2,.098,.11,-.012],[.205,.001,.001,-.012]],20),
+  nose:tube([[0,.001,.001,0],[.008,.011,.012,0],[.025,.008,.01,-.003],[.04,.011,.007,-.005],[.046,.001,.001,0]],10).rotateX(Math.PI/2),
+  ear:tube([[-.03,.001,.001,0],[-.02,.01,.018,0],[.02,.012,.02,0],[.035,.001,.001,0]],8),
+  brow:tube([[-.025,.001,.001,0],[-.02,.004,.005,0],[.02,.004,.005,0],[.025,.001,.001,0]],6)};
+ mm(T.torso,SH,ch);mm(T.vest,VS,ch);mm(T.pack,BP,ch);mm(T.neck,SK,ch);mm(T.pelv,PN,hp);
+ const leg=s=>{const l=jt(hp,s*.095,-.01,0);mm(T.thigh,PN,l);const k=jt(l,0,-.44,0);mm(T.calf,PN,k);mm(T.boot,BT,k);const f=jt(k,0,-.41,0);mm(T.foot,BT,f);return{l,k,f}},
+ arm=s=>{const a=jt(ch,s*.215,.49,0);mm(T.up,SH,a);const e=jt(a,0,-.29,0);mm(T.fore,SK,e);mm(T.palm,GL,e);for(let i=0;i<4;i++)mm(T.fing,GL,e,(i-1.5)*.017,0,0);mm(T.thumb,GL,e,-s*.04,-.3,.012).rotation.z=s*.6;return{a,e}};
+ const lL=leg(-1),lR=leg(1),aL=arm(-1),aR=arm(1);
+ const hd=jt(ch,0,.57,0),lids=[];
+ mm(T.head,SK,hd);mm(T.nose,SK,hd,0,.125,.092);
+ mm(A?T.hair:T.hair,HR,hd);mm(T.helm,HM,hd);
+ [-1,1].forEach(s=>{sp(.016,WH,hd,s*.04,.165,.098);sp(.009,IR,hd,s*.04,.165,.108);sp(.005,DK,hd,s*.04,.165,.113);
+  lids.push(sp(.019,SK,hd,s*.04,.167,.1,1.1,.001,.8));
+  const b=mm(T.brow,HR,hd,s*.042,.196,.103);b.rotation.z=Math.PI/2+s*.08;
+  mm(T.ear,SK,hd,s*.093,.14,0).scale.x=.5});
+ mm(T.brow,LP,hd,0,.06,.101).rotation.z=Math.PI/2;
+ g.scale.setScalar(.9);
+ return{g,body:ch,hp,aL:aL.a,aR:aR.a,eL:aL.e,eR:aR.e,lL:lL.l,lR:lR.l,kL:lL.k,kR:lR.k,fL:lL.f,fR:lR.f,hd,lids,s:{},hy:.93,cy:.93}}
+function mkChar(col,capc){return mkReal(col===0x4f7cff?0:1)}
 /*ZNX-CHAR-V1: soldier character (smooth joints, tactical gear, natural run/jump animation)*/
 function mkSoldier(v){
  const A=v===0,M=(c,r,m)=>new TH.MeshStandardMaterial({color:c,roughness:r==null?.88:r,metalness:m||0}),
