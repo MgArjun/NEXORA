@@ -3017,7 +3017,7 @@ function world(s,t){for(const b of s.B){
  if(b.bl){const ph=(t+b.ph)%b.bl,on=ph<b.bl*.8;b.off=!on;b.warn=on&&ph>b.bl*.8-1.2}}}
 function mv(s,p,c,d){if(!d)return;p[c]+=d;
  for(const b of s.B)if(ins(p,b,R)){const f=surf(b,p.z);if(p.y<f-.02&&p.y+H>f-b.th){if(f-p.y<=STEP&&sup(p,b)){p.y=f;if(p.vy<0)p.vy=0}else{p[c]-=d;p["v"+c]=0;break}}}}
-function phys(s,dt,p,I){const gd=!!p.on,mvIn=Math.hypot(I.ix,I.iz)>.05,k=Math.min(1,(gd?(p.on.kind==="ice"?1.4:(mvIn?12:15)):(mvIn?4:.5))*dt);
+function phys(s,dt,p,I){const gd=!!p.on,mvIn=Math.hypot(I.ix,I.iz)>.05,k=Math.min(1,(gd?(p.on.kind==="ice"?1.4:(mvIn?10:20)):(mvIn?3.6:.6))*dt);
  p.vx+=(I.ix*SPD-p.vx)*k;p.vz+=(I.iz*SPD-p.vz)*k;if(p.on&&p.on.kind==="ice"&&p.on.t1!==p.on.t0)p.vz+=(p.on.t1-p.on.t0)/p.on.d*22*dt;
  if(p.on&&p.on.dx)p.x+=p.on.dx;if(p.on&&p.on.dz)p.z+=p.on.dz;
  p.coy=p.on?.12:p.coy-dt;p.jb-=dt;if(I.jp){p.jb=.14;I.jp=0}
@@ -3197,7 +3197,7 @@ function poseH(c,spd,air,t,vy){
  const L=(k,v,r)=>{const o=S[k]==null?v:S[k];return S[k]=o+(v-o)*(1-Math.exp(-dt*(r||10)))},K=(v,a,b)=>Math.max(a,Math.min(b,v));
  if(air){S.at=(S.at||0)+dt;if(S.at<.07)air=false}else S.at=0;
  const mv=L("mv",air?0:K(spd*1.12,0,1),7),g=K(mv*5,0,1),w=1-g;
- S.ph=(S.ph||0)+dt*(5.2+mv*5.4)*Math.min(1,mv*5);
+ S.ph=(S.ph||0)+dt*(2.6+mv*8.2)*Math.min(1,mv*5);
  const ph=S.ph,s=Math.sin(ph),co=Math.cos(ph);
  if(air&&!S.air)S.lead=s>=0?1:-1;
  if(S.air&&!air){S.dp=K(.25+(Math.abs(S.v0||0)-6)/14,.2,1);S.lc=.16+.2*S.dp}
@@ -3223,7 +3223,32 @@ function poseH(c,spd,air,t,vy){
  c.body.scale.set(1+br*.01,1+br*.014,1+br*.022);
  c.hd.rotation.x=-lean*.75+Math.sin(t*.6)*.04*w;c.hd.rotation.y=-ty*.9+(Math.sin(t*.43)*.2+Math.sin(t*1.3)*.04)*w*ig;c.hd.rotation.z=-tz*.7;
  const bl=L("lid",(t%3.7)>3.58?1:0,40);c.lids.forEach(o=>o.scale.set(1.15,bl*.95+.001,.7))}
-function mkChar(col,capc){return mkLife(col===0x4f7cff?0:1)}
+/*ZNX-C3-REAL*/function mkChar(col,capc){const v=col===0x4f7cff?0:1,c=mkLife(v);try{deco(c,v)}catch(e){console.warn("deco",e)}return c}
+function deco(c,v){const A=v===0,SKh=A?0xc58a62:0xeab793,TEh=A?0xd8453f:0x3b82c4,JNh=A?0x35517f:0x2b3a57,
+ M=(h,r)=>new TH.MeshStandardMaterial({color:h,roughness:r,metalness:0}),SK=M(SKh,.55),TE=M(TEh,.9),JN=M(JNh,.9),LT=M(0x1b1410,.5),
+ sp=(r,m,p,x,y,z,a,b,d)=>{const o=new TH.Mesh(new TH.SphereGeometry(r,16,12),m);o.position.set(x,y,z);o.scale.set(a,b,d);p.add(o);return o};
+ [-1,1].forEach(s=>{
+  sp(.078,TE,c.aL.parent===c.body?c.body:c.body,s*.215,.47,0,1.1,1.25,1.05);
+  sp(.075,TE,c.body,s*.09,.33,.078,1.15,.8,.55);
+  sp(.07,TE,c.body,s*.07,.5,-.015,1.5,.7,1);
+  sp(.085,TE,c.body,s*.15,.24,-.03,.65,1.4,.8);
+  sp(.095,JN,c.hp,s*.075,-.07,-.085,1,1,.95);
+  sp(.052,SK,s<0?c.aL:c.aR,0,-.2,.012,.9,1.5,1);
+  sp(.042,SK,s<0?c.eL:c.eR,0,-.08,.005,1,1.8,1);
+  const l=s<0?c.lL:c.lR,k=s<0?c.kL:c.kR;
+  sp(.1,JN,l,0,-.2,.028,.95,1.9,.9);sp(.09,JN,l,0,-.18,-.03,.9,1.6,.9);
+  sp(.062,JN,k,0,-.13,-.034,1,1.7,1);
+  const sh=new TH.Mesh(new TH.BoxGeometry(.07,.004,.1),M(0xf3f1ea,.7));sh.position.set(0,-.395,.11);sh.rotation.x=-.35;(s<0?c.fL:c.fR).add(sh)});
+ const belt=new TH.Mesh(new TH.TorusGeometry(.148,.011,8,28),LT);belt.rotation.x=Math.PI/2;belt.scale.set(1.04,1,.74);belt.position.set(0,.02,0);c.hp.add(belt);
+ const bk=new TH.Mesh(new TH.BoxGeometry(.04,.03,.01),M(0xb8bcc4,.3));bk.position.set(0,.02,.112);c.hp.add(bk);
+ const cache=new Map(),T=h=>new TH.Color(h);
+ c.g.traverse(o=>{if(!o.isMesh||!o.material||!o.material.color)return;const mc=o.material.color,cl=mc.equals(T(TEh))||mc.equals(T(JNh)),sk=mc.equals(T(SKh));if(!cl&&!sk)return;
+  const g=o.geometry,p=g.attributes.position,n=g.attributes.normal,col=new Float32Array(p.count*3),tube=g.type==="BufferGeometry",seed=mc.getHex()%7;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),w=fb3(x*16+seed,y*16,z*16+seed);
+   if(tube&&cl){const d=(w-.5)*.016;p.setXYZ(i,x+n.getX(i)*d,y+n.getY(i)*d,z+n.getZ(i)*d)}
+   const b=cl?.8+.32*w:.93+.1*w;col[i*3]=b;col[i*3+1]=b*(sk?.97:1);col[i*3+2]=b*(sk?.95:1)}
+  g.setAttribute("color",new TH.BufferAttribute(col,3));g.computeVertexNormals();
+  let m=cache.get(o.material);if(!m){m=o.material.clone();m.vertexColors=true;m.roughness=cl?.92:.55;cache.set(o.material,m)}o.material=m})}
 /*ZNX-CHAR-V1: soldier character (smooth joints, tactical gear, natural run/jump animation)*/
 function mkSoldier(v){
  const A=v===0,M=(c,r,m)=>new TH.MeshStandardMaterial({color:c,roughness:r==null?.88:r,metalness:m||0}),
@@ -3536,8 +3561,8 @@ let hit=0;for(const h of s.H){const ph=(s.t+h.ph)%h.per;h.on=ph<h.per*.4;h.warn=
   if(p.on){if(p.on.cp&&s.cp!==p.on&&p.on.t1<=p.y+.5){s.cp=p.on;ts("Checkpoint saved")}if(p.on.goal)s.won=1;if(p.on.zn!=null)s.zz=p.on.zn}
   const a=cl(s.acc/FIX,0,1),P1=[lerp(s.pp[0],p.x,a),lerp(s.pp[1],p.y,a),lerp(s.pp[2],p.z,a)],Q1=[lerp(s.qp[0],q.x,a),lerp(s.qp[1],q.y,a),lerp(s.qp[2],q.z,a)];
   const sp=Math.hypot(p.vx,p.vz),sq=Math.hypot(q.vx,q.vz);
-  if(sp>.5){const ta=Math.atan2(p.vx,p.vz);s.fc+=Math.atan2(Math.sin(ta-s.fc),Math.cos(ta-s.fc))*Math.min(1,14*dt)}
-  if(sq>.5){const ta=Math.atan2(q.vx,q.vz);s.fq+=Math.atan2(Math.sin(ta-s.fq),Math.cos(ta-s.fq))*Math.min(1,14*dt)}
+  if(sp>.5){const ta=Math.atan2(p.vx,p.vz);s.fc+=cl(Math.atan2(Math.sin(ta-s.fc),Math.cos(ta-s.fc))*Math.min(1,9*dt),-9*dt,9*dt)}
+  if(sq>.5){const ta=Math.atan2(q.vx,q.vz);s.fq+=cl(Math.atan2(Math.sin(ta-s.fq),Math.cos(ta-s.fq))*Math.min(1,9*dt),-9*dt,9*dt)}
   c1.g.position.set(P1[0],P1[1],P1[2]);c1.g.rotation.y=s.fc;poseH(c1,Math.min(1,sp/SPD),!p.on,s.t,p.vy);
   c2.g.visible=!sl;links.forEach(l=>l.visible=!sl);
   if(!sl){c2.g.position.set(Q1[0],Q1[1],Q1[2]);c2.g.rotation.y=s.fq;poseH(c2,Math.min(1,sq/SPD),!q.on,s.t,q.vy);pullAnim(c1,c2,s);
