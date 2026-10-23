@@ -3223,7 +3223,189 @@ function poseH(c,spd,air,t,vy){
  c.body.scale.set(1+br*.01,1+br*.014,1+br*.022);
  c.hd.rotation.x=-lean*.75+Math.sin(t*.6)*.04*w;c.hd.rotation.y=-ty*.9+(Math.sin(t*.43)*.2+Math.sin(t*1.3)*.04)*w*ig;c.hd.rotation.z=-tz*.7;
  const bl=L("lid",(t%3.7)>3.58?1:0,40);c.lids.forEach(o=>o.scale.set(1.15,bl*.95+.001,.7))}
-/*ZNX-C3-REAL*/function mkChar(col,capc){const v=col===0x4f7cff?0:1,c=mkLife(v);try{deco(c,v)}catch(e){console.warn("deco",e)}return c}
+/*ZNX-HERO-V1*/
+function mkChar(col,capc){const v=col===0x4f7cff?0:1;try{return mkHero(v)}catch(e){console.warn("hero",e);const c=mkLife(v);try{deco(c,v)}catch(x){}return c}}
+function heroKit(){
+ const P2=Math.PI*2,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),
+ sm=(a,b,x)=>{const t=cl((x-a)/(b-a),0,1);return t*t*(3-2*t)},
+ g2=(a,b,ca,cb,sa,sb)=>Math.exp(-((a-ca)/sa)*((a-ca)/sa)-((b-cb)/sb)*((b-cb)/sb)),
+ hs=(x,y,z)=>{const h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h)},
+ vn=(x,y,z)=>{const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z),fx=x-ix,fy=y-iy,fz=z-iz,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz),L=(a,b,t)=>a+(b-a)*t,Q=(a,b,c)=>hs(ix+a,iy+b,iz+c);return L(L(L(Q(0,0,0),Q(1,0,0),u),L(Q(0,1,0),Q(1,1,0),u),v),L(L(Q(0,0,1),Q(1,0,1),u),L(Q(0,1,1),Q(1,1,1),u),v),w)},
+ fb=(x,y,z)=>vn(x,y,z)*.6+vn(x*2.1,y*2.1,z*2.1)*.3+vn(x*4.3,y*4.3,z*4.3)*.1,
+ ih=(i,j,s)=>{let h=Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(s,1442695041)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296},
+ pn=(u,v,nx,ny,s)=>{const x=u*nx,y=v*ny,i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j,a=fx*fx*(3-2*fx),b=fy*fy*(3-2*fy),G=(p,q)=>ih(((p%nx)+nx)%nx,((q%ny)+ny)%ny,s);return G(i,j)*(1-a)*(1-b)+G(i+1,j)*a*(1-b)+G(i,j+1)*(1-a)*b+G(i+1,j+1)*a*b},
+ v3=(x,y,z)=>new TH.Vector3(x,y,z);
+ /* tileable bump textures (skin pores, fabric weave, hair strands) */
+ const tex=(n,fn)=>{const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d"),im=x.createImageData(n,n);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const g=cl(fn(i/n,j/n),0,1)*255,p=(j*n+i)*4;im.data[p]=im.data[p+1]=im.data[p+2]=g;im.data[p+3]=255}x.putImageData(im,0,0);const t=new TH.CanvasTexture(c);t.wrapS=t.wrapT=TH.RepeatWrapping;t.anisotropy=4;return t};
+ const TX={skin:tex(128,(u,v)=>.5*pn(u,v,16,16,1)+.3*pn(u,v,32,32,2)+.2*pn(u,v,64,64,3)),
+  weave:tex(128,(u,v)=>.5+.32*Math.sin(u*P2*32)*Math.sin(v*P2*32)+.18*pn(u,v,32,32,4)),
+  hair:tex(128,(u,v)=>.5*pn(u,v,64,3,5)+.5*pn(u,v,24,2,6))};
+ function mk(pos,uv,col,idx,cs){const g=new TH.BufferGeometry();g.setAttribute("position",new TH.Float32BufferAttribute(pos,3));g.setAttribute("uv",new TH.Float32BufferAttribute(uv,2));g.setAttribute("color",new TH.Float32BufferAttribute(col,3));g.setIndex(idx);g.userData.cs=cs;norm(g);return g}
+ function seam(g){const cs=g.userData.cs,nr=g.attributes.normal,rows=nr.count/cs;for(let r=0;r<rows;r++){const a=r*cs,b=a+cs-1,x=nr.getX(a)+nr.getX(b),y=nr.getY(a)+nr.getY(b),z=nr.getZ(a)+nr.getZ(b),l=Math.hypot(x,y,z)||1;nr.setXYZ(a,x/l,y/l,z/l);nr.setXYZ(b,x/l,y/l,z/l)}}
+ function norm(g){g.computeVertexNormals();if(g.userData.cs)seam(g)}
+ /* organic tube: profile = [y, radiusX, radiusZ, zOffset, xOffset] rings, smooth spline between them */
+ function tubeH(pts,seg,per,uv){const n=pts.length,M=Math.max(8,(n-1)*per),pos=[],uvs=[],col=[],idx=[],su=uv?uv[0]:1,sv=uv?uv[1]:1,cs=seg+1,
+  cr=(a,b,c,d,t)=>.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t);
+  for(let i=0;i<=M;i++){const f=i/M*(n-1),k=Math.min(n-2,Math.floor(f)),t=f-k,A=pts[Math.max(0,k-1)],B=pts[k],C=pts[k+1],D=pts[Math.min(n-1,k+2)],q=[];
+   for(let c=0;c<5;c++)q.push(cr(A[c]||0,B[c]||0,C[c]||0,D[c]||0,t));
+   const rx=Math.max(.0008,q[1]),rz=Math.max(.0008,q[2]);
+   for(let j=0;j<cs;j++){const a=j/seg*P2;pos.push(q[4]+rx*Math.cos(a),q[0],q[3]+rz*Math.sin(a));uvs.push(j/seg*su,i/M*sv);col.push(1,1,1)}}
+  for(let i=0;i<M;i++)for(let j=0;j<seg;j++){const a=i*cs+j,b=a+1,c=a+cs,d=c+1;idx.push(a,c,b,b,c,d)}
+  return mk(pos,uvs,col,idx,cs)}
+ /* tube along any curve (hair, fingers, cords) */
+ function sweep(c,rf,seg,n,uv,cf){const P=c.getPoints(n),T=new TH.Vector3(),N=new TH.Vector3(),B=new TH.Vector3(),pos=[],uvs=[],col=[],idx=[],cs=seg+1,su=uv?uv[0]:1,sv=uv?uv[1]:1;
+  for(let i=0;i<=n;i++){const p=P[i];T.subVectors(P[Math.min(n,i+1)],P[Math.max(0,i-1)]).normalize();
+   if(!i){N.set(0,0,1);if(Math.abs(T.z)>.9)N.set(1,0,0)}
+   N.addScaledVector(T,-N.dot(T)).normalize();B.crossVectors(N,T);
+   const r=Math.max(.0004,rf(i/n)),cc=cf?cf(i/n):[1,1,1];
+   for(let j=0;j<cs;j++){const a=j/seg*P2,cx=Math.cos(a)*r,sx=Math.sin(a)*r;pos.push(p.x+N.x*cx+B.x*sx,p.y+N.y*cx+B.y*sx,p.z+N.z*cx+B.z*sx);uvs.push(j/seg*su,i/n*sv);col.push(cc[0],cc[1],cc[2])}}
+  for(let i=0;i<n;i++)for(let j=0;j<seg;j++){const a=i*cs+j,b=a+1,cc=a+cs,d=cc+1;idx.push(a,cc,b,b,cc,d)}
+  return mk(pos,uvs,col,idx,cs)}
+ /* muscle / bump detail: fn(x,y,z,o) sets o.d (push out) and o.r/g/b (colour) */
+ function sculpt(g,fn){norm(g);const p=g.attributes.position,n=g.attributes.normal,N=p.count,col=new Float32Array(N*3),o={d:0,r:1,g:1,b:1};
+  for(let i=0;i<N;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);o.d=0;o.r=o.g=o.b=1;fn(x,y,z,o,n.getX(i),n.getY(i),n.getZ(i));
+   p.setXYZ(i,x+n.getX(i)*o.d,y+n.getY(i)*o.d,z+n.getZ(i)*o.d);const sh=cl(1+Math.min(0,o.d)*16,.6,1);col[i*3]=o.r*sh;col[i*3+1]=o.g*sh;col[i*3+2]=o.b*sh}
+  g.setAttribute("color",new TH.BufferAttribute(col,3));norm(g);return g}
+ function cut(g,del){const p=g.attributes.position,ix=g.index.array,o=[];for(let i=0;i<ix.length;i+=3){const a=ix[i],b=ix[i+1],c=ix[i+2];if(!del((p.getX(a)+p.getX(b)+p.getX(c))/3,(p.getY(a)+p.getY(b)+p.getY(c))/3,(p.getZ(a)+p.getZ(b)+p.getZ(c))/3))o.push(a,b,c)}g.setIndex(o);norm(g);return g}
+ function merge(gs){let n=0,ni=0;gs.forEach(g=>{n+=g.attributes.position.count;ni+=g.index.count});
+  const P=new Float32Array(n*3),Nn=new Float32Array(n*3),U=new Float32Array(n*2),C=new Float32Array(n*3),I=new Uint32Array(ni);let o=0,io=0;
+  gs.forEach(g=>{const c=g.attributes.position.count;P.set(g.attributes.position.array,o*3);Nn.set(g.attributes.normal.array,o*3);U.set(g.attributes.uv.array,o*2);C.set(g.attributes.color.array,o*3);const ix=g.index.array;for(let i=0;i<ix.length;i++)I[io+i]=ix[i]+o;o+=c;io+=ix.length});
+  const m=new TH.BufferGeometry();m.setAttribute("position",new TH.BufferAttribute(P,3));m.setAttribute("normal",new TH.BufferAttribute(Nn,3));m.setAttribute("uv",new TH.BufferAttribute(U,2));m.setAttribute("color",new TH.BufferAttribute(C,3));m.setIndex(new TH.BufferAttribute(I,1));return m}
+ function fz(g,x,y){const p=g.attributes.position;let b=-9,bd=1e9;for(let i=0;i<p.count;i++){const z=p.getZ(i);if(z<=0)continue;const dx=p.getX(i)-x,dy=p.getY(i)-y,d=dx*dx+dy*dy;if(d<bd){bd=d;b=z}}return b}
+ function fy(g,x,z){const p=g.attributes.position;let b=-9,bd=1e9;for(let i=0;i<p.count;i++){const y=p.getY(i);if(y<-.01)continue;const dx=p.getX(i)-x,dz=p.getZ(i)-z,d=dx*dx+dz*dz;if(d<bd){bd=d;b=y}}return b}
+ const mat=(c,r,t,b,o)=>new TH.MeshStandardMaterial(Object.assign({color:c,roughness:r,metalness:0,vertexColors:true,bumpMap:t||null,bumpScale:b||0},o||{}));
+ return{tubeH,sweep,sculpt,cut,merge,mat,fz,fy,v3,sm,g2,fb,hs,TX}}
+
+function mkHero(v){
+ const K=mkHero.K||(mkHero.K=heroKit()),{tubeH,sweep,sculpt,cut,merge,mat,fz,fy,v3,sm,g2,fb,hs,TX}=K;
+ /* ===== COLOURS: sirf kapde yahan badalte hain. 0 = pehla player, 1 = doosra player ===== */
+ const PL=[{tank:0x16171c,pants:0x15161b,cuff:0x101116,lace:0xf4f4f1},{tank:0x9b1c2a,pants:0x232b3a,cuff:0x1a202c,lace:0xf4f4f1}],C=PL[v]||PL[0],SKIN=0xc99a70;
+ const M={skin:mat(SKIN,.5,TX.skin,.8),tank:mat(C.tank,.9,TX.weave,1.2),pants:mat(C.pants,.88,TX.weave,1.4),
+  hair:mat(0x5d73c4,.38,TX.hair,1.4,{side:TH.DoubleSide,metalness:.05}),shoe:mat(0xf2f2ef,.42),sole:mat(0xdedede,.65),dark:mat(0x16161a,.45),
+  rub:mat(0x161616,.7,TX.weave,1),brow:mat(0x1f2336,.6,null,0,{side:TH.DoubleSide}),cord:mat(0x1c1613,.8,null,0,{side:TH.DoubleSide}),lace:mat(C.lace,.85,null,0,{side:TH.DoubleSide}),
+  dr:mat(0xcfcfcf,.5,null,0,{side:TH.DoubleSide}),metal:mat(0x9a9ea6,.3,null,0,{metalness:.9}),steel:mat(0x2a2c31,.28,null,0,{metalness:.8}),glass:mat(0x07090d,.12,null,0,{metalness:.5}),
+  eye:mat(0xf3f1ec,.25),iris:mat(0x4a5675,.3),pup:mat(0x050507,.3),glint:new TH.MeshBasicMaterial({color:0xffffff}),
+  gem:new TH.MeshStandardMaterial({color:0x2fb0ee,emissive:0x1580c8,emissiveIntensity:.7,roughness:.1,metalness:.15,flatShading:true})};
+ const jt=(p,x,y,z)=>{const o=new TH.Group();o.position.set(x||0,y||0,z||0);p.add(o);return o},
+ add=(geo,m,p,x,y,z)=>{const o=new TH.Mesh(geo,m);o.position.set(x||0,y||0,z||0);p.add(o);return o},
+ fab=(x,y,z,o,a)=>{const n=1+(a||.12)*(fb(x*38,y*38,z*38)-.5)*2;o.r*=n;o.g*=n;o.b*=n},
+ skn=(x,y,z,o)=>{const n=1+.06*(fb(x*30,y*30,z*30)-.5)*2;o.r*=n;o.g*=n;o.b*=n};
+ const g=new TH.Group(),hp=jt(g,0,.93,0),ch=jt(g,0,.93,0);
+
+ /* ---------- torso: chest, abs, lats, traps ---------- */
+ const torsoD=(x,y,z)=>{const ax=Math.abs(x),f=sm(0,.05,z),b=sm(0,.05,-z);let d=0;
+  d+=.02*g2(ax,y,.095,.375,.07,.055)*f;d-=.007*g2(ax,y,0,.37,.012,.1)*f;d-=.006*g2(ax,y,.1,.315,.08,.012)*f;
+  for(let r=0;r<4;r++){d+=.0075*g2(ax,y,.045,.105+r*.06,.03,.026)*f;d-=.0045*g2(ax,y,0,.134+r*.06,.1,.006)*f}
+  d-=.007*g2(ax,y,0,.2,.011,.1)*f;d+=.006*g2(ax,y,.15,.22,.045,.09)*f;d+=.01*g2(ax,y,.19,.35,.03,.05);
+  d+=.022*g2(ax,y,.1,.31,.07,.1)*b;d+=.014*g2(ax,y,.075,.43,.06,.04)*b;d-=.008*g2(ax,y,0,.3,.011,.2)*b;d+=.009*g2(ax,y,.12,.52,.06,.045);return d};
+ const torsoP=[[-.06,.001,.001,0],[-.05,.15,.105,0],[0,.152,.1,-.004],[.1,.157,.1,-.004],[.2,.172,.108,-.002],[.3,.198,.12,0],[.38,.217,.128,.002],[.45,.212,.116,.001],[.5,.165,.09,0],[.535,.085,.066,.002],[.56,.001,.001,.002]];
+ add(sculpt(tubeH(torsoP,56,8,[4,6]),(x,y,z,o)=>{o.d=torsoD(x,y,z);skn(x,y,z,o)}),M.skin,ch);
+ /* tank top: fabric over the muscle, armholes and neckline cut out */
+ const tankP=[[.02,.19,.126,-.002],[.06,.176,.114,-.004],[.12,.17,.108,-.004],[.2,.184,.114,-.002],[.3,.212,.127,0],[.38,.23,.135,.002],[.45,.226,.125,.001],[.5,.19,.102,0]];
+ let tk=sculpt(tubeH(tankP,64,10,[5,6]),(x,y,z,o)=>{o.d=torsoD(x,y,z)*.7+.003*(fb(x*14,y*14,z*14)-.5)*2+.0025*Math.sin(y*60+x*14)*sm(.2,.02,y);fab(x,y,z,o,.14)});
+ tk=cut(tk,(x,y,z)=>{const ax=Math.abs(x);return(y>.3&&ax>.21-(y-.3)*.4)||(z>0&&y>.42&&ax<.075)||(z<=0&&y>.46&&ax<.075)});add(tk,M.tank,ch);
+ /* neck */
+ add(sculpt(tubeH([[.46,.001,.001,0],[.48,.062,.064,0],[.56,.057,.06,.003],[.63,.052,.056,.006],[.66,.001,.001,.006]],32,8,[4,3]),(x,y,z,o)=>{const ax=Math.abs(x);o.d=.006*g2(ax,0,.052-(y-.5)*.2,0,.012,1)*sm(0,.05,z)+.012*g2(ax,y,.055,.5,.03,.05)+.005*g2(x,y,0,.52,.012,.02)*sm(0,.05,z);skn(x,y,z,o)}),M.skin,ch);
+
+ /* ---------- head ---------- */
+ const hd=jt(ch,0,.57,0);
+ const headD=(x,y,z,o)=>{const ax=Math.abs(x),fr=sm(.03,.08,z);let d=0;
+  d+=.03*g2(x,y,0,.112,.014,.018)*fr;d+=.016*g2(ax,y,0,.145,.011,.03)*fr;d+=.012*g2(ax,y,.014,.108,.011,.012)*fr;d-=.006*g2(x,y,0,.098,.014,.006)*fr;
+  d+=.012*g2(ax,y,.04,.19,.04,.012)*fr;d-=.007*g2(ax,y,.039,.166,.022,.014)*fr;d+=.008*g2(ax,y,.066,.125,.022,.022)*sm(0,.06,z);d-=.005*g2(ax,y,.058,.09,.022,.02)*fr;
+  d+=.011*g2(x,y,0,.07,.022,.007)*fr;d+=.013*g2(x,y,0,.058,.024,.008)*fr;d-=.004*g2(x,y,0,.064,.025,.0025)*fr;
+  d+=.01*g2(x,y,0,.035,.022,.014)*fr;d-=.003*g2(x,y,0,.045,.015,.01)*fr;d+=.007*g2(ax,y,.078,.06,.014,.022);
+  const gt=g2(x,y,0,.045,.034,.032)*fr,mu=g2(ax,y,.02,.082,.028,.008)*fr*.7,bm=cl(gt+mu,0,1)*(.75+.25*fb(x*50,y*50,z*50));
+  d+=.0012*bm;o.r*=1-bm*.62;o.g*=1-bm*.6;o.b*=1-bm*.55;
+  const lp=g2(x,y,0,.066,.025,.014)*fr;o.g*=1-.22*lp;o.b*=1-.18*lp;const nn=g2(ax,y,.012,.104,.007,.005)*fr;o.r*=1-.5*nn;o.g*=1-.5*nn;o.b*=1-.5*nn;
+  const so=g2(ax,y,.039,.166,.022,.014)*fr;o.g*=1-.1*so;o.b*=1-.06*so;
+  const S=Math.max(sm(.045,.065,ax)*sm(.17,.21,y)*(1-sm(.27,.29,y)),.85*sm(-.03,-.07,z)*sm(.08,.14,y)*sm(.02,.05,ax)),
+  q=(((y*30+.4*Math.sin(z*26+ax*8)+ax*10)%1)+1)%1,ln=S*(q<.11?1:0);
+  o.r*=1-.18*S+.38*ln;o.g*=1-.14*S+.36*ln;o.b*=1+.02*S+.3*ln;o.d-=.0013*ln;
+  const sc=sm(.2,.23,y)*(1-sm(.045,.06,ax));o.r*=1-.62*sc;o.g*=1-.58*sc;o.b*=1-.3*sc;skn(x,y,z,o)};
+ const hg=sculpt(tubeH([[.02,.001,.001,.052],[.03,.034,.04,.05],[.055,.068,.074,.03],[.085,.085,.092,.012],[.125,.089,.099,.006],[.165,.091,.103,.004],[.21,.089,.101,.001],[.25,.077,.089,-.007],[.28,.048,.057,-.012],[.298,.001,.001,-.012]],56,8,[6,5]),headD);
+ add(hg,M.skin,hd);
+ [-1,1].forEach(s=>add(tubeH([[-.028,.001,.001],[-.02,.009,.017],[0,.011,.021],[.02,.01,.017],[.03,.001,.001]],14,4,[1,1]),M.skin,hd,s*.089,.135,-.004).scale.x=.6);
+ /* eyes + blinking lids */
+ const lids=[],eyeG=tubeH([[-.0075,.001,.001],[-.005,.012,.012],[0,.0135,.0135],[.005,.012,.012],[.0075,.001,.001]],18,6),
+ irG=tubeH([[-.0016,.001,.001],[-.001,.0062,.0062],[.001,.0062,.0062],[.0016,.001,.001]],16,3).rotateX(Math.PI/2),
+ puG=tubeH([[-.0016,.001,.001],[-.001,.0028,.0028],[.001,.0028,.0028],[.0016,.001,.001]],12,3).rotateX(Math.PI/2),
+ glG=tubeH([[-.001,.001,.001],[0,.0012,.0012],[.001,.001,.001]],8,2).rotateX(Math.PI/2),
+ lidG=tubeH([[-.0095,.001,.001],[-.006,.0165,.021],[0,.0178,.0225],[.006,.0165,.021],[.0095,.001,.001]],18,6);
+ [-1,1].forEach(s=>{const x=s*.039,y=.166,z0=fz(hg,x,y);
+  const e=add(eyeG,M.eye,hd,x,y,z0-.0095);e.scale.x=1.25;
+  add(irG,M.iris,hd,x,y,z0+.003);add(puG,M.pup,hd,x,y,z0+.0044);add(glG,M.glint,hd,x+s*.0025,y+.0025,z0+.0056);
+  lids.push(add(lidG,M.skin,hd,x,y,z0-.0095));
+  const yb=.196+(s>0?.006:0),pts=[0,1,2].map(i=>{const xx=s*(.012+i*.029),yy=yb+(i===1?.01:i===2?.005:0);return v3(xx,yy,fz(hg,xx,yy)+.0015)});
+  add(sweep(new TH.CatmullRomCurve3(pts),u=>.0042*(1-.4*Math.abs(u-.35)),6,8),M.brow,hd)});
+ /* hair: shaved sides (carved lines are on the head), swept-back blue spikes, long curled strand */
+ const hair=[];
+ let cap=sculpt(tubeH([[.185,.095,.106,.002],[.205,.093,.105,.001],[.25,.08,.093,-.007],[.28,.05,.059,-.012],[.299,.001,.001,-.012]],40,8,[5,2]),(x,y,z,o)=>{const a=.55+.45*sm(.19,.3,y),n=(.9+.2*fb(x*40,y*40,z*40))*a;o.r*=n*.95;o.g*=n;o.b*=n*1.1});
+ cap=cut(cap,(x,y,z)=>Math.abs(x)>.052||(y<.222&&z>0)||y<.19);hair.push(cap);
+ let k=0;
+ for(let r=0;r<9;r++){const t=r/8,z=.078-.17*t,nr=r<2?3:4;
+  for(let c=0;c<nr;c++,k++){
+   const x=((c+.5)/nr-.5)*.095+(hs(k,1,2)-.5)*.014,zz=z+(hs(k,3,4)-.5)*.014,y=.138+.158*Math.sqrt(Math.max(0,1-(x/.086)*(x/.086)-((zz+.004)/.102)*((zz+.004)/.102)))-.006,
+   L=(.14-.075*t)*(.82+.4*hs(k,5,6)),w=.0125+.006*hs(k,7,8),up=v3(x*7,.8,-.5-.55*t+(hs(k,9,1)-.5)*.2).normalize(),
+   P0=v3(x,y-.006,zz),P1=P0.clone().addScaledVector(up,L*.4),P2=P0.clone().addScaledVector(up,L*.78).add(v3(0,-.004,-.012)),P3=P0.clone().addScaledVector(up,L).add(v3(x*.2,-.018*(1+t),-.03-.03*t)),q=.9+.2*hs(k,2,7);
+   hair.push(sweep(new TH.CatmullRomCurve3([P0,P1,P2,P3]),u=>w*Math.pow(1-u,.8)+.0006,7,7,[3,2],u=>{const a=(.55+.6*u)*q;return[a*.95,a,a*1.1]}))}}
+ hair.push(sweep(new TH.CatmullRomCurve3([v3(-.04,.238,.09),v3(-.065,.285,.1),v3(-.11,.3,.095),v3(-.15,.27,.085),v3(-.165,.21,.075),v3(-.155,.15,.07)]),u=>.0075*(1-u)+.0018,7,18,[2,6],u=>{const a=.7+.45*u;return[a*.95,a,a*1.1]}));
+ add(merge(hair),M.hair,hd);
+
+ /* ---------- arms, hands, watch ---------- */
+ const armD=(x,y,z,s,o)=>{const ox=x*s,f=sm(0,.045,z),b=sm(0,.045,-z);let d=0;
+  d+=.011*g2(x,y,0,-.14,.045,.06)*f;d-=.004*g2(x,y,0,-.13,.008,.07)*f;d+=.013*g2(x,y,0,-.15,.05,.07)*b;d-=.004*g2(x,y,0,-.12,.006,.05)*b;
+  d-=.005*g2(z,y,0,-.15,.012,.08)*sm(.03,.06,Math.abs(x));d+=.01*g2(z,y,0,-.01,.06,.04)*sm(0,.05,ox);d-=.004*g2(z,y,.035,-.03,.007,.035)*sm(.03,.06,ox);o.d=d;skn(x,y,z,o)};
+ const foreD=(x,y,z,s,o)=>{const ox=x*s,ang=Math.atan2(z,x);let d=.009*g2(ox,y,.04,-.07,.03,.06)+.002*Math.sin(ang*8)*sm(-.24,-.12,y);
+  const m1=Math.exp(-Math.pow((x-.012*Math.sin(y*20+1))/.0042,2))*sm(-.02,-.05,z)*sm(-.27,-.2,y)*(1-sm(-.04,0,y)),m2=Math.exp(-Math.pow((x+.016-.01*Math.sin(y*17))/.0042,2))*sm(-.02,-.05,z)*sm(-.27,-.2,y)*(1-sm(-.04,0,y)),m=Math.min(1,m1+m2);
+  d+=.0024*m;o.r*=1-.1*m;o.g*=1-.04*m;o.d=d;skn(x,y,z,o)};
+ const upP=[[-.31,.001,.001,0],[-.295,.045,.047,0],[-.25,.055,.056,0],[-.19,.07,.073,.008],[-.12,.083,.088,.008],[-.05,.09,.09,0],[.01,.088,.088,0],[.05,.06,.062,0],[.075,.001,.001,0]],
+ foP=[[-.29,.001,.001,0],[-.285,.03,.028,0],[-.25,.037,.034,.002],[-.17,.046,.044,.004],[-.09,.052,.05,.004],[-.02,.05,.048,0],[.03,.044,.043,0],[.055,.001,.001,0]];
+ const handG=s=>{const gs=[sculpt(tubeH([[-.1,.001,.001,.01],[-.09,.033,.016,.01],[-.06,.042,.022,.008],[-.02,.043,.024,0],[0,.032,.021,0],[.01,.001,.001,0]],18,4,[2,2]),(x,y,z,o)=>skn(x,y,z,o))],
+  fr=u=>.0105*Math.sqrt(Math.max(.03,1-Math.pow(u,8)))*(1-.25*u);
+  for(let i=0;i<4;i++){const x=(i-1.5)*.0205,L=[.056,.064,.06,.048][i];gs.push(sweep(new TH.CatmullRomCurve3([v3(x,-.088,.003),v3(x,-.088-L*.55,.012),v3(x,-.088-L*.9,.032)]),fr,8,6,[1,2]))}
+  gs.push(sweep(new TH.CatmullRomCurve3([v3(-s*.034,-.05,.012),v3(-s*.048,-.075,.028),v3(-s*.05,-.098,.044)]),u=>.012*Math.sqrt(Math.max(.03,1-Math.pow(u,8))),8,6,[1,2]));return merge(gs)};
+ const arm=s=>{const a=jt(ch,s*.245,.48,0),e=jt(a,0,-.3,0),h=jt(e,0,-.28,0);
+  add(sculpt(tubeH(upP,36,8,[3,5]),(x,y,z,o)=>armD(x,y,z,s,o)),M.skin,a);
+  add(sculpt(tubeH(foP,32,8,[3,4]),(x,y,z,o)=>foreD(x,y,z,s,o)),M.skin,e);
+  add(handG(s),M.skin,h);
+  if(s>0){add(tubeH([[-.257,.001,.001],[-.256,.0415,.039],[-.222,.0415,.039],[-.221,.001,.001]],24,3,[4,1]),M.rub,e);
+   const cs=tubeH([[-.007,.001,.001],[-.0065,.0215,.0215],[.007,.0218,.0218],[.0095,.019,.019],[.0105,.001,.001]],24,4).rotateZ(-Math.PI/2),gl=tubeH([[.0098,.001,.001],[.0102,.0165,.0165],[.0112,.0165,.0165],[.0114,.001,.001]],24,3).rotateZ(-Math.PI/2);
+   add(cs,M.steel,e,.0465,-.236,0);add(gl,M.glass,e,.0465,-.236,0);
+   const hand=(x2,z2)=>sweep(new TH.CatmullRomCurve3([v3(.0586,-.236,0),v3(.0586,(-.236+x2)/2,z2/2),v3(.0586,x2,z2)]),()=>.0008,5,3);
+   add(hand(-.2215,.003),M.dr,e);add(hand(-.2385,-.009),M.dr,e)}
+  return{a,e}};
+ const aL=arm(-1),aR=arm(1);
+
+ /* ---------- pelvis, drawstring, pants, shoes ---------- */
+ const thD=(x,y,z,s,o)=>{const ox=x*s;let d=.0055*(fb(x*16,y*8,z*16)-.5)*2+.002*Math.sin(y*55+fb(x*9,y*5,z*9)*5)*sm(-.2,-.05,y);
+  const pk=sm(.075,.092,ox)*sm(-.335,-.305,y)*(1-sm(-.135,-.112,y))*(1-sm(.035,.058,Math.abs(z)));
+  d+=.012*pk-.003*g2(ox,y,.1,-.125,.05,.004)*(1-sm(.04,.06,Math.abs(z)))-.0025*g2(z,0,0,0,.004,1)*sm(.06,.09,ox);o.d=d;o.r*=1-.25*pk*.3;fab(x,y,z,o,.14)};
+ const shD=(x,y,z,o)=>{let d=.005*(fb(x*14,y*7,z*14)-.5)*2+.0035*Math.sin(y*90)*g2(y,0,-.33,0,.03,1)+.004*Math.sin(y*70+z*10)*sm(-.1,0,y);
+  if(y<-.355)d+=.003*Math.sin(y*210);o.d=d;fab(x,y,z,o,.14)};
+ add(sculpt(tubeH([[-.15,.001,.001,0],[-.14,.07,.06,0],[-.1,.15,.108,-.004],[-.03,.17,.116,-.004],[.03,.176,.12,-.004],[.06,.173,.116,-.004],[.075,.001,.001,-.004]],48,8,[4,3]),(x,y,z,o)=>{o.d=.004*(fb(x*14,y*10,z*14)-.5)*2;fab(x,y,z,o,.12)}),M.pants,hp);
+ [-1,1].forEach(s=>add(sweep(new TH.CatmullRomCurve3([v3(s*.022,0,.124),v3(s*.027,-.05,.126),v3(s*.034,-.1,.122),v3(s*.038,-.15,.117)]),u=>u>.92?.0045:.0032,6,10),M.dr,hp));
+ const leg=s=>{const l=jt(hp,s*.1,-.01,0),kn=jt(l,0,-.44,0),f=jt(kn,0,-.41,0);
+  add(sculpt(tubeH([[-.47,.001,.001,0],[-.45,.07,.075,0],[-.36,.088,.094,.002],[-.24,.1,.105,.004],[-.12,.108,.112,.004],[-.02,.1,.105,0],[.04,.075,.08,0],[.06,.001,.001,0]],40,7,[4,5]),(x,y,z,o)=>thD(x,y,z,s,o)),M.pants,l);
+  add(sculpt(tubeH([[-.405,.058,.062,0],[-.37,.061,.066,0],[-.34,.07,.074,-.003],[-.3,.078,.083,-.008],[-.22,.087,.094,-.012],[-.12,.094,.1,-.008],[-.04,.097,.103,0],[.02,.09,.096,0],[.05,.001,.001,0]],40,7,[4,5]),shD),M.pants,kn);
+  add(sculpt(tubeH([[-.44,.001,.001,0],[-.43,.04,.04,0],[-.36,.04,.04,0],[-.33,.001,.001,0]],16,3,[2,1]),(x,y,z,o)=>skn(x,y,z,o)),M.skin,kn);
+  /* sneakers: white upper, thick sole, black heel, laces */
+  const up=tubeH([[-.092,.001,.001,.016],[-.086,.036,.04,.016],[-.05,.05,.046,.017],[0,.054,.045,.018],[.06,.056,.04,.022],[.12,.056,.034,.026],[.18,.05,.029,.03],[.225,.032,.02,.032],[.246,.001,.001,.032]],28,6,[3,3]).rotateX(Math.PI/2);
+  add(up,M.shoe,f);
+  add(tubeH([[-.095,.001,.001,.062],[-.09,.04,.009,.062],[-.05,.054,.009,.062],[0,.058,.009,.062],[.06,.06,.009,.062],[.12,.06,.009,.062],[.18,.054,.009,.062],[.23,.036,.008,.061],[.252,.001,.001,.061]],28,6,[4,2]).rotateX(Math.PI/2),M.sole,f);
+  add(tubeH([[-.088,.001,.001,.018],[-.082,.039,.043,.018],[-.062,.0505,.0465,.018],[-.045,.001,.001,.018]],20,4).rotateX(Math.PI/2),M.dark,f);
+  [.02,.055,.09].forEach(z=>{const y=fy(up,0,z)+.002;add(sweep(new TH.CatmullRomCurve3([v3(-.032,y-.004,z),v3(0,y+.002,z),v3(.032,y-.004,z)]),()=>.0042,6,6),M.lace,f)});
+  return{l,kn,f}};
+ const lL=leg(-1),lR=leg(1);
+
+ /* ---------- blue crystal pendant on a cord ---------- */
+ add(tubeH([[0,.001,.001,.004],[.001,.064,.067,.004],[.007,.064,.067,.004],[.008,.001,.001,.004]],32,3).translate(0,.525,0),M.cord,ch);
+ [-1,1].forEach(s=>add(sweep(new TH.CatmullRomCurve3([v3(s*.05,.527,.07),v3(s*.043,.5,.098),v3(s*.03,.465,.122),v3(s*.015,.425,.14),v3(0,.398,.15)]),()=>.0028,5,14),M.cord,ch));
+ const pd=jt(ch,0,.355,.152);pd.rotation.x=.12;
+ add(tubeH([[-.034,.001,.001],[-.026,.011,.007],[-.004,.0125,.0085],[.012,.0125,.0085],[.03,.001,.001]],6,6),M.gem,pd);
+ add(tubeH([[.026,.001,.001],[.029,.007,.004],[.036,.006,.004],[.04,.001,.001]],10,3),M.metal,pd);
+ g.scale.setScalar(.95);
+ return{g,body:ch,hp,aL:aL.a,aR:aR.a,eL:aL.e,eR:aR.e,lL:lL.l,lR:lR.l,kL:lL.kn,kR:lR.kn,fL:lL.f,fR:lR.f,hd,lids,s:{},hy:.93,cy:.93}}
+/*ZNX-HERO-END*/
 function deco(c,v){const A=v===0,SKh=A?0xc58a62:0xeab793,TEh=A?0xd8453f:0x3b82c4,JNh=A?0x35517f:0x2b3a57,
  M=(h,r)=>new TH.MeshStandardMaterial({color:h,roughness:r,metalness:0}),SK=M(SKh,.55),TE=M(TEh,.9),JN=M(JNh,.9),LT=M(0x1b1410,.5),
  sp=(r,m,p,x,y,z,a,b,d)=>{const o=new TH.Mesh(new TH.SphereGeometry(r,16,12),m);o.position.set(x,y,z);o.scale.set(a,b,d);p.add(o);return o};
