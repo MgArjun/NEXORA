@@ -2985,7 +2985,7 @@ function level(){const B=[],Hz=[];let z=0,y=0,zn=0;
  add(0,5,9,0,{ti:1.4,ph:0,kind:"tilt"});gap(2.4);
  add(0,6,6,0,{cp:1});gap(2.8);
  for(let i=0;i<3;i++){add(0,3.2,3.2,0,{sz:2.2,sp:1.4,ph:i*2,kind:"mover"});gap(4.6)}
- add(0,6,14,0,{kind:"net"});gap(2.4);
+ add(0,6,14,0,{kind:"net"});gap(2.4);/*ZNX-CHUTE*/add(0,4.6,18,-5,{kind:"ice"});gap(1.8);add(0,6,6,0,{cp:1});gap(1.6);add(0,5,10,5,{kind:"ramp"});add(0,6,5,0);gap(2.4);
  add(0,8,8,0,{spin:1});gap(2.4);
  add(0,3.6,3.6,0,{kind:"lift",lf:4,sp:.85,ph:-1.5708});gap(2.4,4);
  add(0,5,5,0,{cp:1});gap(2.0);
@@ -3018,7 +3018,7 @@ function world(s,t){for(const b of s.B){
 function mv(s,p,c,d){if(!d)return;p[c]+=d;
  for(const b of s.B)if(ins(p,b,R)){const f=surf(b,p.z);if(p.y<f-.02&&p.y+H>f-b.th){if(f-p.y<=STEP&&sup(p,b)){p.y=f;if(p.vy<0)p.vy=0}else{p[c]-=d;p["v"+c]=0;break}}}}
 function phys(s,dt,p,I){const gd=!!p.on,mvIn=Math.hypot(I.ix,I.iz)>.05,k=Math.min(1,(gd?(p.on.kind==="ice"?1.4:(mvIn?12:15)):(mvIn?4:.5))*dt);
- p.vx+=(I.ix*SPD-p.vx)*k;p.vz+=(I.iz*SPD-p.vz)*k;
+ p.vx+=(I.ix*SPD-p.vx)*k;p.vz+=(I.iz*SPD-p.vz)*k;if(p.on&&p.on.kind==="ice"&&p.on.t1!==p.on.t0)p.vz+=(p.on.t1-p.on.t0)/p.on.d*22*dt;
  if(p.on&&p.on.dx)p.x+=p.on.dx;if(p.on&&p.on.dz)p.z+=p.on.dz;
  p.coy=p.on?.12:p.coy-dt;p.jb-=dt;if(I.jp){p.jb=.14;I.jp=0}
  if(p.jb>0&&p.coy>0){if(p.on){if(p.on.dx)p.vx+=p.on.dx/FIX*.8;if(p.on.dz)p.vz+=p.on.dz/FIX*.8}p.vy=JV;p.jb=0;p.coy=0;p.on=null}
@@ -3374,6 +3374,36 @@ function realify(sc,SHD,B){
    for(let j=0;j<pa.count;j++){const x=pa.getX(j),y=pa.getY(j),z=pa.getZ(j),k=.78+hs3(x*9+i,y*9,z*9)*.6;pa.setXYZ(j,x*k*1.2,y*k*.65,z*k)}
    gm.computeVertexNormals();const m=new TH.Mesh(gm,RM[b.zn]);m.position.set(b.x+(hs3(b.z,i,3)-.5)*(b.w-1.4),b.t0+r*.3,b.z+(hs3(b.x,i,7)-.5)*(b.d-1.4));m.rotation.y=hs3(b.x,b.z,i+5)*6.28;m.castShadow=m.receiveShadow=!!SHD;sc.add(m)}});
 }
+function real3(sc,rn,SHD,B){
+ /*ZNX-REAL-V3*/
+ var hh=function(i,j,s){var h=Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(s,1442695041)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296};
+ var vn=function(u,v,n,s){var x=u*n,y=v*n,i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j,a=fx*fx*(3-2*fx),b=fy*fy*(3-2*fy),g=function(p,q){return hh(((p%n)+n)%n,((q%n)+n)%n,s)};return g(i,j)*(1-a)*(1-b)+g(i+1,j)*a*(1-b)+g(i,j+1)*(1-a)*b+g(i+1,j+1)*a*b};
+ var fb=function(u,v,s,o){var t=0,a=.5,n=4,k=0;for(var q=0;q<o;q++){t+=a*vn(u,v,n,s+q);k+=a;a*=.5;n*=2}return t/k};
+ var mk=function(sz,fn,srgb){var c=document.createElement("canvas");c.width=c.height=sz;var x=c.getContext("2d"),id=x.createImageData(sz,sz),d=id.data;for(var j=0;j<sz;j++)for(var i=0;i<sz;i++){var r=fn(i/sz,j/sz),p=(j*sz+i)*4;d[p]=r[0];d[p+1]=r[1];d[p+2]=r[2];d[p+3]=255}x.putImageData(id,0,0);var t=new TH.CanvasTexture(c);t.wrapS=t.wrapT=TH.RepeatWrapping;if(srgb)t.colorSpace=TH.SRGBColorSpace;t.anisotropy=4;return t};
+ var rock=mk(256,function(u,v){var n=fb(u,v,1,5),r=1-Math.abs(fb(u,v,9,3)-.5)*2,g=.12+n*.76;if(r>.92)g*=.55;g+=(hh(Math.floor(u*256),Math.floor(v*256),3)-.5)*.06;g=Math.max(0,Math.min(1,g));return[g*255,g*255,g*255]},false);
+ var grass=mk(256,function(u,v){var g=fb(u,v,2,5);return[44+g*50,92+g*70,36+g*34]},true);
+ var lava=mk(192,function(u,v){var h=fb(u,v,4,5),h2=h*h;return[Math.min(255,70+h*330),Math.min(255,h2*330),Math.min(255,h2*h*90)]},true);
+ /* world-space texture: koi UV nahi chahiye, har shape par sahi baithta hai */
+ var tri=function(m,tex,k){if(m.userData.tri)return;m.userData.tri=1;
+  m.onBeforeCompile=function(sh){
+   sh.uniforms.tTex={value:tex};sh.uniforms.tSc={value:k};
+   sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vWP;varying vec3 vWN;").replace("#include <begin_vertex>","#include <begin_vertex>\nvWP=(modelMatrix*vec4(transformed,1.0)).xyz;vWN=normalize(mat3(modelMatrix)*objectNormal);");
+   sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vWP;varying vec3 vWN;uniform sampler2D tTex;uniform float tSc;").replace("#include <map_fragment>","#include <map_fragment>\n{vec3 bw=pow(abs(normalize(vWN)),vec3(4.0));bw/=(bw.x+bw.y+bw.z);vec3 tp=vWP*tSc;float tx=texture2D(tTex,tp.zy).r*bw.x+texture2D(tTex,tp.xz).r*bw.y+texture2D(tTex,tp.xy).r*bw.z;diffuseColor.rgb*=0.45+1.1*tx;}")};
+  m.customProgramCacheKey=function(){return "znxtri"};m.needsUpdate=true};
+ /* asli reflections (metal, ice, marble) ek chhote sky se */
+ try{var pm=new TH.PMREMGenerator(rn),es=new TH.Scene(),eg=new TH.SphereGeometry(20,24,16),ps=eg.attributes.position,ec=new Float32Array(ps.count*3);
+  for(var i=0;i<ps.count;i++){var y=ps.getY(i)/20,cr,cg,cb;if(y>=0){var k=Math.pow(y,.6);cr=1-.6*k;cg=.93-.31*k;cb=.82+.18*k}else{var k2=Math.min(1,-y*2);cr=1-.72*k2;cg=.93-.67*k2;cb=.82-.58*k2}ec[i*3]=cr*1.2;ec[i*3+1]=cg*1.2;ec[i*3+2]=cb*1.2}
+  eg.setAttribute("color",new TH.BufferAttribute(ec,3));es.add(new TH.Mesh(eg,new TH.MeshBasicMaterial({vertexColors:true,side:TH.BackSide})));
+  var sm=new TH.Mesh(new TH.SphereGeometry(2,8,6),new TH.MeshBasicMaterial({color:new TH.Color(6,5.4,4.2)}));sm.position.set(8,14,9);es.add(sm);
+  sc.environment=pm.fromScene(es,.03).texture;pm.dispose()}catch(e){}
+ sc.traverse(function(o){
+  if(!o.isMesh||!o.material||Array.isArray(o.material))return;var m=o.material;
+  if(m.isMeshStandardMaterial){m.envMapIntensity=m.metalness>.5?1.1:.3;if(m.vertexColors&&m.flatShading&&!o.isInstancedMesh)tri(m,rock,.33)}
+  var g=o.geometry;if(g&&g.type==="PlaneGeometry"&&m.color){var c=m.color,p=g.parameters;
+   if(m.isMeshLambertMaterial&&c.r<.12&&c.g>.15&&c.g<.4&&c.b<.12){var gt=grass.clone();gt.needsUpdate=true;gt.repeat.set(26,Math.max(4,p.height/10));o.material=new TH.MeshStandardMaterial({color:0xffffff,map:gt,roughness:1,envMapIntensity:.2});o.receiveShadow=!!SHD}
+   else if(m.isMeshBasicMaterial&&c.r>.95&&c.g>.05&&c.g<.2&&c.b<.05){var lt=lava.clone();lt.needsUpdate=true;lt.repeat.set(14,Math.max(4,p.height/18));m.map=lt;m.toneMapped=false;m.color.setRGB(1,1,1);m.needsUpdate=true}}});
+ if(!document.getElementById("c3vg")){var st=document.createElement("style");st.id="c3vg";st.textContent="#c3R::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 45%,transparent 58%,rgba(0,0,0,.38))}";document.head.appendChild(st)}
+}
 function stop(){cancelAnimationFrame(raf);raf=0;if(onR){removeEventListener("resize",onR);removeEventListener("orientationchange",onR)}onR=null;
  if(S){document.removeEventListener("keydown",S.kd);document.removeEventListener("keyup",S.ku);try{S.rn.dispose()}catch(e){}S=null}
  const r=document.getElementById("c3R");if(r)r.remove()}
@@ -3454,7 +3484,7 @@ const STR=[];
    else if(z===1){if(i===0){put(sc,cylG,mt(0x3f8a3a),.05,.4,.05,rx,y+.2,rz);put(sc,sphG,bm([0xff5fa2,0xffd93d,0xffffff][k%3]),.2,.2,.2,rx,y+.42,rz)}else put(sc,coneG,mt(0x4aa040),.14,.35,.14,rx,y+.17,rz)}
    else put(sc,sphG,bm(0xfff3a6),.16,.16,.16,rx,y+.5+hs3(rx,rz,3)*.4,rz)}
   if(k%3===1){const m=new TH.Mesh(new TH.OctahedronGeometry(.3),new TH.MeshBasicMaterial({color:0xffd93d}));m.scale.y=1.35;m.position.set(b.x,y+1.4,b.z);sc.add(m);STR.push({m:m,x:b.x,y:y+1.4,z:b.z})}})}
-realify(sc,SHD,B);const c1=mkChar(0x4f7cff,0xff6b8b),c2=mkChar(0xff6b8b,0x4f7cff);sc.add(c1.g);sc.add(c2.g);if(SHD)[c1.g,c2.g].forEach(g=>g.traverse(o=>{if(o.isMesh)o.castShadow=true}));
+realify(sc,SHD,B);try{real3(sc,rn,SHD,B)}catch(e){console.warn('real3',e)}const c1=mkChar(0x4f7cff,0xff6b8b),c2=mkChar(0xff6b8b,0x4f7cff);sc.add(c1.g);sc.add(c2.g);if(SHD)[c1.g,c2.g].forEach(g=>g.traverse(o=>{if(o.isMesh)o.castShadow=true}));
  const links=[],lg=new TH.TorusGeometry(.11,.035,6,10);lg.rotateY(PI/2);
  for(let i=0;i<NL-1;i++){const g=new TH.Group(),m=new TH.Mesh(lg,new TH.MeshStandardMaterial({color:0xc9ced8,metalness:.75,roughness:.32}));m.scale.z=1.6;if(i%2)m.rotation.z=PI/2;g.add(m);sc.add(g);links.push(g)}
  const mk=()=>({x:0,y:0,z:0,vx:0,vy:0,vz:0,on:null,coy:0,jb:0}),
@@ -3516,7 +3546,7 @@ let hit=0;for(const h of s.H){const ph=(s.t+h.ph)%h.per;h.on=ph<h.per*.4;h.warn=
     if(b.str)for(const o of b.str)o.m.position.z=(((o.z0+s.t*b.cv+b.d/2)%b.d)+b.d)%b.d-b.d/2}}
   /* zone colours */
   const kk=1-Math.exp(-dt*1.6),T2=TG[s.zz];for(const key in cur)for(let i=0;i<3;i++)cur[key][i]+=(T2[key][i]-cur[key][i])*kk;paint();
-  hemi.intensity=lerp(hemi.intensity,PAL[s.zz].hemi,kk);glow.intensity=lerp(glow.intensity,s.zz===0?1.8:0,kk);lav.material.color.setRGB(1,.33+.08*Math.sin(s.t*2),.1);
+  hemi.intensity=lerp(hemi.intensity,PAL[s.zz].hemi,kk);glow.intensity=lerp(glow.intensity,s.zz===0?1.8:0,kk);if(lav.material.map){lav.material.color.setRGB(1,.85+.1*Math.sin(s.t*2),.8);lav.material.map.offset.set(s.t*.012,s.t*.02)}else lav.material.color.setRGB(1,.33+.08*Math.sin(s.t*2),.1);
   pm.opacity=s.zz===0?.9:.7;
   /* camera */
   {const mvn=Math.hypot(s.jx,s.jy)>.12||kx||ky||s.I.jh;s.zm=s.zm||1;if(mvn)s.zm+=(1-s.zm)*(1-Math.exp(-dt*2.4))}const M1=s.net===2?Q1:P1,d=4.2*(s.zm||1),po=Math.max(s.pit,.06),tx=M1[0],ty=M1[1]+1.3,tz=M1[2],
