@@ -5265,7 +5265,7 @@ document.addEventListener('gesturestart',function(e){if(document.getElementById(
 document.addEventListener('dblclick',function(e){if(document.getElementById('chR'))e.preventDefault()},{passive:false});
 })();</script>
 <script>/*ZNX-V7:ctl*/(function(){try{(function ctlModule(){
- var KEY="znx_ctl",ICON='<svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
+ var KEY="znx_ctl_land",ICON='<svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
  var css=".ct-ed{outline:2px dashed #ffd93d!important;outline-offset:3px;cursor:move}"+
  "body.ct-edit #ldR .ldP{display:flex!important}"+
  "#ctP{position:fixed;top:calc(env(safe-area-inset-top,0px) + 62px);left:50%;transform:translateX(-50%);z-index:90;width:min(300px,90vw);padding:14px 16px;border-radius:20px;background:rgba(14,16,26,.94);color:#fff;border:1px solid rgba(255,255,255,.16);display:grid;gap:8px;box-shadow:0 20px 44px -16px #000}"+
@@ -5322,4 +5322,43 @@ document.addEventListener('dblclick',function(e){if(document.getElementById('chR
  addEventListener("resize",function(){if(live)apply(live)});
  addEventListener("orientationchange",function(){if(live)setTimeout(function(){apply(live)},250)});
 })()}catch(e){console.error(e)}})();</script>
+<!--ZNX-LAND-V1-->
+<style id="znx-land-css">
+#fsGo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;height:52px;padding:0 26px;border-radius:26px;border:1px solid rgba(255,255,255,.3);background:linear-gradient(135deg,#6a62f0,#5149d6);color:#fff;font-weight:700;font-size:15px}
+#znxRot{position:fixed;inset:0;z-index:99;display:none;place-items:center;align-content:center;gap:12px;text-align:center;background:#07080d;color:#fff;padding:24px}
+body.znx-gp.znx-port #znxRot{display:grid}
+#znxRot svg{width:64px;height:64px;fill:none;stroke:#8f88ff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:znxRt 1.8s ease-in-out infinite}
+#znxRot small{color:#9aa0b8}
+@keyframes znxRt{0%,15%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (orientation:landscape){
+#c3J{left:calc(env(safe-area-inset-left,0px) + 28px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 18px)!important}
+#c3B{right:calc(env(safe-area-inset-right,0px) + 32px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important}
+.ldP{padding:0 calc(env(safe-area-inset-right,0px) + 24px) 0 calc(env(safe-area-inset-left,0px) + 24px)!important}
+.c3T,.ldT{padding-left:calc(env(safe-area-inset-left,0px) + 12px)!important;padding-right:calc(env(safe-area-inset-right,0px) + 12px)!important}}
+@media (orientation:landscape) and (max-height:520px){#c3L{gap:8px!important}.c3Lc{transform:scale(.8)}#c3L em{display:none}}
+</style><div id="znxRot"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg><b>Phone ko ghumao</b><small>Ye game landscape me chalta hai</small></div>
+<script>(function(){
+var B=document.body,D=document,GM={c3R:1,ldR:1},cur=null;
+var IOS=/iP(hone|ad|od)/.test(navigator.userAgent);
+function fsEl(){return D.fullscreenElement||D.webkitFullscreenElement}
+function chk(){B.classList.toggle("znx-port",!!cur&&innerHeight>innerWidth)}
+function lock(){try{var o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock("landscape");if(o&&o.catch)o.catch(function(){})}catch(e){}}
+function goFs(){var e=D.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;lock();
+ if(!f)return Promise.resolve(false);if(fsEl())return Promise.resolve(true);
+ var p;try{p=f.call(e,{navigationUI:"hide"})}catch(x){return Promise.resolve(false)}
+ return Promise.resolve(p).then(function(){lock();return true},function(){return false})}
+function btn(n){if(IOS||!n||!n.isConnected||n.querySelector("#fsGo"))return;
+ var b=D.createElement("button");b.id="fsGo";b.textContent="Full screen ke liye tap karo";
+ b.onclick=function(ev){ev.stopPropagation();goFs().then(function(ok){if(ok)b.remove()})};n.appendChild(b)}
+function begin(n){cur=n;B.classList.add("znx-gp");chk();goFs().then(function(ok){if(!ok&&cur===n&&!fsEl())btn(n)})}
+function fin(){if(cur)return;B.classList.remove("znx-gp","znx-port");
+ try{if(fsEl())(D.exitFullscreen||D.webkitExitFullscreen).call(D)}catch(e){}
+ try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}}
+function end(){cur=null;B.classList.remove("znx-port");setTimeout(fin,350)}
+new MutationObserver(function(ms){ms.forEach(function(m){
+ m.addedNodes.forEach(function(n){if(n.nodeType===1&&GM[n.id])begin(n)});
+ m.removedNodes.forEach(function(n){if(n.nodeType===1&&cur&&n===cur)end()})})}).observe(B,{childList:true});
+addEventListener("resize",chk);addEventListener("orientationchange",function(){setTimeout(chk,200)});
+D.addEventListener("fullscreenchange",function(){if(cur&&!fsEl())btn(cur)});
+})();</script>
 </body></html>
