@@ -3121,46 +3121,60 @@ const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),hx=h=>[(h>>16)/255,(h>>8&255)/255,(h
 function level(){const B=[],Hz=[];let z=0,y=0,zn=0;
  const add=(x,w,len,rise,o)=>{w*=1.35;len*=1.25;const b=Object.assign({x:x,ox:x,px:x,w:w,d:len,z:z-len/2,oz:z-len/2,t0:y,t1:y+rise,th:.6,dx:0,dz:0,kind:"pad",zn:zn},o||{});if(b.ti)b.base=y;if(b.kind==="log")b.th=w;if(b.kind==="pillar")b.th=9;z-=len;y+=rise;B.push(b);return b},
  gap=(g,r)=>{z-=g;y+=r||0},
- stones=(n,w,g,dy,zig,o)=>{for(let i=0;i<n;i++){add(i%2?zig:-zig,w,w,0,o);gap(g+(i%3)*.3,dy)}},
- bridge=(n,miss)=>{for(let i=0;i<n;i++){if(miss.indexOf(i)>=0){gap(2.2);continue}add(0,3.4,1.4,0,{kind:"plank",crm:i%3===1?1:0});gap(.55)}};
- /* HELL */
- add(0,10,10,0,{cp:1});gap(2.6);
- stones(7,3.2,2.2,.4,1.6);
- add(0,2.0,12,0,{kind:"log"});gap(2.6);
- add(0,5,5,0,{cp:1});gap(2.0);
- bridge(9,[4,7]);gap(.5);
- for(let i=0;i<4;i++){add(i%2?1.8:-1.8,3,3,0,{bl:5.4,ph:i*.9});gap(2.6,.3)}
- add(0,6,6,0,{cp:1});gap(2.2);
- const jp=add(0,4.2,14,0);[[4,-1],[10,1]].forEach(a=>Hz.push({x:jp.x+a[1]*.95,z:jp.z+jp.d/2-a[0],y:jp.t0,ph:a[0]*.5,per:4.2}));gap(2.4);
- for(let i=0;i<3;i++){add(0,3.2,3.2,0,{sl:2.4,sp:1.2,ph:i*2.1,kind:"slide"});gap(2.6)}
+ road=(n,w,len)=>{for(let i=0;i<n;i++)add(0,w||7,len||12,0)},
+ stones=(n,w,g,dy,zig,o)=>{for(let i=0;i<n;i++){add(i%2?zig:-zig,w,w,0,o);gap(g+(i%3)*.2,dy)}},
+ bridge=(n,miss,c)=>{for(let i=0;i<n;i++){if(miss.indexOf(i)>=0){gap(2.0);continue}add(0,3.4,1.4,0,{kind:"plank",crm:c&&i%3===1?1:0});gap(.5)}},
+ jet=(b,a,k)=>Hz.push({x:b.x+k*.95,z:b.z+b.d/2-a,y:b.t0,ph:a*.5,per:4.6});
+ /* HELL: pehle seedha road, phir dheere dheere mushkil */
+ add(0,10,10,0,{cp:1});gap(1.2);
+ road(2,7,12);gap(1.5);road(2,7,10);gap(1.8);
+ add(0,3.4,12,0,{kind:"log"});gap(1.6);
+ stones(5,3.4,1.5,.2,1.2);gap(1.4);
+ add(0,6,5,0,{cp:1});gap(1.8);
+ bridge(9,[],0);gap(.4);road(1,7,10);gap(1.6);
+ for(let i=0;i<3;i++){add(i%2?1.4:-1.4,3.2,3.2,0,{bl:7,ph:i*1.3});gap(1.8,.2)}
+ const j1=add(0,5,14,0);jet(j1,6,0);gap(1.6);
+ add(0,6,5,0,{cp:1});gap(2.0);
+ for(let i=0;i<3;i++){add(0,3.2,3.2,0,{sl:1.8,sp:1,ph:i*2.1,kind:"slide"});gap(2.0)}
+ bridge(10,[4],1);gap(.4);
  add(0,4.6,12,0,{kind:"conv",cv:2.2});gap(1.8);
- add(0,5,10,8,{kind:"ramp"});add(0,6,6,0,{cp:1});gap(2.5);
- /* EARTH */
- zn=1;add(0,8,8,0,{cp:1});gap(2.4);
- stones(8,2.3,2.7,.6,2.1);
- add(0,5,9,0,{ti:1.4,ph:0,kind:"tilt"});gap(2.4);
- add(0,6,6,0,{cp:1});gap(2.8);
- for(let i=0;i<3;i++){add(0,3.2,3.2,0,{sz:2.2,sp:1.4,ph:i*2,kind:"mover"});gap(4.6)}
- add(0,6,14,0,{kind:"net"});gap(2.4);/*ZNX-CHUTE*/add(0,4.6,18,-5,{kind:"ice"});gap(1.8);add(0,6,6,0,{cp:1});gap(1.6);add(0,5,10,5,{kind:"ramp"});add(0,6,5,0);gap(2.4);
- add(0,8,8,0,{spin:1});gap(2.4);
- add(0,3.6,3.6,0,{kind:"lift",lf:4,sp:.85,ph:-1.5708});gap(2.4,4);
+ const j2=add(0,4.6,16,0);jet(j2,5,-1);jet(j2,11,1);gap(2.0);
+ for(let i=0;i<4;i++){add(i%2?1.8:-1.8,3,3,0,{bl:5.4,ph:i*.9});gap(2.3,.3)}
+ add(0,5,12,6,{kind:"ramp"});add(0,6,6,0,{cp:1});gap(2.2);
+ /* EARTH: trampoline, tilt, net, ice, lift, pillars */
+ zn=1;add(0,8,8,0,{cp:1});gap(1.4);road(2,6,12);gap(1.6);
+ stones(6,2.8,2.2,.5,1.8);gap(1.6);
+ add(0,5,9,0,{ti:1.2,ph:0,kind:"tilt"});gap(2.0);
+ add(0,6,6,0,{cp:1});gap(2.0);
+ add(0,3.2,3.2,0,{kind:"bounce"});gap(1.8,2.4);add(0,7,8,0);gap(1.8);
+ for(let i=0;i<3;i++){add(0,3.2,3.2,0,{sz:2,sp:1.3,ph:i*2,kind:"mover"});gap(4.2)}
+ add(0,6,14,0,{kind:"net"});gap(2.2);
+ add(0,4.6,18,-5,{kind:"ice"});gap(1.6);add(0,6,6,0,{cp:1});gap(1.4);
+ add(0,5,10,5,{kind:"ramp"});add(0,6,5,0);gap(2.2);
+ const j3=add(0,5,16,0);jet(j3,6,1);jet(j3,12,-1);gap(2.0);
+ add(0,8,8,0,{spin:1});gap(2.2);
+ add(0,3.6,3.6,0,{kind:"lift",lf:4,sp:.85,ph:-1.5708});gap(2.2,4);
  add(0,5,5,0,{cp:1});gap(2.0);
- bridge(12,[2,5,9]);gap(.5);
+ bridge(12,[2,6,9],1);gap(.4);
  add(0,5,5,0,{cp:1});gap(2.4);
- for(let i=0;i<6;i++){add(i%2?-1.7:1.7,1.7,1.7,0,{kind:"pillar"});gap(2.7,.9)}
- for(let i=0;i<4;i++){add(i%2?1.6:-1.6,2.8,2.8,0,{bl:4.6,ph:i*.8});gap(2.7,.2)}
- add(0,5,10,10,{kind:"ramp"});add(0,6,6,0,{cp:1});gap(2.5);
- /* HEAVEN */
- zn=2;add(0,8,8,0,{cp:1});gap(2.4);
- for(let i=0;i<9;i++){add(i%2?2.2:-2.2,2.6-i*.06,2.6-i*.06,0);gap(2.5+i*.07+(i%3)*.2,1.0)}
- for(let i=0;i<4;i++){add(0,3,3.6,0,{kind:"ice"});gap(2.2)}
- add(0,8,8,0,{spin:1});gap(2.4);
- for(let i=0;i<3;i++){add(0,3,3,0,{sl:4.2,sp:1.8,ph:i*2,kind:"slide"});gap(2.6)}
- add(0,1.0,14,0,{kind:"log"});gap(2.4);
- add(0,6,6,0,{cp:1});gap(2.4);
- for(let i=0;i<4;i++){add(0,3,3,0,{bl:3.8,ph:i*.7});gap(2.6,.8)}
- for(let i=0;i<6;i++){add(i%2?-2.2:2.2,2.0,2.0,0);gap(2.8,1.1)}
- for(let i=0;i<3;i++){add(0,3,3,0,{sz:3,sp:1.9,ph:i*2.2,kind:"mover"});gap(5.4,.3)}
+ for(let i=0;i<6;i++){add(i%2?-1.7:1.7,1.9,1.9,0,{kind:"pillar"});gap(2.5,.8)}
+ for(let i=0;i<4;i++){add(i%2?1.6:-1.6,2.8,2.8,0,{bl:5,ph:i*.8});gap(2.4,.2)}
+ add(0,5,10,8,{kind:"ramp"});add(0,6,6,0,{cp:1});gap(2.2);
+ /* HEAVEN: bounce chain, ice, spin, sliders */
+ zn=2;add(0,8,8,0,{cp:1});gap(1.6);
+ for(let i=0;i<7;i++){add(i%2?2:-2,3-i*.06,3-i*.06,0);gap(2.0+i*.08,.8)}
+ add(0,5,5,0,{cp:1});gap(2.0);
+ for(let i=0;i<3;i++){add(0,3.4,4,0,{kind:"ice"});gap(1.8)}
+ add(0,8,8,0,{spin:1});gap(2.2);
+ for(let i=0;i<3;i++){add(0,3,3,0,{kind:"bounce"});gap(1.8,2.2)}
+ add(0,6,6,0,{cp:1});gap(2.0);
+ for(let i=0;i<3;i++){add(0,3.4,3.4,0,{sl:3.6,sp:1.6,ph:i*2,kind:"slide"});gap(2.2)}
+ add(0,1.3,14,0,{kind:"log"});gap(2.2);
+ add(0,6,6,0,{cp:1});gap(2.2);
+ for(let i=0;i<4;i++){add(0,3,3,0,{bl:4.2,ph:i*.7});gap(2.3,.7)}
+ for(let i=0;i<6;i++){add(i%2?-2:2,2.2,2.2,0);gap(2.5,1.0)}
+ add(0,5,5,0,{cp:1});gap(2.2);
+ for(let i=0;i<3;i++){add(0,3,3,0,{sz:3,sp:1.7,ph:i*2.2,kind:"mover"});gap(5,.3)}
  add(0,12,12,0,{goal:1});
  B.H=Hz;return B}
 
@@ -3739,11 +3753,7 @@ function realify(sc,SHD,B){
    const ao=t==="ConeGeometry"?1:.6+.4*Math.max(0,Math.min(1,y+.5)),b=(.68+.5*n2)*ao;col[i*3]=b*(1+.07*(n-.5));col[i*3+1]=b;col[i*3+2]=b*(1-.07*(n-.5))}
   g.setAttribute("color",new TH.BufferAttribute(col,3));g.computeVertexNormals();
   o.geometry=g;o.material=std(o.material);o.castShadow=o.receiveShadow=!!SHD});
- const RM=[0x3b3030,0x857d70,0xdfe6f2].map(c=>new TH.MeshStandardMaterial({color:c,roughness:.95,flatShading:true}));
- (B||[]).forEach(b=>{if(b.kind!=="pad"||b.spin||b.sl||b.sz||b.bl||b.ti||b.crm||b.w<2.6||b.zn>1)return;const n=b.w>5?3:b.w>3.5?2:1;
-  for(let i=0;i<n;i++){const r=.14+hs3(b.x,b.z,i)*.26,gm=new TH.IcosahedronGeometry(r,1),pa=gm.attributes.position;
-   for(let j=0;j<pa.count;j++){const x=pa.getX(j),y=pa.getY(j),z=pa.getZ(j),k=.78+hs3(x*9+i,y*9,z*9)*.6;pa.setXYZ(j,x*k*1.2,y*k*.65,z*k)}
-   gm.computeVertexNormals();const m=new TH.Mesh(gm,RM[b.zn]);m.position.set(b.x+(hs3(b.z,i,3)-.5)*(b.w-1.4),b.t0+r*.3,b.z+(hs3(b.x,i,7)-.5)*(b.d-1.4));m.rotation.y=hs3(b.x,b.z,i+5)*6.28;m.castShadow=m.receiveShadow=!!SHD;sc.add(m)}});
+ 
 }
 function real3(sc,rn,SHD,B){
  /*ZNX-REAL-V3*/
@@ -3857,10 +3867,13 @@ function stop(){cancelAnimationFrame(raf);raf=0;if(onR){removeEventListener("res
  const r=document.getElementById("c3R");if(r)r.remove()}
 function exit(){if(S&&S.net){nTx({t:"leave"});nEnd()}stop();inGame=false;if(tab==="play"){drawPlay();pgIn(-1)}}
 
+function c3AutoBtn(r){if(!document.getElementById("c3ar")){const st=document.createElement("style");st.id="c3ar";st.textContent="#c3A{position:absolute;right:calc(env(safe-area-inset-right,0px) + 122px);bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:60px;height:60px;border-radius:50%;padding:0;z-index:2;color:#fff;font:700 11px system-ui;letter-spacing:.08em;background:rgba(14,16,26,.55);border:1px solid rgba(255,255,255,.35);touch-action:none}#c3A.on{background:linear-gradient(145deg,rgba(255,159,60,.9),rgba(255,77,109,.8))}";document.head.appendChild(st)}
+ const b=document.createElement("button");b.id="c3A";b.textContent="RUN";b.setAttribute("aria-label","Auto run");
+ b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(!S)return;S.ar=!S.ar;b.classList.toggle("on",!!S.ar);if(navigator.vibrate)navigator.vibrate(8)});r.appendChild(b)}
 async function start(nt){stop();inGame=true;
  const r=document.createElement("div");r.id="c3R";
  r.innerHTML='<div class="c3T"><button class="ib" id="c3X" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="c3H">LOADING 3D...</b><button class="ib" id="c3M" style="display:none" aria-label="Mic">'+CI.mic+'</button><button class="ib" id="c3Rs" aria-label="Restart">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div id="c3J"><i></i></div><button id="c3P" aria-label="Pull" style="display:none">PULL</button><button id="c3LJ" aria-label="Crouch"><svg viewBox="0 0 24 24"><circle cx="9" cy="5.5" r="1.8"/><path d="M9 8l3 4.5-1 1.5M12 12.5h4.5l1.5 5.5M11 14l-3 4.5h-3M19.5 4.5v5.5M17.5 8l2 2.2 2-2.2"/></svg></button><button id="c3B" aria-label="Jump"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="1.8"/><path d="M12 8v5.5M12 9.5l-4-3.5M12 9.5l4-3.5M12 13.5l-3 4M12 13.5l3 3.5M8.5 22l3.5-3 3.5 3"/></svg></button><div id="c3O"></div>';
- document.body.appendChild(r);$("c3X").onclick=exit;$("c3Rs").onclick=()=>start();{const tb=document.createElement("button");tb.className="gb";tb.textContent="Tune";tb.style.cssText="background:rgba(14,16,26,.5);color:#fff;border:1px solid rgba(255,255,255,.18)";
+ document.body.appendChild(r);$("c3X").onclick=exit;c3AutoBtn(r);$("c3Rs").onclick=()=>start();{const tb=document.createElement("button");tb.className="gb";tb.textContent="Tune";tb.style.cssText="background:rgba(14,16,26,.5);color:#fff;border:1px solid rgba(255,255,255,.18)";
  tb.onclick=e=>{e.stopPropagation();let p=document.getElementById("c3Tn");if(p){p.remove();return}p=document.createElement("div");p.id="c3Tn";
   p.style.cssText="position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:50%;transform:translateX(-50%);z-index:12;width:min(300px,90vw);padding:14px 16px;border-radius:20px;background:rgba(14,16,26,.94);color:#fff;border:1px solid rgba(255,255,255,.16);display:grid;gap:10px";
   const L="display:grid;grid-template-columns:96px 1fr;align-items:center;font-size:13px",I="height:28px;padding:0;border:0;background:none;accent-color:#8f88ff";
@@ -3914,7 +3927,7 @@ async function start(nt){stop();inGame=true;
  B.forEach(build);
  B.forEach(b=>{if(b.goal||b.kind!=="pad"||b.sl||b.sz||b.bl||b.ti||b.crm||b.w<4)return;const y=b.t0,zf=b.z+b.d/2-.2;
   if(b.zn===1){const n=Math.floor(b.w/2.2);for(let i=0;i<=n;i++)put(sc,cylG,mt(0x8a5a2c),.16,.9,.16,b.x-b.w/2+.2+i*(b.w-.4)/Math.max(1,n),y+.45,zf);put(sc,boxG,mt(0xb07a42),b.w-.3,.12,.1,b.x,y+.78,zf);put(sc,boxG,mt(0xb07a42),b.w-.3,.12,.1,b.x,y+.5,zf);put(sc,cylG,mt(0xf2e6d8),.14,.35,.14,b.x+b.w/2-.7,y+.18,b.z-b.d/2+.6);put(sc,sphG,mt(0xe0475b),.5,.28,.5,b.x+b.w/2-.7,y+.42,b.z-b.d/2+.6)}
-  else if(b.zn===0){put(sc,coneG,mt(0x3a2020),.5,1.3,.5,b.x+b.w/2-.5,y+.65,b.z-b.d/2+.5);put(sc,coneG,mt(0x4a2a2a),.35,.8,.35,b.x-b.w/2+.5,y+.4,b.z+b.d/2-.5)}
+  else if(b.zn===0){}
   else{put(sc,sphG,mt(0xffffff),.7,.45,.7,b.x-b.w/2+.6,y+.22,b.z);put(sc,sphG,mt(0xffe27a),.3,.3,.3,b.x+b.w/2-.6,y+.4,b.z)}});
  B.H.forEach(h=>{const g=new TH.Group();g.position.set(h.x,h.y,h.z);put(g,cylG,mt(0x2a1a1a),1.1,.3,1.1,0,.15,0);
   const f=put(g,coneG,bm(0xff7a1a,{transparent:true,opacity:.9}),1.4,3.4,1.4,0,1.9,0),w=put(g,coneG,bm(0xffc04a,{transparent:true,opacity:.8}),.6,1,.6,0,.6,0);sc.add(g);h.m={f:f,w:w}});
@@ -3968,7 +3981,7 @@ realify(sc,SHD,B);try{real3(sc,rn,SHD,B)}catch(e){console.warn('real3',e)}/*ZNX-
  $("c3O").onclick=e=>{const b=e.target.closest("[data-c3o]");if(!b)return;b.dataset.c3o==="again"?start():exit()};
  const lerp=(a,b,t)=>a+(b-a)*t;
  const loop=ms=>{raf=requestAnimationFrame(loop);if(S!==s)return;s.ld3=(s.ld3||0)+1;if(s.ld3===2)c3Done();const t=ms/1000,dt=Math.min(.05,t-(s.lt||t));s.lt=t;if(!s.won)s.t+=dt;
-  const kx=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0),ky=(K.w?1:0)-(K.s||K.arrowdown?1:0);/*ZNX-C3-FEEL*/let jm0=Math.hypot(s.jx,s.jy),jk=jm0<.04?0:Math.pow(Math.min(1,(jm0-.04)/.8),1/C3S.m)/jm0,tx0=s.jx*jk+kx,ty0=s.jy*jk+ky;const tm=Math.hypot(tx0,ty0);if(tm>1){tx0/=tm;ty0/=tm}const sk2=1-Math.exp(-dt*(tm?60:70));s.sjx=(s.sjx||0)+(tx0-(s.sjx||0))*sk2;s.sjy=(s.sjy||0)+(ty0-(s.sjy||0))*sk2;if(!tm&&Math.hypot(s.sjx,s.sjy)<.03){s.sjx=s.sjy=0}let sx=s.sjx,sy=s.sjy;const m=Math.hypot(sx,sy);if(m>1){sx/=m;sy/=m}s.I.pl=(s.pbh||K.e||K.shift)?1:0;
+  const kx=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0),ky=(K.w?1:0)-(K.s||K.arrowdown?1:0);/*ZNX-C3-FEEL*/let jm0=Math.hypot(s.jx,s.jy),jk=jm0<.04?0:Math.pow(Math.min(1,(jm0-.04)/.8),1/C3S.m)/jm0,tx0=s.jx*jk+kx,ty0=s.jy*jk+ky;const tm=Math.hypot(tx0,ty0);if(tm>1){tx0/=tm;ty0/=tm}const sk2=1-Math.exp(-dt*(tm?60:70));s.sjx=(s.sjx||0)+(tx0-(s.sjx||0))*sk2;s.sjy=(s.sjy||0)+(ty0-(s.sjy||0))*sk2;if(!tm&&Math.hypot(s.sjx,s.sjy)<.03){s.sjx=s.sjy=0}let sx=s.sjx,sy=s.sjy;if(s.ar&&Math.hypot(sx,sy)<.08&&!s.won){sx=0;sy=1}const m=Math.hypot(sx,sy);if(m>1){sx/=m;sy/=m}s.I.pl=(s.pbh||K.e||K.shift)?1:0;
   const sn=Math.sin(s.yaw),cs=Math.cos(s.yaw),I=s.I;I.ix=-sn*sy+cs*sx;I.iz=-cs*sy-sn*sx;if(s.won){I.ix=I.iz=0;I.jp=0}if(s.crh){I.ix*=.4;I.iz*=.4;I.jp=0}
   const p=s.p,q=s.q,sl=s.solo;s.acc+=dt;let n=0;
   if(s.net===2){const T=s.st;
