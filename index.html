@@ -3393,7 +3393,8 @@ function poseH(c,spd,air,t,vy){
  c.hd.rotation.x=-lean*.75+Math.sin(t*.6)*.04*w;c.hd.rotation.y=-ty*.9+(Math.sin(t*.43)*.2+Math.sin(t*1.3)*.04)*w*ig;c.hd.rotation.z=-tz*.7;
  const bl=L("lid",(t%3.7)>3.58?1:0,40);c.lids.forEach(o=>o.scale.set(1.15,bl*.95+.001,.7))}
 /*ZNX-HERO-V1*/
-function mkChar(col,capc){const v=col===0x4f7cff?0:1;try{const hr=mkHero(v);try{znxBelt(hr,v)}catch(x){console.warn("belt",x)}return hr}catch(e){console.warn("hero",e);const c=mkLife(v);try{deco(c,v)}catch(x){}return c}}
+/*ZNX-RM:8*/function mkChar(col,capc){const c=mkCharBase(col,capc);try{znxReal(c,col===0x4f7cff?0:1)}catch(e){console.warn("real",e)}return c}
+function mkCharBase(col,capc){const v=col===0x4f7cff?0:1;try{const hr=mkHero(v);try{znxBelt(hr,v)}catch(x){console.warn("belt",x)}return hr}catch(e){console.warn("hero",e);const c=mkLife(v);try{deco(c,v)}catch(x){}return c}}
 function heroKit(){
  const P2=Math.PI*2,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),
  sm=(a,b,x)=>{const t=cl((x-a)/(b-a),0,1);return t*t*(3-2*t)},
@@ -3877,6 +3878,62 @@ function znxFloat(r,J,s){let act=null;
  r.addEventListener("pointerup",end);r.addEventListener("pointercancel",end)}
 /*ZNX-RM:0*//*ZNX-CTL-END*/
 (function(){const s=document.createElement("style");s.id="c3fix";s.textContent="#c3R #c3B{right:calc(env(safe-area-inset-right,0px) + 22px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 34px)!important;left:auto!important;top:auto!important}#c3R #c3LJ{right:calc(env(safe-area-inset-right,0px) + 118px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 30px)!important;left:auto!important;top:auto!important}#c3R #c3F{right:calc(env(safe-area-inset-right,0px) + 114px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 114px)!important;left:auto!important;top:auto!important}#c3R #c3P{right:calc(env(safe-area-inset-right,0px) + 22px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 134px)!important;left:auto!important;top:auto!important}#c3R #c3A{left:calc(env(safe-area-inset-left,0px) + 20px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 168px)!important;right:auto!important;top:auto!important}";document.head.appendChild(s)})();
+/*ZNX-RM:9*/function znxCamo(v){const cv=document.createElement("canvas");cv.width=cv.height=128;const x=cv.getContext("2d"),B=v?["#4a5560","#363e48","#6b7683","#2a3038"]:["#5b6445","#3e4630","#7a7c55","#2b3023"];x.fillStyle=B[0];x.fillRect(0,0,128,128);let s=v+7;const R=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};for(let i=0;i<46;i++){x.fillStyle=B[1+i%3];x.beginPath();x.ellipse(R()*128,R()*128,6+R()*16,4+R()*10,R()*3,0,6.3);x.fill()}const t=new TH.CanvasTexture(cv);t.colorSpace=TH.SRGBColorSpace;t.wrapS=t.wrapT=TH.RepeatWrapping;return t}
+function znxReal(c,v){
+const M=(col,r,m)=>new TH.MeshStandardMaterial({color:col,roughness:r,metalness:m||0}),
+camo=new TH.MeshStandardMaterial({map:znxCamo(v),roughness:.92}),
+vest=M(v?0x23282e:0x2b2f26,.85),vest2=M(v?0x343b44:0x3b4130,.8),dark=M(0x16171a,.7),leather=M(0x1d1a17,.6),metal=M(0x8b9099,.3,.85),glove=M(0x1b1c1f,.8),helmM=M(v?0x3a4048:0x464f3b,.6,.05),
+gm=(g,m,p,x,y,z,sx,sy,sz)=>{const o=new TH.Mesh(g,m);o.position.set(x||0,y||0,z||0);if(sx)o.scale.set(sx,sy,sz);o.castShadow=true;p.add(o);return o},
+B=new TH.BoxGeometry(1,1,1),Cy=new TH.CylinderGeometry(1,1,1,18),Sp=new TH.SphereGeometry(1,14,10);
+/* cargo pants, knee pads, boots */
+[[c.lL,c.kL,c.fL],[c.lR,c.kR,c.fR]].forEach(a=>{
+gm(new TH.CylinderGeometry(.124,.098,.44,18),camo,a[0],0,-.22,.004);
+gm(new TH.CylinderGeometry(.114,.1,.3,18),camo,a[1],0,-.15,0);
+gm(Sp,vest,a[1],0,-.03,.12,.082,.075,.05);
+gm(new TH.CylinderGeometry(.09,.084,.16,16),leather,a[1],0,-.33,0);
+gm(Sp,leather,a[2],0,-.005,.085,.072,.062,.175);
+gm(B,dark,a[2],0,-.06,.09,.135,.026,.3)});
+/* plate carrier vest */
+const bd=c.body;
+gm(Cy,vest,bd,0,.27,0,.248,.34,.152);
+gm(B,vest2,bd,0,.31,.153,.25,.25,.035);gm(B,vest2,bd,0,.31,-.15,.25,.25,.035);
+[-1,0,1].forEach(i=>{gm(B,vest2,bd,i*.085,.16,.168,.075,.1,.05);gm(B,vest,bd,i*.085,.205,.172,.08,.02,.055)});
+[-1,1].forEach(s=>gm(B,vest,bd,s*.105,.455,0,.075,.03,.3));
+gm(B,dark,bd,-.19,.33,.11,.045,.11,.05);gm(Cy,dark,bd,-.19,.45,.11,.006,.12,.006);
+/* backpack */
+const pk=new TH.Group();pk.position.set(0,.3,-.19);bd.add(pk);c.pk=pk;
+gm(B,camo,pk,0,0,0,.3,.38,.15);gm(B,vest,pk,0,.17,-.01,.3,.06,.16);
+const rl=gm(Cy,vest2,pk,0,-.2,-.01,.06,.28,.06);rl.rotation.z=Math.PI/2;
+[-1,1].forEach(s=>gm(B,vest,pk,s*.16,-.04,-.01,.05,.22,.12));
+/* duty belt */
+gm(Cy,dark,c.hp,0,.045,0,.19,.065,.14);gm(B,leather,c.hp,.19,-.03,.03,.05,.16,.09);gm(B,vest2,c.hp,-.19,0,.03,.06,.08,.07);
+/* gloves, elbow pads */
+[c.eL,c.eR].forEach(e=>{gm(Sp,glove,e,0,-.365,.014,.052,.092,.034);gm(Cy,glove,e,0,-.268,0,.054,.06,.054);gm(Sp,vest,e,0,0,-.04,.06,.055,.05)});
+/* helmet, goggles, headset */
+const hd=c.hd;
+const hm=new TH.Mesh(new TH.SphereGeometry(1,24,14,0,6.283,0,Math.PI/2),helmM);hm.position.set(0,.215,-.006);hm.scale.set(.138,.128,.15);hm.castShadow=true;hd.add(hm);
+const rim=new TH.Mesh(new TH.TorusGeometry(1,.045,6,32),dark);rim.rotation.x=Math.PI/2;rim.position.set(0,.215,-.006);rim.scale.set(.138,.15,.5);hd.add(rim);
+gm(B,metal,hd,0,.3,.132,.05,.045,.04);gm(B,dark,hd,0,.245,.15,.15,.05,.035);gm(B,M(0x2c6fa0,.1,.6),hd,0,.245,.169,.12,.034,.006);
+[-1,1].forEach(s=>gm(Sp,dark,hd,s*.098,.135,0,.022,.04,.035));
+/* contact shadow */
+const cv=document.createElement("canvas");cv.width=cv.height=64;const x2=cv.getContext("2d"),gr=x2.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,"rgba(0,0,0,.6)");gr.addColorStop(1,"rgba(0,0,0,0)");x2.fillStyle=gr;x2.fillRect(0,0,64,64);
+const sh=new TH.Mesh(new TH.PlaneGeometry(1,1),new TH.MeshBasicMaterial({map:new TH.CanvasTexture(cv),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+sh.rotation.x=-Math.PI/2;sh.position.y=.025;sh.scale.set(.95,.95,1);c.g.add(sh);c.sh=sh;
+/* dust puffs */
+c.fx={p:[],k:0};const pg=new TH.SphereGeometry(1,7,5);
+for(let i=0;i<12;i++){const m=new TH.Mesh(pg,new TH.MeshBasicMaterial({color:0xcbb998,transparent:true,opacity:0,depthWrite:false}));m.visible=false;m.userData={t:0,l:1,vx:0,vz:0,s:.1};c.fx.p.push(m)}}
+function znxFx(c,spd,air,t,vy){const S=c.s,F=c.fx;if(!F||!S)return;
+if(!F.ready&&c.g.parent){F.p.forEach(m=>c.g.parent.add(m));F.ready=1}
+const dt=Math.min(.05,Math.max(.001,F.t==null?.016:t-F.t));F.t=t;
+const puff=(n,sp,big)=>{for(let i=0;i<n;i++){const m=F.p[F.k++%F.p.length],a=Math.random()*6.283;m.visible=true;m.position.set(c.g.position.x,c.g.position.y+.05,c.g.position.z);m.userData={t:0,l:.5+Math.random()*.3,vx:Math.cos(a)*sp,vz:Math.sin(a)*sp,s:big?.14:.08};m.material.opacity=.45}};
+const sg=Math.sin(S.ph||0)>0?1:-1;if((S.mv||0)>.5&&!S.air&&sg!==F.sg)puff(1,.5,0);F.sg=sg;
+if(S.lt>0&&!F.lp){puff(3+Math.round(4*(S.lk||.3)),1.6,1);F.lp=1}if(!(S.lt>0))F.lp=0;
+F.p.forEach(m=>{if(!m.visible)return;const u=m.userData;u.t+=dt;const k=u.t/u.l;if(k>=1){m.visible=false;return}m.position.x+=u.vx*dt;m.position.z+=u.vz*dt;m.position.y+=dt*.25;m.scale.setScalar(u.s*(1+k*2.2));m.material.opacity=.45*(1-k)});
+if(c.sh)c.sh.material.opacity=Math.max(0,1-(S.aw||0)*1.2)*.85;
+if(c.pk){c.pk.rotation.x=-(S.ln||0)*.25;c.pk.position.y=.3+Math.cos(2*(S.ph||0))*.008*(S.mv||0)}
+const yw=c.g.rotation.y,d=Math.atan2(Math.sin(yw-(F.yw==null?yw:F.yw)),Math.cos(yw-(F.yw==null?yw:F.yw)));F.yw=yw;F.yr=(F.yr||0)+((d/dt)-(F.yr||0))*Math.min(1,dt*8);
+c.body.rotation.z+=Math.max(-.22,Math.min(.22,-F.yr*.025))*Math.min(1,(S.mv||0)*2)*(1-(S.aw||0))}
+const _poseBase=poseH;poseH=function(c,spd,air,t,vy){_poseBase(c,spd,air,t,vy);try{znxFx(c,spd,air,t,vy)}catch(e){}};
 /*ZNX-P2*/
 let znxFxG=null;
 function znxBelt(c,v){
