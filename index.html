@@ -3359,21 +3359,21 @@ function poseH(c,spd,air,t,vy){
  if(S.air&&!air){S.dp=K(.25+(Math.abs(S.v0||0)-6)/14,.2,1);S.lc=.16+.2*S.dp}
  S.air=air;if(air)S.v0=vy||0;S.lc=Math.max(0,(S.lc||0)-dt);
  const aw=L("aw",air?1:0,air?18:14),ig=1-aw,rise=air?K((vy||0)/10,-1,1):0,up=Math.max(0,rise),fa=Math.max(0,-rise),lead=(S.lead||1)>0,
- cr=L("cr",S.lc>0?(S.dp||.5):0,S.lc>0?26:9),c7=.7*cr,amp=.22+.68*mv;
+ cr=L("cr",S.lc>0?(S.dp||.5):0,S.lc>0?26:9),c7=.85*cr,amp=.22+.68*mv;
  let lt=-s*amp*g,rt=s*amp*g,kl=.05+g*(.1+mv)*Math.max(0,co),kr=.05+g*(.1+mv)*Math.max(0,-co);
- const tF=-(.35+.4*up),tB=.15+.2*up-.1*fa,nF=.45+.7*up-.15*fa,nB=.35+.9*up;
+ /*ZNX-JUMP-V2*/const tk=air?Math.max(0,1-Math.max(0,(S.at||0)-.07)/.2):0,tF=-(.5+.35*up+.25*tk),tB=.15+.2*up-.1*fa,nF=.75+.7*up-.1*fa+.5*tk,nB=.6+.8*up+.4*tk;
  lt=lt*ig+(lead?tF:tB)*aw-c7;rt=rt*ig+(lead?tB:tF)*aw-c7;kl=kl*ig+(lead?nF:nB)*aw+2*c7;kr=kr*ig+(lead?nB:nF)*aw+2*c7;
  c.lL.rotation.x=lt;c.lR.rotation.x=rt;c.kL.rotation.x=kl;c.kR.rotation.x=kr;
  c.fL.rotation.x=-(lt+kl)+.3*mv*Math.max(0,lt)*ig+.25*up*aw;c.fR.rotation.x=-(rt+kr)+.3*mv*Math.max(0,rt)*ig+.25*up*aw;
- const sw=.7*mv*g,ax=-(.3+.9*up);
+ const sw=.7*mv*g,ax=-(.1+.4*up)+.12*fa+.4*tk;
  c.aL.rotation.x=(s*sw-.04)*ig+ax*aw-.35*cr;c.aR.rotation.x=(-s*sw-.04)*ig+ax*aw-.35*cr;
- c.eL.rotation.x=-(.12+(.3+.5*mv)*g+.55*mv*Math.max(0,-s)*g)*ig-(.45+.5*up)*aw;
- c.eR.rotation.x=-(.12+(.3+.5*mv)*g+.55*mv*Math.max(0,s)*g)*ig-(.45+.5*up)*aw;
- const oz=(.07+.05*mv)*ig+(.35+.5*fa+.2*up)*aw;c.aL.rotation.z=-oz;c.aR.rotation.z=oz;
- const lean=L("ln",(.02+.2*mv)*ig+(.1+.1*up)*aw+.3*cr,9),br=Math.sin(t*1.9),
+ c.eL.rotation.x=-(.12+(.3+.5*mv)*g+.55*mv*Math.max(0,-s)*g)*ig-(.3+.3*up)*aw;
+ c.eR.rotation.x=-(.12+(.3+.5*mv)*g+.55*mv*Math.max(0,s)*g)*ig-(.3+.3*up)*aw;
+ const oz=(.07+.05*mv)*ig+(.13+.15*fa+.06*up)*aw;c.aL.rotation.z=-oz;c.aR.rotation.z=oz;
+ const lean=L("ln",(.02+.2*mv)*ig+(.1+.1*up)*aw+.3*cr+.22*tk,9),br=Math.sin(t*1.9),
  bob=Math.cos(2*ph)*(.012+.03*mv)*g*ig,drop=.85*(1-Math.cos(c7)),
  ty=-s*.16*mv*g*ig,tz=co*.03*g*ig+Math.sin(t*.5)*.02*w*ig;
- c.hp.position.y=c.hy+bob-drop;c.body.position.y=c.cy+bob-drop+br*.003*w;
+ c.hp.position.y=c.hy+bob-drop-.05*tk;c.body.position.y=c.cy+bob-drop-.05*tk+br*.003*w;
  c.hp.rotation.y=-ty*.6;c.hp.rotation.z=-tz*.5;
  c.body.rotation.x=lean;c.body.rotation.y=ty;c.body.rotation.z=tz;
  c.body.scale.set(1+br*.01,1+br*.014,1+br*.022);
@@ -3493,18 +3493,25 @@ function mkHero(v){
   lids.push(add(lidG,M.skin,hd,x,y,z0-.0095));
   const yb=.196+(s>0?.006:0),pts=[0,1,2].map(i=>{const xx=s*(.012+i*.029),yy=yb+(i===1?.01:i===2?.005:0);return v3(xx,yy,fz(hg,xx,yy)+.0015)});
   add(sweep(new TH.CatmullRomCurve3(pts),u=>.0042*(1-.4*Math.abs(u-.35)),6,8),M.brow,hd)});
- /* hair: shaved sides (carved lines are on the head), swept-back blue spikes, long curled strand */
+ /*ZNX-HAIR-V2*/
  const hair=[];
- let cap=sculpt(tubeH([[.185,.095,.106,.002],[.205,.093,.105,.001],[.25,.08,.093,-.007],[.28,.05,.059,-.012],[.299,.001,.001,-.012]],40,8,[5,2]),(x,y,z,o)=>{const a=.55+.45*sm(.19,.3,y),n=(.9+.2*fb(x*40,y*40,z*40))*a;o.r*=n*.95;o.g*=n;o.b*=n*1.1});
- cap=cut(cap,(x,y,z)=>Math.abs(x)>.052||(y<.222&&z>0)||y<.19);hair.push(cap);
- let k=0;
- for(let r=0;r<9;r++){const t=r/8,z=.078-.17*t,nr=r<2?3:4;
-  for(let c=0;c<nr;c++,k++){
-   const x=((c+.5)/nr-.5)*.095+(hs(k,1,2)-.5)*.014,zz=z+(hs(k,3,4)-.5)*.014,y=.138+.158*Math.sqrt(Math.max(0,1-(x/.086)*(x/.086)-((zz+.004)/.102)*((zz+.004)/.102)))-.006,
-   L=(.14-.075*t)*(.82+.4*hs(k,5,6)),w=.0125+.006*hs(k,7,8),up=v3(x*7,.8,-.5-.55*t+(hs(k,9,1)-.5)*.2).normalize(),
-   P0=v3(x,y-.006,zz),P1=P0.clone().addScaledVector(up,L*.4),P2=P0.clone().addScaledVector(up,L*.78).add(v3(0,-.004,-.012)),P3=P0.clone().addScaledVector(up,L).add(v3(x*.2,-.018*(1+t),-.03-.03*t)),q=.9+.2*hs(k,2,7);
-   hair.push(sweep(new TH.CatmullRomCurve3([P0,P1,P2,P3]),u=>w*Math.pow(1-u,.8)+.0006,7,7,[3,2],u=>{const a=(.55+.6*u)*q;return[a*.95,a,a*1.1]}))}}
- hair.push(sweep(new TH.CatmullRomCurve3([v3(-.04,.238,.09),v3(-.065,.285,.1),v3(-.11,.3,.095),v3(-.15,.27,.085),v3(-.165,.21,.075),v3(-.155,.15,.07)]),u=>.0075*(1-u)+.0018,7,18,[2,6],u=>{const a=.7+.45*u;return[a*.95,a,a*1.1]}));
+ M.hair.color.setHex(v===0?0x1c1410:0x3a2616);M.hair.roughness=.55;M.hair.bumpScale=.5;
+ let cap=sculpt(tubeH([[.15,.097,.109,.004],[.19,.096,.108,.003],[.22,.095,.107,.001],[.25,.083,.095,-.006],[.28,.054,.063,-.011],[.305,.001,.001,-.011]],56,14,[6,3]),(x,y,z,o)=>{const n=.78*(1+.18*(fb(x*70,y*70,z*70)-.5)*2);o.r*=n;o.g*=n;o.b*=n});
+ cap=cut(cap,(x,y,z)=>y<.155||(z>.02&&y<.238-.035*sm(.02,.085,Math.abs(x)))||(Math.abs(x)>.07&&y<.178&&z>-.04));
+ hair.push(cap);
+ const hrx=.093,hry=.128,hrz=.104,hcy=.172,
+ hp3=(ph,th,k)=>{const s=1+k;return v3(hrx*s*Math.sin(ph)*Math.cos(th),hcy+hry*s*Math.cos(ph),hrz*s*Math.sin(ph)*Math.sin(th)-.004)},
+ strand=(k,ph0,th0,ph1,dth,lift,w)=>{const P=[];for(let i=0;i<5;i++){const u=i/4;P.push(hp3(ph0+(ph1-ph0)*u+(hs(k,i,5)-.5)*.03,th0+dth*u+(hs(k,i,6)-.5)*.05,.04+lift*Math.sin(u*Math.PI)+.012*u))}
+  hair.push(sweep(new TH.CatmullRomCurve3(P),u=>w*(1-.5*u*u)+.0007,5,8,[2,3],u=>{const a=(.72+.5*hs(k,11,4))*(.85+.3*u);return[a*1.02,a,a*.96]}))};
+ for(let k=0;k<150;k++){
+  const th=hs(k,1,2)*Math.PI*2,front=Math.sin(th)>.25,p0=hs(k,3,4)*.95,L0=.3+.35*hs(k,5,6),mx=front?.9:1.42,p1=Math.min(p0+L0,mx),q0=Math.min(p0,p1-.2);
+  strand(k,q0,th,p1,(hs(k,7,8)-.5)*.4+.18*Math.sin(th),.012+.02*hs(k,9,1),.0055+.003*hs(k,2,9))}
+ for(let k=200;k<222;k++){
+  const th=Math.PI/2+(hs(k,1,2)-.5)*1.5;
+  strand(k,.15+.3*hs(k,3,4),th,.98+.17*hs(k,5,6),.2+.1*(hs(k,7,8)-.5),.05+.03*hs(k,9,1),.006+.003*hs(k,2,9))}
+ for(let k=300;k<312;k++){
+  const th=(k%2?0:Math.PI)+(hs(k,1,2)-.5)*.5;
+  strand(k,1.25+.1*hs(k,3,4),th,1.65+.1*hs(k,5,6),0,.01,.004)}
  add(merge(hair),M.hair,hd);
 
  /* ---------- arms, hands, watch ---------- */
@@ -3827,10 +3834,13 @@ function znxGfx(sc,rn,SHD,B,TH){
  s.textContent="#c3B,#c3LJ{font-size:0!important;display:grid;place-items:center}#c3B svg,#c3LJ svg{width:54%;height:54%;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}#c3B{background:linear-gradient(145deg,rgba(143,136,255,.8),rgba(94,194,183,.7))!important}#c3LJ{background:rgba(14,16,26,.55)!important;border:1px solid rgba(255,255,255,.4)!important}#c3LJ.on{background:linear-gradient(145deg,rgba(143,136,255,.85),rgba(94,194,183,.75))!important}";
  document.head.appendChild(s)})();
 /* sit / crouch pose, blended on top of the normal animation */
-function znxCrouch(c,on,gr){const S=c.s||(c.s={});S.cz=(S.cz||0)+(((on&&gr)?1:0)-(S.cz||0))*.2;const z=S.cz;if(z<.01)return;
- const m=(o,t)=>{if(o)o.rotation.x=o.rotation.x*(1-z)+t*z};
- m(c.lL,-1.3);m(c.lR,-1.3);m(c.kL,2.3);m(c.kR,2.3);m(c.fL,-1);m(c.fR,-1);m(c.aL,-.8);m(c.aR,-.8);m(c.eL,-1.2);m(c.eR,-1.2);m(c.body,.3);m(c.hd,-.25);
- c.hp.position.y-=.5*z;c.body.position.y-=.5*z}
+function znxCrouch(c,on,gr){/*ZNX-SIT-V2*/const S=c.s||(c.s={});S.cz=(S.cz||0)+(((on&&gr)?1:0)-(S.cz||0))*.14;const z=S.cz;if(z<.01)return;
+ const m=(o,t)=>{if(o)o.rotation.x=o.rotation.x*(1-z)+t*z},mz=(o,t)=>{if(o)o.rotation.z=o.rotation.z*(1-z)+t*z};
+ m(c.lL,-1.45);m(c.lR,-1.45);m(c.kL,2.35);m(c.kR,2.35);m(c.fL,-.9);m(c.fR,-.9);
+ mz(c.lL,-.1);mz(c.lR,.1);
+ m(c.aL,-.35);m(c.aR,-.35);m(c.eL,-.75);m(c.eR,-.75);mz(c.aL,-.12);mz(c.aR,.12);
+ m(c.body,.5);m(c.hd,-.4);
+ c.hp.position.y-=.54*z;c.body.position.y-=.54*z}
 /* floating joystick: touch anywhere on the left half and the stick appears under your thumb */
 function znxFloat(r,J,s){let act=null;
  r.addEventListener("pointerdown",e=>{
