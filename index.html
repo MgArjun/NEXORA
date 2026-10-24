@@ -5424,6 +5424,104 @@ const ren=()=>{const a=document.querySelector('#sh [data-o="th"] span');if(a&&a.
 new MutationObserver(ren).observe($("sh"),{childList:true,subtree:true});new MutationObserver(ren).observe($("pg"),{childList:true,subtree:true});ren();
 }
 
+/*ZNX-V12-START*/
+try{
+const CTX=()=>window.znxCtx?window.znxCtx():{};
+
+/* ===== 1. SHARE: chhota icon har jagah ===== */
+const base=()=>location.origin+location.pathname;
+const dl=(k,v)=>base()+"?p="+k+":"+v;
+function shCtx(){
+ if($("c3R"))return{t:"Chained Together",l:dl("game","c3d")};
+ if($("ldR"))return{t:"Level Devil",l:dl("game","devil")};
+ if($("uoR"))return{t:"UNO",l:dl("game","uno")};
+ if(tab==="play"&&inGame&&T)return{t:"Tic-Tac-Toe",l:dl("game","ttt")};
+ if($("et").classList.contains("on"))return{t:"Enjoy Together",l:dl("tab","enjoy")};
+ const n={chats:"Chats",enjoy:"Enjoy",play:"Play",me:"ZNEXORA"}[tab]||"ZNEXORA";
+ return{t:n,l:dl("tab",tab)}}
+async function doShare(){
+ if(MP.on&&MP.started)return soloShare();
+ const c=shCtx(),text="ZNEXORA par "+c.t+" dekho. Chat, call aur saath me enjoy karo.";
+ try{if(navigator.share){await navigator.share({title:"ZNEXORA",text:text,url:c.l});return}}catch(e){if(e&&e.name==="AbortError")return}
+ try{await navigator.clipboard.writeText(text+" "+c.l);ts("Link copy ho gaya")}catch(e){ts(c.l)}}
+
+const sty=document.createElement("style");
+sty.textContent="#znxSh{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:65;width:36px;height:36px;margin:0;padding:0;border-radius:50%;display:none;place-items:center;color:#fff;opacity:.72;background:rgba(14,16,26,.55);border:1px solid rgba(255,255,255,.18)}#znxSh.on{display:grid}#znxSh svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}";
+document.head.appendChild(sty);
+
+/* header icon (Chats, Enjoy, Play, Me, Tic-Tac-Toe) */
+const hb=document.createElement("button");hb.className="ib";hb.id="shb";hb.setAttribute("aria-label","Share");hb.innerHTML=SI.share;hb.onclick=doShare;
+const me=$("me"),wr=document.createElement("span");wr.style.cssText="display:flex;align-items:center";
+me.parentNode.insertBefore(wr,me);wr.appendChild(hb);wr.appendChild(me);
+/* floating icon (games, Enjoy Together, Favourites) */
+const fb=document.createElement("button");fb.id="znxSh";fb.setAttribute("aria-label","Share");fb.innerHTML=SI.share;fb.onclick=doShare;document.body.appendChild(fb);
+setInterval(()=>{fb.classList.toggle("on",!!($("c3R")||$("ldR")||$("uoR")||$("et").classList.contains("on")||$("fv").classList.contains("on")))},600);
+
+/* link kholne par seedha wahi page / game khule */
+const DP=(new URLSearchParams(location.search)).get("p")||"";
+const _en=enter;
+enter=function(){
+ _en.apply(this,arguments);
+ if(!DP)return;
+ setTimeout(()=>{const k=DP.split(":")[0],v=DP.split(":")[1];
+  if(k==="game"&&gOf(v)){show("play");openGame(v)}
+  else if(k==="tab"&&["chats","enjoy","play","me"].indexOf(v)>=0)show(v);
+  try{history.replaceState(null,"",location.pathname)}catch(e){}},450)};
+
+/* ===== 2. SONG LIMIT: admin har user ko 30 / 100 / Unlimited / custom de sake ===== */
+const SL={d:30,l:null,pid:"",nm:""};
+const slMax=()=>MY.role==="admin"?Infinity:(SL.l?(SL.l.unlimited?Infinity:(+SL.l.max_songs||SL.d)):SL.d);
+async function slLoad(){const c=CTX();if(!c.sb||!c.pid)return;
+ try{const r=await c.sb.from("nx_song_limit").select("max_songs,unlimited").eq("user_id",c.pid).maybeSingle();if(!r.error)SL.l=r.data||null}catch(e){}}
+setTimeout(slLoad,2500);setInterval(slLoad,60000);
+
+/* user apni limit se zyada naya song nahi jod sakta (server bhi rokta hai) */
+const _fsy=window.znxFavSync;
+window.znxFavSync=function(){
+ const mx=slMax();
+ if(mx!==Infinity){
+  const mine=x=>x.kind==="listen"&&x.mine!==false;
+  let over=FAV.filter(mine).length-mx,cut=0;
+  for(let i=0;i<FAV.length&&over>0;i++){const x=FAV[i];if(mine(x)&&!x.sid){FAV.splice(i,1);i--;over--;cut++}}
+  if(cut){try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}try{mpSync()}catch(e){}
+   setTimeout(()=>ts("Song limit poori ho gayi ("+mx+"). Admin se badhwao"),80)}}
+ return _fsy&&_fsy.apply(this,arguments)};
+
+/* admin panel: user ke sheet me Songs limit */
+function slShow(row,used){const el=$("slcur");if(!el)return;
+ const unl=!!(row&&row.unlimited),mx=row&&row.max_songs;
+ el.textContent=(unl?"Unlimited":(mx?mx+" songs":"Default "+SL.d+" songs"))+(used!=null?" \u00b7 "+used+" used":"");
+ const sg=$("slseg");if(sg)[].slice.call(sg.children).forEach(b=>{const k=b.dataset.sl2;b.classList.toggle("on",unl?k==="u":(k!=="u"&&k!=="c"&&+k===mx))})}
+const _au=adUser;
+adUser=function(i){
+ _au(i);const u=AU[i],c=CTX();if(!u||!u.pid||!c.sb)return;
+ SL.pid=u.pid;SL.nm=u.n;
+ $("sh").insertAdjacentHTML("beforeend",'<div class="sec">Songs limit</div><div class="glist"><div class="gr"><span class="t"><b>Is user ke songs</b><small class="mono lc" id="slcur">loading...</small></span></div></div><div class="seg" id="slseg" style="margin-top:8px"><button data-sl2="30">30</button><button data-sl2="100">100</button><button data-sl2="u">Unlimited</button></div><div class="cpf"><input id="slci" inputmode="numeric" placeholder="Custom (1 se 10000)" maxlength="5" autocomplete="off"><button class="gb pri" data-sl2="c">Set</button></div>');
+ const pid=u.pid;
+ Promise.all([
+  c.sb.from("nx_song_limit").select("max_songs,unlimited").eq("user_id",pid).maybeSingle().then(r=>r.data||null,()=>null),
+  c.sb.from("nx_fav").select("id",{count:"exact",head:true}).eq("owner",pid).eq("kind","listen").then(r=>r.error?null:r.count,()=>null)
+ ]).then(a=>{if(SL.pid===pid)slShow(a[0],a[1])})};
+$("sh").addEventListener("click",async e=>{
+ const b=e.target.closest("[data-sl2]");if(!b||!SL.pid)return;
+ const k=b.dataset.sl2;let row;
+ if(k==="u")row={unlimited:true,max_songs:null};
+ else{const n=k==="c"?parseInt($("slci").value,10):+k;if(!(n>=1&&n<=10000))return ts("1 se 10000 ke beech likho");row={unlimited:false,max_songs:n}}
+ const r=await CTX().sb.from("nx_song_limit").upsert(Object.assign({user_id:SL.pid,updated_at:new Date().toISOString()},row));
+ if(r.error)return ts("Save nahi hua: "+r.error.message);
+ slShow(row);ts("Songs limit save ho gayi");
+ try{logA("Songs limit",SL.nm+": "+(row.unlimited?"unlimited":row.max_songs))}catch(x){}});
+
+/* ===== 3. ZEXO AI: tez jawab (server ko garam rakho, history chhoti) ===== */
+let wm=0;
+const warm=()=>{if(Date.now()-wm<240000)return;wm=Date.now();try{window.nxZexo&&window.nxZexo([]).then(r=>{try{r.text()}catch(e){}},()=>{})}catch(e){}};
+const _z2=window.nxZexo;
+if(_z2)window.nxZexo=function(h){return _z2((h||[]).slice(-3))};
+$("zxc").addEventListener("pointerdown",warm);
+setTimeout(()=>{if(CTX().pid&&zx.cfg.ai_on!==false)warm()},7000);
+setInterval(()=>{if(!document.hidden&&CTX().pid&&zx.cfg.ai_on!==false)warm()},60000);
+}catch(e){console.error("ZNX v12",e)}
+/*ZNX-V12-END*/
 })();</script><script>
 
 (function(){
