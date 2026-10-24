@@ -6240,4 +6240,119 @@ new MutationObserver(function(ms){ms.forEach(function(m){
 addEventListener("resize",chk);addEventListener("orientationchange",function(){setTimeout(chk,200)});
 D.addEventListener("fullscreenchange",function(){if(cur&&!fsEl())btn(cur)});
 })();</script>
+<script>
+/*ZNX-PATCH-AB*/
+(function(){try{
+var D=document;
+
+/* ===== css ===== */
+var st=D.createElement('style');
+st.textContent=
+'#zxm .mr{content-visibility:visible!important}#zxm,#zpm{overflow-anchor:none}'+
+'#znxG{position:absolute;left:0;top:0;right:0;bottom:0;z-index:4;touch-action:none;-webkit-user-select:none;user-select:none}'+
+'#znxGd{position:absolute;left:0;top:0;right:0;bottom:0;z-index:4;background:#000;opacity:0;pointer-events:none}'+
+'#znxGh{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:7px 14px;border-radius:18px;color:#fff;font:600 12px ui-monospace,Menlo,monospace;background:rgba(14,16,26,.7);opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}'+
+'#znxGh.on{opacity:1}'+
+'#znxGk{position:absolute;top:42%;z-index:6;padding:8px 16px;border-radius:18px;color:#fff;font:600 13px ui-monospace,Menlo,monospace;background:rgba(14,16,26,.7);opacity:0;pointer-events:none;transition:opacity .2s}';
+D.head.appendChild(st);
+
+/* ===== A. Zexo AI chat: naya message hamesha keyboard ke upar dikhe ===== */
+function keeper(mid,iid,sendSel){
+ var m=D.getElementById(mid),inp=D.getElementById(iid);
+ if(!m||!inp||m.dataset.znxK)return false;
+ m.dataset.znxK='1';
+ var stick=true,lock=0;
+ function down(){m.scrollTop=m.scrollHeight;lock=Date.now()+250}
+ function keep(){if(!stick)return;down();requestAnimationFrame(down)}
+ function burst(){keep();[80,200,400,700].forEach(function(t){setTimeout(keep,t)})}
+ /* user khud upar scroll kare to auto-scroll ruk jaye */
+ m.addEventListener('scroll',function(){if(Date.now()<lock)return;stick=m.scrollHeight-m.scrollTop-m.clientHeight<120},{passive:true});
+ new MutationObserver(keep).observe(m,{childList:true,subtree:true,characterData:true});
+ if(window.ResizeObserver)new ResizeObserver(keep).observe(m);
+ inp.addEventListener('focus',function(){stick=true;burst()});
+ inp.addEventListener('input',keep);
+ inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey)stick=true});
+ var vv=window.visualViewport;
+ if(vv){vv.addEventListener('resize',burst);vv.addEventListener('scroll',keep)}
+ addEventListener('resize',burst);
+ var root=m.closest('#zx,#znxSV')||D.body;
+ root.addEventListener('click',function(e){if(e.target.closest&&e.target.closest(sendSel))stick=true},true);
+ return true}
+var tries=0,pv=setInterval(function(){
+ keeper('zxm','zxi','#zxs,[data-zo]');
+ keeper('zpm','zpi','#zps,.zpo button');
+ if(++tries>24)clearInterval(pv)},250);
+
+/* ===== B. Shared video player: double tap +-10s, swipe seek, brightness, volume ===== */
+function video(){
+ var w=D.getElementById('znxSVw');
+ if(!w||w.dataset.znxG)return false;
+ w.dataset.znxG='1';
+ var dim=D.createElement('div');dim.id='znxGd';
+ var g=D.createElement('div');g.id='znxG';
+ var hud=D.createElement('div');hud.id='znxGh';
+ var kk=D.createElement('div');kk.id='znxGk';
+ w.appendChild(dim);w.appendChild(g);w.appendChild(hud);w.appendChild(kk);
+
+ function sec(t){var a=String(t||'').split(':').map(Number);return a.some(isNaN)?0:a.reduce(function(s,v){return s*60+v},0)}
+ function cur(){var e=D.getElementById('znxSVa');return e?sec(e.textContent):0}
+ function dur(){var e=D.getElementById('znxSVd');return e?sec(e.textContent):0}
+ function fm(t){t=Math.max(0,Math.round(t));return Math.floor(t/60)+':'+('0'+(t%60)).slice(-2)}
+ function cmd(f,a){var fr=D.getElementById('znxSVp');try{if(fr&&fr.contentWindow)fr.contentWindow.postMessage(JSON.stringify({event:'command',func:f,args:a||[]}),'*')}catch(e){}}
+ /* seek: player ki apni seek bar ko chhoo kar, taaki hamesha sahi jagah jaye */
+ function seekTo(t){
+  var d=dur(),sk=D.getElementById('znxSVs');if(!d||!sk)return;
+  t=Math.max(0,Math.min(d-.5,t));
+  var r=sk.getBoundingClientRect();if(!r.width)return;
+  var x=r.left+t/d*r.width,y=r.top+r.height/2,o={clientX:x,clientY:y,pointerId:77,pointerType:'touch',bubbles:true};
+  try{sk.dispatchEvent(new PointerEvent('pointerdown',o));sk.dispatchEvent(new PointerEvent('pointerup',o))}catch(e){}}
+ function toggle(){var b=D.getElementById('znxSVpl');if(b)b.click()}
+
+ var ht=0,kt=0;
+ function hudShow(l,t){hud.textContent=l+'  '+t;hud.classList.add('on');clearTimeout(ht);ht=setTimeout(function(){hud.classList.remove('on')},900)}
+ function flash(d){kk.textContent=d<0?'\u2039\u2039  10 s':'10 s  \u203a\u203a';kk.style.left=d<0?'12%':'auto';kk.style.right=d>0?'12%':'auto';kk.style.opacity='1';clearTimeout(kt);kt=setTimeout(function(){kk.style.opacity='0'},600)}
+
+ var s=null,bri=1,vol=100,lt=0,lside=0,pt=0;
+ function tap(f){
+  var n=Date.now(),side=f<.4||f>.6;
+  if(n-lt<300&&side&&lside){clearTimeout(pt);pt=0;lt=0;var d=f<.5?-10:10;seekTo(cur()+d);flash(d);return}
+  lt=n;lside=side;clearTimeout(pt);
+  var cv=D.getElementById('znxSVcv');
+  if(cv&&cv.classList.contains('on')){toggle();return}
+  pt=setTimeout(function(){pt=0;toggle()},280)}
+
+ g.addEventListener('pointerdown',function(e){
+  var r=g.getBoundingClientRect();
+  s={x:e.clientX,y:e.clientY,w:r.width||1,h:r.height||1,l:r.left,left:e.clientX<r.left+r.width/2,v0:vol,b0:bri,t0:cur(),d:dur(),m:0,tg:0,id:e.pointerId};
+  try{g.setPointerCapture(e.pointerId)}catch(x){}});
+ g.addEventListener('pointermove',function(e){
+  if(!s||e.pointerId!==s.id)return;
+  var dx=e.clientX-s.x,dy=e.clientY-s.y;
+  if(!s.m){
+   if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx))s.m='v';
+   else if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)&&s.d)s.m='h';
+   else return}
+  if(s.m==='v'){
+   var k=-dy/s.h*1.3;
+   if(s.left){bri=Math.max(.35,Math.min(1.15,s.b0+k));dim.style.opacity=String(Math.max(0,1-bri)*.85);hudShow('Brightness',Math.round(bri*100)+'%')}
+   else{vol=Math.max(0,Math.min(100,s.v0+k*100));cmd('setVolume',[Math.round(vol)]);hudShow('Volume',String(Math.round(vol)))}}
+  else{
+   s.tg=Math.max(0,Math.min(s.d,s.t0+dx/s.w*90));
+   var df=Math.round(s.tg-s.t0);
+   hudShow(df<0?'Rewind':'Forward',(df>0?'+':'')+df+' s  '+fm(s.tg))}});
+ function up(e){
+  if(!s||e.pointerId!==s.id)return;
+  var q=s;s=null;
+  if(e.type==='pointercancel')return;
+  if(q.m==='h'){seekTo(q.tg);return}
+  if(q.m)return;
+  tap((e.clientX-q.l)/q.w)}
+ g.addEventListener('pointerup',up);
+ g.addEventListener('pointercancel',up);
+ return true}
+var vt=0,vi=setInterval(function(){if(video()||++vt>20)clearInterval(vi)},250);
+
+}catch(e){console.error('ZNX patch',e)}})();
+
+</script>
 </body></html>
