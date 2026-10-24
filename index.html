@@ -3630,6 +3630,42 @@ function pull(s){s.plm=0;
   a.vx*=.9;a.vz*=.9})}
 function pullAnim(c1,c2,s){const m=s.plm|0;if(!m)return;const t=s.t;[[c1,c2,1],[c2,c1,2]].forEach(z=>{const a=z[0],b=z[1];if(m&z[2]){a.g.rotation.y=Math.atan2(b.g.position.x-a.g.position.x,b.g.position.z-a.g.position.z);const w=Math.sin(t*10)*.3;a.aL.rotation.x=a.aR.rotation.x=-1+w;a.eL.rotation.x=a.eR.rotation.x=-1.3-w;a.aL.rotation.z=-.15;a.aR.rotation.z=.15;a.body.rotation.x=-.3;a.lL.rotation.x=.45;a.lR.rotation.x=-.35;a.kL.rotation.x=.3;a.kR.rotation.x=.45}else if(m&(3-z[2])){a.aL.rotation.x=a.aR.rotation.x=-2.7;a.eL.rotation.x=a.eR.rotation.x=-.3;a.aL.rotation.z=-.3;a.aR.rotation.z=.3}})}
 /*ZNX-C3-TUNE*/const C3S=(()=>{const o={j:1.15,s:1,m:1,h:1};try{Object.assign(o,JSON.parse(localStorage.getItem("znx_c3s")||"{}"))}catch(e){}return o})();
+/*ZNX-GFX-V1*/
+function znxGfx(sc,rn,SHD,B,TH){
+ const low=document.documentElement.classList.contains("lowfx");
+ rn.setPixelRatio(Math.min(devicePixelRatio||1,low?1.25:2));rn.toneMappingExposure=1.28;
+ if(!document.getElementById("c3gfxcss")){const s=document.createElement("style");s.id="c3gfxcss";s.textContent=low?"":"#c3R canvas{filter:saturate(1.2) contrast(1.07)}";document.head.appendChild(s)}
+ const cv=(w,h,fn)=>{const c=document.createElement("canvas");c.width=w;c.height=h;fn(c.getContext("2d"),w,h);const t=new TH.CanvasTexture(c);t.colorSpace=TH.SRGBColorSpace;return t},
+ rad=st=>cv(64,64,(x,w)=>{const g=x.createRadialGradient(32,32,0,32,32,32);st.forEach(s=>g.addColorStop(s[0],s[1]));x.fillStyle=g;x.fillRect(0,0,64,64)}),
+ glowT=rad([[0,"rgba(255,255,255,1)"],[.25,"rgba(255,255,255,.45)"],[1,"rgba(255,255,255,0)"]]),
+ cloudT=cv(128,64,(x)=>{for(let i=0;i<9;i++){const px=20+i*11,py=34+Math.sin(i*2.1)*7,r=14+Math.abs(Math.sin(i*1.7))*12,g=x.createRadialGradient(px,py,0,px,py,r);g.addColorStop(0,"rgba(255,255,255,.55)");g.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=g;x.fillRect(0,0,128,64)}}),
+ shaftT=cv(64,128,(x)=>{const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.4,"rgba(255,255,255,.9)");g.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=g;for(let i=0;i<64;i++){x.globalAlpha=Math.pow(Math.sin(Math.PI*i/63),2);x.fillRect(i,0,1,128)}});
+ const spr=(tex,col,sz,op,x,y,z,add)=>{const m=new TH.Sprite(new TH.SpriteMaterial({map:tex,color:col,transparent:true,opacity:op,blending:add?TH.AdditiveBlending:TH.NormalBlending,depthWrite:false,fog:false}));m.scale.set(sz,sz*(add?1:.5),1);m.position.set(x,y,z);sc.add(m);return m},
+ A=[],zr=k=>{const l=B.filter(b=>b.zn===k);return[Math.min(...l.map(b=>b.z-b.d/2)),Math.max(...l.map(b=>b.z+b.d/2)),Math.min(...l.map(b=>b.t0)),Math.max(...l.map(b=>b.t1))]},
+ rnd=(a,b)=>a+Math.random()*(b-a);
+ /* rim + bounce light for depth */
+ const rim=new TH.DirectionalLight(0x8fb4ff,.55);rim.position.set(-8,6,-12);sc.add(rim);
+ const warm=new TH.DirectionalLight(0xffb36b,.3);warm.position.set(10,2,6);sc.add(warm);
+ /* per-platform glow */
+ B.forEach(b=>{if(!b.m)return;
+  if(b.zn===0&&!b.cp){b.m.traverse(o=>{if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial){o.material=o.material.clone();o.material.emissive=new TH.Color(0x3a0d00);o.material.emissiveIntensity=.9}});
+   A.push({s:spr(glowT,0xff4a14,b.w*2.4+2,.55,b.x,b.t0-.7,b.z,1),k:0,p:b.z,base:.55})}
+  else if(b.zn===2&&!b.goal&&!b.cp&&!low)A.push({s:spr(glowT,0xbfe9ff,b.w*2+2,.25,b.x,b.t0-.4,b.z,1),k:0,p:b.x,base:.25});
+  if(b.cp&&!b.goal)A.push({s:spr(glowT,0xffb02e,9,.8,b.x+b.w/2,b.t0+2,b.z,1),k:1,p:b.z,base:.8});
+  if(b.goal)A.push({s:spr(glowT,0xffe27a,34,.9,b.x,b.t0+6,b.z,1),k:1,p:0,base:.9})});
+ /* drifting clouds around the Earth and Heaven zones */
+ const cl=[];[1,2].forEach(k=>{const r=zr(k),n=low?10:26;for(let i=0;i<n;i++){const s=spr(cloudT,k===2?0xfff2fa:0xffffff,rnd(38,80),k===2?.55:.42,(Math.random()<.5?-1:1)*rnd(24,100),rnd(r[2]-6,r[3]+34),rnd(r[0]-30,r[1]+30),0);s.material.opacity=k===2?.5:.38;cl.push({s,v:rnd(.4,1.1)})}});
+ /* hell: big red haze and rising embers cloud */
+ const h=zr(0);for(let i=0;i<(low?6:14);i++)spr(glowT,0xff3a10,rnd(40,90),.22,(Math.random()<.5?-1:1)*rnd(18,70),rnd(h[2]-8,h[3]+22),rnd(h[0]-20,h[1]+20),1);
+ /* heaven light shafts */
+ const sh=[];if(!low){const r=zr(2);for(let i=0;i<9;i++){const m=new TH.Mesh(new TH.PlaneGeometry(rnd(5,9),rnd(50,80)),new TH.MeshBasicMaterial({map:shaftT,color:0xfff0b8,transparent:true,opacity:.17,blending:TH.AdditiveBlending,depthWrite:false,side:TH.DoubleSide,fog:false}));
+  m.position.set(rnd(-26,26),r[2]+rnd(10,30),rnd(r[0]-10,r[1]+10));m.rotation.z=rnd(-.35,.35);m.rotation.y=rnd(0,3);sc.add(m);sh.push({m,p:rnd(0,6)})}}
+ /* animation (runs inside the render call, no changes to the game loop needed) */
+ sc.onBeforeRender=()=>{const t=performance.now()/1000;
+  A.forEach(a=>{a.s.material.opacity=a.base*(a.k?.85+.15*Math.sin(t*3+a.p):.8+.2*Math.sin(t*2.2+a.p*.7))});
+  cl.forEach(c=>{c.s.position.x+=c.v*.016;if(c.s.position.x>110)c.s.position.x=-110});
+  sh.forEach(o=>{o.m.material.opacity=.13+.07*Math.sin(t*.6+o.p);o.m.rotation.y+=.0006})}}
+/*ZNX-GFX-END*/
 function stop(){cancelAnimationFrame(raf);raf=0;if(onR){removeEventListener("resize",onR);removeEventListener("orientationchange",onR)}onR=null;
  if(S){document.removeEventListener("keydown",S.kd);document.removeEventListener("keyup",S.ku);try{S.rn.dispose()}catch(e){}S=null}
  const r=document.getElementById("c3R");if(r)r.remove()}
@@ -3718,7 +3754,7 @@ const STR=[];
    else if(z===1){if(i===0){put(sc,cylG,mt(0x3f8a3a),.05,.4,.05,rx,y+.2,rz);put(sc,sphG,bm([0xff5fa2,0xffd93d,0xffffff][k%3]),.2,.2,.2,rx,y+.42,rz)}else put(sc,coneG,mt(0x4aa040),.14,.35,.14,rx,y+.17,rz)}
    else put(sc,sphG,bm(0xfff3a6),.16,.16,.16,rx,y+.5+hs3(rx,rz,3)*.4,rz)}
   if(k%3===1){const m=new TH.Mesh(new TH.OctahedronGeometry(.3),new TH.MeshBasicMaterial({color:0xffd93d}));m.scale.y=1.35;m.position.set(b.x,y+1.4,b.z);sc.add(m);STR.push({m:m,x:b.x,y:y+1.4,z:b.z})}})}
-realify(sc,SHD,B);try{real3(sc,rn,SHD,B)}catch(e){console.warn('real3',e)}const c1=mkChar(0x4f7cff,0xff6b8b),c2=mkChar(0xff6b8b,0x4f7cff);sc.add(c1.g);sc.add(c2.g);if(SHD)[c1.g,c2.g].forEach(g=>g.traverse(o=>{if(o.isMesh)o.castShadow=true}));
+realify(sc,SHD,B);try{real3(sc,rn,SHD,B)}catch(e){console.warn('real3',e)}/*ZNX-GFX-HOOK*/try{znxGfx(sc,rn,SHD,B,TH)}catch(e){console.warn("gfx",e)}const c1=mkChar(0x4f7cff,0xff6b8b),c2=mkChar(0xff6b8b,0x4f7cff);sc.add(c1.g);sc.add(c2.g);if(SHD)[c1.g,c2.g].forEach(g=>g.traverse(o=>{if(o.isMesh)o.castShadow=true}));
  const links=[],lg=new TH.TorusGeometry(.11,.035,6,10);lg.rotateY(PI/2);
  for(let i=0;i<NL-1;i++){const g=new TH.Group(),m=new TH.Mesh(lg,new TH.MeshStandardMaterial({color:0xc9ced8,metalness:.75,roughness:.32}));m.scale.z=1.6;if(i%2)m.rotation.z=PI/2;g.add(m);sc.add(g);links.push(g)}
  const mk=()=>({x:0,y:0,z:0,vx:0,vy:0,vz:0,on:null,coy:0,jb:0}),
