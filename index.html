@@ -692,35 +692,131 @@ mark{background:color-mix(in srgb,var(--ac) 50%,transparent);color:inherit;borde
 #znxSV .svf p{margin:0;font-size:13px;color:#a2a7bd;max-width:320px;line-height:1.5}
 #znxSV .svg{width:min(360px,100%);height:52px;border-radius:26px;border:0;color:#fff;font-size:15px;font-weight:600;background:linear-gradient(135deg,#6a62f0,#5149d6);cursor:pointer}
 </style>
-<script id="znx-sv-js">(function(){
-var q=new URLSearchParams(location.search),R=/^[A-Za-z0-9_-]{11}$/,w=q.get("watch")||"",s=q.get("song")||"",vid=R.test(w),id=vid?w:(R.test(s)?s:"");
-if(!id)return;
-var g=function(i){return document.getElementById(i)},nm=String(q.get("n")||"").slice(0,80),P=null,ok=0,iv=0,dead=0,
+<style id="znx-sv-css2">#znxSV .svcv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;align-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .35s;background:radial-gradient(80% 90% at 30% 20%,rgba(124,108,255,.55),transparent 70%),radial-gradient(70% 80% at 90% 100%,rgba(77,224,208,.30),transparent 70%),#0b0d13;text-align:center;padding:16px}
+#znxSV .svcv.on{opacity:1;pointer-events:auto}
+#znxSV .svz{font:italic 400 46px/1 Didot,"Bodoni MT",Georgia,serif;background:linear-gradient(165deg,#fff3a6,#ffd93d 55%,#ff9f8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+#znxSV .svcv b{font-size:14px;max-width:90%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#znxSV .svbp{width:60px;height:60px;border-radius:50%;padding:0;display:grid;place-items:center;color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(14,16,26,.5);box-shadow:0 0 34px -6px #7c6cff;cursor:pointer}
+#znxSV .svfs{position:absolute;right:10px;top:10px;z-index:5;width:38px;height:38px;border-radius:50%;padding:0;display:grid;place-items:center;color:#fff;border:1px solid rgba(255,255,255,.2);background:rgba(14,16,26,.55);cursor:pointer}
+#znxSV .svpr{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.15);z-index:4;pointer-events:none}
+#znxSV .svpr u{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c6cff,#4de0d0);text-decoration:none}
+#znxSV .svw:fullscreen,#znxSV .svw:-webkit-full-screen{width:100vw;height:100vh;aspect-ratio:auto;border-radius:0}
+#znxSV .svw.svpx{position:fixed;inset:0;width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;z-index:10}
+#znxSV.zpv{grid-template-rows:auto minmax(0,1fr) auto;gap:10px}
+#znxSV .zph{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#znxSV .zph .svb{text-align:left}
+#znxSV .zpe{height:38px;padding:0 18px;border-radius:19px;border:0;color:#fff;font-size:13px;font-weight:600;background:linear-gradient(135deg,#6a62f0,#5149d6);cursor:pointer}
+#znxSV .zpm{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain;padding:4px 0}
+#znxSV .zpm::before{content:'';margin-top:auto}
+#znxSV .zpb{max-width:84%;padding:9px 13px;border-radius:18px;font-size:15px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+#znxSV .zpb.u{align-self:flex-end;background:linear-gradient(160deg,#6a62f0,#4f48c8);border-bottom-right-radius:6px}
+#znxSV .zpb.a{align-self:flex-start;background:#141722;border:1px solid rgba(255,255,255,.08);border-bottom-left-radius:6px}
+#znxSV .zpq{margin-top:8px;font-size:13.5px;font-weight:600}
+#znxSV .zpo{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#znxSV .zpo button{height:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#eceef6;font-size:13px;cursor:pointer}
+#znxSV .zpn{align-self:center;text-align:center;color:#8a8fa6;font-size:13.5px;padding:20px}
+#znxSV .zpf{display:flex;align-items:flex-end;gap:8px}
+#znxSV .zpf textarea{flex:1;min-width:0;min-height:44px;max-height:120px;height:44px;resize:none;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:#141722;color:#eceef6;font:inherit;font-size:16px;padding:11px 16px;outline:none}
+#znxSV .zps{width:44px;height:44px;flex:none;border-radius:50%;padding:0;display:grid;place-items:center;border:0;color:#fff;background:linear-gradient(135deg,#6a62f0,#5149d6);cursor:pointer}</style><script id="znx-sv-js">(function(){
+var D=document,q=new URLSearchParams(location.search),R=/^[A-Za-z0-9_-]{11}$/,w=q.get("watch")||"",s=q.get("song")||"",isZ=q.get("zexo")==="1",vid=R.test(w),id=vid?w:(R.test(s)?s:""),t0=Math.max(0,Math.min(86400,parseInt(q.get("t")||"0",10)||0));
+if(!id&&!isZ)return;
+var g=function(i){return D.getElementById(i)},nm=String(q.get("n")||"").slice(0,80),P=null,ok=0,iv=0,dead=0,vvf=null,
+U0="https://ktwluvpmzisonmootdqc.supabase.co",KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm",
+IS='style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"',
 PL='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
 PA='<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>',
-fm=function(t){t=Math.max(0,t|0);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")},
-what=vid?"video":"gaana";
-var d=document.createElement("div");d.id="znxSV";d.setAttribute("role","dialog");d.setAttribute("aria-label","Shared "+what);
-d.innerHTML='<div class="svb">Z<span>NEXORA</span></div><div class="svm">'+
- (vid?'<div class="svw"><div id="znxSVp"></div><div class="svt" id="znxSVt"></div></div>':'<div class="svo" id="znxSVo"></div><div class="sho"><div id="znxSVp"></div></div>')+
+FS='<svg viewBox="0 0 24 24" '+IS+'><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+SD='<svg viewBox="0 0 24 24" '+IS+'><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>',
+fm=function(t){t=Math.max(0,t|0);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")};
+var d=D.createElement("div");d.id="znxSV";d.setAttribute("role","dialog");d.setAttribute("aria-label",isZ?"Zexo AI":(vid?"Shared video":"Shared song"));D.body.appendChild(d);
+function leave(h){dead=1;clearInterval(iv);try{P&&P.destroy&&P.destroy()}catch(e){}
+ try{if(vvf&&window.visualViewport){visualViewport.removeEventListener("resize",vvf);visualViewport.removeEventListener("scroll",vvf)}}catch(e){}
+ try{if(D.fullscreenElement&&D.exitFullscreen)D.exitFullscreen()}catch(e){}
+ window.znxHand=h||null;d.remove();try{history.replaceState(null,"",location.pathname)}catch(e){}
+ if(window.znxEntered&&window.znxHandGo)window.znxHandGo()}
+
+function media(){var what=vid?"video":"gaana";
+ d.innerHTML='<div class="svb">Z<span>NEXORA</span></div><div class="svm">'+
+ (vid?'<div class="svw" id="znxSVw"><div id="znxSVp"></div><div class="svt" id="znxSVt"></div><div class="svcv on" id="znxSVcv"><i class="svz">Z</i><b id="znxSVct"></b><button class="svbp" id="znxSVc" aria-label="Play">'+PL+'</button></div><button class="svfs" id="znxSVfs" aria-label="Full screen">'+FS+'</button><i class="svpr"><u id="znxSVpr"></u></i></div>':'<div class="svo" id="znxSVo"></div><div class="sho"><div id="znxSVp"></div></div>')+
  '<b class="svh" id="znxSVh"></b><div class="svc"><div class="svs" id="znxSVs"><i id="znxSVf"></i><u id="znxSVk"></u></div><div class="svtm"><span id="znxSVa">0:00</span><span id="znxSVd">0:00</span></div></div><button class="svp" id="znxSVpl" aria-label="Play or pause">'+PL+'</button></div>'+
- '<div class="svf"><p>Sirf ye '+what+' dikh raha hai. Baaki ZNEXORA dekhne ke liye login ya guest ID banao.</p><button class="svg" id="znxSVgo">ZNEXORA explore karo</button></div>';
-document.body.appendChild(d);
-g("znxSVh").textContent=nm||("Shared "+what);
-if(!nm){try{fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent("https://youtu.be/"+id)).then(function(r){return r.json()}).then(function(j){if(j&&j.title&&!dead)g("znxSVh").textContent=String(j.title).slice(0,100)}).catch(function(){})}catch(e){}}
-function tg(){if(!ok)return;var t=P.getPlayerState();if(t===1||t===3)P.pauseVideo();else P.playVideo()}
-function init(){if(dead)return;P=new YT.Player("znxSVp",{videoId:id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,modestbranding:1,iv_load_policy:3},events:{
- onReady:function(){ok=1},
- onStateChange:function(e){g("znxSVpl").innerHTML=e.data===1?PA:PL;var o=g("znxSVo");if(o)o.classList.toggle("on",e.data===1)},
- onError:function(){g("znxSVh").textContent="Ye "+what+" yahan nahi chal sakta"}}})}
-if(window.YT&&YT.Player)init();else{var pv=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=function(){if(pv)try{pv()}catch(e){}init()};var sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";document.head.appendChild(sc)}
-g("znxSVpl").onclick=tg;var t=g("znxSVt");if(t)t.onclick=tg;
-iv=setInterval(function(){if(!ok||dead)return;var D=P.getDuration()||0,c=P.getCurrentTime()||0,p=D?c/D*100:0;g("znxSVf").style.width=p+"%";g("znxSVk").style.left=p+"%";g("znxSVa").textContent=fm(c);g("znxSVd").textContent=D?fm(D):"0:00"},300);
-var sk=g("znxSVs"),dn=0,at=function(e){if(!ok)return;var r=sk.getBoundingClientRect(),D=P.getDuration()||0;if(D)P.seekTo(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*D,true)};
-sk.addEventListener("pointerdown",function(e){dn=1;try{sk.setPointerCapture(e.pointerId)}catch(x){}at(e)});
-sk.addEventListener("pointermove",function(e){if(dn)at(e)});
-["pointerup","pointercancel"].forEach(function(k){sk.addEventListener(k,function(){dn=0})});
-g("znxSVgo").onclick=function(){dead=1;clearInterval(iv);try{P&&P.destroy&&P.destroy()}catch(e){}d.remove();try{history.replaceState(null,"",location.pathname)}catch(e){}};
+ '<div class="svf"><p>Sirf ye '+what+' dikh raha hai. Explore dabao, login karo, aur yahi '+what+' wahin se chalega.</p><button class="svg" id="znxSVgo">ZNEXORA explore karo</button></div>';
+ var hEl=g("znxSVh"),ct=g("znxSVct"),w0=g("znxSVw");
+ hEl.textContent=nm||("Shared "+what);if(ct)ct.textContent=nm||"Shared video";if(nm)hEl.dataset.real="1";
+ if(!nm){try{fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent("https://youtu.be/"+id)).then(function(r){return r.json()}).then(function(j){if(j&&j.title&&!dead){var t=String(j.title).slice(0,100);hEl.textContent=t;hEl.dataset.real="1";if(ct)ct.textContent=t}}).catch(function(){})}catch(e){}}
+ function fit(){var f=g("znxSVp");if(!vid||!w0||!f||f.tagName!=="IFRAME")return;var cw=w0.clientWidth,ch=w0.clientHeight;if(!cw||!ch)return;
+  var W=Math.max(1280,Math.min(1920,Math.round(cw*(devicePixelRatio||1)))),k=cw/W,key=W+"|"+cw+"|"+ch;if(f.dataset.f13===key)return;f.dataset.f13=key;
+  f.style.cssText="position:absolute;left:0;top:0;border:0;max-width:none;width:"+W+"px;height:"+((ch+128)/k).toFixed(1)+"px;transform-origin:0 0;transform:translate(0,-64px) scale("+k.toFixed(5)+")"}
+ function tg(){if(!ok)return;var t=P.getPlayerState();if(t===1||t===3)P.pauseVideo();else P.playVideo()}
+ function init(){if(dead)return;P=new YT.Player("znxSVp",{videoId:id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,modestbranding:1,iv_load_policy:3,start:t0},events:{
+  onReady:function(){ok=1;fit()},
+  onStateChange:function(e){var st=e.data;g("znxSVpl").innerHTML=st===1?PA:PL;var o=g("znxSVo");if(o)o.classList.toggle("on",st===1);var cv=g("znxSVcv");if(cv&&st!==3)cv.classList.toggle("on",st!==1);fit()},
+  onError:function(){hEl.textContent="Ye "+what+" yahan nahi chal sakta"}}})}
+ if(window.YT&&YT.Player)init();else{var pv=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=function(){if(pv)try{pv()}catch(e){}init()};var sc=D.createElement("script");sc.src="https://www.youtube.com/iframe_api";D.head.appendChild(sc)}
+ g("znxSVpl").onclick=tg;var t=g("znxSVt");if(t)t.onclick=tg;var cb=g("znxSVc");if(cb)cb.onclick=function(e){e.stopPropagation();tg()};var cv0=g("znxSVcv");if(cv0)cv0.onclick=tg;
+ iv=setInterval(function(){if(dead)return;fit();if(!ok)return;var D0=P.getDuration()||0,c=P.getCurrentTime()||0,p=D0?c/D0*100:0;g("znxSVf").style.width=p+"%";g("znxSVk").style.left=p+"%";g("znxSVa").textContent=fm(c);g("znxSVd").textContent=D0?fm(D0):"0:00";var pr=g("znxSVpr");if(pr)pr.style.width=p+"%"},300);
+ var sk=g("znxSVs"),dn=0,at=function(e){if(!ok)return;var r=sk.getBoundingClientRect(),D0=P.getDuration()||0;if(D0)P.seekTo(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*D0,true)};
+ sk.addEventListener("pointerdown",function(e){dn=1;try{sk.setPointerCapture(e.pointerId)}catch(x){}at(e)});
+ sk.addEventListener("pointermove",function(e){if(dn)at(e)});
+ ["pointerup","pointercancel"].forEach(function(k){sk.addEventListener(k,function(){dn=0})});
+ var fb=g("znxSVfs");
+ if(fb)fb.onclick=function(e){e.stopPropagation();var fe=D.fullscreenElement||D.webkitFullscreenElement;
+  if(fe){try{(D.exitFullscreen||D.webkitExitFullscreen).call(D)}catch(x){}return}
+  if(w0.classList.contains("svpx")){w0.classList.remove("svpx");setTimeout(fit,120);return}
+  var rq=w0.requestFullscreen||w0.webkitRequestFullscreen;
+  if(!rq){w0.classList.add("svpx");setTimeout(fit,120);return}
+  try{var pr=rq.call(w0);if(pr&&pr.then)pr.then(function(){try{screen.orientation.lock("landscape").catch(function(){})}catch(x){}},function(){w0.classList.add("svpx");setTimeout(fit,120)})}catch(x){w0.classList.add("svpx")}};
+ D.addEventListener("fullscreenchange",function(){setTimeout(fit,150)});addEventListener("resize",function(){setTimeout(fit,150)});
+ g("znxSVgo").onclick=function(){var c=ok?Math.floor(P.getCurrentTime()||0):0;leave({k:vid?"watch":"song",id:id,n:hEl.dataset.real?hEl.textContent:"",t:c>5?c:t0})}}
+
+function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [Friendly Hinglish buddy. Reply in 1 word, else 1 short sentence. Never say dost or arre. Developer/owner: Suraj Kumar, tell ONLY if asked. Quiz: one MCQ as Q: q | a/b/c/d.]";
+ d.className="zpv";
+ d.innerHTML='<div class="zph"><div class="svb">Z<span>NEXORA</span></div><button class="zpe" id="znxSVgo">Explore</button></div><div class="zpm" id="zpm"></div><div class="zpf"><textarea id="zpi" rows="1" maxlength="500" placeholder="Zexo se pucho"></textarea><button class="zps" id="zps" aria-label="Send">'+SD+'</button></div>';
+ var m=g("zpm"),inp=g("zpi");
+ m.addEventListener("scroll",function(){atB=m.scrollHeight-m.scrollTop-m.clientHeight<100},{passive:true});
+ function pin(){if(atB)requestAnimationFrame(function(){m.scrollTop=m.scrollHeight})}
+ function noBlur(b){b.addEventListener("mousedown",function(e){e.preventDefault()})}
+ function bub(x,isLast){var r=D.createElement("div");r.className="zpb "+(x.r==="u"?"u":"a");
+  if(x.r==="u"){r.textContent=x.raw;return r}
+  var qs=[],tx=[];
+  String(x.raw).replace(/\[go:\w+\]/g,"").split("\n").forEach(function(l){var mm=l.match(/^\s*Q:\s*(.+?)\s*\|\s*(.+)$/);if(mm&&qs.length<3)qs.push({q:mm[1],o:mm[2].split("/").map(function(z){return z.trim()}).filter(Boolean).slice(0,4)});else if(l.trim())tx.push(l.trim())});
+  if(tx.length){var p=D.createElement("div");p.textContent=tx.join("\n");r.appendChild(p)}
+  if(isLast)qs.forEach(function(z){var h=D.createElement("div");h.className="zpq";h.textContent=z.q;r.appendChild(h);var w2=D.createElement("div");w2.className="zpo";z.o.forEach(function(o){var b=D.createElement("button");b.textContent=o;noBlur(b);b.onclick=function(){ask(z.q+" -> "+o)};w2.appendChild(b)});r.appendChild(w2)});
+  return r}
+ function render(){var near=atB||m.scrollHeight-m.scrollTop-m.clientHeight<120,pv=m.scrollTop,lastU=pm.length&&pm[pm.length-1].r==="u";
+  m.textContent="";
+  if(!pm.length){var n=D.createElement("div");n.className="zpn";n.textContent=INTRO;m.appendChild(n)}
+  pm.forEach(function(x,i){m.appendChild(bub(x,i===pm.length-1))});
+  if(busy){var b=D.createElement("div");b.className="zpb a";b.textContent="Zexo soch raha hai...";m.appendChild(b)}
+  if(near||lastU||!pm.length)m.scrollTop=m.scrollHeight;else m.scrollTop=pv}
+ async function ask(txt){txt=String(txt||"").trim().slice(0,500);if(!txt||busy||dead||off)return;
+  if(cnt>=15){pm.push({r:"a",raw:"Itna free chat kaafi hai. Aur chat ke liye Explore dabao aur login karo."});render();return}
+  cnt++;pm.push({r:"u",raw:txt});
+  var h=pm.slice(-3).map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw).slice(0,300)}});
+  while(h.length>1&&h[0].role!=="user")h.shift();
+  h[h.length-1].text+=HINT;busy=1;render();
+  var bot={r:"a",raw:""},shown=0;
+  try{var ac=new AbortController(),tm=setTimeout(function(){ac.abort()},25000);
+   var r=await fetch(U0+"/functions/v1/zexo-ai?m="+encodeURIComponent(JSON.stringify(h)),{headers:{apikey:KEY,Authorization:"Bearer "+KEY},signal:ac.signal});clearTimeout(tm);
+   if(!r.ok||!r.body)throw new Error("http "+r.status);
+   var rd=r.body.getReader(),dc=new TextDecoder();
+   for(;;){var x=await rd.read();if(x.done)break;if(dead)return;bot.raw+=dc.decode(x.value,{stream:true});if(bot.raw&&!shown){shown=1;busy=0;pm.push(bot)}if(shown)render()}
+  }catch(e){}
+  if(dead)return;
+  if(!bot.raw)bot.raw="Abhi busy hu, thodi der baad try karo.";
+  if(!shown){busy=0;pm.push(bot)}render()}
+ function grow(){inp.style.height="auto";inp.style.height=Math.min(120,inp.scrollHeight+2)+"px";pin()}
+ function send(){var v=inp.value.trim();if(!v)return;inp.value="";grow();ask(v)}
+ var sb=g("zps");sb.onclick=send;noBlur(sb);
+ inp.addEventListener("input",grow);
+ inp.addEventListener("focus",function(){setTimeout(function(){m.scrollTop=m.scrollHeight},350)});
+ inp.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey&&!matchMedia("(pointer:coarse)").matches){e.preventDefault();send()}});
+ var vv=window.visualViewport;
+ vvf=function(){if(dead)return;if(!vv||(vv.height>=innerHeight-1&&!vv.offsetTop)){d.style.height="";d.style.top=""}else{d.style.height=vv.height+"px";d.style.top=vv.offsetTop+"px"}pin()};
+ if(vv){vv.addEventListener("resize",vvf);vv.addEventListener("scroll",vvf)}
+ try{fetch(U0+"/rest/v1/nx_ai_cfg?id=eq.1&select=ai_on",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(a){if(a&&a[0]&&a[0].ai_on===false){off=1;pm.push({r:"a",raw:"Zexo AI abhi band hai."});render()}}).catch(function(){})}catch(e){}
+ g("znxSVgo").onclick=function(){leave({k:"zexo",msgs:pm.map(function(x){return{r:x.r,raw:x.raw}})})};
+ render()}
+if(isZ)zexo();else media();
 })();</script>
 <svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="gm" gradientUnits="userSpaceOnUse" x1="10" y1="10" x2="190" y2="110"><stop offset="0" stop-color="#fff3a6"/><stop offset=".5" stop-color="#ffd93d"/><stop offset="1" stop-color="#ff9f8a"/></linearGradient></defs></svg>
@@ -1039,7 +1135,7 @@ hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
 var SOLO=null;
 if(SOLO){var _sb=document.getElementById("sub");if(_sb)_sb.textContent="Gaana sunne ke liye login karo."}
 function soloShare(){var T=MT[MP.i];if(!MP.started||!T)return ts("Pehle koi gaana chalao");if(!T.src||T.src.t!=="yt")return ts("Sirf YouTube gaane share ho sakte hain");
- var u=location.origin+location.pathname+"?song="+T.src.id+"&n="+encodeURIComponent(String(T.n).slice(0,80));
+ var u=location.origin+location.pathname+"?song="+T.src.id+"&n="+encodeURIComponent(String(T.n).slice(0,80))+"&t="+Math.floor(mpPos()||0);
  if(navigator.share)navigator.share({title:T.n,text:"Ye gaana ZNEXORA par suno",url:u}).catch(function(){});
  else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){ts("Link copy ho gaya")},function(){ts("Copy nahi hua")});else ts(u)}
 function soloOpen(){
@@ -1051,7 +1147,7 @@ function soloOpen(){
  d.innerHTML='<button class="ib" id="slx" aria-label="Band karo">'+XI+'</button><div class="sl-in"><div class="sl-orb" id="slo"></div><b id="slt"></b><small>Kisi ne tumhe ye gaana bheja hai</small><div class="sl" id="sls" style="width:100%"><i id="slf"></i><b id="slk"></b></div><div class="sl-tm"><span id="sla">0:00</span><span id="sld">0:00</span></div><button id="slp" aria-label="Play">'+PL+'</button></div><div style="position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"><div id="slyt"></div></div>';
  document.body.appendChild(d);$("slt").textContent=SOLO.n;
  var P=null,ok=0,iv=setInterval(function(){if(!ok)return;var D=P.getDuration()||0,t=P.getCurrentTime()||0,p=D?t/D*100:0;$("slf").style.width=p+"%";$("slk").style.left=p+"%";$("sla").textContent=mpFmt(t);$("sld").textContent=D?mpFmt(D):"0:00"},300);
- ytLoad().then(function(){P=new YT.Player("slyt",{videoId:SOLO.id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1},events:{onReady:function(){ok=1;P.setVolume(80)},onStateChange:function(e){$("slp").innerHTML=e.data===1?PA:PL;$("slo").classList.toggle("on",e.data===1)},onError:function(){ts("Ye gaana yahan nahi chal sakta")}}})},function(){ts("YouTube load nahi hua")});
+ ytLoad().then(function(){P=new YT.Player("slyt",{videoId:SOLO.id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,autoplay:1,start:SOLO.t|0},events:{onReady:function(){ok=1;P.setVolume(80);try{P.playVideo()}catch(x){}},onStateChange:function(e){$("slp").innerHTML=e.data===1?PA:PL;$("slo").classList.toggle("on",e.data===1)},onError:function(){ts("Ye gaana yahan nahi chal sakta")}}})},function(){ts("YouTube load nahi hua")});
  $("slp").onclick=function(){if(!ok)return;P.getPlayerState()===1?P.pauseVideo():P.playVideo()};
  mpSlider($("sls"),function(p){if(!ok)return;var D=P.getDuration();if(D)P.seekTo(p*D,true)});
  $("slx").onclick=function(){clearInterval(iv);try{P&&P.destroy&&P.destroy()}catch(e){}d.remove()}}
@@ -5501,7 +5597,7 @@ function shCtx(){
  return{t:n,l:dl("tab",tab)}}
 async function doShare(){
  if(MP.on&&MP.started)return soloShare();
- if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80)),tx="Ye video ZNEXORA par dekho";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copy ho gaya")}catch(e){ts(l)}return}
+ if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80))+"&t="+Math.floor(plTime()||0),tx="Ye video ZNEXORA par dekho";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copy ho gaya")}catch(e){ts(l)}return}
  const c=shCtx(),text="ZNEXORA par "+c.t+" dekho. Chat, call aur saath me enjoy karo.";
  try{if(navigator.share){await navigator.share({title:"ZNEXORA",text:text,url:c.l});return}}catch(e){if(e&&e.name==="AbortError")return}
  try{await navigator.clipboard.writeText(text+" "+c.l);ts("Link copy ho gaya")}catch(e){ts(c.l)}}
@@ -5583,6 +5679,75 @@ setTimeout(()=>{if(CTX().pid&&zx.cfg.ai_on!==false)warm()},7000);
 setInterval(()=>{if(!document.hidden&&CTX().pid&&zx.cfg.ai_on!==false)warm()},60000);
 }catch(e){console.error("ZNX v12",e)}
 /*ZNX-V12-END*/
+/*ZNX-V13-START*/
+try{(function(){
+var D=document;
+var st=D.createElement("style");st.id="znx-v13-css";
+st.textContent="#zxm{overscroll-behavior:contain;overflow-anchor:none}#zxm::before{content:'';margin-top:auto}#etq{font:700 11px var(--mono);letter-spacing:.04em;color:#fff}#zx .ch .ib{flex:none}";
+D.head.appendChild(st);
+
+/* 1. Video quality: big hidden player size (real fix) + manual menu */
+var QN={hd2160:"4K (2160p)",hd1440:"2K (1440p)",hd1080:"1080p HD",hd720:"720p HD",large:"480p",medium:"360p",small:"240p",tiny:"144p"},QO=["hd2160","hd1440","hd1080","hd720","large","medium","small","tiny"];
+function etFit(){var g=$("etg"),w0=$("etyw"),f=w0&&w0.querySelector("iframe");if(!g||!f)return;var w=g.clientWidth,h=g.clientHeight;if(!w||!h)return;
+ var W=Math.max(1280,Math.min(1920,Math.round(w*(devicePixelRatio||1)))),k=w/W,key=W+"|"+h+"|"+w;if(f.dataset.f13===key)return;f.dataset.f13=key;var s=f.style;
+ [["width",W+"px"],["height",((h+128)/k).toFixed(1)+"px"],["left","0px"],["top","0px"],["max-width","none"],["transform-origin","0 0"],["transform","translate(0px,-64px) scale("+k.toFixed(5)+")"]].forEach(function(p){s.setProperty(p[0],p[1],"important")})}
+try{new ResizeObserver(etFit).observe($("etg"))}catch(e){}
+try{new MutationObserver(etFit).observe($("etyw"),{childList:true,subtree:true})}catch(e){}
+setInterval(function(){if($("et").classList.contains("on"))etFit()},800);
+D.addEventListener("fullscreenchange",function(){setTimeout(etFit,120)});
+function v13Q(q){var y=P2.yt;if(!y||!ET.cur||ET.cur.t!=="yt")return;var t=plTime(),pl=!plPaused(),sq=q==="auto"?"default":q;
+ try{y.setPlaybackQuality(sq)}catch(x){}
+ try{y.loadVideoById({videoId:ET.cur.id,startSeconds:t,suggestedQuality:sq});if(!pl)setTimeout(function(){try{y.pauseVideo()}catch(x){}},700)}catch(x){}
+ ts(q==="auto"?"Quality: Auto":"Quality: "+QN[q])}
+var qb=D.createElement("button");qb.className="ib";qb.id="etq";qb.setAttribute("aria-label","Video quality");qb.textContent="HD";
+$("etzm").parentNode.insertBefore(qb,$("etzm"));
+qb.onclick=function(e){e.stopPropagation();
+ if(P2.kind!=="yt"||!P2.yt)return ts(P2.kind==="file"?"Is video ki quality fixed hai":"Pehle video chalao");
+ var av=[],cu="";try{av=P2.yt.getAvailableQualityLevels()||[];cu=P2.yt.getPlaybackQuality()||""}catch(x){}
+ var L=QO.filter(function(k){return av.indexOf(k)>=0}),sel=ET.q||"auto";
+ var rows=[["auto","Auto","Network ke hisaab se"+(cu&&QN[cu]?" · abhi "+QN[cu]:"")]].concat(L.map(function(k){return[k,QN[k],""]}));
+ sheet('<h3>Video quality</h3><div class="glist">'+rows.map(function(r){return '<button class="gr" data-q13="'+r[0]+'"><span class="t"><b>'+r[1]+'</b>'+(r[2]?'<small>'+r[2]+'</small>':'')+'</span><span class="ck'+(r[0]===sel?' on':'')+'"></span></button>'}).join("")+'</div><p class="note">Audio quality YouTube alag se nahi deta, wo video ke saath hi aati hai.</p>');
+ $("sh").onclick=function(ev){var b=ev.target.closest("[data-q13]");if(!b)return;var q=b.dataset.q13;ET.q=q;closeS();v13Q(q)}};
+
+/* 2. Zexo chat: WhatsApp-like scroll, keyboard stays open */
+var zm=$("zxm");zx.atB=1;
+zxDraw=function(){var m=$("zxm");if(!m)return;var last=zx.msgs[zx.msgs.length-1],near=zx.atB||m.scrollHeight-m.scrollTop-m.clientHeight<140,pv=m.scrollTop;
+ var h=zx.msgs.map(function(x,i){return zxBub(x,i===zx.msgs.length-1)}).join("");
+ if(zx.busy)h+='<div class="mr in"><div class="mw in"><div class="m in">Zexo soch raha hai<i class="dots"></i></div></div></div>';
+ m.innerHTML=h||zxSug();
+ if(!h||near||(last&&last.r==="u"))m.scrollTop=m.scrollHeight;else m.scrollTop=pv};
+zm.addEventListener("scroll",function(){zx.atB=zm.scrollHeight-zm.scrollTop-zm.clientHeight<100},{passive:true});
+function zpin(){if(zx.open&&zx.atB)requestAnimationFrame(function(){zm.scrollTop=zm.scrollHeight})}
+if(window.visualViewport){visualViewport.addEventListener("resize",zpin);visualViewport.addEventListener("scroll",zpin)}
+addEventListener("resize",zpin);
+$("zxi").addEventListener("input",zpin);
+$("zxi").addEventListener("focus",function(){setTimeout(function(){if(zx.open)zm.scrollTop=zm.scrollHeight},350)});
+$("zx").addEventListener("mousedown",function(e){if(e.target.closest&&e.target.closest("#zxs,#zxm button"))e.preventDefault()});
+
+/* 3. Zexo share button (anyone can open it without login) */
+async function zxShare(){var l=location.origin+location.pathname+"?zexo=1",tx="Zexo AI se chat karo, bina login ke";
+ try{if(navigator.share){await navigator.share({title:"Zexo AI",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}
+ try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copy ho gaya")}catch(e){ts(l)}}
+var zt=$("zxt");
+if(zt&&!$("zxsh")){var sb=D.createElement("button");sb.className="ib";sb.id="zxsh";sb.setAttribute("aria-label","Share Zexo AI");sb.innerHTML=SI.share;zt.parentNode.insertBefore(sb,zt);sb.onclick=zxShare}
+
+/* 4. After Explore + login: open exactly what was shared */
+window.znxHandGo=function(){var h=window.znxHand;if(!h)return;window.znxHand=null;
+ try{
+  if(h.k==="song"&&/^[\w-]{11}$/.test(h.id||"")){SOLO={id:h.id,n:String(h.n||"Shared song").slice(0,80),t:+h.t||0};soloOpen()}
+  else if(h.k==="watch"&&/^[\w-]{11}$/.test(h.id||"")){
+   etOpen();var yo=zx.cfg.yt_on!==false;
+   if(yo){$("et").classList.add("zw");var b=D.querySelector("#et .ett b");if(b)b.textContent="Watch"}
+   ET.kind="watch";etKind();if(yo)etPane("yt");
+   $("etlink").value="https://youtu.be/"+h.id;etLoad({t:"yt",id:h.id},String(h.n||"").slice(0,100));
+   if(+h.t>5)setTimeout(function(){try{P2.yt.seekTo(+h.t,true)}catch(x){}},3000)}
+  else if(h.k==="zexo"){if(zx.cfg.ai_on===false)return ts("Zexo AI abhi band hai");
+   zx.msgs=(Array.isArray(h.msgs)?h.msgs:[]).slice(-30).map(function(m){return{r:m.r==="u"?"u":"a",raw:String(m.raw||"").slice(0,1000),t:new Date()}});zxOpen()}
+ }catch(e){}};
+var _e13=enter;
+enter=function(){var r=_e13.apply(this,arguments);window.znxEntered=1;setTimeout(function(){if(window.znxHand&&window.znxHandGo)window.znxHandGo()},800);return r};
+})()}catch(e){console.error("ZNX v13",e)}
+/*ZNX-V13-END*/
 })();</script><script>
 
 (function(){
