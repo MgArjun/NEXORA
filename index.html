@@ -3017,11 +3017,11 @@ function world(s,t){for(const b of s.B){
  if(b.bl){const ph=(t+b.ph)%b.bl,on=ph<b.bl*.8;b.off=!on;b.warn=on&&ph>b.bl*.8-1.2}}}
 function mv(s,p,c,d){if(!d)return;p[c]+=d;
  for(const b of s.B)if(ins(p,b,R)){const f=surf(b,p.z);if(p.y<f-.02&&p.y+H>f-b.th){if(f-p.y<=STEP&&sup(p,b)){p.y=f;if(p.vy<0)p.vy=0}else{p[c]-=d;p["v"+c]=0;break}}}}
-function phys(s,dt,p,I){const gd=!!p.on,mvIn=Math.hypot(I.ix,I.iz)>.05,k=Math.min(1,(gd?(p.on.kind==="ice"?1.4:(mvIn?10:20)):(mvIn?3.6:.6))*dt);
+function phys(s,dt,p,I){const gd=!!p.on,mvIn=Math.hypot(I.ix,I.iz)>.05,k=Math.min(1,(gd?(p.on.kind==="ice"?1.4:(mvIn?18:26)):(mvIn?6:.6))*dt);
  p.vx+=(I.ix*SPD-p.vx)*k;p.vz+=(I.iz*SPD-p.vz)*k;if(p.on&&p.on.kind==="ice"&&p.on.t1!==p.on.t0)p.vz+=(p.on.t1-p.on.t0)/p.on.d*22*dt;
  if(p.on&&p.on.dx)p.x+=p.on.dx;if(p.on&&p.on.dz)p.z+=p.on.dz;
  p.coy=p.on?.12:p.coy-dt;p.jb-=dt;if(I.jp){p.jb=.14;p.lj=I.lj?1:0;I.jp=0}
- if(p.jb>0&&p.coy>0){if(p.on){if(p.on.dx)p.vx+=p.on.dx/FIX*.8;if(p.on.dz)p.vz+=p.on.dz/FIX*.8}{const lj=p.lj;p.vy=JV*C3S.j*(lj?.82:1);if(lj){let ix=I.ix,iz=I.iz,m=Math.hypot(ix,iz);if(m<.2){ix=p.vx;iz=p.vz;m=Math.hypot(ix,iz)}if(m>.2){p.vx+=ix/m*5*C3S.h;p.vz+=iz/m*5*C3S.h}}}p.jb=0;p.coy=0;p.on=null}
+ if(p.jb>0&&p.coy>0){if(p.on){if(p.on.dx)p.vx+=p.on.dx/FIX*.8;if(p.on.dz)p.vz+=p.on.dz/FIX*.8}{const lj=p.lj;p.vy=JV*C3S.j;if(lj){let ix=I.ix,iz=I.iz,m=Math.hypot(ix,iz);if(m<.2){ix=p.vx;iz=p.vz;m=Math.hypot(ix,iz)}if(m>.2){p.vx+=ix/m*5*C3S.h;p.vz+=iz/m*5*C3S.h}}}p.jb=0;p.coy=0;p.on=null}
  else p.vy=Math.max(-32,p.vy-GR*dt*(p.vy>0&&!I.jh?1.8:p.vy<0?1.2:1));
  mv(s,p,"x",p.vx*dt);mv(s,p,"z",p.vz*dt);
  const py=p.y,pb=p.on;p.y+=p.vy*dt;p.on=null;if(p.vy>0){for(const b of s.B)if(ins(p,b,R*.6)){const bt=surf(b,p.z)-b.th;if(py+H<=bt+.05&&p.y+H>bt){p.y=bt-H;p.vy=-.5;break}}}
@@ -3364,7 +3364,7 @@ function mkHero(v){
   fr=u=>.0105*Math.sqrt(Math.max(.03,1-Math.pow(u,8)))*(1-.25*u);
   for(let i=0;i<4;i++){const x=(i-1.5)*.0205,L=[.056,.064,.06,.048][i];gs.push(sweep(new TH.CatmullRomCurve3([v3(x,-.088,.003),v3(x,-.088-L*.55,.012),v3(x,-.088-L*.9,.032)]),fr,8,6,[1,2]))}
   gs.push(sweep(new TH.CatmullRomCurve3([v3(-s*.034,-.05,.012),v3(-s*.048,-.075,.028),v3(-s*.05,-.098,.044)]),u=>.012*Math.sqrt(Math.max(.03,1-Math.pow(u,8))),8,6,[1,2]));return merge(gs)};
- const arm=s=>{const a=jt(ch,s*.245,.48,0),e=jt(a,0,-.3,0),h=jt(e,0,-.28,0);
+ const arm=s=>{const a=jt(ch,s*.2,.47,0),e=jt(a,0,-.3,0),h=jt(e,0,-.28,0);
   add(sculpt(tubeH(upP,36,8,[3,5]),(x,y,z,o)=>armD(x,y,z,s,o)),M.skin,a);
   add(sculpt(tubeH(foP,32,8,[3,4]),(x,y,z,o)=>foreD(x,y,z,s,o)),M.skin,e);
   add(handG(s),M.skin,h);
@@ -3666,6 +3666,26 @@ function znxGfx(sc,rn,SHD,B,TH){
   cl.forEach(c=>{c.s.position.x+=c.v*.016;if(c.s.position.x>110)c.s.position.x=-110});
   sh.forEach(o=>{o.m.material.opacity=.13+.07*Math.sin(t*.6+o.p);o.m.rotation.y+=.0006})}}
 /*ZNX-GFX-END*/
+/*ZNX-CTL-V1*/
+(function(){if(document.getElementById("c3ctl1"))return;const s=document.createElement("style");s.id="c3ctl1";
+ s.textContent="#c3B,#c3LJ{font-size:0!important;display:grid;place-items:center}#c3B svg,#c3LJ svg{width:54%;height:54%;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}#c3B{background:linear-gradient(145deg,rgba(143,136,255,.8),rgba(94,194,183,.7))!important}#c3LJ{background:rgba(14,16,26,.55)!important;border:1px solid rgba(255,255,255,.4)!important}#c3LJ.on{background:linear-gradient(145deg,rgba(143,136,255,.85),rgba(94,194,183,.75))!important}";
+ document.head.appendChild(s)})();
+/* sit / crouch pose, blended on top of the normal animation */
+function znxCrouch(c,on,gr){const S=c.s||(c.s={});S.cz=(S.cz||0)+(((on&&gr)?1:0)-(S.cz||0))*.2;const z=S.cz;if(z<.01)return;
+ const m=(o,t)=>{if(o)o.rotation.x=o.rotation.x*(1-z)+t*z};
+ m(c.lL,-1.3);m(c.lR,-1.3);m(c.kL,2.3);m(c.kR,2.3);m(c.fL,-1);m(c.fR,-1);m(c.aL,-.8);m(c.aR,-.8);m(c.eL,-1.2);m(c.eR,-1.2);m(c.body,.3);m(c.hd,-.25);
+ c.hp.position.y-=.5*z;c.body.position.y-=.5*z}
+/* floating joystick: touch anywhere on the left half and the stick appears under your thumb */
+function znxFloat(r,J,s){let act=null;
+ r.addEventListener("pointerdown",e=>{
+  if(act!==null||e.clientX>innerWidth*.5||(e.target.closest&&e.target.closest("#c3J,#c3B,#c3LJ,#c3P,.c3T,#c3O,#c3S,#c3Dn,#c3Tn")))return;
+  e.stopPropagation();act=e.pointerId;J.style.transform="";
+  const b=J.getBoundingClientRect(),cx=Math.max(70,Math.min(innerWidth*.5-70,e.clientX)),cy=Math.max(90,Math.min(innerHeight-70,e.clientY));
+  J.style.transform="translate("+(cx-(b.left+b.width/2))+"px,"+(cy-(b.top+b.height/2))+"px)";
+  J.dispatchEvent(new PointerEvent("pointerdown",{pointerId:e.pointerId,clientX:e.clientX,clientY:e.clientY,bubbles:true}))},true);
+ const end=e=>{if(e.pointerId===act){act=null;J.style.transform=""}};
+ r.addEventListener("pointerup",end);r.addEventListener("pointercancel",end)}
+/*ZNX-CTL-END*/
 function stop(){cancelAnimationFrame(raf);raf=0;if(onR){removeEventListener("resize",onR);removeEventListener("orientationchange",onR)}onR=null;
  if(S){document.removeEventListener("keydown",S.kd);document.removeEventListener("keyup",S.ku);try{S.rn.dispose()}catch(e){}S=null}
  const r=document.getElementById("c3R");if(r)r.remove()}
@@ -3673,7 +3693,7 @@ function exit(){if(S&&S.net){nTx({t:"leave"});nEnd()}stop();inGame=false;if(tab=
 
 async function start(nt){stop();inGame=true;
  const r=document.createElement("div");r.id="c3R";
- r.innerHTML='<div class="c3T"><button class="ib" id="c3X" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="c3H">LOADING 3D...</b><button class="ib" id="c3M" style="display:none" aria-label="Mic">'+CI.mic+'</button><button class="ib" id="c3Rs" aria-label="Restart">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div id="c3J"><i></i></div><button id="c3P" aria-label="Pull" style="display:none">PULL</button><button id="c3LJ" aria-label="Long jump">LONG</button><button id="c3B" aria-label="Jump">\u25b2</button><div id="c3O"></div>';
+ r.innerHTML='<div class="c3T"><button class="ib" id="c3X" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="c3H">LOADING 3D...</b><button class="ib" id="c3M" style="display:none" aria-label="Mic">'+CI.mic+'</button><button class="ib" id="c3Rs" aria-label="Restart">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div id="c3J"><i></i></div><button id="c3P" aria-label="Pull" style="display:none">PULL</button><button id="c3LJ" aria-label="Crouch"><svg viewBox="0 0 24 24"><circle cx="9" cy="5.5" r="1.8"/><path d="M9 8l3 4.5-1 1.5M12 12.5h4.5l1.5 5.5M11 14l-3 4.5h-3M19.5 4.5v5.5M17.5 8l2 2.2 2-2.2"/></svg></button><button id="c3B" aria-label="Jump"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="1.8"/><path d="M12 8v5.5M12 9.5l-4-3.5M12 9.5l4-3.5M12 13.5l-3 4M12 13.5l3 3.5M8.5 22l3.5-3 3.5 3"/></svg></button><div id="c3O"></div>';
  document.body.appendChild(r);$("c3X").onclick=exit;$("c3Rs").onclick=()=>start();{const tb=document.createElement("button");tb.className="gb";tb.textContent="Tune";tb.style.cssText="background:rgba(14,16,26,.5);color:#fff;border:1px solid rgba(255,255,255,.18)";
  tb.onclick=e=>{e.stopPropagation();let p=document.getElementById("c3Tn");if(p){p.remove();return}p=document.createElement("div");p.id="c3Tn";
   p.style.cssText="position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:50%;transform:translateX(-50%);z-index:12;width:min(300px,90vw);padding:14px 16px;border-radius:20px;background:rgba(14,16,26,.94);color:#fff;border:1px solid rgba(255,255,255,.16);display:grid;gap:10px";
@@ -3773,8 +3793,8 @@ realify(sc,SHD,B);try{real3(sc,rn,SHD,B)}catch(e){console.warn('real3',e)}/*ZNX-
  J.addEventListener("pointerdown",e=>{jid=e.pointerId;try{J.setPointerCapture(e.pointerId)}catch(x){}jm(e)});
  J.addEventListener("pointermove",e=>{if(e.pointerId===jid)jm(e)});
  const jr=e=>{if(e.pointerId!==jid)return;jid=null;kn.style.transform="";s.jx=s.jy=0};J.addEventListener("pointerup",jr);J.addEventListener("pointercancel",jr);J.addEventListener("lostpointercapture",jr);
- const Bt=$("c3B");Bt.addEventListener("pointerdown",e=>{e.preventDefault();try{Bt.setPointerCapture(e.pointerId)}catch(x){}s.I.jp=1;s.I.jh=1;s.I.lj=0});
- const L2=$("c3LJ");L2.addEventListener("pointerdown",e=>{e.preventDefault();try{L2.setPointerCapture(e.pointerId)}catch(x){}s.I.jp=1;s.I.jh=1;s.I.lj=1});const bu=()=>{s.I.jh=0};["pointerup","pointercancel"].forEach(v=>L2.addEventListener(v,bu));Bt.addEventListener("pointerup",bu);Bt.addEventListener("pointercancel",bu);const Pb=$("c3P");if(!s.solo)Pb.style.display="";Pb.addEventListener("pointerdown",e=>{e.preventDefault();try{Pb.setPointerCapture(e.pointerId)}catch(x){}s.pbh=1;Pb.classList.add("on");if(navigator.vibrate)navigator.vibrate(8)});const pu=()=>{s.pbh=0;Pb.classList.remove("on")};Pb.addEventListener("pointerup",pu);Pb.addEventListener("pointercancel",pu);Pb.addEventListener("lostpointercapture",pu);
+ const Bt=$("c3B");Bt.addEventListener("pointerdown",e=>{e.preventDefault();try{Bt.setPointerCapture(e.pointerId)}catch(x){}s.I.jp=1;s.I.jh=1;s.I.lj=1;if(s.crh){s.crh=0;const q=$("c3LJ");if(q)q.classList.remove("on")}});
+ const L2=$("c3LJ");L2.addEventListener("pointerdown",e=>{e.preventDefault();s.crh=!s.crh;L2.classList.toggle("on",!!s.crh);if(navigator.vibrate)navigator.vibrate(8)});const bu=()=>{s.I.jh=0};["pointerup","pointercancel"].forEach(v=>L2.addEventListener(v,bu));Bt.addEventListener("pointerup",bu);Bt.addEventListener("pointercancel",bu);const Pb=$("c3P");if(!s.solo)Pb.style.display="";Pb.addEventListener("pointerdown",e=>{e.preventDefault();try{Pb.setPointerCapture(e.pointerId)}catch(x){}s.pbh=1;Pb.classList.add("on");if(navigator.vibrate)navigator.vibrate(8)});const pu=()=>{s.pbh=0;Pb.classList.remove("on")};Pb.addEventListener("pointerup",pu);Pb.addEventListener("pointercancel",pu);Pb.addEventListener("lostpointercapture",pu);
  const cp=new Map();
  r.addEventListener("pointerdown",e=>{if(e.target.closest("#c3J,#c3B,#c3LJ,#c3P,.c3T,#c3O,#c3S,#c3Dn"))return;cp.set(e.pointerId,{x:e.clientX,y:e.clientY})});
  r.addEventListener("pointermove",e=>{const o=cp.get(e.pointerId);if(!o)return;if(cp.size>=2){o.x=e.clientX;o.y=e.clientY;const a=[...cp.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1;if(s.pd)s.zm=cl((s.zm||1)*s.pd/d,.5,1.9);s.pd=d;return}const ddx=cl(e.clientX-o.x,-60,60),ddy=cl(e.clientY-o.y,-60,60);s.yaw-=ddx*.0042*C3S.s;s.pit=cl(s.pit+ddy*.0032*C3S.s,-.5,1.25);o.x=e.clientX;o.y=e.clientY});
@@ -3782,8 +3802,8 @@ realify(sc,SHD,B);try{real3(sc,rn,SHD,B)}catch(e){console.warn('real3',e)}/*ZNX-
  $("c3O").onclick=e=>{const b=e.target.closest("[data-c3o]");if(!b)return;b.dataset.c3o==="again"?start():exit()};
  const lerp=(a,b,t)=>a+(b-a)*t;
  const loop=ms=>{raf=requestAnimationFrame(loop);if(S!==s)return;s.ld3=(s.ld3||0)+1;if(s.ld3===2)c3Done();const t=ms/1000,dt=Math.min(.05,t-(s.lt||t));s.lt=t;if(!s.won)s.t+=dt;
-  const kx=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0),ky=(K.w?1:0)-(K.s||K.arrowdown?1:0);/*ZNX-C3-FEEL*/let jm0=Math.hypot(s.jx,s.jy),jk=jm0<.08?0:Math.pow(Math.min(1,(jm0-.08)/.82),1/C3S.m)/jm0,tx0=s.jx*jk+kx,ty0=s.jy*jk+ky;const tm=Math.hypot(tx0,ty0);if(tm>1){tx0/=tm;ty0/=tm}const sk2=1-Math.exp(-dt*(tm?26:34));s.sjx=(s.sjx||0)+(tx0-(s.sjx||0))*sk2;s.sjy=(s.sjy||0)+(ty0-(s.sjy||0))*sk2;if(!tm&&Math.hypot(s.sjx,s.sjy)<.03){s.sjx=s.sjy=0}let sx=s.sjx,sy=s.sjy;const m=Math.hypot(sx,sy);if(m>1){sx/=m;sy/=m}s.I.pl=(s.pbh||K.e||K.shift)?1:0;
-  const sn=Math.sin(s.yaw),cs=Math.cos(s.yaw),I=s.I;I.ix=-sn*sy+cs*sx;I.iz=-cs*sy-sn*sx;if(s.won){I.ix=I.iz=0;I.jp=0}
+  const kx=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0),ky=(K.w?1:0)-(K.s||K.arrowdown?1:0);/*ZNX-C3-FEEL*/let jm0=Math.hypot(s.jx,s.jy),jk=jm0<.04?0:Math.pow(Math.min(1,(jm0-.04)/.8),1/C3S.m)/jm0,tx0=s.jx*jk+kx,ty0=s.jy*jk+ky;const tm=Math.hypot(tx0,ty0);if(tm>1){tx0/=tm;ty0/=tm}const sk2=1-Math.exp(-dt*(tm?60:70));s.sjx=(s.sjx||0)+(tx0-(s.sjx||0))*sk2;s.sjy=(s.sjy||0)+(ty0-(s.sjy||0))*sk2;if(!tm&&Math.hypot(s.sjx,s.sjy)<.03){s.sjx=s.sjy=0}let sx=s.sjx,sy=s.sjy;const m=Math.hypot(sx,sy);if(m>1){sx/=m;sy/=m}s.I.pl=(s.pbh||K.e||K.shift)?1:0;
+  const sn=Math.sin(s.yaw),cs=Math.cos(s.yaw),I=s.I;I.ix=-sn*sy+cs*sx;I.iz=-cs*sy-sn*sx;if(s.won){I.ix=I.iz=0;I.jp=0}if(s.crh){I.ix*=.4;I.iz*=.4;I.jp=0}
   const p=s.p,q=s.q,sl=s.solo;s.acc+=dt;let n=0;
   if(s.net===2){const T=s.st;
  if(T){const a=T.q,e0=a[0]-q.x,e1=a[1]-q.y,e2=a[2]-q.z,er=Math.hypot(e0,e1,e2);
@@ -3811,7 +3831,7 @@ let hit=0;for(const h of s.H){const ph=(s.t+h.ph)%h.per;h.on=ph<h.per*.4;h.warn=
   const sp=Math.hypot(p.vx,p.vz),sq=Math.hypot(q.vx,q.vz);
   if(sp>.5){const ta=Math.atan2(p.vx,p.vz);s.fc+=cl(Math.atan2(Math.sin(ta-s.fc),Math.cos(ta-s.fc))*Math.min(1,9*dt),-9*dt,9*dt)}
   if(sq>.5){const ta=Math.atan2(q.vx,q.vz);s.fq+=cl(Math.atan2(Math.sin(ta-s.fq),Math.cos(ta-s.fq))*Math.min(1,9*dt),-9*dt,9*dt)}
-  c1.g.position.set(P1[0],P1[1],P1[2]);c1.g.rotation.y=s.fc;poseH(c1,Math.min(1,sp/SPD),!p.on,s.t,p.vy);
+  c1.g.position.set(P1[0],P1[1],P1[2]);c1.g.rotation.y=s.fc;poseH(c1,Math.min(1,sp/SPD),!p.on,s.t,p.vy);znxCrouch(c1,s.crh,!!p.on);
   c2.g.visible=!sl;links.forEach(l=>l.visible=!sl);
   if(!sl){c2.g.position.set(Q1[0],Q1[1],Q1[2]);c2.g.rotation.y=s.fq;poseH(c2,Math.min(1,sq/SPD),!q.on,s.t,q.vy);pullAnim(c1,c2,s);
    rope(s,dt*.5,P1,Q1);rope(s,dt*.5,P1,Q1);for(let i=0;i<NL-1;i++){const A1=s.rp[i],B1=s.rp[i+1],g=links[i];g.position.set((A1.x+B1.x)/2,(A1.y+B1.y)/2,(A1.z+B1.z)/2);g.lookAt(B1.x,B1.y,B1.z)}}
@@ -3913,7 +3933,7 @@ function setEdit(v){edit=v;var r=G("c3R");if(!r)return;r.classList.toggle("c3ed"
 function panel(){var r=G("c3R");if(!r)return;var p=G("c3S");if(p){p.remove();return}
  p=D.createElement("div");p.id="c3S";
  var sl=function(l,id,mn,mx,v){return '<label><span>'+l+'</span><input type="range" id="'+id+'" min="'+mn+'" max="'+mx+'" step="5" value="'+v+'"><output>'+v+'%</output></label>'},R=Math.round;
- p.innerHTML='<b>Settings</b><small>Control feel</small>'+sl("Camera","c3sCam",50,200,R(C3S.s*100))+sl("Joystick","c3sMv",50,220,R(C3S.m*100))+'<small>Jump</small>'+sl("High jump","c3sJ",80,170,R(C3S.j*100))+sl("Long jump","c3sH",50,180,R(C3S.h*100))+'<small>Button size</small>'+sl("Joystick","c3zJ",50,170,R(UI.s.J*100))+sl("High jump","c3zB",50,170,R(UI.s.B*100))+sl("Long jump","c3zL",50,170,R(UI.s.L*100))+sl("Pull","c3zP",50,170,R(UI.s.P*100))+sl("Opacity","c3zO",30,100,R(UI.o*100))+'<div><button class="pri" id="c3sMove">Move buttons</button><button id="c3sRs">Reset</button></div>';
+ p.innerHTML='<b>Settings</b><small>Control feel</small>'+sl("Camera sensitivity","c3sCam",40,350,R(C3S.s*100))+sl("Joystick sensitivity","c3sMv",50,300,R(C3S.m*100))+'<small>Jump</small>'+sl("Jump height","c3sJ",80,170,R(C3S.j*100))+sl("Jump distance","c3sH",50,180,R(C3S.h*100))+'<small>Button size</small>'+sl("Joystick","c3zJ",50,170,R(UI.s.J*100))+sl("Jump button","c3zB",50,170,R(UI.s.B*100))+sl("Crouch button","c3zL",50,170,R(UI.s.L*100))+sl("Pull","c3zP",50,170,R(UI.s.P*100))+sl("Opacity","c3zO",30,100,R(UI.o*100))+'<div><button class="pri" id="c3sMove">Move buttons</button><button id="c3sRs">Reset</button></div>';
  r.appendChild(p);p.addEventListener("pointerdown",function(e){e.stopPropagation()});
  var M={c3sCam:function(v){C3S.s=v/100},c3sMv:function(v){C3S.m=v/100},c3sJ:function(v){C3S.j=v/100},c3sH:function(v){C3S.h=v/100},c3zJ:function(v){UI.s.J=v/100},c3zB:function(v){UI.s.B=v/100},c3zL:function(v){UI.s.L=v/100},c3zP:function(v){UI.s.P=v/100},c3zO:function(v){UI.o=v/100}};
  p.addEventListener("input",function(e){var f=M[e.target.id];if(!f)return;f(+e.target.value);e.target.nextElementSibling.textContent=e.target.value+"%";if(e.target.id.indexOf("c3z")===0){apply();SV()}else SC()});
@@ -3975,7 +3995,7 @@ function mkLife(v){
  me(new TH.TorusGeometry(.058,.011,8,18),TE2,ch,0,.545,.006).rotation.x=Math.PI/2;
  if(!A)[-1,1].forEach(s=>sp(.07,TEE,ch,s*.07,.3,.07,1,.95,.85));
  /* arms */
- const arm=s=>{const a=jt(ch,s*.236*sw,.47,0),e=jt(a,0,-.3,0),h=jt(e,0,-.28,0);
+ const arm=s=>{const a=jt(ch,s*.19*sw,.47,0),e=jt(a,0,-.3,0),h=jt(e,0,-.28,0);
   sp(.068,TEE,a,0,0,0);
   tb([[-.3,.001,.001,0],[-.295,.04,.04,0],[-.2,.046,.047,0],[-.1,.054,.054,0],[-.02,.062,.062,0],[.04,.06,.06,0],[.07,.001,.001,0]],SK,a);
   tb([[-.13,.001,.001,0],[-.125,.066,.066,0],[-.06,.07,.07,0],[.03,.07,.07,0],[.06,.001,.001,0]],TEE,a);
