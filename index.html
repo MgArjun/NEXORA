@@ -4349,10 +4349,19 @@ LV.splice(LV.length-1,0,
 );
 
 /*ZNX-GEN*/
+const SS=(Math.random()*1e9)|0;
+const SURP=(x,w,y,d,R)=>{const q=R(),cx=x+w*.5,o=[];
+ if(q<.2)o.push(E(cx-13,y-38,{fake:1,msg:"Fake door!"}));
+ else if(q<.4)o.push(X(x-30,y-30,16,30,{u:run(x-150,x+w*.8,230+d*60),msg:"It was hunting you."}));
+ else if(q<.55)o.push(Wd(cx,y-16,13,"x",Math.max(30,w*.4),2.2+d,R()*6));
+ else if(q<.7){o.push(B(cx-22,y));o.push(X(cx-26,y-236,52,22,{d:1,msg:"Springs lie."}))}
+ else if(q<.85)o.push(S(cx-40,y-78,80,14,{hid:1}));
+ else o.push(dr(cx-20,40,cx-90,y));
+ return o};
 {
-const NG=130,KN=["Runner","Gauntlet","Chase","Static","Climb"],HT=["Jump at the very edge.","Wait for the blades, then run.","Never stop. It is right behind you.","Plan every jump before the zone.","Keep climbing. The floor is lava."],HM=["Stay sharp.","Blades ahead.","It is behind you.","Controls will betray you.","Rise or burn."];
+const NG=200,KN=["Runner","Gauntlet","Chase","Static","Climb"],HT=["Jump at the very edge.","Wait for the blades, then run.","Never stop. It is right behind you.","Plan every jump before the zone.","Keep climbing. The floor is lava."],HM=["Stay sharp.","Blades ahead.","It is behind you.","Controls will betray you.","Rise or burn."];
 const rng=s=>()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296},mm=(v,a,b)=>Math.max(a,Math.min(b,v));
-function runner(j,d,k){const R=rng(7919*(j+3)),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p,e=[],ns=Math.round(10+d*26+(k===1?5:0));
+function runner(j,d,k){const R=rng(7919*(j+3)+SS),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p,e=[],ns=Math.round(10+d*26+(k===1?5:0));
  let x=300,y=300;e.push(gr(0,300,y),T(60,y,"Stage "+(j+1)+"."));
  for(let i=0;i<ns;i++){
   const last=i===ns-1,crm=!last&&i>1&&d>.2&&pr(.06+d*.14);
@@ -4363,9 +4372,9 @@ function runner(j,d,k){const R=rng(7919*(j+3)),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p
   const w=last?280:Math.round(rn(135,230)-d*25+(k===1?60:0));
   x+=gap;y=mm(y+dy,200,330);
   if(crm)e.push(S(x,y,w,Math.max(60,520-y),{g:1,u:crumble(.4)}));else e.push(gr(x,w,y));
-  if(!crm&&i>0&&!last&&pr(k===1?.85:.3+.55*d)){
-   const q=R(),ty=q<.34?"t":q<.62?"s":q<.82?"d":(w>=200&&k!==2?"h":"t");
-   if(ty==="t")e.push(tp(x+w*.45,34,x-20,y));
+  if(!crm&&i>0&&!last&&pr(k===1?.7:.3+.35*d)){
+   const q=R(),ty=q<.3?"z":q<.5?"t":q<.68?"s":q<.82?"d":(w>=200&&k!==2?"h":"t");
+   if(ty==="z")e.push(...SURP(x,w,y,d,R));else if(ty==="t")e.push(tp(x+w*.45,34,x-20,y));
    else if(ty==="s")e.push(Wd(x+w*.5,y-18,13,"y",26+d*14,2.3+d*1.5,rn(0,6)));
    else if(ty==="d")e.push(dr(x+w*.5,38,x+w*.5-115,y));
    else e.push(Th(x+w*.5-25,y));
@@ -4377,7 +4386,7 @@ function runner(j,d,k){const R=rng(7919*(j+3)),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p
  let lu=null;
  if(k===3){const nz=1+Math.floor(d*3),Z=[];for(let q=0;q<nz;q++){const a=x*(.2+q*.25);Z.push([a,a+rn(450,700)])}lu=rz(Z)}
  return{w:Math.round(x)+60,sp:[40,274],lu,e}}
-function climb(j,d){const R=rng(7919*(j+3)),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p,n=Math.round(16+d*30),e=[gr(0,640,300),T(60,300,"Climb.")];let x=250,i,y;
+function climb(j,d){const R=rng(7919*(j+3)+SS),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p,n=Math.round(16+d*30),e=[gr(0,640,300),T(60,300,"Climb.")];let x=250,i,y;
  for(i=1;i<=n;i++){y=300-52*i;x=mm(x+(pr(.5)?-1:1)*rn(70,185),20,510);
   const mid=i>2&&i<n,cr=mid&&pr(.1+.3*d),mvp=mid&&!cr&&d>.3&&pr(.14),sw=mid&&!cr&&!mvp&&pr(.08+.22*d);
   if(cr)e.push(pl(x,y,110,{u:crumble(.35)}));else if(mvp)e.push(M(x,y,100,"x",40,1.4+d,rn(0,6)));else if(mid&&d>.5&&pr(.08))e.push(pl(x,y,110,{hid:1}));else e.push(pl(x,y,110));
@@ -4386,7 +4395,7 @@ function climb(j,d){const R=rng(7919*(j+3)),rn=(a,b)=>a+R()*(b-a),pr=p=>R()<p,n=
   if(i%8===0)e.push(C(x+10,y))}
  e.push(E(x+40,y-38));
  return{w:640,y0:-(52*n+200),sp:[40,274],lu:L=>{L.lava=430-Math.max(0,L.t-3)*(30+d*16)},e}}
-const G=[];for(let j=0;j<NG;j++){const d=.15+.85*j/(NG-1),k=j%5;G.push({n:KN[k]+" "+(j+1),h:HM[k]+" Stage "+(j+1),hint:HT[k],b:()=>k===4?climb(j,d):runner(j,d,k)})}
+const G=[];for(let j=0;j<NG;j++){const d=.15+.85*j/(NG-1),k=(j*3+(j>>1)+(SS%5))%5;G.push({n:KN[k]+" "+(j+1),h:HM[k]+" Stage "+(j+1),hint:HT[k],b:()=>k===4?climb(j,d):runner(j,d,k)})}
 LV.splice(LV.length-1,0,...G);
 }
 /*ZNX-GEN-END*/
@@ -4550,7 +4559,7 @@ function drawP(c,p,t,gs){c.save();c.translate(p.x+PW/2,p.y+PH/2);c.scale(1+p.sq*
  if(air){c.moveTo(0,-1);c.lineTo(-6,-8);c.moveTo(0,-1);c.lineTo(6,-8);c.moveTo(0,4);c.lineTo(-4,13);c.moveTo(0,4);c.lineTo(4,11)}
  else{c.moveTo(0,-1);c.lineTo(-ph*5,6);c.moveTo(0,-1);c.lineTo(ph*5,6);c.moveTo(0,4);c.lineTo(ph*5,13);c.moveTo(0,4);c.lineTo(-ph*5,13)}
  c.stroke();c.lineWidth=6;c.beginPath();c.moveTo(0,-3);c.lineTo(0,4);c.stroke();
- c.beginPath();c.arc(0,-8.5,5.2,0,6.3);c.fill();c.fillStyle="#241a3a";c.beginPath();c.arc(f*2.2,-9,1.1,0,6.3);c.fill();c.restore()}
+ c.beginPath();c.arc(0,-8,3.9,0,6.3);c.fill();c.fillStyle="#241a3a";c.beginPath();c.arc(f*1.7,-8.4,.95,0,6.3);c.fill();c.restore()}
 function drawP0(c,p,t,gs){c.save();c.translate(p.x+PW/2,p.y+PH/2);c.scale(1+p.sq*.6,gs*(1-p.sq));
  const ph=p.g&&Math.abs(p.vx)>30?Math.sin(p.run):0;
  c.strokeStyle="#0d0f1c";c.lineWidth=4;c.lineCap="round";c.beginPath();c.moveTo(-4,PH/2-7);c.lineTo(-4+ph*4,PH/2);c.moveTo(4,PH/2-7);c.lineTo(4-ph*4,PH/2);c.stroke();
