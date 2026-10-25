@@ -5048,6 +5048,104 @@ znxPunch=function(s,c1,c2,p,q,dt){
   snap(c1,p);if(!s.solo)snap(c2,q)}catch(e){if(!s.se){s.se=1;console.warn("snap",e)}}
  return r};
 })();
+
+/*ZNX-GAMEFIX-V9*/
+(function(){try{
+const D=document,$$=i=>D.getElementById(i),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* ---------- default layout + styles ---------- */
+const DEF={c3F:["r",28,"b",118],c3B:["r",24,"b",22],c3LJ:["r",112,"b",22],c3P:["r",196,"b",22],c3Rl:["r",112,"b",118],cbSw:["r",196,"b",118],c3A:["l",24,"b",176],c3Sc:["l",14,"t",146],c3W:["l",14,"t",212],cbW:["l",80,"t",164]};
+let css="#cbC{display:none!important}.cte{pointer-events:auto!important;outline:2px dashed #ffd93d!important;outline-offset:3px;touch-action:none!important}.ctsel{outline:2px solid #8f88ff!important;box-shadow:0 0 0 6px rgba(143,136,255,.3)!important}#cbW{position:fixed!important}"+
+"#ctQ{position:fixed;top:calc(env(safe-area-inset-top,0px) + 58px);left:50%;transform:translateX(-50%);z-index:95;width:min(300px,88vw);padding:12px 14px;border-radius:20px;background:rgba(14,16,26,.95);color:#fff;border:1px solid rgba(255,255,255,.16);display:grid;gap:8px;font-size:13px}#ctQ b{font-size:14px}#ctQ small{color:#9aa0b8}#ctQ label{display:grid;grid-template-columns:64px 1fr;align-items:center}#ctQ input{height:26px;padding:0;border:0;background:none;accent-color:#8f88ff}#ctQ div{display:flex;gap:6px}#ctQ button{flex:1;height:38px;padding:0;border-radius:19px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-weight:600;font-size:12.5px}#ctQ button.p{background:linear-gradient(135deg,#6a62f0,#5149d6);border-color:transparent}";
+for(const id in DEF){const d=DEF[id],h=d[0]==="r"?"right":"left",hx=d[0]==="r"?"left":"right",v=d[2]==="b"?"bottom":"top",vx=d[2]==="b"?"top":"bottom";
+ css+="html #c3R #"+id+"{"+h+":calc(env(safe-area-inset-"+h+",0px) + "+d[1]+"px)!important;"+hx+":auto!important;"+v+":calc(env(safe-area-inset-"+v+",0px) + "+d[3]+"px)!important;"+vx+":auto!important}"}
+const st=D.createElement("style");st.textContent=css;D.head.appendChild(st);
+
+/* ---------- layout editor (everything except share / restart / settings / back) ---------- */
+const LK="znx_lay9",EL=[["c3J",1],["c3B",1],["c3LJ",1],["c3A",1],["c3F",1],["c3Rl",1],["cbSw",1],["c3Sc",1],["c3P",1],["c3W",0],["gnAm",0],["cbW",0],["cbEn",0],["gnHp",0],["cbK",0],["cbF",0]],
+NAME={c3J:"Joystick",c3B:"Jump",c3LJ:"Sit",c3A:"Auto-run",c3F:"Fire",c3Rl:"Reload",cbSw:"Swap gun",c3Sc:"Zoom",c3P:"Pull",c3W:"Hand / gun switch",gnAm:"Ammo",cbW:"Gun name",cbEn:"Energy bar",gnHp:"Health bar",cbK:"Kills",cbF:"Kill feed"};
+let L={l:{},p:{}};try{L=Object.assign(L,JSON.parse(localStorage.getItem(LK)||"{}"))}catch(e){}
+const ori=()=>innerWidth>innerHeight?"l":"p",sv=()=>{try{localStorage.setItem(LK,JSON.stringify(L))}catch(e){}},cfg=id=>{const o=L[ori()]||(L[ori()]={});return o[id]||(o[id]={})};
+let ed=0,sel=null,drag=null;
+function apply(){const W=innerWidth,H=innerHeight,o=L[ori()]||(L[ori()]={});
+ EL.forEach(a=>{const id=a[0],e=$$(id);if(!e)return;const c=o[id]||{},s=e.style,P=(k,v)=>s.setProperty(k,v,"important");
+  if(a[1]){if(!e.dataset.bw){s.removeProperty("width");s.removeProperty("height");if(e.offsetWidth)e.dataset.bw=e.offsetWidth}
+   if(e.dataset.bw){if(c.s){const z=Math.round(e.dataset.bw*c.s);P("width",z+"px");P("height",z+"px")}else{s.removeProperty("width");s.removeProperty("height")}}}
+  else if(c.s){P("transform","scale("+c.s+")");P("transform-origin","0 0")}else if(e.dataset.sc){s.removeProperty("transform");s.removeProperty("transform-origin")}
+  e.dataset.sc=c.s?"1":"";
+  if(c.x!=null){P("position","fixed");P("left",cl(c.x*W,0,W-20)+"px");P("top",cl(c.y*H,0,H-20)+"px");P("right","auto");P("bottom","auto");P("margin","0");e.dataset.pc="1"}
+  else if(e.dataset.pc){["position","left","top","right","bottom","margin"].forEach(k=>s.removeProperty(k));e.dataset.pc=""}
+  if(c.o!=null||(c.h&&ed))P("opacity",c.h&&ed?.3:c.o);else s.removeProperty("opacity");
+  if(c.h&&!ed){if(e.dataset.hd!=="1"){e.dataset.dsp=s.display;e.dataset.hd="1"}P("display","none")}
+  else if(e.dataset.hd==="1"){s.removeProperty("display");s.display=e.dataset.dsp||"";e.dataset.hd=""}})}
+function mark(){EL.forEach(a=>{const e=$$(a[0]);if(e&&getComputedStyle(e).display!=="none"){e.classList.add("cte");e.classList.toggle("ctsel",a[0]===sel)}})}
+function panel(){let p=$$("ctQ");if(!ed){if(p)p.remove();return}
+ if(!p){p=D.createElement("div");p.id="ctQ";D.body.appendChild(p);p.addEventListener("pointerdown",e=>e.stopPropagation());
+  p.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const k=b.dataset.k;
+   if(k==="done")return stopEdit();
+   if(k==="all"){L[ori()]={};sv();sel=null;apply();mark();return panel()}
+   if(!sel)return;
+   if(k==="hide"){const c=cfg(sel);c.h=!c.h;sv();apply();return panel()}
+   if(k==="rst"){delete L[ori()][sel];sv();apply();return panel()}});
+  p.addEventListener("input",e=>{const a=e.target;if(!sel)return;const c=cfg(sel);if(a.id==="ctS")c.s=a.value/100;else if(a.id==="ctO")c.o=a.value/100;sv();apply()})}
+ const c=sel?cfg(sel):{};
+ p.innerHTML='<b>'+(sel?NAME[sel]:"Edit layout")+'</b><small>'+(sel?"Drag to move":"Tap any control, then drag it")+'</small>'+(sel?'<label>Size<input type="range" id="ctS" min="50" max="200" step="5" value="'+Math.round((c.s||1)*100)+'"></label><label>Opacity<input type="range" id="ctO" min="20" max="100" step="5" value="'+Math.round((c.o==null?1:c.o)*100)+'"></label><div><button data-k="hide">'+(c.h?"Show":"Hide")+'</button><button data-k="rst">Reset this</button></div>':"")+'<div><button data-k="all">Reset all</button><button class="p" data-k="done">Done</button></div>'}
+function startEdit(){const q=$$("c3S");if(q)q.remove();ed=1;sel=null;apply();mark();panel()}
+function stopEdit(){ed=0;sel=null;drag=null;D.querySelectorAll(".cte").forEach(e=>e.classList.remove("cte","ctsel"));panel();apply()}
+D.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#c3S [data-act]");if(!b)return;e.stopImmediatePropagation();e.preventDefault();
+ if(b.dataset.act==="edit")startEdit();else{L={l:{},p:{}};sv();apply();ts("Layout reset")}},true);
+D.addEventListener("pointerdown",e=>{if(!ed)return;const t=e.target;if(t.closest&&t.closest("#ctQ,.c3T"))return;
+ e.stopImmediatePropagation();e.preventDefault();const el=t.closest&&t.closest(".cte");
+ if(!el){sel=null;mark();panel();return}
+ sel=el.id;mark();panel();const r=el.getBoundingClientRect();drag={el,pid:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top}},true);
+D.addEventListener("pointermove",e=>{if(!drag||e.pointerId!==drag.pid)return;e.stopImmediatePropagation();
+ const W=innerWidth,H=innerHeight,r=drag.el.getBoundingClientRect(),c=cfg(drag.el.id);
+ c.x=cl((e.clientX-drag.dx)/W,0,Math.max(0,1-r.width/W));c.y=cl((e.clientY-drag.dy)/H,0,Math.max(0,1-r.height/H));apply()},true);
+["pointerup","pointercancel"].forEach(v=>D.addEventListener(v,e=>{if(drag&&e.pointerId===drag.pid){drag=null;sv()}},true));
+addEventListener("resize",()=>setTimeout(apply,60));
+setInterval(()=>{if(!$$("c3R")){if(ed)stopEdit();return}apply();if(ed)mark()},500);
+
+/* ---------- sit button + joystick stops auto-run ---------- */
+const stopAR=s=>{s.ar=false;const b=$$("c3A");if(b)b.classList.remove("on")};
+function wire(r){if(r._zw)return;r._zw=1;
+ let lj=r.querySelector("#c3LJ");const bj=r.querySelector("#c3B"),J=r.querySelector("#c3J");
+ if(lj){const n=lj.cloneNode(true);lj.replaceWith(n);lj=n;
+  lj.addEventListener("pointerdown",e=>{e.preventDefault();if(!S)return;S.sit=!S.sit;lj.classList.toggle("on",!!S.sit);if(S.sit)stopAR(S);if(navigator.vibrate)navigator.vibrate(8)})}
+ if(bj)bj.addEventListener("pointerdown",()=>{if(S&&S.sit){S.sit=false;const q=$$("c3LJ");if(q)q.classList.remove("on")}},true);
+ if(J)J.addEventListener("pointerdown",()=>{if(S)stopAR(S)},true)}
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.id==="c3R")wire(n)}))).observe(D.body,{childList:true});
+if($$("c3R"))wire($$("c3R"));
+const _zc=znxCrouch;znxCrouch=function(c,on,gr){return _zc(c,on||!!(S&&S.sit),gr)};
+const _ph=phys;phys=function(s,dt,p,I){if(s.sit&&p===s.p){I=Object.assign({},I,{ix:I.ix*.5,iz:I.iz*.5,jp:0})}return _ph.call(this,s,dt,p,I)};
+
+/* ---------- combat: burst fire, real zoom, tougher enemy waves ---------- */
+const BN={smg:5,ar:4},BS={n:0,m:null,id:"",real:0,t:0},ZC={1:[2.7,.75,1.45],2:[1.3,.6,1.5],4:[.5,.2,1.62]};
+const _gs=gnShot;gnShot=function(s,from,dir,sp,own,dmg){_gs.call(this,s,from,dir,own?sp:sp*1.15,own,own?dmg:dmg*1.7);for(const b of s.gn.bl)if(b.own&&!b.sc){b.sc=1;b.dmg*=.55}};
+function waves(s,p,q,dt){const G=s.gn;if(!G)return;
+ if(!s.zT){s.zT=1;s.zk=8;G.en.sort((a,b)=>Math.hypot(a.g.position.x-p.x,a.g.position.z-p.z)-Math.hypot(b.g.position.x-p.x,b.g.position.z-p.z));while(G.en.length>2){const e=G.en.pop();s.sc.remove(e.g)}}
+ G.en=G.en.filter(e=>!(e.dead&&e.dd===2));
+ G.en.forEach(e=>{if(e.ty==="shooter"&&!e.dead&&!(e.br>0)&&e.cd>1)e.cd=.6+Math.random()*.5});
+ s.zk-=dt;if(s.zk>0)return;const t=s.t,alive=G.en.filter(e=>!e.dead).length,cap=Math.min(14,2+Math.floor(t/30)),grp=Math.min(5,1+Math.floor(t/45));
+ s.zk=Math.max(7,20-t/15);if(alive>=cap)return;
+ const c=s.B.filter(b=>b.kind==="pad"&&!b.cp&&!b.goal&&!b.sl&&!b.sz&&!b.bl&&!b.ti&&!b.spin&&!b.lf&&!b.off&&b.w>=6&&b.d>=6&&Math.abs(surf(b,b.z)-p.y)<8&&(d=>d>14&&d<34)(Math.hypot(b.x-p.x,b.z-p.z)));
+ if(!c.length)return;
+ for(let i=0;i<Math.min(grp,cap-alive);i++){const b=c[(Math.random()*c.length)|0],x=b.x+(Math.random()-.5)*b.w*.5,z=b.z+(Math.random()-.5)*b.d*.5;G.en.push(gnEnemy(s,x,surf(b,z),z))}
+ cbPop("ENEMIES INCOMING")}
+const _pp=znxPunch;
+znxPunch=function(s,c1,c2,p,q,dt){
+ try{
+  if(s.ar&&(Math.hypot(s.jx||0,s.jy||0)>.12||s.sit))stopAR(s);
+  const z=ZC[ZSC.z]||ZC[1],k=Math.min(1,dt*9);C3V.d+=(z[0]-C3V.d)*k;C3V.side+=(z[1]-C3V.side)*k;C3V.h+=(z[2]-C3V.h)*k;c1.g.visible=!(ZSC.z>=4);
+  const I=s.I,g=s.net!==2&&!TPS.hand&&s.gn&&s.gn.gw,w=g?CBX.sl[CBX.act]:null;
+  if(!w||!BN[w.id]||s.gn.gw.w[0].rl>0||BS.id!==w.id||performance.now()>BS.t)BS.n=0;
+  BS.id=w?w.id:"";
+  if(w&&BN[w.id]&&I.pe&&w.mag>0&&!(s.gn.gw.w[0].rl>0)){BS.n=BN[w.id];BS.m=w.mag;BS.t=performance.now()+1400}
+  BS.real=I.pu;if(BS.n>0)I.pu=1}catch(e){}
+ const r=_pp.apply(this,arguments);
+ try{s.I.pu=BS.real;const w=CBX.sl[CBX.act];
+  if(BS.n>0){if(!w||w.mag<=0)BS.n=0;else if(BS.m!=null&&w.mag<BS.m){BS.n-=BS.m-w.mag;BS.m=w.mag}}
+  if(s.net!==2)waves(s,p,q,dt)}catch(e){if(!s.zfx){s.zfx=1;console.warn("gamefix",e)}}
+ return r};
+}catch(e){console.error("gamefix",e)}})();
 }
 /*C3D-END*/
 
