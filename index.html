@@ -4398,7 +4398,7 @@ function znxCull(s,cam){
   if(d>R){if(!o._zc){o._zc=1;o.visible=false}}else if(o._zc){o._zc=0;o.visible=true}}}
 function znxFrame(cam,s,rn,dt){
  try{
-  const tg=2*Math.atan(Math.tan(.5236)/ZSC.z)*57.2958;
+  /*ZNX-RS1*/{const W2=innerWidth,H2=innerHeight;if(s._rw!==W2||s._rh!==H2){s._rw=W2;s._rh=H2;rn.setSize(W2,H2);cam.aspect=W2/H2;cam.updateProjectionMatrix()}}const tg=2*Math.atan(Math.tan(.5236)/ZSC.z)*57.2958;
   if(Math.abs(cam.fov-tg)>.05){cam.fov+=(tg-cam.fov)*(1-Math.exp(-dt*14));cam.updateProjectionMatrix()}
   znxPerf(rn,dt);
   if(!(s.ld3&3))znxCull(s,cam);
@@ -4623,7 +4623,7 @@ window.c3Sig=function(m){const c=clCtx();
  else if(m.t==="gmdec"){if(!N.host||m.code!==N.code||N.st)return;ts("Friend declined");closeS();nEnd()}
  else if(m.t==="gmcan"){if(N.pend===m.code){N.pend="";closeS();ts("Invite cancelled")}}};
 function page(){try{if(!TH&&!window.__c3pre){window.__c3pre=1;var pl=document.createElement("link");pl.rel="modulepreload";pl.href=TURL;document.head.appendChild(pl)}}catch(e){}inGame=false;$("pg").innerHTML='<div class="sb"><button class="ib" data-pl="home" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button></div><div class="gh"><i>'+GI.c3d+'</i><div><h2>Chained Together</h2><p>Hell to Earth to Heaven</p></div></div><div class="feat" style="margin-top:12px"><span class="tag">Solo or co-op</span><b>Climb to Heaven</b><p>Start in Hell, cross Earth and reach Heaven. Play solo or chained to a friend.</p><div class="fbx"><button data-c3="solo">Play solo</button><button class="gh2" data-c3="inv">Play with a friend</button></div><i class="fg">'+GI.c3d+'</i></div><p class="note" style="margin-top:14px">Left stick: move. Drag on the right side: look around. Hold Jump to leap higher. In co-op, hold Pull to drag your friend up from below. Blinking platforms drop, so move fast. Avoid fire jets. Orange flags are checkpoints. If you fall you restart from the last one.</p>'}
-const _og=openGame;openGame=function(id){if(id!=="c3d")return _og(id);page()};
+(window.__zg=window.__zg||{}).c3d=function(){SOLOM=1;start()};const _og=openGame;openGame=function(id){if(id!=="c3d")return _og(id);page()};
 const _iv=inviteScreen;inviteScreen=function(id,pre){return _iv(id,pre)};const _gs=gmSend;gmSend=function(){if(INV.id==="c3d")return nHost([...INV.sel][0]);return _gs()};
 $("pg").addEventListener("click",e=>{if(tab!=="play")return;{const b=e.target.closest("[data-c3]");if(b){const c=b.dataset.c3;if(c==="inv")inviteScreen("c3d");else{SOLOM=c==="solo"?1:0;start()}}}});
 /*ZNX-FIX-C3D*/
@@ -5168,7 +5168,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),vib
 const ov=(a,b)=>a.x<b.x+b.w-EPS&&a.x+a.w>b.x+EPS&&a.y<b.y+b.h-EPS&&a.y+a.h>b.y+EPS;
 function sfx(f0,f1,d,v,ty){if(!ST2.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type=ty||"square";o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+d);g.gain.setValueAtTime(v||.04,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
 const ldBest=()=>{try{return cl(+(JSON.parse(localStorage.getItem(KEY)||"{}").b)||0,0,LV.length-1)}catch(e){return 0}};
-const ldSave=n=>{if(n>ldBest())try{localStorage.setItem(KEY,JSON.stringify({b:n}))}catch(e){}};
+const ldSave=n=>{if(globalThis.__ldShare){try{if(n>(+localStorage.getItem("znx_ld_sh")||0))localStorage.setItem("znx_ld_sh",String(n))}catch(e){}return}if(n>ldBest())try{localStorage.setItem(KEY,JSON.stringify({b:n}))}catch(e){}};
 
 /* ---------- styles ---------- */
 if(!document.getElementById("ldcss")){const s=document.createElement("style");s.id="ldcss";s.textContent=`
@@ -5404,7 +5404,7 @@ function die(e){if(globalThis.__NODIE&&e)return;if(D.st!=="play")return;D.st="de
  D.shake=.35;
  if(D.ld===6&&LV[D.lv].hint)D.say("Hint: "+LV[D.lv].hint,3.6);else D.say(e&&e.msg||TAUNT[(Math.random()*TAUNT.length)|0],1.2);
  vib([30,40,70]);sfx(260,50,.35,.07,"sawtooth");
- $("ldSk").style.display=(D.ld>=30&&D.lv<LV.length-1)?"":"none"}
+ $("ldSk").style.display=(D.ld>=30&&D.lv<LV.length-1&&!globalThis.__ldShare)?"":"none"}
 function win(){if(D.st!=="play")return;const last=D.lv>=LV.length-1;ldSave(Math.min(LV.length-1,D.lv+1));
  const p=D.p;for(let i=0;i<70;i++)D.pa.push({x:p.x+PW/2,y:p.y,vx:rnd(-200,200),vy:rnd(-480,-120),l:rnd(.8,1.6),m:1.6,c:["255,217,61","94,194,183","143,136,255","255,107,139"][i%4],r:rnd(2,4),g:600});
  sfx(500,1100,.3,.05,"triangle");vib([20,40,20]);D.st=last?"end":"clear";D.ct=last?.9:1;D.say(last?"You beat the Devil!":"Level cleared!",1.2)}
@@ -5611,7 +5611,7 @@ function kd(e){if(!D)return;const k=kmap[e.key];if(k){inp[k]=1;e.preventDefault(
  else if(e.key==="r"||e.key==="R")ldLoad(D.lv,false)}
 function ku(e){const k=kmap[e.key];if(k)inp[k]=0;else if(e.key===" "||e.key==="ArrowUp"||e.key==="w"||e.key==="W")inp.j=0}
 function ldStop(){cancelAnimationFrame(raf);raf=0;D=null;inp.l=inp.r=inp.j=inp.jp=0;document.removeEventListener("keydown",kd);document.removeEventListener("keyup",ku);document.documentElement.classList.remove("ldplay");const r=$("ldR");if(r)r.remove()}
-function ldExit(){ldStop();inGame=false;if(tab==="play"){ldPage();pgIn(-1)}}
+function ldExit(){ldStop();globalThis.__ldShare=0;inGame=false;if(tab==="play"){ldPage();pgIn(-1)}}
 function ldStart(i){ldStop();inGame=true;document.documentElement.classList.add("ldplay");
  const r=document.createElement("div");r.id="ldR";
  r.innerHTML='<canvas id="ldC"></canvas><div class="ldT"><button class="ib" id="ldX" aria-label="Leave game">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="ldH"></b><button class="gb" id="ldSk" style="display:none">Skip</button><button class="ib" id="ldRs" aria-label="Restart level">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div class="ldP"><button class="ldb" data-k="l" aria-label="Left">\u2039</button><button class="ldb" data-k="r" aria-label="Right">\u203a</button><span style="flex:1"></span><button class="ldb j" data-k="j" aria-label="Jump">\u25b2</button></div><div id="ldO"></div>';
@@ -5638,6 +5638,9 @@ $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.clo
 /* ---------- hook into Play ---------- */
 const _og=openGame;openGame=function(id){if(id!=="devil")return _og(id);ldPage()};
 const _iv2=inviteScreen;inviteScreen=function(id,pre){if(id==="devil"){ts("Level Devil is a solo game");return}return _iv2(id,pre)};
+/*ZNX-SHARE1*/(window.__zg=window.__zg||{}).devil=function(){globalThis.__ldShare=1;var b=0;try{b=cl(+localStorage.getItem("znx_ld_sh")||0,0,LV.length-1)}catch(e){}ldStart(b)};
+window.__zg.uno=function(){uoStart("classic","bot",1,1)};
+try{var gq=new URLSearchParams(location.search).get("game");if(gq){setTimeout(function(){var f=window.__zg&&window.__zg[gq];if(f){try{history.replaceState(null,"",location.pathname)}catch(e){}f()}},1000)}}catch(e){}
 if(globalThis.__LDX)globalThis.__LDX({LV,step,ldLoad,inp,get D(){return D},set D(v){D=v},FIX,PW,PH});
 }
 
@@ -6586,9 +6589,9 @@ const CTX=()=>window.znxCtx?window.znxCtx():{};
 const base=()=>location.origin+location.pathname;
 const dl=(k,v)=>base()+"?p="+k+":"+v;
 function shCtx(){
- if($("c3R"))return{t:"Chained Together",l:dl("game","c3d")};
- if($("ldR"))return{t:"Level Devil",l:dl("game","devil")};
- if($("uoR"))return{t:"UNO",l:dl("game","uno")};
+ if($("c3R"))return{t:"Chained Together",l:base()+"?game=c3d"};
+ if($("ldR"))return{t:"Level Devil",l:base()+"?game=devil"};
+ if($("uoR"))return{t:"UNO",l:base()+"?game=uno"};
  if(tab==="play"&&inGame&&T)return{t:"Tic-Tac-Toe",l:dl("game","ttt")};
  if($("et").classList.contains("on"))return{t:"Enjoy Together",l:dl("tab","enjoy")};
  const n={chats:"Chats",enjoy:"Enjoy",play:"Play",me:"ZNEXORA"}[tab]||"ZNEXORA";
