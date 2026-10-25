@@ -6632,6 +6632,57 @@ tick();
 })()}catch(e){console.error("ZNX multi-speaker",e)}
 /*ZNX-MULTIOUT-END*/
 /*ZNX-V13-END*/
+
+/*ZNX-MUSIC-FIX1*/
+/* 1. YouTube API loads once for everyone (this was why the first song failed) */
+let zmYL=null;
+ytLoad=function(){if(window.YT&&YT.Player)return Promise.resolve();
+ if(zmYL)return zmYL;
+ zmYL=new Promise(function(res,rej){const prev=window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady=function(){try{prev&&prev()}catch(e){}res()};
+  if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";sc.onerror=function(){zmYL=null;rej()};document.head.appendChild(sc)}
+  setTimeout(function(){if(!(window.YT&&YT.Player)){zmYL=null;rej()}},20000)});
+ return zmYL};
+MP.noxf=0;
+/* 2. silent keep-alive so the phone does not freeze the player in background */
+let zmSA=null;
+function zmKeep(){if(zmSA){if(zmSA.paused)zmSA.play().catch(function(){});return}
+ try{const n=8000,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=function(o,s){for(let i=0;i<s.length;i++)b[o+i]=s.charCodeAt(i)};
+  w(0,"RIFF");v.setUint32(4,36+n,true);w(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,"data");v.setUint32(40,n,true);b.fill(128,44);
+  zmSA=new Audio(URL.createObjectURL(new Blob([b],{type:"audio/wav"})));zmSA.loop=true;zmSA.volume=.01;zmSA.play().catch(function(){})}catch(e){}}
+const zmGo0=mpGo;
+mpGo=function(){MP.zr=0;zmKeep();return zmGo0.apply(this,arguments)};
+/* 3. watchdog: always moves to the next song, even if screen is off or app was in background */
+const zmXFS=mpIOS?0:12;
+mpWatch=function(){
+ try{
+  const d=mpDk[MP.d];
+  if(MP.xf&&MP.xt&&Date.now()-MP.xt>5500){const q=mpDk[MP.d];let pp=false;
+   try{pp=q.ext==="yt"?(!!q.ypr&&q.yp.getPlayerState()===1):(!!q.au&&!q.au.paused)}catch(e){}
+   if(!pp){MP.nxf=(MP.nxf||0)+1;if(MP.nxf>=3)MP.noxf=1;mpXfEnd();try{q.ext==="yt"?q.yp.playVideo():q.au.play()}catch(e){}}}
+  if(zmXFS&&!MP.noxf&&MP.want&&MP.play&&!MP.rp&&!MP.xf&&!SL.song){
+   const D=mpDur(),P=mpPos(),xs=Math.min(zmXFS,D*.45);
+   if(D>=22&&D-P<=xs&&D-P>.4&&mpList().length>1){const i=mpNext(1);if(i>=0&&i!==MP.i)mpGo(i,1,D-P)}}
+  if(!MP.want||MP.xf)return;
+  const age=Date.now()-MP.t0;
+  if(d.ext==="yt"&&d.ypr){
+   const s=d.yp.getPlayerState();
+   if(s===0&&age>3000){mpEnded();return}
+   if(s===1||s===3){MP.zn=0;return}
+   if(age>3500&&Date.now()-(MP.zn||0)>2500){MP.zn=Date.now();try{d.yp.playVideo()}catch(e){}}
+   if(age>8000&&!MP.zr&&MP.i>=0&&MT[MP.i]&&MT[MP.i].src.t==="yt"){MP.zr=1;try{d.yp.loadVideoById(MT[MP.i].src.id)}catch(e){}}
+   else if(age>17000&&MP.zr===1){MP.zr=2;ts("Skipped: song start nahi hua");mpStep(1)}
+  }else if(d.ext==="audio"&&d.au){
+   if(d.au.ended&&age>3000)mpEnded();
+   else if(d.au.paused&&age>3500&&Date.now()-(MP.zn||0)>2500){MP.zn=Date.now();d.au.play().catch(function(){})}}
+ }catch(e){}};
+function zmKick(){try{if(MP.started&&MP.want)mpWatch()}catch(e){}}
+document.addEventListener("visibilitychange",function(){setTimeout(zmKick,120);setTimeout(zmKick,900)});
+addEventListener("pageshow",zmKick);addEventListener("focus",zmKick);
+setInterval(function(){if(document.hidden)zmKick();
+ if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=MP.started?(MP.play?"playing":"paused"):"none"}catch(e){}}},1000);
+
+
 })();</script><script>
 
 (function(){
