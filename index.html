@@ -1526,7 +1526,7 @@ function mpPrime(k){const d=mpDk[k];if(!XF_SEC||d.yp||!window.YT||!YT.Player)ret
 function mpAudio(d,k,T){if(d.yp&&d.ypr){try{d.yp.pauseVideo()}catch(e){}}
  if(!d.au){const a=d.au=new Audio();a.preload="auto";a.onplay=()=>{if(d.ext!=="audio"||k!==MP.d)return;MP.play=1;MP.fail=0;mpUI()};a.onpause=()=>{if(d.ext==="audio"&&k===MP.d){MP.play=0;mpUI()}};a.onended=()=>{if(d.ext==="audio"&&k===MP.d)mpEnded()};a.onerror=()=>{if(d.ext==="audio"&&k===MP.d)mpFail()}}
  d.au.src=T.src.url;d.au.volume=MP.vol*d.g;d.au.play().catch(()=>{if(d.ext==="audio"&&k===MP.d)mpFail()})}
-function mpGo(i,dir,fade){const T=MT[i];if(!T)return;mpXfEnd();MP.hideMini=0;const o=mpDk[MP.d],k0=1-MP.d,ok=!!fade&&!!MP.play&&!!o.ext&&!MP.noxf&&(T.src.t!=="yt"||!!mpDk[k0].ypr),k=ok?k0:MP.d,n=mpDk[k];
+function mpGo(i,dir,fade){const T=MT[i];if(!T)return;mpXfEnd();MP.hideMini=0;const o=mpDk[MP.d],k0=1-MP.d,ok=!!fade&&!document.hidden&&!!MP.play&&!!o.ext&&!MP.noxf&&(T.src.t!=="yt"||!!mpDk[k0].ypr),k=ok?k0:MP.d,n=mpDk[k];
  MP.d=k;MP.i=i;MP.started=1;MP.want=1;MP.play=ok?1:0;MP.t0=Date.now();MP.hist.push(i);if(MP.hist.length>60)MP.hist.shift();
  T.c=mpPal(T.m,mpLH);mpLH=T.c.h;n.g=ok?0:1;mpDkVol(n);
  if(T.src.t==="yt"){n.ext="yt";if(n.au)n.au.pause();mpYt(n,k,T)}else{n.ext="audio";mpAudio(n,k,T)}
@@ -6875,7 +6875,7 @@ function zmKeep(){if(zmSA){if(zmSA.paused)zmSA.play().catch(function(){});return
   w(0,"RIFF");v.setUint32(4,36+n,true);w(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,"data");v.setUint32(40,n,true);b.fill(128,44);
   zmSA=new Audio(URL.createObjectURL(new Blob([b],{type:"audio/wav"})));zmSA.loop=true;zmSA.volume=.01;zmSA.play().catch(function(){})}catch(e){}}
 const zmGo0=mpGo;
-mpGo=function(){MP.zr=0;zmKeep();return zmGo0.apply(this,arguments)};
+mpGo=function(){MP.zr=0;MP.zc=0;zmKeep();return zmGo0.apply(this,arguments)};
 /* 3. watchdog: always moves to the next song, even if screen is off or app was in background */
 const zmXFS=mpIOS?0:12;
 mpWatch=function(){
@@ -6884,7 +6884,7 @@ mpWatch=function(){
   if(MP.xf&&MP.xt&&Date.now()-MP.xt>5500){const q=mpDk[MP.d];let pp=false;
    try{pp=q.ext==="yt"?(!!q.ypr&&q.yp.getPlayerState()===1):(!!q.au&&!q.au.paused)}catch(e){}
    if(!pp){MP.nxf=(MP.nxf||0)+1;if(MP.nxf>=3)MP.noxf=1;mpXfEnd();try{q.ext==="yt"?q.yp.playVideo():q.au.play()}catch(e){}}}
-  if(zmXFS&&!MP.noxf&&MP.want&&MP.play&&!MP.rp&&!MP.xf&&!SL.song){
+  if(zmXFS&&!document.hidden&&!MP.noxf&&MP.want&&MP.play&&!MP.rp&&!MP.xf&&!SL.song){
    const D=mpDur(),P=mpPos(),xs=Math.min(zmXFS,D*.45);
    if(D>=22&&D-P<=xs&&D-P>.4&&mpList().length>1){const i=mpNext(1);if(i>=0&&i!==MP.i)mpGo(i,1,D-P)}}
   if(!MP.want||MP.xf)return;
@@ -6893,7 +6893,7 @@ mpWatch=function(){
    const s=d.yp.getPlayerState();
    if(s===0&&age>3000){mpEnded();return}
    if(s===1||s===3){MP.zn=0;return}
-   if(age>3500&&Date.now()-(MP.zn||0)>2500){MP.zn=Date.now();try{d.yp.playVideo()}catch(e){}}
+   if(age>3500&&Date.now()-(MP.zn||0)>(document.hidden?6000:2500)&&(MP.zc||0)<(document.hidden?3:6)){MP.zn=Date.now();MP.zc=(MP.zc||0)+1;try{d.yp.playVideo()}catch(e){}}
    if(age>8000&&!MP.zr&&MP.i>=0&&MT[MP.i]&&MT[MP.i].src.t==="yt"){MP.zr=1;try{d.yp.loadVideoById(MT[MP.i].src.id)}catch(e){}}
    else if(age>17000&&MP.zr===1){MP.zr=2;ts("Skipped: song start nahi hua");mpStep(1)}
   }else if(d.ext==="audio"&&d.au){
@@ -6902,7 +6902,7 @@ mpWatch=function(){
  }catch(e){}};
 function zmKick(){try{if(MP.started&&MP.want)mpWatch()}catch(e){}}
 document.addEventListener("visibilitychange",function(){setTimeout(zmKick,120);setTimeout(zmKick,900)});
-addEventListener("pageshow",zmKick);addEventListener("focus",zmKick);
+addEventListener("pageshow",zmKick);addEventListener("focus",zmKick);/*ZNX-MU1*/document.addEventListener("visibilitychange",function(){if(document.hidden&&MP.xf)mpXfEnd()});
 setInterval(function(){if(document.hidden)zmKick();
  if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=MP.started?(MP.play?"playing":"paused"):"none"}catch(e){}}},1000);
 
