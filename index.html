@@ -1480,7 +1480,7 @@ const MPR={1:{a:[165,265],o:[20,50],s:[34,50],l:[58,66]},2:{a:[250,335],o:[25,60
 let mpLH=-1;
 const mpGap=(x,y)=>{const d=Math.abs(x-y)%360;return d>180?360-d:d};
 const mpPal=(m,avoid)=>{const r=MPR[m]||MPR[2],rd=v=>v[0]+Math.random()*(v[1]-v[0]);let a=0,best=-1;for(let n=0;n<14&&best<75;n++){const c=Math.round(rd(r.a)+360)%360,gp=avoid<0?360:mpGap(c,avoid);if(gp>best){best=gp;a=c}}const b=(a+Math.round(rd(r.o))+360)%360,p=[hsl2hex(a,rd(r.s),rd(r.l)),hsl2hex(b,rd(r.s)-4,rd(r.l)-4)];p.h=a;return p};
-const mpList=()=>MT.map((t,i)=>i).filter(i=>(!MP.mood||MT[i].m===MP.mood)&&(!MP.pl||MP.pl.has(MT[i].url)));
+const mpList=()=>MT.map((t,i)=>i).filter(i=>(!MP.mood||MT[i].m===MP.mood)&&(!(MP.mood===2&&MP.era)||MT[i].era===MP.era)&&(!MP.pl||MP.pl.has(MT[i].url)));
 const mpPick=l=>l[(Math.random()*l.length)|0];
 function mpSync(){const cf=MT[MP.i]&&MT[MP.i].fid,oc={};MT.forEach(t=>oc[t.fid]=t.c);MT.length=0;FAV.filter(x=>x.kind==="listen").forEach(x=>{const src=parseSrc(x.url);if(src)MT.push({n:x.title,m:x.type||1,src,url:x.url,fid:x.id,scope:x.scope,c:oc[x.id]||mpPal(x.type||1,-1)})});
  const k=MT.findIndex(t=>t.fid===cf);if(k>=0)MP.i=k;const sg=MT.map(t=>t.fid).join();if(sg!==MP.sig){MP.sig=sg;MP.bag=[];MP.hist=[]}}
@@ -1627,7 +1627,7 @@ $("mini").onclick=e=>{if(e.target.closest("#mix"))return;mpOpen()};$("mix").oncl
 {const m=$("mini");let d=null,dr=0;m.addEventListener("pointerdown",e=>{d={x:e.clientX,id:e.pointerId};dr=0});m.addEventListener("pointermove",e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x;if(!dr&&Math.abs(dx)>10){dr=1;try{m.setPointerCapture(e.pointerId)}catch(x){}}if(dr){m.style.transition="none";m.style.transform=`translate(calc(-50% + ${dx}px),0)`;m.style.opacity=String(1-Math.min(.8,Math.abs(dx)/260))}});const up=e=>{if(!d)return;const dx=e.clientX-d.x;d=null;m.style.transition="";m.style.transform="";m.style.opacity="";if(dr&&Math.abs(dx)>90){MP.hideMini=1}dr=0};m.addEventListener("pointerup",up);m.addEventListener("pointercancel",up)}
 setInterval(()=>{if(!MP.started){$("mini").classList.remove("on");document.body.classList.remove("hasmini");$("morb").classList.remove("on","pl");return}
  const hid=$("app").classList.contains("hide"),sm=!MP.on&&!MP.hideMini&&!hid,so=!MP.on&&MP.hideMini&&!hid,T=MT[MP.i];
- $("mini").classList.toggle("on",sm);document.body.classList.toggle("hasmini",sm);$("morb").classList.toggle("on",so);$("morb").classList.toggle("pl",!!MP.play);if(T)$("morb").style.setProperty("--mt",[0,3.4,2.4,1.5][T.m||2]+"s");mpWatch()},500);
+ $("mini").classList.toggle("on",sm);document.body.classList.toggle("hasmini",sm);$("morb").classList.toggle("on",so);$("morb").classList.toggle("pl",!!MP.play);if(T)$("morb").style.setProperty("--mt",[0,3.4,2.4,1.5,3.4][T.m||2]+"s");mpWatch()},500);
 $("pg").addEventListener("click",e=>{if(tab!=="enjoy")return;if(e.target.closest("[data-en=music]"))mpOpen()});
 document.addEventListener("pointerdown",e=>{const el=e.target.closest&&e.target.closest(".gr,.opt,.row,.cct");if(!el)return;const r=el.getBoundingClientRect();el.style.setProperty("--mx",(e.clientX-r.left)+"px");el.style.setProperty("--my",(e.clientY-r.top)+"px")},true);
 
@@ -2205,7 +2205,7 @@ function etHead(){$("etc").textContent="ROOM · "+ET.code;$("etstk").innerHTML=E
 function etPane(k){ET.pane=k;ET.sm=false;ET.sel.clear();[...$("ettabs").children].forEach(b=>b.classList.toggle("on",b.dataset.p===k));["chat","queue","saved","room"].forEach(p=>$("etp_"+p).classList.toggle("hide",p!==k));({chat:etChat,queue:etQueue,saved:etSaved,room:etRoom})[k]()}
 function etChat(){$("etx").innerHTML=ET.msgs.length?ET.msgs.map(m=>`<div class="m ${m.me?"out":"in"}">${m.me?"":`<b style="display:block;font-size:11px;opacity:.7">${esc(m.n)}</b>`}${esc(m.t)}</div>`).join(""):'<div class="empty" style="padding:18px">No messages yet.</div>';$("etx").scrollTop=1e9}
 function etQueue(){const l=ET.q,sm=ET.sm&&ET.pane==="queue";$("etp_queue").innerHTML=`${ET.cur?`<div class="sec">Now playing</div><div class="glist"><div class="gr"><span class="t"><b>${esc(ET.title||"Playing")}</b><small class="mono">${ET.kind==="listen"?"Audio":"Video"}</small></span></div></div>`:""}<div class="shd"><div class="sec" style="margin:16px 4px 10px">Up next · ${l.length}</div>${l.length?`<button class="gb" data-es="tog">${sm?"Done":"Select"}</button>`:""}</div>${l.length?`<div class="glist">${l.map((n,i)=>`<div class="gr"${sm?` data-eq="${i}"`:""}>${sm?`<span class="ck${ET.sel.has(i)?" on":""}"></span>`:""}<span class="t"><b>${esc(n.title||"Untitled")}</b></span>${sm?"":`<button class="ib" data-qd="${i}" aria-label="Remove">${IC.trash}</button>`}</div>`).join("")}</div>${sm?`<div class="ibar"><b>${ET.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-es="all">All</button><button class="gb dg" data-es="del">Remove</button></div>`:'<button class="gb" data-qs="1" style="margin-top:12px">Skip to next</button>'}`:'<div class="empty" style="padding:22px">Nothing queued.<br><small>Add items from Saved.</small></div>'}`}
-function etSaved(){const f=ET.fav,sm=ET.sm&&ET.pane==="saved",l=FAV.filter(x=>x.kind===ET.kind&&(f==="all"||x.scope===f)),TY=["","Soothing","Vibe","Energetic"];ET.vis=l;
+function etSaved(){const f=ET.fav,sm=ET.sm&&ET.pane==="saved",l=FAV.filter(x=>x.kind===ET.kind&&(f==="all"||x.scope===f)),TY=["","Soothing","Vibe","Energetic","Bhakti"];ET.vis=l;
  $("etp_saved").innerHTML=`<div class="shd"><div class="seg" id="etfv2" style="flex:1;margin-right:10px">${["all","private","global"].map(k=>`<button data-f="${k}" class="${f===k?"on":""}">${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}</div>${l.length?`<button class="gb" data-es="tog">${sm?"Done":"Select"}</button>`:""}</div>${l.length?`<div class="glist">${l.map(x=>`<div class="gr"${sm?` data-ef="${x.id}"`:""}>${sm?`<span class="ck${ET.sel.has(x.id)?" on":""}"></span>`:""}<span class="t"><b>${esc(x.title)}</b><small class="mono">${x.scope}${x.type?" · "+TY[x.type]:""}</small></span>${sm?"":`<button class="ib" data-fa="q:${x.id}" aria-label="Add to queue">${A('<path d="M12 5v14M5 12h14"/>')}</button><button class="gb pri" data-fa="p:${x.id}">Play</button>${favCan(x)?`<button class="ib" data-fa="d:${x.id}" aria-label="Remove">${IC.trash}</button>`:""}`}</div>`).join("")}</div>${sm?`<div class="ibar"><b>${ET.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-es="all">All</button><button class="gb" data-es="priv">Private</button><button class="gb" data-es="glob">Global</button><button class="gb dg" data-es="del">Remove</button></div>`:""}`:'<div class="empty" style="padding:22px">Nothing saved yet.<br><small>Paste a link and tap the star.</small></div>'}`}
 function etRoom(){$("etp_room").innerHTML=`<div class="glist">${ET.mem.map((m,i)=>`<div class="gr"><div class="ava" data-pid="${m.pid}" style="background:${g(m.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(m.n))}</div><span class="t"><b>${esc(m.n)}${m.me?" (You)":""}</b><small class="mono">${m.host?"Host":"Member"}${m.v?((m.me?ET.mic:m.mic)?" · In voice":" · Muted"):""}</small></span>${!m.me&&ET.host?`${m.v?`<button class="gb" data-mm="${i}">${ET.mu[m.pid]?"Unmute":"Mute"}</button>`:""}<button class="ib" data-mr="${i}" aria-label="Remove">${IC.trash}</button>`:""}</div>`).join("")}${etInvRows()}${ET.mem.length+ET.inv.length<5?`<button class="gr" data-inv="1"><i>${A('<path d="M12 5v14M5 12h14"/>')}</i><span class="t"><b>Invite a friend</b></span></button>`:""}</div>
  <div class="sec">Voice</div><div class="glist"><div class="gr"><span class="t"><b>Voice chat</b><small>Join or leave any time. The host can mute anyone.</small></span><button class="tg ${ET.voice?"on":""}" data-voice="1" aria-label="Voice chat"></button></div></div>
@@ -2364,7 +2364,7 @@ $("et").addEventListener("click",e=>{const t=e.target;let b;
  if(t.closest("[data-leave]"))return etClose()});
 $("pg").addEventListener("click",e=>{if(tab==="enjoy"&&e.target.closest("[data-en=together]"))etOpen()});
 /* ===== Favourites ===== */
-const FS={kind:"watch",scope:"all",q:"",sm:false,sel:new Set(),vis:[]},TYN=["","Soothing","Vibe","Energetic"];
+const FS={kind:"watch",scope:"all",q:"",sm:false,sel:new Set(),vis:[]},TYN=["","Soothing","Vibe","Energetic","Bhakti"];
 const fvHost=u=>{try{return new URL(u).hostname.replace("www.","")}catch(e){return"link"}};
 function fvDraw(){$("fvsel").style.display=FS.kind==="pl"?"none":"";if(FS.kind==="pl")return plFv();const l=FAV.filter(x=>(FS.kind==="liked"?x.kind==="listen"&&LKD.has(x.url):x.kind===FS.kind)&&(FS.scope==="all"||x.scope===FS.scope)&&x.title.toLowerCase().includes(FS.q.toLowerCase()));FS.vis=l;$("fvcount").textContent=FAV.length+" SAVED";$("fvsel").textContent=FS.sm?"Done":"Select";
  $("fvlist").innerHTML=l.length?`<div class="glist">${l.map(x=>`<div class="gr"${FS.sm?` data-fs="${x.id}"`:""}>${FS.sm?`<span class="ck${FS.sel.has(x.id)?" on":""}"></span>`:""}<i style="background:${g(x.title)};border:0"></i><span class="t"><b>${esc(x.title)}</b><small class="mono">${x.scope} · ${fvHost(x.url)}${x.type?" · "+TYN[x.type]:""}</small></span>${FS.sm?"":`<button class="gb pri" data-fp="${x.id}">Play</button><button class="ib" data-fm="${x.id}" aria-label="More"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg></button>`}</div>`).join("")}</div>`:`<div class="empty" style="padding:34px 10px">${FAV.some(x=>x.kind===FS.kind)?"Nothing matches.":"No "+(FS.kind==="liked"?"liked songs":FS.kind==="listen"?"songs":"videos")+" saved yet."}<br><small>Tap + to add a link.</small></div>`;
@@ -5852,11 +5852,11 @@ window.znxOut=async()=>{setPres(false);try{await SB.auth.signOut()}catch(e){}loc
 const loadFav=async()=>{
  try{const r=await SB.from("nx_fav").select("*").order("created_at",{ascending:false}).limit(1000);if(r.error)return;
   FAVDB.clear();FAV.length=0;let n=0;
-  (r.data||[]).forEach(x=>{if(!x.url)return;if(x.owner!==PID&&x.scope!=="global")return;if(x.owner===PID||MY.role==="admin")FAVDB.add(x.id);FAV.push({id:Date.now()+n++,sid:x.id,mine:x.owner===PID,kind:x.kind==="listen"?"listen":"watch",title:x.name||"Untitled",url:x.url,scope:x.scope==="global"?"global":"private",type:x.song_type||0})});
+  (r.data||[]).forEach(x=>{if(!x.url)return;if(x.owner!==PID&&x.scope!=="global")return;if(x.owner===PID||MY.role==="admin")FAVDB.add(x.id);FAV.push({id:Date.now()+n++,sid:x.id,mine:x.owner===PID,kind:x.kind==="listen"?"listen":"watch",title:x.name||"Untitled",url:x.url,scope:x.scope==="global"?"global":"private",type:x.song_type||0,era:x.era||""})});
   try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}
   if(typeof mpSync==="function")mpSync()}catch(e){}};
 window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID)return;
- try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;const r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0}).select("id").maybeSingle();
+ try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;const r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();
    if(r.error){ts(r.error.message||"Could not save the link");continue}if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
   const have=new Set(FAV.filter(x=>x.sid).map(x=>x.sid));
   for(const id of [...FAVDB]){if(!have.has(id)){const r=await SB.from("nx_fav").delete().eq("id",id);if(!r.error)FAVDB.delete(id)}}}catch(e){}},500)};
@@ -6560,7 +6560,7 @@ html body .etmk{height:12%}html body .etmk.b{height:14%}
 `);
 
 /* 1. Save: Videos or Music (Soothing / Vibe / Energetic) */
-const SAVEC=[["w",0,"Videos","Watch list",IC.vid],["l",1,"Music \u00b7 Soothing","Calm and slow",IC.aud],["l",2,"Music \u00b7 Vibe","Mood and groove",IC.aud],["l",3,"Music \u00b7 Energetic","High energy",IC.aud]];
+const SAVEC=[["w",0,"Videos","Watch list",IC.vid],["l",1,"Music \u00b7 Soothing","Calm and slow",IC.aud],["l",2,"Music \u00b7 Vibe","Mood and groove",IC.aud],["l",3,"Music \u00b7 Energetic","High energy",IC.aud],["l",4,"Music \u00b7 Bhakti","Bhajan aur devotional",IC.aud]];
 function ytSave(id,title){
  if(!/^[\w-]{11}$/.test(id||""))return;const url="https://youtu.be/"+id;let sc="private";
  sheet(`<h3>Save</h3><div class="fld"><label>Name</label><input id="ysn" maxlength="60" value="${esc(String(title||"").slice(0,60))}" autocomplete="off"></div><div class="sec">Save to</div><div class="glist">${SAVEC.map((c,i)=>`<button class="gr" data-ys="${i}"><i class="gi">${c[4]}</i><span class="t"><b>${c[2]}</b><small>${c[3]}</small></span><em>\u203a</em></button>`).join("")}</div><div class="sec">Visible to</div><div class="seg" id="ysv"><button data-s="private" class="on">Private</button><button data-s="global">Global</button></div>`);
@@ -6931,6 +6931,138 @@ addEventListener("pageshow",zmKick);addEventListener("focus",zmKick);/*ZNX-MU1*/
 setInterval(function(){if(document.hidden)zmKick();
  if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=MP.started?(MP.play?"playing":"paused"):"none"}catch(e){}}},1000);
 
+/*ZNX-BHAKTI-V1*/
+try{{
+if(MN.indexOf("Bhakti")<0){
+ MN.push("Bhakti");
+ MI.push(A('<path d="M12 3c1.5 2.5 3.5 4 3.5 6.5a3.5 3.5 0 01-7 0C8.5 7 10.5 5.5 12 3z"/><path d="M5 14c2 0 4 1 7 4 3-3 5-4 7-4-1 3-4 6-7 6s-6-3-7-6z"/>'));
+}
+MPR[4]={a:[18,48],o:[8,28],s:[70,88],l:[54,62]};
+MP.era=MP.era||"";
+
+/* Bhakti ka beat shaant (Soothing jaisa) */
+const _pu=mpPulse;
+mpPulse=function(t,dt,m,pl){return _pu(t,dt,m===4?1:m,pl)};
+
+/* har song ke saath uska era (old/new) */
+const _ms=mpSync;
+mpSync=function(){
+ _ms.apply(this,arguments);
+ MT.forEach(t=>{const f=FAV.find(z=>z.id===t.fid);t.era=(f&&f.era)||""});
+};
+
+/* tabs: All, Bhakti, Soothing, Vibe, Energetic */
+function moRender(){
+ const el=$("mpmo");if(!el)return;
+ el.innerHTML=[0,4,1,2,3].map(i=>`<button data-mo="${i}" class="${MP.mood===i?"on":""}">${MI[i]}${(i===2&&MP.mood===2&&MP.era)?("Vibe · "+(MP.era==="old"?"Old":"New")):MN[i]}</button>`).join("");
+}
+const _ui=mpUI;
+mpUI=function(){_ui.apply(this,arguments);moRender()};
+
+function rpick(l){
+ const c=l.filter(i=>i!==MP.i),a=c.length?c:l;
+ return a[(Math.random()*a.length)|0];
+}
+
+/* tab tap: normal (Vibe = Old + New mix) */
+let moLP=0,moT=0,moX=0,moY=0;
+$("mpmo").onclick=e=>{
+ if(Date.now()-moLP<700)return;
+ const b=e.target.closest("[data-mo]");if(!b)return;
+ MP.mood=+b.dataset.mo;MP.era="";MP.bag=[];
+ const l=mpList();
+ if(!l.length){mpUI();return}
+ mpGo(rpick(l),1);
+};
+
+/* Vibe par long press: Old / New */
+function setEra(era){
+ const pm=MP.mood,pe=MP.era;
+ MP.mood=2;MP.era=era;MP.bag=[];
+ const l=mpList();
+ if(!l.length){MP.mood=pm;MP.era=pe;ts("Is section me abhi koi song nahi hai");return}
+ mpGo(rpick(l),1);
+}
+function eraSheet(){
+ const on=k=>(MP.mood===2&&MP.era===k)?'<span class="ck on"></span>':"";
+ sheet(`<h3>Vibe</h3><div class="glist"><button class="gr" data-ev="old"><span class="t"><b>Old</b><small>Purane vibe gaane</small></span>${on("old")}</button><button class="gr" data-ev="new"><span class="t"><b>New</b><small>Naye vibe gaane</small></span>${on("new")}</button></div>`);
+ $("sh").onclick=e=>{const b=e.target.closest("[data-ev]");if(!b)return;closeS();setEra(b.dataset.ev)};
+}
+const mo=$("mpmo");
+mo.addEventListener("pointerdown",e=>{
+ const b=e.target.closest('[data-mo="2"]');if(!b)return;
+ moX=e.clientX;moY=e.clientY;clearTimeout(moT);
+ moT=setTimeout(()=>{moT=0;moLP=Date.now();if(navigator.vibrate)navigator.vibrate(10);eraSheet()},450);
+});
+mo.addEventListener("pointermove",e=>{if(moT&&Math.hypot(e.clientX-moX,e.clientY-moY)>10){clearTimeout(moT);moT=0}});
+["pointerup","pointercancel","pointerleave"].forEach(v=>mo.addEventListener(v,()=>{clearTimeout(moT);moT=0}));
+mo.addEventListener("contextmenu",e=>e.preventDefault());
+
+/* naya song add karte waqt: Bhakti button + Vibe ke liye Old / New */
+let curEra=null;
+const ERA='<div class="znxEra" style="display:none"><div class="sec">Vibe type</div><div class="seg"><button data-era="old">Old</button><button data-era="new">New</button></div></div>';
+const ERA_Y='<div class="znxEra"><div class="sec">Vibe type (sirf Music · Vibe ke liye)</div><div class="seg"><button data-era="old">Old</button><button data-era="new">New</button></div></div>';
+function inj(){
+ const sh=$("sh");if(!sh)return;
+ ["mat","fvt","faTT"].forEach(id=>{
+  const sg=sh.querySelector("#"+id);if(!sg)return;
+  if(!sg.querySelector('[data-t="4"]'))sg.insertAdjacentHTML("beforeend",'<button data-t="4">Bhakti</button>');
+  if(!sh.querySelector(".znxEra")){curEra=null;sg.insertAdjacentHTML("afterend",ERA)}
+ });
+ const r=sh.querySelector("[data-ys]");
+ if(r&&!sh.querySelector(".znxEra")){
+  const gl=r.closest(".glist");
+  if(gl){curEra=null;gl.insertAdjacentHTML("afterend",ERA_Y)}
+ }
+}
+new MutationObserver(inj).observe($("sh"),{childList:true,subtree:true});
+
+$("sh").addEventListener("click",e=>{
+ const eb=e.target.closest("[data-era]");
+ if(eb){
+  curEra=eb.dataset.era;
+  eb.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===eb));
+  return;
+ }
+ const tb=e.target.closest("#mat button,#fvt button,#faTT button");
+ if(tb&&tb.dataset.t){
+  const box=$("sh").querySelector(".znxEra");
+  if(box){
+   const v=tb.dataset.t==="2";
+   box.style.display=v?"":"none";
+   if(!v){curEra=null;box.querySelectorAll("button").forEach(x=>x.classList.remove("on"))}
+  }
+ }
+});
+
+/* Vibe save hone se pehle Old / New zaroor chuna ho */
+document.addEventListener("click",e=>{
+ const t=e.target.closest&&e.target.closest('#mak,#fvok,#fak,[data-ys="2"]');
+ if(!t)return;
+ let vibe=false;
+ if(t.hasAttribute("data-ys"))vibe=true;
+ else{
+  const on=document.querySelector("#mat .on,#fvt .on,#faTT .on");
+  vibe=!!on&&on.dataset.t==="2";
+  if(t.id==="fak"){const k=document.querySelector("#faK .on");vibe=vibe&&!!k&&k.dataset.k==="listen"}
+ }
+ if(vibe&&!curEra){e.stopImmediatePropagation();e.preventDefault();ts("Vibe ke liye Old ya New chuno")}
+},true);
+
+/* naye song par era lagao (sync se pehle) */
+const _fs=window.znxFavSync;
+window.znxFavSync=function(){
+ try{
+  FAV.forEach(f=>{
+   if(f.kind==="listen"&&!f.sid&&!f.tried&&f.era===undefined)f.era=(f.type===2&&curEra)?curEra:"";
+  });
+ }catch(x){}
+ return _fs&&_fs.apply(this,arguments);
+};
+
+mpSync();
+if(MP.on)mpUI();
+}}catch(err){console.error("ZNX bhakti",err)}
 /*ZNX-LT listen together*/
 {const LT={on:0,ch:null,live:0,host:0,peer:"",pn:"",code:"",rx:0,ts:0,hb:0,tm:0,rt:0,shown:0};
 const IV='<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M19 8v6M16 11h6"/></svg>';
