@@ -5851,16 +5851,17 @@ window.znxOut=async()=>{setPres(false);try{await SB.auth.signOut()}catch(e){}loc
 /* songs and links */
 const loadFav=async()=>{
  try{const r=await SB.from("nx_fav").select("*").order("created_at",{ascending:false}).limit(1000);if(r.error)return;
-  FAVDB.clear();FAV.length=0;let n=0;
+  const keepL=FAV.filter(x=>!x.sid&&x.url);FAVDB.clear();FAV.length=0;let n=0;
   (r.data||[]).forEach(x=>{if(!x.url)return;if(x.owner!==PID&&x.scope!=="global")return;if(x.owner===PID||MY.role==="admin")FAVDB.add(x.id);FAV.push({id:Date.now()+n++,sid:x.id,mine:x.owner===PID,kind:x.kind==="listen"?"listen":"watch",title:x.name||"Untitled",url:x.url,scope:x.scope==="global"?"global":"private",type:x.song_type||0,era:x.era||""})});
   try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}
-  if(typeof mpSync==="function")mpSync()}catch(e){}};
+  keepL.forEach(x=>{if(!FAV.some(y=>y.url===x.url&&y.kind===x.kind)){x.tried=0;x.rt=0;FAV.unshift(x)}});if(typeof mpSync==="function")mpSync()}catch(e){}};
 window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID)return;
  try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;const r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();
-   if(r.error){ts(r.error.message||"Could not save the link");continue}if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
+   if(r.error){f.rt=(f.rt||0)+1;f.tried=f.rt<4?0:1;if(f.rt===1||f.rt>=4)ts("Save nahi hua: "+String(r.error.message||"link").slice(0,90));continue}/*ZNX-FAVFIX1*/if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
   const have=new Set(FAV.filter(x=>x.sid).map(x=>x.sid));
   for(const id of [...FAVDB]){if(!have.has(id)){const r=await SB.from("nx_fav").delete().eq("id",id);if(!r.error)FAVDB.delete(id)}}}catch(e){}},500)};
 
+setInterval(()=>{if(PID&&FAV.some(x=>!x.sid&&!x.tried&&(x.rt||0)<4))window.znxFavSync()},15000);
 /* admin: real user list */
 const loadAdmin=async()=>{try{const r=await SB.from("profiles").select("id,username,display_name,uid,is_guest,online,last_seen").order("created_at",{ascending:false}).limit(500);if(r.error)return;
  AU.length=0;(r.data||[]).forEach((p,i)=>AU.push({id:i,pid:p.id,n:p.display_name||"User",user:p.username||"",uid:String(p.uid||"").replace(/^NX-?/,"MG"),ref:0,guest:!!p.is_guest,canSt:false,canFav:false,banned:false,act:p.online?"Online":(p.last_seen?fL(p.last_seen):"")}))}catch(e){}};
