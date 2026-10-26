@@ -794,7 +794,7 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pu
  async function ask(txt){txt=String(txt||"").trim().slice(0,500);if(!txt||busy||dead||off)return;
   if(cnt>=15){pm.push({r:"a",raw:"Itna free chat kaafi hai. Aur chat ke liye Explore dabao aur login karo."});render();return}
   cnt++;pm.push({r:"u",raw:txt});
-  var h=(function(a){var b=4200,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<6?400:120;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(pm.map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw)}}));
+  var h=(function(a){var b=6000,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<12?500:250;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(pm.map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw)}}));
   while(h.length>1&&h[0].role!=="user")h.shift();
   h[h.length-1].text+=HINT;busy=1;render();
   var bot={r:"a",raw:""},shown=0;
@@ -885,8 +885,8 @@ $("eye").onclick=()=>{const p=$("pw");p.type=p.type==="password"?"text":"passwor
 <div class="sl mpsk" id="mpsk"><i id="mpf2"></i><b id="mpkn"></b></div><div class="mptm"><span id="mpa">0:00</span><span id="mpd">0:00</span></div>
 <div class="mpctl"><button class="ib" id="mps" aria-label="Shuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button><button class="ib" id="mpb" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 5v14M19 5L9 12l10 7z"/></svg></button><button id="mpp" aria-label="Play or pause"></button><button class="ib" id="mpf" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button><button class="ib" id="mpr" aria-label="Repeat"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 01-3 3H3"/></svg></button></div>
 <div class="mpft"><div class="mpmo" id="mpmo"></div><div class="mvp" id="mvp"><div class="sl v" id="mvt"><i id="mvf"></i><b id="mvk"></b></div></div></div>
-<div style="position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"><div id="mpyt0"></div><div id="mpyt1"></div></div></div>
-<div id="mini"><i id="mio"></i><div class="t"><b id="min"></b><small id="mim"></small></div><button class="ib" id="mip" aria-label="Play or pause"></button><button class="ib" id="mix" aria-label="Hide player"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="et"><div class="eth"><button class="ib" id="etb" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ett"><b>Enjoy Together</b><small id="etc"></small></div><div class="ethr"><div class="stk" id="etstk"></div><button class="ib" id="etmic" aria-label="Voice"></button></div></div>
+</div>
+<style>#mpyw iframe{width:200px!important;height:200px!important}</style><div id="mpyw" style="position:fixed;right:0;bottom:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:-1;overflow:hidden"><div id="mpyt0"></div><div id="mpyt1"></div></div><div id="mini"><i id="mio"></i><div class="t"><b id="min"></b><small id="mim"></small></div><button class="ib" id="mip" aria-label="Play or pause"></button><button class="ib" id="mix" aria-label="Hide player"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="et"><div class="eth"><button class="ib" id="etb" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ett"><b>Enjoy Together</b><small id="etc"></small></div><div class="ethr"><div class="stk" id="etstk"></div><button class="ib" id="etmic" aria-label="Voice"></button></div></div>
 <div class="seg" id="ets"><button class="on" data-k="w">Watch</button><button data-k="l">Listen</button></div>
 <div class="etg" id="etg"><div class="etn" id="etn"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>Paste a link below</b><small>YouTube or a video link. Or use a file from your device.</small><button class="pri" id="etpick">From device</button></div><div class="etyw" id="etyw"><div id="etyt"></div></div><video id="etv" playsinline></video><div class="etdim" id="etdim"></div><div class="etcv" id="etcv"><button id="etcb" aria-label="Play"></button></div><div class="etaud" id="etaud"><i></i></div><div class="etgs" id="etgs"></div><div class="ethud" id="ethud"></div><div class="etdb" id="etdb"></div>
  <div class="etk" id="etk"><button class="ib" id="etp" aria-label="Play or pause"></button><span id="eta">0:00</span><div class="etsk" id="etsk"><i id="etf"></i><b id="etkn"></b></div><span id="etd">0:00</span><button class="ib" id="etzm" aria-label="Fit or fill"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/><rect x="8" y="9" width="8" height="6" rx="1"/></svg></button><button class="ib" id="etfs" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div></div>
@@ -3052,7 +3052,7 @@ async function zxSend(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.busy)
 zxSend=async function(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.cfg.ai_on===false){zxClose();return ts("Zexo AI abhi band hai")}if(zx.busy)return ts("Zexo jawab de raha hai");if(Date.now()-zx.last<600)return;zx.last=Date.now();
  var c=zxC();if(!c.sb||!c.pid)return ts("Abhi connect nahi hua");var sid=zx.sid;
  zx.msgs.push({r:"u",raw:txt.slice(0,1000),t:new Date()});zx.busy=1;zxDraw();zxStore("user",txt);
- zx.dbg="";var bot={r:"a",raw:"",t:new Date()},t0=Date.now(),shown=0,h=(function(a){var b=4200,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<6?400:120;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(zx.msgs.map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw)}}));
+ zx.dbg="";var bot={r:"a",raw:"",t:new Date()},t0=Date.now(),shown=0,h=(function(a){var b=6000,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<12?500:250;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(zx.msgs.map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw)}}));
  try{
   if(!window.nxFn)throw 0;
   var r=await window.nxZexo(h);
@@ -6917,6 +6917,7 @@ function zmKeep(){if(zmSA){if(zmSA.paused)zmSA.play().catch(function(){});return
 const zmGo0=mpGo;
 mpGo=function(){MP.zr=0;MP.zc=0;zmKeep();return zmGo0.apply(this,arguments)};
 /* 3. watchdog: always moves to the next song, even if screen is off or app was in background */
+function znxArm(){if(MP.arm)return;MP.arm=1;MP.noxf=1;ts("Music ruk gaya. Ek baar screen tap karo");var f=function(){MP.arm=0;MP.zc=0;MP.zn=0;try{var d=mpDk[MP.d];if(MP.want&&d.ext==="yt"&&d.ypr)d.yp.playVideo()}catch(e){}};document.addEventListener("pointerdown",f,{once:true,capture:true})}
 const zmXFS=mpIOS?0:12;
 mpWatch=function(){
  try{
@@ -6933,7 +6934,7 @@ mpWatch=function(){
    const s=d.yp.getPlayerState();
    if(s===0&&age>3000){mpEnded();return}
    if(s===1||s===3){MP.zn=0;return}
-   if(age>3500&&Date.now()-(MP.zn||0)>(document.hidden?6000:2500)&&(MP.zc||0)<(document.hidden?3:6)){MP.zn=Date.now();MP.zc=(MP.zc||0)+1;try{d.yp.playVideo()}catch(e){}}
+   if(age>3500&&Date.now()-(MP.zn||0)>(document.hidden?6000:2500)){if((MP.zc||0)<2){MP.zn=Date.now();MP.zc=(MP.zc||0)+1;try{d.yp.playVideo()}catch(e){}}else znxArm()}
    if(age>8000&&!MP.zr&&MP.i>=0&&MT[MP.i]&&MT[MP.i].src.t==="yt"){MP.zr=1;try{d.yp.loadVideoById(MT[MP.i].src.id)}catch(e){}}
    else if(age>17000&&MP.zr===1){MP.zr=2;ts("Skipped: song start nahi hua");mpStep(1)}
   }else if(d.ext==="audio"&&d.au){
