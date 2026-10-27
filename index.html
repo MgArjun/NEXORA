@@ -4068,7 +4068,47 @@ LV.splice(LV.length-1,0,...G);
 /*ZNX-GEN-END*/
 /* ---------- game flow ---------- */
 function camT(px,py){return[cl(px+PW/2-W/2,0,Math.max(0,D.W-W)),cl(py+PH/2-(D.g>0?H*.58:H*.42),D.y0,Math.max(D.y0,D.y1-H))]}
-function ldLoad(i,fresh){if(fresh){D.cp=null;D.dv=0}const b=LV[i].b();ZXI(b,i);ZXI(b,i);D.lv=i;D.ents=b.e;D.W=b.w;D.y0=b.y0==null?0:b.y0;D.y1=b.y1||360;D.lava=null;
+/*ZNX-DEVIL-V2*/
+function ZXU(b,i){
+ if(b.w<800)return;
+ var E0=b.e,s=(SS+i*104729+17)>>>0,R=function(){s=(s*1664525+1013904223)>>>0;return s/4294967296};
+ /* 1. kam spikes: popup / falling spikes me se ~40% hata do (story wale rehne do) */
+ for(var k=E0.length-1;k>=0;k--){var e0=E0[k];if(e0.k==="x"&&!e0.big&&!e0.msg&&R()<.4)E0.splice(k,1)}
+ if(LV[i].z||LV[i].n==="Upside Down")return;
+ /* 2. unpredictable cheezein */
+ var lvl=Math.min(1,i/30),pr=.16+.2*lvl,add=[],
+ near=function(x,m){return E0.some(function(e){return "ecxwt".indexOf(e.k)>=0&&Math.abs(e.x-x)<m})},
+ gs=E0.filter(function(g){return g.k==="s"&&g.g&&!g.fake&&!g.u&&!g.hid&&g.w>=170&&g.x>200});
+ gs.forEach(function(g){
+  if(R()>pr)return;
+  var y=g.y,cx=Math.round(g.x+g.w*(.35+R()*.3)),q=Math.floor(R()*6);
+  if(near(cx,110))return;
+  if(q===0){/* trapdoor: zameen achanak gayab */
+   var hx=cx-28,rw=g.x+g.w-(hx+56);if(hx-g.x<80||rw<80)return;
+   g.w=hx-g.x;
+   add.push(S(hx,y,56,g.h,{g:1,u:function(e,L){if(e.off)return;if(!e.tm){if(L.p.on===e){e.tm=L.t+.06+Math.random()*.4;e.t0=L.t}}else if(L.t>=e.tm){e.off=1;L.shake=.15;vib(8)}}}));
+   add.push(S(hx+56,y,rw,g.h,{g:1}))}
+  else if(q===1){/* rolling saw: pehle nazar nahi aata, phir ludhakta hua aata hai */
+   var sw=Wd(g.x+g.w-26,y-14,13);
+   sw.u=function(e,L,dt){if(!e.go&&L.p.x>g.x+g.w*.3&&L.p.x<g.x+g.w-40&&Math.abs(L.p.y+PH-y)<90)e.go=1;if(e.go){e.x-=185*dt;if(e.x<g.x+8)e.off=1}};
+   add.push(sw)}
+  else if(q===2)add.push(S(cx-13,y-38,26,38,{hid:1}));/* invisible deewar */
+  else if(q===3)add.push(S(cx-14,y-110,28,110,{fake:1}));/* nakli deewar, andar se nikal jaoge */
+  else if(q===4)add.push(Th(cx-25,y));/* girta patthar */
+  else add.push(S(cx-40,y-78,80,12,{u:function(e,L){e.fake=((L.t+cx*.013)%2.6)>1.7}}));/* kabhi solid kabhi bhoot */
+ });
+ E0.push.apply(E0,add);
+ /* 3. random control swap zone + hawa ke jhonke */
+ var old=b.lu;
+ if(!old&&i>=3&&R()<.35){var a=Math.round(b.w*(.25+R()*.4));b.lu=rz([[a,a+280]]);old=b.lu}
+ if(i>=2&&R()<.45){
+  var wd=function(L){if(L.st!=="play")return;if(L.t<.03){L.wt=null;L.we=0}
+   if(L.wt==null)L.wt=L.t+2+Math.random()*2;
+   if(L.t>L.wt){L.wd=Math.random()<.5?-1:1;L.we=L.t+.5+Math.random()*.5;L.wt=L.t+3+Math.random()*3;L.say(L.wd>0?"Wind to the right!":"Wind to the left!",1.2)}
+   if(L.t<(L.we||0))L.p.vx+=L.wd*900*FIX};
+  b.lu=old?function(L){old(L);wd(L)}:wd}
+}
+function ldLoad(i,fresh){if(fresh){D.cp=null;D.dv=0}const b=LV[i].b();ZXI(b,i);ZXI(b,i);ZXU(b,i);D.lv=i;D.ents=b.e;D.W=b.w;D.y0=b.y0==null?0:b.y0;D.y1=b.y1||360;D.lava=null;
  const sx=D.cp?D.cp[0]:b.sp[0],sy=D.cp?D.cp[1]:b.sp[1];
  D.p={x:sx,y:sy,w:PW,h:PH,vx:0,vy:0,g:0,on:null,face:1,coy:0,jb:0,sq:0,run:0,cut:0,qx:sx,qy:sy};
  if(D.cp)D.ents.forEach(e=>{if(e.k==="c"&&e.x<=D.cp[0]+1)e.got=1});
@@ -4127,7 +4167,7 @@ function phys(dt){const p=D.p,gs=D.g,I=inp,ix=(I.r-I.l)*(D.rev?-1:1),SO=D.ents.f
   else if(e.k==="c"){if(!e.got&&ov(hb,e)){e.got=1;if(!D.cp||e.x>D.cp[0]){D.cp=[e.x,e.y+e.h-PH];D.say("Checkpoint!",1.2);vib(12);sfx(600,900,.12,.04,"triangle")}}}
   else if(e.k==="t"){if(!e.sh&&Math.abs(p.x-e.x)<70){e.sh=1;D.say(e.msg,2.8)}}
   else if(e.k==="e"&&!e.hid&&ov({x:p.x+4,y:p.y+4,w:PW-8,h:PH-8},e)){return e.fake?die(e):win()}}}
-function step(dt){
+function step(dt){if(D.hold)return;
  const p0=D.p;p0.qx=p0.x;p0.qy=p0.y;for(const e of D.ents){e.qx=e.x;e.qy=e.y}
  if(D.st==="clear"){D.ct-=dt;if(D.ct<=0)ldLoad(D.lv+1,true);return}
  if(D.st==="end"){D.ct-=dt;if(D.ct<=0&&!D.shown){D.shown=1;showEnd()}return}
@@ -4290,11 +4330,20 @@ function kd(e){if(!D)return;const k=kmap[e.key];if(k){inp[k]=1;e.preventDefault(
 function ku(e){const k=kmap[e.key];if(k)inp[k]=0;else if(e.key===" "||e.key==="ArrowUp"||e.key==="w"||e.key==="W")inp.j=0}
 function ldStop(){cancelAnimationFrame(raf);raf=0;D=null;inp.l=inp.r=inp.j=inp.jp=0;document.removeEventListener("keydown",kd);document.removeEventListener("keyup",ku);document.documentElement.classList.remove("ldplay");const r=$("ldR");if(r)r.remove()}
 function ldExit(){ldStop();globalThis.__ldShare=0;inGame=false;if(tab==="play"){ldPage();pgIn(-1)}}
+/*ZNX-DEVIL-V2*/
+function ldLoader(){var r=document.getElementById("ldR");if(!r||!D)return;D.hold=1;
+ if(!document.getElementById("ldLdcss")){var z=document.createElement("style");z.id="ldLdcss";z.textContent="#ldLd{position:absolute;inset:0;z-index:6;display:grid;place-content:center;justify-items:center;gap:14px;background:radial-gradient(70% 50% at 50% 40%,rgba(124,108,255,.3),transparent 70%),#08060f;color:#fff;text-align:center;transition:opacity .4s}#ldLd.out{opacity:0;pointer-events:none}.ldLr{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:#8f88ff;border-right-color:#5ec2b7;animation:ldSp 1s linear infinite}@keyframes ldSp{to{transform:rotate(360deg)}}#ldLd b{font:700 20px system-ui;letter-spacing:.3em}#ldLd small{color:#9aa0b8;font:12px ui-monospace,monospace}.ldLb{width:220px;height:5px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden}.ldLb s{display:block;height:100%;width:0;background:linear-gradient(90deg,#8f88ff,#5ec2b7)}#ldLp{font:700 34px ui-monospace,Menlo,monospace;font-style:normal}";document.head.appendChild(z)}
+ var e=document.createElement("div");e.id="ldLd";e.innerHTML='<i class="ldLr"></i><b>LEVEL DEVIL</b><small id="ldLt">Summoning traps...</small><div class="ldLb"><s id="ldLs"></s></div><em id="ldLp">0%</em>';r.appendChild(e);
+ var TX=["Summoning traps...","Hiding the exit...","Moving the floor...","Teaching the devil to laugh..."],t0=performance.now(),DUR=1500;
+ (function f(n){var p=document.getElementById("ldLp");if(!p)return;var k=Math.min(1,(n-t0)/DUR),v=Math.round(100*(1-Math.pow(1-k,2)));
+  p.textContent=v+"%";document.getElementById("ldLs").style.width=v+"%";document.getElementById("ldLt").textContent=TX[Math.min(3,Math.floor(k*4))];
+  if(k<1){requestAnimationFrame(f);return}
+  e.classList.add("out");if(D)D.hold=0;setTimeout(function(){e.remove()},450)})(t0)}
 function ldStart(i){ldStop();inGame=true;document.documentElement.classList.add("ldplay");
  const r=document.createElement("div");r.id="ldR";
  r.innerHTML='<canvas id="ldC"></canvas><div class="ldT"><button class="ib" id="ldX" aria-label="Leave game">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="ldH"></b><button class="gb" id="ldSk" style="display:none">Skip</button><button class="ib" id="ldRs" aria-label="Restart level">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div class="ldP"><button class="ldb" data-k="l" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><button class="ldb" data-k="r" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><span style="flex:1"></span><button class="ldb j" data-k="j" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M6 13l6-6 6 6M6 19l6-6 6 6"/></svg></button></div><div id="ldO"></div>';
  document.body.appendChild(r);
- D={cv:$("ldC"),ctx:$("ldC").getContext("2d"),ff:getComputedStyle(document.body).fontFamily,deaths:0,ld:0,pa:[],acc:0,shake:0,msg:"",mt:0,lt:0,cp:null,dv:0,say(t,s){D.msg=t;D.mt=s||2.2}};
+ D={cv:$("ldC"),ctx:$("ldC").getContext("2d"),ff:getComputedStyle(document.body).fontFamily,deaths:0,ld:0,pa:[],acc:0,shake:0,msg:"",mt:0,lt:0,cp:null,dv:0,say(t,s){D.msg=t;D.mt=s||2.2}};ldLoader();
  ldLoad(i,true);
  $("ldX").onclick=ldExit;$("ldRs").onclick=()=>ldLoad(D.lv,false);
  $("ldSk").onclick=()=>{if(D.lv<LV.length-1){ldSave(D.lv+1);ldLoad(D.lv+1,true)}};
