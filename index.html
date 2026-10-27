@@ -4037,9 +4037,9 @@ function drawThw(c,e){c.fillStyle="#3a3f55";rr(c,e.x,e.y,e.w,e.h,8);c.fill();c.f
  c.fillStyle="#ff4d6d";const ey=e.y+e.h*.45,ang=e.s===1?1:0;c.beginPath();c.arc(e.x+e.w*.3,ey,4.5,0,6.3);c.arc(e.x+e.w*.7,ey,4.5,0,6.3);c.fill();
  c.strokeStyle="#0d0f1c";c.lineWidth=2.4;c.beginPath();c.moveTo(e.x+e.w*.18,ey-9+ang*2);c.lineTo(e.x+e.w*.4,ey-5-ang*2);c.moveTo(e.x+e.w*.82,ey-9+ang*2);c.lineTo(e.x+e.w*.6,ey-5-ang*2);c.stroke();
  c.fillStyle="#ff4d6d";c.beginPath();const n=Math.round(e.w/12),sw=e.w/n;for(let i=0;i<n;i++){c.moveTo(e.x+i*sw,e.y+e.h);c.lineTo(e.x+i*sw+sw/2,e.y+e.h+9);c.lineTo(e.x+(i+1)*sw,e.y+e.h)}c.fill()}
-function drawDoor(c,e,t){const gl=.16+.07*Math.sin(t*3);c.fillStyle="rgba(255,217,61,"+gl+")";rr(c,e.x-8,e.y-8,e.w+16,e.h+8,12);c.fill();
- c.fillStyle="#ffd93d";rr(c,e.x,e.y,e.w,e.h,6);c.fill();c.fillStyle="#2a1d05";rr(c,e.x+4,e.y+4,e.w-8,e.h-4,4);c.fill();
- const g=c.createLinearGradient(0,e.y,0,e.y+e.h);g.addColorStop(0,"rgba(255,217,61,.0)");g.addColorStop(1,"rgba(255,217,61,.55)");c.fillStyle=g;rr(c,e.x+4,e.y+4,e.w-8,e.h-4,4);c.fill();
+function drawDoor(c,e,t){const gl=.16+.07*Math.sin(t*3);c.fillStyle="rgba(143,136,255,"+gl+")";rr(c,e.x-8,e.y-8,e.w+16,e.h+8,12);c.fill();
+ c.fillStyle="#8f88ff";rr(c,e.x,e.y,e.w,e.h,6);c.fill();c.fillStyle="#0d0f1c";rr(c,e.x+4,e.y+4,e.w-8,e.h-4,4);c.fill();
+ const g=c.createLinearGradient(0,e.y,0,e.y+e.h);g.addColorStop(0,"rgba(143,136,255,0)");g.addColorStop(1,"rgba(94,194,183,.6)");c.fillStyle=g;rr(c,e.x+4,e.y+4,e.w-8,e.h-4,4);c.fill();
  c.fillStyle="#fff";c.beginPath();c.arc(e.x+e.w-8,e.y+e.h*.55,1.8,0,6.3);c.fill()}
 function drawSaw(c,e,t){const r=e.r;c.save();c.translate(e.x,e.y);c.rotate(t*7);c.beginPath();for(let i=0;i<16;i++){const a=i/16*6.2832,b=(i+.5)/16*6.2832;c.lineTo(Math.cos(a)*r,Math.sin(a)*r);c.lineTo(Math.cos(b)*r*.72,Math.sin(b)*r*.72)}c.closePath();
  c.fillStyle="#c9cfe6";c.fill();c.strokeStyle="#ff4d6d";c.lineWidth=1.6;c.stroke();c.fillStyle="#3a3f55";c.beginPath();c.arc(0,0,r*.28,0,6.3);c.fill();c.restore()}
@@ -4108,7 +4108,7 @@ function drawP2(c,p,t,gs){
  if(up){c.beginPath();c.arc(ex,1.6,1.3,0,6.3);c.fill()}
  else{c.beginPath();c.arc(ex,.3,2.1,.15*Math.PI,.85*Math.PI);c.stroke()}
  c.restore()}
-function drawP(c,p,t,gs){c.save();c.translate(p.x+PW/2,p.y+PH/2);c.scale(1+p.sq*.6,gs*(1-p.sq));const f=p.face||1,ph=p.g&&Math.abs(p.vx)>30?Math.sin(p.run):0,air=!p.g,col="#ffc857";c.strokeStyle=col;c.fillStyle=col;c.lineCap="round";
+function drawP(c,p,t,gs){c.save();c.translate(p.x+PW/2,p.y+PH/2);c.scale(1+p.sq*.6,gs*(1-p.sq));const f=p.face||1,ph=p.g&&Math.abs(p.vx)>30?Math.sin(p.run):0,air=!p.g,col="#efeaff";c.strokeStyle=col;c.fillStyle=col;c.lineCap="round";
  c.lineWidth=3.2;c.beginPath();
  if(air){c.moveTo(0,-1);c.lineTo(-6,-8);c.moveTo(0,-1);c.lineTo(6,-8);c.moveTo(0,4);c.lineTo(-4,13);c.moveTo(0,4);c.lineTo(4,11)}
  else{c.moveTo(0,-1);c.lineTo(-ph*5,6);c.moveTo(0,-1);c.lineTo(ph*5,6);c.moveTo(0,4);c.lineTo(ph*5,13);c.moveTo(0,4);c.lineTo(-ph*5,13)}
@@ -4157,9 +4157,9 @@ function draw(t){const c=D.ctx,cv=D.cv,dpr=Math.min(2,devicePixelRatio||1),cw=in
  for(const q of D.pa){const al=cl(q.l/q.m,0,1);c.fillStyle="rgba("+q.c+","+(al*.9).toFixed(2)+")";c.fillRect(q.x-q.r/2,q.y-q.r/2,q.r,q.r)}
  if(D.lava!=null){const lg=c.createLinearGradient(0,D.lava-60,0,D.lava+30);lg.addColorStop(0,"rgba(255,110,40,0)");lg.addColorStop(.35,"rgba(255,110,40,.55)");lg.addColorStop(1,"#ff5a2a");c.fillStyle=lg;c.fillRect(D.cx-10,D.lava-60,W+20,Math.max(0,D.cy+H+40-D.lava+60))}
  c.restore();
- if(D.mt>0&&D.msg){c.globalAlpha=Math.min(1,D.mt*2);c.fillStyle="#fff";c.font="700 15px "+D.ff;c.textAlign="center";c.fillText(D.msg,W/2,52);c.globalAlpha=1}
- if(D.st==="clear"||D.st==="end"){c.fillStyle="#ffd93d";c.font="800 34px "+D.ff;c.textAlign="center";c.fillText(D.lv>=LV.length-1?"Devil defeated!":"Level cleared!",W/2,H/2)}
- c.fillStyle="rgba(255,255,255,.5)";c.font="600 11px ui-monospace,monospace";c.textAlign="right";c.fillText("DEATHS "+D.deaths,W-10,16);
+ if(D.mt>0&&D.msg){c.globalAlpha=Math.min(1,D.mt*2);c.font="600 13px "+D.ff;c.textAlign="center";var tw=c.measureText(D.msg).width+30;c.fillStyle="rgba(14,16,26,.62)";rr(c,W/2-tw/2,34,tw,26,13);c.fill();c.fillStyle="#fff";c.fillText(D.msg,W/2,52);c.globalAlpha=1}
+ if(D.st==="clear"||D.st==="end"){c.fillStyle="#a39cff";c.font="700 34px "+D.ff;c.textAlign="center";c.fillText(D.lv>=LV.length-1?"Devil defeated!":"Level cleared!",W/2,H/2)}
+ c.font="600 10px ui-monospace,monospace";c.textAlign="right";c.fillStyle="rgba(14,16,26,.55)";rr(c,W-96,4,88,20,10);c.fill();c.fillStyle="rgba(255,255,255,.8)";c.fillText("DEATHS "+D.deaths,W-16,18);
  const pr=cl(p.x/Math.max(1,D.W-PW),0,1);c.fillStyle="rgba(255,255,255,.12)";c.fillRect(0,H-3,W,3);c.fillStyle="#8f88ff";c.fillRect(0,H-3,W*pr,3);
  c.restore();c.strokeStyle="rgba(255,255,255,.14)";c.lineWidth=1.5;c.strokeRect(0,0,W,H);c.restore()}
 function loop(ms){raf=requestAnimationFrame(loop);if(!D)return;const t=ms/1000,dt=Math.min(.05,t-(D.lt||t));D.lt=t;D.acc+=dt;let n=0;
@@ -4179,14 +4179,14 @@ function ldStop(){cancelAnimationFrame(raf);raf=0;D=null;inp.l=inp.r=inp.j=inp.j
 function ldExit(){ldStop();globalThis.__ldShare=0;inGame=false;if(tab==="play"){ldPage();pgIn(-1)}}
 function ldStart(i){ldStop();inGame=true;document.documentElement.classList.add("ldplay");
  const r=document.createElement("div");r.id="ldR";
- r.innerHTML='<canvas id="ldC"></canvas><div class="ldT"><button class="ib" id="ldX" aria-label="Leave game">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="ldH"></b><button class="gb" id="ldSk" style="display:none">Skip</button><button class="ib" id="ldRs" aria-label="Restart level">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div class="ldP"><button class="ldb" data-k="l" aria-label="Left">\u2039</button><button class="ldb" data-k="r" aria-label="Right">\u203a</button><span style="flex:1"></span><button class="ldb j" data-k="j" aria-label="Jump">\u25b2</button></div><div id="ldO"></div>';
+ r.innerHTML='<canvas id="ldC"></canvas><div class="ldT"><button class="ib" id="ldX" aria-label="Leave game">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><b id="ldH"></b><button class="gb" id="ldSk" style="display:none">Skip</button><button class="ib" id="ldRs" aria-label="Restart level">'+A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>')+'</button></div><div class="ldP"><button class="ldb" data-k="l" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><button class="ldb" data-k="r" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><span style="flex:1"></span><button class="ldb j" data-k="j" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M6 13l6-6 6 6M6 19l6-6 6 6"/></svg></button></div><div id="ldO"></div>';
  document.body.appendChild(r);
  D={cv:$("ldC"),ctx:$("ldC").getContext("2d"),ff:getComputedStyle(document.body).fontFamily,deaths:0,ld:0,pa:[],acc:0,shake:0,msg:"",mt:0,lt:0,cp:null,dv:0,say(t,s){D.msg=t;D.mt=s||2.2}};
  ldLoad(i,true);
  $("ldX").onclick=ldExit;$("ldRs").onclick=()=>ldLoad(D.lv,false);
  $("ldSk").onclick=()=>{if(D.lv<LV.length-1){ldSave(D.lv+1);ldLoad(D.lv+1,true)}};
  $("ldO").onclick=e=>{const b=e.target.closest("[data-l2]");if(!b)return;b.dataset.l2==="again"?ldStart(0):ldExit()};
- r.querySelectorAll(".ldb").forEach(b=>{const k=b.dataset.k,on=e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(x){}if(k==="j"&&!inp.j)inp.jp=1;inp[k]=1;b.classList.add("on")},off=()=>{inp[k]=0;b.classList.remove("on")};
+ r.querySelectorAll(".ldb").forEach(b=>{const k=b.dataset.k,on=e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(x){}if(k==="j"&&!inp.j)inp.jp=1;inp[k]=1;b.classList.add("on");if(navigator.vibrate)navigator.vibrate(5)},off=()=>{inp[k]=0;b.classList.remove("on")};
   b.addEventListener("pointerdown",on);["pointerup","pointercancel","lostpointercapture"].forEach(v=>b.addEventListener(v,off))});
  document.addEventListener("keydown",kd);document.addEventListener("keyup",ku);
  try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock("landscape");if(o&&o.catch)o.catch(()=>{})}catch(e){}
@@ -6133,5 +6133,19 @@ html body #arR #arLd b{font:600 13px var(--mono);letter-spacing:.4em}
 html body #arR #arP{border-radius:26px;gap:10px;max-height:78dvh;overflow:auto;border:1px solid transparent;background:linear-gradient(rgba(14,16,26,.95),rgba(14,16,26,.95)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;box-shadow:0 30px 60px -24px var(--ac)}
 html body #arR #arP .arSc{display:block;margin-top:6px;font:700 10px var(--mono);font-style:normal;letter-spacing:.2em;text-transform:uppercase;color:#9aa0b8}
 html body #arR #arP input[type=range]{accent-color:var(--ac)}
-html body #arR #arP button{border-radius:22px}</style><script id="znx-login-safe">/*ZNX-PATCH-DH-V1*/setTimeout(function(){try{var g=document.getElementById("go"),m=document.getElementById("msg");if(g&&!g.onclick&&m&&!m.textContent){m.textContent="App load nahi hua. Page reload karo (Ctrl+Shift+R).";}}catch(e){}},4000);</script>
+html body #arR #arP button{border-radius:22px}</style><style id="znx-ld-v2">/*ZNX-LD-V2*/
+html body #ldR .ldT .ib,html body #ldR .ldT .gb{color:#fff;border:1px solid transparent;background:linear-gradient(rgba(14,16,26,.55),rgba(14,16,26,.55)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box}
+html body #ldR .ldT b{font:600 10.5px var(--mono);letter-spacing:.18em}
+html body #ldR .ldb{width:62px!important;height:62px!important;display:grid!important;place-items:center;padding:0;font-size:0!important;color:#fff;border:1px solid transparent!important;background:linear-gradient(rgba(14,16,26,.55),rgba(14,16,26,.55)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box!important;box-shadow:0 12px 24px -14px var(--ac);transition:transform .35s cubic-bezier(.2,.9,.3,1.35),box-shadow .2s,filter .2s}
+html body #ldR .ldb::before{display:none!important}
+html body #ldR .ldb svg{width:42%;height:42%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+html body #ldR .ldb.j{width:76px!important;height:76px!important;background:var(--bt) padding-box,linear-gradient(140deg,rgba(255,255,255,.45),rgba(255,255,255,.05)) border-box!important;box-shadow:0 18px 34px -14px var(--ac)}
+html body #ldR .ldb.on{transform:scale(.9)!important;box-shadow:0 0 24px -4px var(--ac);filter:brightness(1.15)}
+html body #ldR #ldO .ldo{border-radius:30px;border:1px solid transparent;background:linear-gradient(rgba(20,22,34,.92),rgba(20,22,34,.92)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;box-shadow:0 30px 70px -26px var(--ac)}
+html body #ldR #ldO .ldo b{letter-spacing:-.04em;font-weight:700}
+html body .ldl{border-radius:18px;border:1px solid transparent;background:linear-gradient(var(--sf),var(--sf)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box}
+html body .ldl.cur{box-shadow:0 0 18px -6px var(--ac)}
+html body #ctP{border-radius:26px;gap:10px;border:1px solid transparent;background:linear-gradient(rgba(14,16,26,.95),rgba(14,16,26,.95)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;box-shadow:0 30px 60px -24px var(--ac)}
+html body #ctP input[type=range]{accent-color:var(--ac)}
+html body .ct-ed{outline-color:var(--ac)!important}</style><script id="znx-login-safe">/*ZNX-PATCH-DH-V1*/setTimeout(function(){try{var g=document.getElementById("go"),m=document.getElementById("msg");if(g&&!g.onclick&&m&&!m.textContent){m.textContent="App load nahi hua. Page reload karo (Ctrl+Shift+R).";}}catch(e){}},4000);</script>
 </body></html>
