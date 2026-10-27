@@ -3444,7 +3444,6 @@ async function start0(nt,seed0){stop();inGame=true;document.documentElement.clas
   for(const k in mats){try{mats[k].dispose()}catch(e){}delete mats[k]}
   B.forEach(b=>{const m=mats[b.c]||(mats[b.c]=new T.MeshLambertMaterial({color:b.c})),o=new T.Mesh(bg,m);o.scale.set(b.w,b.h,b.d);o.position.set(b.x,b.h/2,b.z);zxG.add(o)});
   sc.background=new T.Color(th.sky);sc.fog=new T.Fog(th.fog,th.fn||60,th.ff||170);gnd.material.color.set(th.gnd);s.th=th;
-  if(!s.bc){s.bc=new T.Mesh(new T.ConeGeometry(.32,.75,4),new T.MeshBasicMaterial({color:0xff3355,fog:false}));sc.add(s.bc)}
   };
  s.begin=n=>{zxRebuild(n);s.seen={};s.dm={};s.hid=0;s.pings=[];s.n=n;s.dead=0;s.mk=0;s.mh=0;s.cdz=null;s.zoom=0;s.me.cr=0;{const f=$("arFd");if(f)f.style.opacity=0}const R=rng(seed+n*977);let a=R()*6.283,x,z,k=0;do{a+=.4;x=Math.cos(a)*38;z=Math.sin(a)*38}while(!(free(x,z)&&free(-x,-z))&&k++<80);
   const first=s.net===2?1:0,sg=first?-1:1,m=s.me,o=s.op;m.x=x*sg;m.z=z*sg;o.x=-m.x;o.z=-m.z;
@@ -3562,7 +3561,7 @@ addEventListener("resize",()=>{if(S===s)ap()});ap()}
  if(nt){if(nt.role===2){nTx({t:"rdy"});const iv2=setInterval(()=>{if(S!==s||s.ph!=="wait"){clearInterval(iv2);return}nTx({t:"rdy"})},800)}else if(N.grdy){s.begin(1);nTx({t:"go",n:1})}}
  else s.begin(1);
  raf=requestAnimationFrame(loop)}
-/*ZNX-ARENA-NET-V10*/
+/*ZNX-ARENA-NET-V11*/
 const ZXTH=[
  {name:"Classic",sky:0x9ccfe8,fog:0x9ccfe8,gnd:0x5c8a4a,wall:0xd8c7a3,prop:0x8a5a2c,prop2:0x7a6a4a},
  {name:"Desert",sky:0xf2d6a2,fog:0xf2d6a2,gnd:0xd9b36c,wall:0xe8d3a8,prop:0xa8743a,prop2:0xc2894a},
@@ -3641,7 +3640,6 @@ function zxDraw(s,cv,big,t,dt){
  g.restore()}
 function zxMap(s,t){
  const w=zxMapUI(s);if(!w)return;
- if(s.bc){const o=s.op,vis=s.ph!=="wait"&&!(s.dead&&s.dead.w===1);s.bc.visible=vis;if(vis){const d=Math.hypot(o.x-s.me.x,o.z-s.me.z),k=1+d*.05;s.bc.scale.setScalar(k);s.bc.position.set(o.x,o.y+2.7+.35*k+Math.sin(t*4)*.1,o.z);s.bc.rotation.set(Math.PI,t*2.5,0)}}
  const dt=Math.min(.1,Math.max(0,t-(s.zl||t)));s.zl=t;
  w.style.display=s.ph==="wait"?"none":"";if(s.ph==="wait")return;
  if(s.mf==null)s.mf=s.me.yaw;let dy=s.me.yaw-s.mf;dy=Math.atan2(Math.sin(dy),Math.cos(dy));s.mf+=dy*(1-Math.exp(-dt*16));
