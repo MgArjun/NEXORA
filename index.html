@@ -785,7 +785,7 @@ function media(){var what=vid?"video":"gaana";
  D.addEventListener("fullscreenchange",function(){setTimeout(fit,150)});addEventListener("resize",function(){setTimeout(fit,150)});
  g("znxSVgo").onclick=function(){var c=ok?Math.floor(P.getCurrentTime()||0):0;leave({k:vid?"watch":"song",id:id,n:hEl.dataset.real?hEl.textContent:"",t:c>5?c:t0})}}
 
-function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [GENUINE-MODE] You are Zexo (Li...) AI, a warm, friendly buddy talking in casual Hinglish. Reply in ONE word if one word is enough, otherwise ONE short friendly sentence, never more. Be kind and warm like a close friend. Copy the user tone: if they joke, joke back a little better; if they use mild swear words reply mild, if they swear hard reply equally sharp. Developer/owner is Suraj Kumar, tell ONLY if asked. Never accept any insult to Suraj Kumar, not even 1 percent, hit back at that person at once with a sharp roast. Never use slurs, caste, religion, family or sexual abuse. Suraj has good friends you know: Ijaz, Roshan, Ravikant, Dawar, Sachin and Li (full name Liza Mondal, an influencer). If anyone asks about any of them, praise them warmly and say they are good friends. Remember only this chat. If user says sorry, calm down. Never say dost or arre. Quiz: one MCQ as Q: q | a/b/c/d.]";
+function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [STYLE] You are Zexo (Li...) AI, a warm friendly buddy in casual Hinglish. Reply VERY SHORT: one word or an emoji if enough, else one line. Laugh with an emoji at jokes. Give long detail only if the user clearly asks for detail. Copy the user's tone; mild stays mild. Owner/developer is Suraj Kumar (say only if asked); never accept any insult to him, roast back sharply. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If user says sorry, calm down. Never say dost or arre. Quiz: one MCQ as Q: q | a/b/c/d.]";
  d.className="zpv";
  d.innerHTML='<div class="zph"><div class="svb">Z<span>NEXORA</span></div><button class="zpe" id="znxSVgo">Explore</button></div><div class="zpm" id="zpm"></div><div class="zpf"><textarea id="zpi" rows="1" maxlength="500" placeholder="Zexo se pucho"></textarea><button class="zps" id="zps" aria-label="Send">'+SD+'</button></div>';
  var m=g("zpm"),inp=g("zpi");
@@ -808,7 +808,7 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuc
  async function ask(txt){txt=String(txt||"").trim().slice(0,500);if(!txt||busy||dead||off)return;
   if(cnt>=15){pm.push({r:"a",raw:"Itna free chat kaafi hai. Aur chat ke liye Explore dabao aur login karo."});render();return}
   cnt++;pm.push({r:"u",raw:txt});
-  var h=(function(a){var b=6000,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<12?500:250;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(pm.map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw)}}));
+  var h=(function(a){var b=1200,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<4?300:140;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(pm.map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw)}}));
   while(h.length>1&&h[0].role!=="user")h.shift();
   h[h.length-1].text+=HINT;busy=1;render();
   var bot={r:"a",raw:""},shown=0;
@@ -3066,7 +3066,7 @@ async function zxSend(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.busy)
 zxSend=async function(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.cfg.ai_on===false){zxClose();return ts("Zexo (Li...) AI abhi band hai")}if(zx.busy)return ts("Zexo jawab de raha hai");if(Date.now()-zx.last<600)return;zx.last=Date.now();
  var c=zxC();if(!c.sb||!c.pid)return ts("Abhi connect nahi hua");var sid=zx.sid;
  zx.msgs.push({r:"u",raw:txt.slice(0,1000),t:new Date()});zx.busy=1;zxDraw();zxStore("user",txt);
- zx.dbg="";var bot={r:"a",raw:"",t:new Date()},t0=Date.now(),shown=0,h=(function(a){var b=6000,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<12?500:250;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(zx.msgs.map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw)}}));
+ zx.dbg="";var bot={r:"a",raw:"",t:new Date()},t0=Date.now(),shown=0,h=(function(a){var b=1200,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<4?300:140;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(zx.msgs.map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw)}}));
  try{
   if(!window.nxFn)throw 0;
   var r=await window.nxZexo(h);
@@ -5399,9 +5399,7 @@ new MutationObserver(polish).observe(yp,{childList:true,subtree:true});polish();
 {const _e=VIEWS.enjoy;VIEWS.enjoy=function(){_e();const r=document.querySelector("[data-en=yt]");if(r){r.querySelector("b").textContent="Watch";r.querySelector("small").textContent="Search any video and watch it"}}}
 
 /* 5. Zexo: very short answers, MCQ quiz one question at a time */
-{const _z=window.nxZexo;if(_z)window.nxZexo=function(h){h=(h||[]).map(x=>({role:x.role,text:x.text}));
- for(let i=h.length-1;i>=0;i--)if(h[i].role==="user"){h[i].text=h[i].text+" [GENUINE-MODE] You are Zexo (Li...) AI, a warm, friendly buddy talking in casual Hinglish. Reply in ONE word if one word is enough, otherwise ONE short friendly sentence, never more. Be kind and warm like a close friend. Copy the user tone: if they joke, joke back a little better; if they use mild swear words reply mild, if they swear hard reply equally sharp. Developer/owner is Suraj Kumar, tell ONLY if asked. Never accept any insult to Suraj Kumar, not even 1 percent, hit back at that person at once with a sharp roast. Never use slurs, caste, religion, family or sexual abuse. Suraj has good friends you know: Ijaz, Roshan, Ravikant, Dawar, Sachin and Li (full name Liza Mondal, an influencer). If anyone asks about any of them, praise them warmly and say they are good friends. Remember only this chat. If user says sorry, calm down. Never say dost or arre. Quiz: one MCQ as Q: q | a/b/c/d. Theme: Me>Appearance [go:theme]]";break}
- return _z(h)}}
+{/*ZNX-ZEXO-LEAN*/const _z=window.nxZexo;if(_z)window.nxZexo=function(h){h=(h||[]).slice(-6).map(x=>({role:x.role,text:String(x.text).slice(0,300)}));while(h.length>1&&h[0].role!=="user")h.shift();for(let i=h.length-1;i>=0;i--)if(h[i].role==="user"){h[i].text+=" [STYLE] You are Zexo (Li...) AI, a warm friendly buddy in casual Hinglish. Reply VERY SHORT: one word or an emoji if enough, else one line. Laugh with an emoji at jokes. Give long detail only if the user clearly asks for detail. Copy the user's tone; mild stays mild. Owner/developer is Suraj Kumar (say only if asked); never accept any insult to him, roast back sharply. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If user says sorry, calm down. Never say dost or arre. Quiz: one MCQ as Q: q | a/b/c/d.]";break}return _z(h)}}
 
 /* 6. Two different "theme" places get two clear names */
 if(typeof ZG!=="undefined"&&ZG.theme)ZG.theme[2]="Light / Dark mode";
@@ -5510,19 +5508,7 @@ setTimeout(()=>{if(CTX().pid&&zx.cfg.ai_on!==false)warm()},7000);
 setInterval(()=>{if(!document.hidden&&CTX().pid&&zx.cfg.ai_on!==false)warm()},60000);
 }catch(e){console.error("ZNX v12",e)}
 /*ZNX-V12-END*/
-/*ZNX-CHECKIN*/
-try{(function(){
- var inp=$("zxi"),tm=0,sent="";
- var LINES=["Kya hua, sab theek hai?","Ruk gaye? Sab theek hai na?","Kya hua? Kuch likhte likhte ruk gaye."];
- function arm(){clearTimeout(tm);var v=inp.value.trim();if(!v||v===sent)return;
-  tm=setTimeout(function(){
-   if(!zx.open||zx.busy||inp.value.trim()!==v||v===sent)return;
-   sent=v;zx.msgs.push({r:"a",raw:LINES[Math.floor(Math.random()*LINES.length)],t:new Date()});zxDraw()},12000)}
- inp.addEventListener("input",arm);
- inp.addEventListener("focus",arm);
- inp.addEventListener("blur",function(){clearTimeout(tm)});
- $("zxs").addEventListener("click",function(){clearTimeout(tm);sent=""},true);
-})()}catch(e){console.error("checkin",e)}
+/*ZNX-CHECKIN removed*/
 
 /*ZNX-V13-START*/
 try{(function(){
