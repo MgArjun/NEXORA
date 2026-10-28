@@ -6081,6 +6081,81 @@ const sl=$("mpsl");if(sl&&!$("mpiv")){sl.insertAdjacentHTML("beforebegin",'<butt
  if(sp&&sp.tagName==="SPAN"){const b=document.createElement("button");b.className="ib";b.id="kfx";b.setAttribute("aria-label","Video effects");
   b.innerHTML=A('<path d="M12 3l1.9 5.4L19 10l-5.1 1.6L12 17l-1.9-5.4L5 10l5.1-1.6z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>');
   b.onclick=e=>{e.stopPropagation();fxSheet()};sp.replaceWith(b)}
+/*ZNX-CALLQ*/
+{
+const CB={480:1.6e6,720:3.8e6,1080:7e6,1440:11e6,2160:17e6};
+const vqk=()=>ST2.smooth&&+ST2.vq>720?"720":String(ST2.vq||720);
+
+/* start bitrate high so video does not begin blurry, min low so voice is never starved */
+const munge=sdp=>{try{const L=String(sdp).split("\r\n"),pts=[];
+ L.forEach(l=>{const m=l.match(/^a=rtpmap:(\d+) (VP8|VP9|H264|AV1)\/90000/);if(m)pts.push(m[1])});
+ if(!pts.length)return sdp;
+ const ex="x-google-start-bitrate=1800;x-google-min-bitrate=250;x-google-max-bitrate="+Math.round((CB[vqk()]||CB[720])/1000),o=L.slice();
+ pts.forEach(pt=>{
+  if(o.some(l=>l.indexOf("a=fmtp:"+pt+" ")===0&&l.indexOf("x-google-start-bitrate")>=0))return;
+  const fi=o.findIndex(l=>l.indexOf("a=fmtp:"+pt+" ")===0);
+  if(fi>=0)o[fi]+=";"+ex;
+  else{const ri=o.findIndex(l=>l.indexOf("a=rtpmap:"+pt+" ")===0);if(ri>=0)o.splice(ri+1,0,"a=fmtp:"+pt+" "+ex)}});
+ return o.join("\r\n")}catch(e){return sdp}};
+
+/* voice: higher bitrate, top priority */
+clTune=function(){const s=CL.pc&&CL.pc.getSenders().find(x=>x.track&&x.track.kind==="audio");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)return;Object.assign(p.encodings[0],{maxBitrate:96000,priority:"high",networkPriority:"high"});s.setParameters(p).catch(()=>{})};
+
+/* video: higher bitrate ceiling, keep frame rate first, resolution drops only if needed */
+clTuneV=function(){const s=CL.vt&&CL.vt.sender;if(!s||!s.track)return;
+ const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];
+ const e=p.encodings[0];
+ e.maxBitrate=CB[vqk()]||CB[720];e.maxFramerate=30;e.priority="medium";e.networkPriority="medium";e.scaleResolutionDownBy=CL.sc;
+ p.degradationPreference="maintain-framerate";
+ s.setParameters(p).catch(()=>{});
+ try{s.track.contentHint="motion"}catch(x){}};
+
+/* resolution can drop to 1/3 at most (was 1/6) */
+clScale=function(v){CL.sc=Math.max(1,Math.min(3,Math.round(v*100)/100));CL.lo=0;CL.hi=0;CL.lo2=0;CL.hi2=0;clTuneV()};
+
+/* offer / answer carry the bitrate hints */
+clOffer=async function(restart){const pc=CL.pc,o=await pc.createOffer(restart?{iceRestart:true}:{});
+ let d={type:o.type,sdp:munge(o.sdp)};
+ try{await pc.setLocalDescription(d)}catch(e){d={type:o.type,sdp:o.sdp};await pc.setLocalDescription(d)}
+ clSig(CL.pid,{t:"offer",id:CL.id,s:d})};
+clOnOffer=async function(m){if(!CL.pc)return;await CL.pc.setRemoteDescription(m.s);
+ const vt=CL.pc.getTransceivers().find(t=>t.receiver.track&&t.receiver.track.kind==="video");
+ if(vt){vt.direction="sendrecv";if(CL.vt!==vt){CL.vt=vt;if(CL.vs)vt.sender.replaceTrack(CL.vs.getVideoTracks()[0]).then(clTuneV).catch(()=>{})}}
+ await clFlush();const a=await CL.pc.createAnswer();
+ let d={type:a.type,sdp:munge(a.sdp)};
+ try{await CL.pc.setLocalDescription(d)}catch(e){d={type:a.type,sdp:a.sdp};await CL.pc.setLocalDescription(d)}
+ clSig(CL.pid,{t:"answer",id:CL.id,s:d})};
+
+/* adaptive quality: only shrink when network or CPU really limits, grow back fast */
+clStat=async function(){const pc=CL.pc;if(!pc||pc.connectionState!=="connected")return;let r;try{r=await pc.getStats()}catch(e){return}
+ let rtt=null,w=0,h=0,fps=0,out=null,lid="",rid="";
+ r.forEach(s=>{
+  if(s.type==="candidate-pair"&&s.nominated&&s.state==="succeeded"){if(s.currentRoundTripTime!=null)rtt=s.currentRoundTripTime*1000;lid=s.localCandidateId;rid=s.remoteCandidateId}
+  else if(s.type==="inbound-rtp"&&s.kind==="video"){w=s.frameWidth||0;h=s.frameHeight||0;fps=s.framesPerSecond||0}
+  else if(s.type==="outbound-rtp"&&s.kind==="video"&&s.bytesSent)out=s});
+ let rel=false;try{const a=r.get(lid),b=r.get(rid);rel=!!((a&&a.candidateType==="relay")||(b&&b.candidateType==="relay"))}catch(e){}
+ if(CL.cam&&out){
+  const f=out.framesPerSecond||0,lim=out.qualityLimitationReason||"none",cut=lim==="bandwidth"||lim==="cpu";
+  if(cut||(f>0&&f<15&&lim!=="none")){CL.lo2=(CL.lo2||0)+1;CL.hi2=0}
+  else{CL.hi2=(CL.hi2||0)+1;CL.lo2=0}
+  if(CL.lo2>=3){clScale(CL.sc*1.3)}
+  else if(CL.hi2>=3&&CL.sc>1){clScale(CL.sc/1.4)}}
+ if(!$("cl").classList.contains("vid"))return;
+ const bad=(rtt!=null&&rtt>400)||(CL.rcam&&fps>0&&fps<15),mid=(rtt!=null&&rtt>200)||(CL.rcam&&fps>0&&fps<22);
+ $("clq").innerHTML='<i class="'+(bad?"b":mid?"w":"")+'"></i><span><b>'+mpFmt(Math.floor((Date.now()-CL.t0)/1000))+'</b></span><span><b>'+(CL.rcam&&fps?Math.round(fps):(out&&out.framesPerSecond?Math.round(out.framesPerSecond):"-"))+'</b> fps</span><span><b>'+(CL.rcam&&h?Math.min(w,h)+"p":(out&&out.frameHeight?Math.min(out.frameWidth,out.frameHeight)+"p":"-"))+'</b></span><span><b>'+(rel?"RELAY":"DIRECT")+'</b></span>'};
+
+/* camera: continuous autofocus and exposure when the phone supports it */
+{const _cs=clCamStream;
+ clCamStream=async function(f){const s=await _cs(f);
+  try{const t=s&&s.getVideoTracks()[0],c=t&&t.getCapabilities&&t.getCapabilities();
+   if(c){const a={};
+    if(c.focusMode&&c.focusMode.indexOf("continuous")>=0)a.focusMode="continuous";
+    if(c.exposureMode&&c.exposureMode.indexOf("continuous")>=0)a.exposureMode="continuous";
+    if(c.whiteBalanceMode&&c.whiteBalanceMode.indexOf("continuous")>=0)a.whiteBalanceMode="continuous";
+    if(Object.keys(a).length)await t.applyConstraints({advanced:[a]})}}catch(e){}
+  return s}}
+}
+
 }
 
 
