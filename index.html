@@ -6398,4 +6398,31 @@ html body .ldl.cur{box-shadow:0 0 18px -6px var(--ac)}
 html body #ctP{border-radius:26px;gap:10px;border:1px solid transparent;background:linear-gradient(rgba(14,16,26,.95),rgba(14,16,26,.95)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;box-shadow:0 30px 60px -24px var(--ac)}
 html body #ctP input[type=range]{accent-color:var(--ac)}
 html body .ct-ed{outline-color:var(--ac)!important}</style><script id="znx-login-safe">/*ZNX-PATCH-DH-V1*/setTimeout(function(){try{var g=document.getElementById("go"),m=document.getElementById("msg");if(g&&!g.onclick&&m&&!m.textContent){m.textContent="App load nahi hua. Page reload karo (Ctrl+Shift+R).";}}catch(e){}},4000);</script>
+<script>/*ZNX-SHOT-V1*/
+(function(){try{
+var D=document,last=0,hold=0,nm="",$=function(i){return D.getElementById(i)};
+var cv=D.createElement("div");cv.id="znxShotCov";cv.style.cssText="position:fixed;inset:0;z-index:2147483000;background:#000;display:none";D.body.appendChild(cv);
+function ctx(){return window.znxCtx?window.znxCtx():{}}
+function chatOn(){var c=$("chat");return !!c&&c.classList.contains("on")}
+function cover(on){cv.style.display=(on&&chatOn())?"block":"none"}
+function peer(){var c=ctx(),a=$("ca"),id=a&&a.dataset.av,by=c.byPid||{};for(var k in by){if(String(by[k].id)===id)return by[k]}return null}
+function getName(){var c=ctx();if(nm||!c.sb||!c.pid)return;c.sb.from("profiles").select("display_name").eq("id",c.pid).maybeSingle().then(function(r){if(r.data&&r.data.display_name)nm=r.data.display_name},function(){})}
+setInterval(getName,3000);getName();
+function shot(){
+ if(!chatOn())return;
+ cover(true);clearTimeout(hold);
+ hold=setTimeout(function(){if(!D.hidden&&D.hasFocus())cover(false)},1500);
+ var n=Date.now();if(n-last<6000)return;last=n;
+ try{navigator.clipboard.writeText("")}catch(e){}
+ var u=peer(),c=ctx();if(!u||!c.note)return;
+ c.note(u,"\uD83D\uDCF8 "+(nm||"Someone")+" has taken a screenshot")}
+addEventListener("keydown",function(e){
+ if(e.key==="PrintScreen"||e.code==="PrintScreen"){shot();return}
+ if(e.metaKey&&e.shiftKey&&(e.code==="Digit3"||e.code==="Digit4"||e.code==="Digit5"||e.code==="KeyS"))shot()},true);
+addEventListener("keyup",function(e){if(e.key==="PrintScreen"||e.code==="PrintScreen")shot()},true);
+addEventListener("blur",function(){cover(true)});
+addEventListener("focus",function(){setTimeout(function(){if(!D.hidden)cover(false)},120)});
+D.addEventListener("visibilitychange",function(){if(D.hidden)cover(true);else setTimeout(function(){cover(false)},150)});
+}catch(e){console.error("ZNX screenshot",e)}})();
+</script>
 </body></html>
