@@ -2305,7 +2305,7 @@ function vcDrop(map,k){const p=map[k];if(!p)return;delete map[k];try{p.pc.close(
 function vcStop(){Object.keys(VC.vo).forEach(k=>vcDrop(VC.vo,k));if(VC.s){VC.s.getTracks().forEach(t=>t.stop());VC.s=null}VC.an=null;VC.on=0;VC.mic=0;vcMirror();vcUi()}
 function vcDetach(){vcStop();Object.keys(VC.vi).forEach(k=>vcDrop(VC.vi,k));VC.rm=null;VC.key="";VC.hm=0}
 async function vcSpeak(){if(VC.on)return true;if(!VC.rm)return false;if(CL.on){ts("End the call to use voice");return false}
- let st;try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:!!ST2.noise,autoGainControl:!!ST2.voice,channelCount:1}})}catch(e){ts("Allow the microphone to use voice");return false}
+ let st;try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!!ST2.vcEc,noiseSuppression:!!ST2.noise,autoGainControl:false,channelCount:1}})}catch(e){ts("Allow the microphone to use voice");return false}
  if(!VC.rm){st.getTracks().forEach(t=>t.stop());return false}
  const ac=vcAc();if(ac){try{const an=ac.createAnalyser();an.fftSize=256;ac.createMediaStreamSource(st).connect(an);VC.an=an;VC.d=new Uint8Array(an.frequencyBinCount)}catch(e){VC.an=null}}
  VC.s=st;VC.on=1;VC.mic=VC.hm?0:1;st.getAudioTracks().forEach(t=>t.enabled=!!VC.mic);vcMirror();vcUi();vcSync();vcLevel();return true}
@@ -2390,6 +2390,99 @@ $("et").addEventListener("click",e=>{const t=e.target;let b;
  if(b=t.closest("#etcm button")){if(!ET.host)return ts("Only the host can change this");ET.ctl=b.dataset.c;etHostTx({t:"ctl",v:ET.ctl});[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));return ts(ET.ctl==="all"?"Everyone can control playback":"Only the host controls playback")}
  if(t.closest("[data-leave]"))return etClose()});
 $("pg").addEventListener("click",e=>{if(tab==="enjoy"&&e.target.closest("[data-en=together]"))etOpen()});
+/*ZNX-AUDIO1*/
+{
+if(ST2.stVol==null)ST2.stVol=100;
+if(ST2.mcVol==null)ST2.mcVol=100;
+if(ST2.bst==null)ST2.bst=0;
+P2.vol=ST2.stVol;
+
+const AUD={el:null,src:null,g:null,lim:null,mc:null,ml:null};
+const isBlob=()=>{const v=$("etv");return P2.kind==="file"&&/^blob:/.test((v&&(v.currentSrc||v.src))||"")};
+const mkLim=ac=>{const l=ac.createDynamicsCompressor();l.threshold.value=-10;l.knee.value=8;l.ratio.value=10;l.attack.value=.003;l.release.value=.2;l.connect(ac.destination);return l};
+
+/* boost: only for files from the phone (blob). Other links would go silent in WebAudio. */
+function graph(){const v=$("etv");if(AUD.el===v)return true;if(!isBlob())return false;
+ try{const ac=vcAc();if(!ac)return false;
+  AUD.src=ac.createMediaElementSource(v);AUD.g=ac.createGain();AUD.lim=mkLim(ac);
+  AUD.src.connect(AUD.g);AUD.g.connect(AUD.lim);AUD.el=v;return true}catch(e){return false}}
+function bstApply(){
+ if(ST2.bst>0&&isBlob()&&graph())AUD.g.gain.value=1+ST2.bst/50;
+ else if(AUD.g&&AUD.el===$("etv"))AUD.g.gain.value=1}
+
+/* if a normal link is loaded after boost was used, use a fresh video element so sound never goes silent */
+{const _el=etLoad;
+ etLoad=async function(src,title){
+  if(AUD.el&&!(src&&src.t==="url"&&/^blob:/.test(src.url||""))){
+   try{const v=$("etv"),n=document.createElement("video");n.id="etv";n.setAttribute("playsinline","");n.style.cssText=v.style.cssText;
+    try{v.pause()}catch(e){}try{AUD.src.disconnect()}catch(e){}
+    v.replaceWith(n);AUD.el=null;AUD.src=null}catch(e){}}
+  return _el.apply(this,arguments)}}
+
+/* friends' voice: 0 to 300 percent. Above 100 uses WebAudio gain. */
+function micApply(){const g=ST2.mcVol/100;
+ for(const k in VC.vi){const p=VC.vi[k];if(!p||!p.au)continue;
+  if(g<=1){p.au.muted=false;p.au.volume=Math.max(0,Math.min(1,g));if(p.wg)p.wg.gain.value=0}
+  else{const st=p.au.srcObject;if(!st)continue;
+   if(!p.wg||p.ws!==st){
+    try{const ac=vcAc();if(!ac)continue;
+     if(!AUD.ml||AUD.mc!==ac){AUD.mc=ac;AUD.ml=mkLim(ac)}
+     if(p.wn){try{p.wn.disconnect()}catch(e){}}
+     p.wn=ac.createMediaStreamSource(st);p.wg=ac.createGain();p.wn.connect(p.wg);p.wg.connect(AUD.ml);p.ws=st}catch(e){continue}}
+   p.au.muted=false;p.au.volume=0;p.wg.gain.value=g}}}
+
+/* ---------- panel under the player ---------- */
+const css=document.createElement("style");
+css.textContent="#znxAud{display:grid;gap:2px;padding:10px 14px 8px;border-radius:20px;border:1px solid var(--ln);background:var(--sf)}"+
+"#znxAud .zh{font:600 10.5px var(--mono);letter-spacing:.2em;color:var(--mu);margin:2px 0 4px}"+
+"#znxAud .zar{display:grid;grid-template-columns:70px 1fr 50px;align-items:center;gap:10px;min-height:38px}"+
+"#znxAud .zar b{font-size:13px;font-weight:600}"+
+"#znxAud .zar em{font:600 11px var(--mono);font-style:normal;text-align:right;color:var(--mu)}"+
+"#znxAud .zar.zt{grid-template-columns:1fr auto}"+
+"#znxAud .zar.zt b{font-weight:500}"+
+"#znxAud small{display:block;color:var(--mu);font-size:11.5px;line-height:1.4;margin:2px 0 4px}"+
+"#znxAud input.zbs{-webkit-appearance:none;appearance:none;width:100%;height:28px;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;touch-action:pan-x;outline:none}"+
+"#znxAud input.zbs:disabled{opacity:.35}"+
+"#znxAud input.zbs::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:linear-gradient(90deg,var(--c,var(--ac)) var(--p,0%),rgba(128,132,155,.3) var(--p,0%))}"+
+"#znxAud input.zbs::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--c,var(--ac))}"+
+"#znxAud input.zbs::-moz-range-track{height:5px;border-radius:5px;background:rgba(128,132,155,.3)}"+
+"#znxAud input.zbs::-moz-range-progress{height:5px;border-radius:5px;background:var(--c,var(--ac))}"+
+"#znxAud input.zbs::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--c,var(--ac))}";
+document.head.appendChild(css);
+
+const panel=document.createElement("div");panel.id="znxAud";
+panel.innerHTML='<div class="zh">SOUND</div>'+
+'<div class="zar"><b>Stream</b><input class="zbs" id="zaS" type="range" min="0" max="100" step="1" aria-label="Stream sound"><em id="zaSv"></em></div>'+
+'<div class="zar"><b>Mic</b><input class="zbs" id="zaM" type="range" min="0" max="300" step="5" aria-label="Friends mic sound"><em id="zaMv"></em></div>'+
+'<div class="zar"><b>Boost</b><input class="zbs" id="zaB" type="range" min="0" max="200" step="5" aria-label="Stream boost"><em id="zaBv"></em></div>'+
+'<small id="zaN"></small>'+
+'<div class="zar zt"><b>Echo cancel (speaker par)</b><button class="tg" id="zaE" aria-label="Echo cancel"></button></div>';
+$("etg").insertAdjacentElement("afterend",panel);
+
+const S=$("zaS"),M=$("zaM"),B=$("zaB"),E=$("zaE");
+const pc=(el)=>((el.value-el.min)/(el.max-el.min)*100);
+function paint(){
+ S.style.setProperty("--p",pc(S)+"%");M.style.setProperty("--p",pc(M)+"%");
+ const b=pc(B);B.style.setProperty("--p",b+"%");B.style.setProperty("--c","hsl("+Math.round(255-b*2.55)+",85%,60%)");
+ $("zaSv").textContent=S.value;$("zaMv").textContent=M.value+"%";$("zaBv").textContent="+"+B.value+"%";
+ E.classList.toggle("on",!!ST2.vcEc)}
+let dr=0;
+panel.addEventListener("pointerdown",()=>{dr=1});
+["pointerup","pointercancel"].forEach(k=>document.addEventListener(k,()=>{dr=0}));
+S.oninput=()=>{ST2.stVol=+S.value;plVol(ST2.stVol);paint();sv2()};
+M.oninput=()=>{ST2.mcVol=+M.value;micApply();paint();sv2()};
+B.oninput=()=>{ST2.bst=+B.value;bstApply();paint();sv2()};
+E.onclick=()=>{ST2.vcEc=ST2.vcEc?0:1;paint();sv2();ts(ST2.vcEc?"Echo cancel on (naye voice join par lagu)":"Echo cancel off: stream ki awaaz poori rahegi")};
+
+function sync(){
+ if(!dr){S.value=Math.round(P2.vol);M.value=ST2.mcVol;B.value=ST2.bst}
+ const ok=isBlob();B.disabled=!ok;
+ $("zaN").textContent=ok?"Boost chalu: awaaz 100 se bhi upar jaa sakti hai.":"Boost sirf phone se chuni hui file par chalta hai. YouTube par browser isse allow nahi karta.";
+ paint()}
+setInterval(()=>{if(!$("et").classList.contains("on"))return;sync();micApply();bstApply()},500);
+sync();
+}
+
 /* ===== Favourites ===== */
 const FS={kind:"watch",scope:"all",q:"",sm:false,sel:new Set(),vis:[]},TYN=["","Soothing","Vibe","Energetic","Bhakti"];
 const fvHost=u=>{try{return new URL(u).hostname.replace("www.","")}catch(e){return"link"}};
