@@ -1091,8 +1091,8 @@ function openNotes(){NSM=false;NSEL.clear();sheet(notesHtml());
   if(b=t.closest("[data-n]")){const[a,id]=b.dataset.n.split(":"),x=NT.find(z=>z.id==id);if(!x)return;NT=NT.filter(z=>z!==x);window.znxReq(x,a);if(tab==="chats")list();return notesPaint()}}}
 /* add friend */
 const DIR=[],SENT=new Set();
-function addSheet(){sheet(`<h3>Add friend</h3>${ST2.extra?rdRows():""}<input id="au" placeholder="@username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Search a username or UID.</div></div>`);
- const run=()=>{const q=$("au").value.trim().replace(/^@/,"").toLowerCase(),box=$("ar");if(q.length<2){box.innerHTML='<div class="empty" style="padding:26px 10px">Search a username or UID.</div>';return}
+function addSheet(){sheet(`<h3>Add friend</h3>${ST2.extra?rdRows():""}<input id="au" placeholder="Exact @username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Type the exact username or UID.</div></div>`);
+ const run=()=>{const q=$("au").value.trim().replace(/^@/,"").toLowerCase(),box=$("ar");if(q.length<2){box.innerHTML='<div class="empty" style="padding:26px 10px">Type the exact username or UID.</div>';return}
   const l=DIR.filter(d=>d.user.includes(q)||d.uid.toLowerCase().includes(q)||d.n.toLowerCase().includes(q));
   box.innerHTML=l.length?l.map(d=>{const fr=U.some(u=>u.n===d.n),sn=SENT.has(d.uid);return `<div class="pr2"><div class="ava" style="background:${g(d.n)};width:42px;height:42px;font-size:14px">${esc(ini(d.n))}</div><div class="t"><b>${esc(d.n)}</b><small>@${d.user} · ${d.uid}</small></div><button class="${fr||sn?"":"pri"}" style="height:36px;padding:0 16px;border-radius:18px;font-size:13px" data-add="${d.uid}" ${fr||sn?"disabled":""}>${fr?"Friends":sn?"Sent":"Add"}</button></div>`}).join(""):'<div class="empty" style="padding:26px 10px">No one found.</div>'};
  $("au").oninput=run;$("ar").onclick=e=>{const b=e.target.closest("[data-add]");if(!b||b.disabled)return;SENT.add(b.dataset.add);ts("Friend request sent");run()}}
@@ -4611,14 +4611,14 @@ window.addEventListener("pagehide",()=>setPres(false));
 
 /* add friend */
 addSheet=()=>{
- sheet(`<h3>Add friend</h3><input id="au" placeholder="@username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Search a username or UID.</div></div>`);
+ sheet(`<h3>Add friend</h3><input id="au" placeholder="Exact @username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Type the exact username or UID.</div></div>`);
  let tm=0,seq=0,res=[];
  const isF=pid=>FRS.some(f=>f.status==="accepted"&&(f.requester_id===pid||f.addressee_id===pid)),inc=pid=>FRS.find(f=>f.status==="pending"&&f.requester_id===pid&&f.addressee_id===PID);
  const draw=()=>{const box=$("ar");if(!box)return;box.innerHTML=res.length?res.map(d=>{const fr=isF(d.id),sn=SENT.has(d.id),rq=inc(d.id),nm=d.display_name||d.username||"User",lab=fr?"Friends":rq?"Accept":sn?"Sent":"Add";
   return `<div class="pr2"><div class="ava" style="background:${g(nm)};width:42px;height:42px;font-size:14px">${esc(ini(nm))}</div><div class="t"><b>${esc(nm)}</b><small>@${esc(d.username||"")} · ${esc(String(d.uid||"").replace(/^NX-?/,"MG"))}</small></div><button class="${fr||sn?"":"pri"}" style="height:36px;padding:0 16px;border-radius:18px;font-size:13px" data-add="${d.id}" ${fr||sn?"disabled":""}>${lab}</button></div>`}).join(""):'<div class="empty" style="padding:26px 10px">No one found.</div>'};
- const run=async()=>{const raw=$("au").value.trim().replace(/^@/,""),q=raw.replace(/[^A-Za-z0-9_ .-]/g,""),box=$("ar");
-  if(q.length<2){box.innerHTML='<div class="empty" style="padding:26px 10px">Search a username or UID.</div>';return}
-  const my=++seq;let data=[];try{const r=await SB.from("profiles").select("id,username,display_name,uid,avatar_url").or("username.ilike.%"+q+"%,uid.ilike.%"+q+"%,display_name.ilike.%"+q+"%").neq("id",PID).limit(12);data=r.data||[]}catch(e){}
+ const run=async()=>{const raw=$("au").value.trim().replace(/^@/,""),q=raw.replace(/[^A-Za-z0-9_-]/g,""),box=$("ar");
+  if(q.length<2){box.innerHTML='<div class="empty" style="padding:26px 10px">Type the exact username or UID.</div>';return}
+  const my=++seq;let data=[];try{const r=await SB.from("profiles").select("id,username,display_name,uid,avatar_url").or((function(u){var d=u.replace(/^(MG|NX)-?/,"");return "username.ilike."+q.replace(/_/g,"\\_")+",uid.in.("+[u,"NX-"+d,"NX"+d,"MG"+d].join(",")+")"})(q.toUpperCase())).neq("id",PID).limit(12);data=(r.data||[]).filter(function(d){var ql=q.toLowerCase(),qq=ql.replace(/^nx-?/,"mg"),u=String(d.uid||"").toLowerCase().replace(/^nx-?/,"mg");return String(d.username||"").toLowerCase()===ql||u===qq})}catch(e){}
   if(my!==seq)return;res=data;draw()};
  $("au").oninput=()=>{clearTimeout(tm);tm=setTimeout(run,300)};
  $("ar").onclick=async e=>{const b=e.target.closest("[data-add]");if(!b||b.disabled)return;const pid=b.dataset.add,d=res.find(x=>x.id===pid);if(!d)return;
