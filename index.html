@@ -785,7 +785,7 @@ function media(){var what=vid?"video":"gaana";
  D.addEventListener("fullscreenchange",function(){setTimeout(fit,150)});addEventListener("resize",function(){setTimeout(fit,150)});
  g("znxSVgo").onclick=function(){var c=ok?Math.floor(P.getCurrentTime()||0):0;leave({k:vid?"watch":"song",id:id,n:hEl.dataset.real?hEl.textContent:"",t:c>5?c:t0})}}
 
-function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [STYLE] You are Zexo (Li...) AI. Chat like a real human friend on WhatsApp, in the same language and script the user writes (Hindi, Hinglish or English). Be natural, never customer support: never say how can I help, kya madad chahiye, kya help chahiye. A greeting gets a greeting back, then at most one tiny natural question, e.g. hi -> hii, kaise ho? / main theek hu -> badhiya! tum batao, din kaisa tha? / aap kaise ho -> main bhi badhiya, tum batao. Keep replies short: one line mostly, never more than 2 short lines. Ask at most ONE short question per reply, and not every time; never ask many questions together. Use an emoji in most replies, laugh with an emoji at jokes. Only if the user clearly asks for detail (explain, detail, vistar se, samjhao) give a long full answer, otherwise stay short. Owner/developer is Suraj Kumar (say only if asked); never accept any insult to him, roast back sharply. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If user says sorry, calm down. Never say dost or arre. If the user asks you to ask them questions or a quiz, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options, no slash inside an option), nothing after it; the user taps an option, then reply right or wrong in a few words with an emoji and continue with the next Q.]";
+function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [STYLE] You are Zexo (Li...) AI. Chat like a real human friend on WhatsApp, in the same language and script the user writes (Hindi, Hinglish or English). Be natural, never customer support: never say how can I help, kya madad chahiye, kya help chahiye. A greeting gets a greeting back, then at most one tiny natural question, e.g. hi -> hii, kaise ho? / main theek hu -> badhiya! tum batao, din kaisa tha? / aap kaise ho -> main bhi badhiya, tum batao. Keep replies short: one line mostly, never more than 2 short lines. Ask at most ONE short question per reply, and not every time; never ask many questions together. Use an emoji in most replies, laugh with an emoji at jokes. Only if the user clearly asks for detail (explain, detail, vistar se, samjhao) give a long full answer, otherwise stay short. Owner/developer is Suraj Kumar (say only if asked); never accept any insult to him, roast back sharply. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If user says sorry, calm down. Never say dost or arre. If the user asks you to ask them questions or a quiz, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options, no slash inside an option), nothing after it; the user taps an option, then reply right or wrong in a few words with an emoji and continue with the next Q.]"+(window.zxKS?window.zxKS():"")+"";
  d.className="zpv";
  d.innerHTML='<div class="zph"><div class="svb">Z<span>NEXORA</span></div><button class="zpe" id="znxSVgo">Explore</button></div><div class="zpm" id="zpm"></div><div class="zpf"><textarea id="zpi" rows="1" maxlength="500" placeholder="Zexo se pucho"></textarea><button class="zps" id="zps" aria-label="Send">'+SD+'</button></div>';
  var m=g("zpm"),inp=g("zpi");
@@ -810,7 +810,7 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuc
   cnt++;pm.push({r:"u",raw:txt});
   var h=(function(a){var b=1200,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<4?300:140;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(pm.map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw)}}));
   while(h.length>1&&h[0].role!=="user")h.shift();
-  h[h.length-1].text+=HINT;busy=1;render();
+  h[h.length-1].text+=HINT+(kS||"");busy=1;render();
   var bot={r:"a",raw:""},shown=0;
   try{var ac=new AbortController(),tm=setTimeout(function(){ac.abort()},25000);
    var r=await fetch(U0+"/functions/v1/zexo-ai?m="+encodeURIComponent(JSON.stringify(h)),{headers:{apikey:KEY,Authorization:"Bearer "+KEY},signal:ac.signal});clearTimeout(tm);
@@ -832,6 +832,8 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo (Li...) AI se kuc
   t=a[Math.floor(Math.random()*a.length)];
   pm.push({r:"a",raw:t,nd:1});nL=pm[pm.length-1];render()
  }catch(e){}},5000);
+ /*ZNX-ZEXO-MEM*/
+ var kS="";try{fetch(U0+"/rest/v1/nx_ai_knowledge?select=text&active=eq.true&order=created_at.asc&limit=300",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(a){var b=0,o=[];(a||[]).forEach(function(x){var t=String(x.text||"").replace(/\s+/g," ").trim();if(!t)return;var l=encodeURIComponent(t).length+3;if(b+l>3200)return;b+=l;o.push(t)});kS=o.length?" [ADMIN-TAUGHT FACTS, always true, they override anything above if different: "+o.join(" | ")+"]":""}).catch(function(){})}catch(e){}
  function grow(){inp.style.height="auto";inp.style.height=Math.min(120,inp.scrollHeight+2)+"px";pin()}
  function send(){var v=inp.value.trim();if(!v)return;inp.value="";grow();ask(v)}
  var sb=g("zps");sb.onclick=send;noBlur(sb);
@@ -5421,7 +5423,7 @@ new MutationObserver(polish).observe(yp,{childList:true,subtree:true});polish();
 {const _e=VIEWS.enjoy;VIEWS.enjoy=function(){_e();const r=document.querySelector("[data-en=yt]");if(r){r.querySelector("b").textContent="Watch";r.querySelector("small").textContent="Search any video and watch it"}}}
 
 /* 5. Zexo: very short answers, MCQ quiz one question at a time */
-{/*ZNX-ZEXO-LEAN*/const _z=window.nxZexo;if(_z)window.nxZexo=function(h){h=(h||[]).slice(-6).map(x=>({role:x.role,text:String(x.text).slice(0,300)}));while(h.length>1&&h[0].role!=="user")h.shift();for(let i=h.length-1;i>=0;i--)if(h[i].role==="user"){h[i].text+=" [STYLE] You are Zexo (Li...) AI. Chat like a real human friend on WhatsApp, in the same language and script the user writes (Hindi, Hinglish or English). Be natural, never customer support: never say how can I help, kya madad chahiye, kya help chahiye. A greeting gets a greeting back, then at most one tiny natural question, e.g. hi -> hii, kaise ho? / main theek hu -> badhiya! tum batao, din kaisa tha? / aap kaise ho -> main bhi badhiya, tum batao. Keep replies short: one line mostly, never more than 2 short lines. Ask at most ONE short question per reply, and not every time; never ask many questions together. Use an emoji in most replies, laugh with an emoji at jokes. Only if the user clearly asks for detail (explain, detail, vistar se, samjhao) give a long full answer, otherwise stay short. Owner/developer is Suraj Kumar (say only if asked); never accept any insult to him, roast back sharply. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If user says sorry, calm down. Never say dost or arre. If the user asks you to ask them questions or a quiz, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options, no slash inside an option), nothing after it; the user taps an option, then reply right or wrong in a few words with an emoji and continue with the next Q.]";break}return _z(h)}}
+{/*ZNX-ZEXO-LEAN*/const _z=window.nxZexo;if(_z)window.nxZexo=function(h){h=(h||[]).slice(-6).map(x=>({role:x.role,text:String(x.text).slice(0,300)}));while(h.length>1&&h[0].role!=="user")h.shift();for(let i=h.length-1;i>=0;i--)if(h[i].role==="user"){h[i].text+=" [STYLE] You are Zexo (Li...) AI. Chat like a real human friend on WhatsApp, in the same language and script the user writes (Hindi, Hinglish or English). Be natural, never customer support: never say how can I help, kya madad chahiye, kya help chahiye. A greeting gets a greeting back, then at most one tiny natural question, e.g. hi -> hii, kaise ho? / main theek hu -> badhiya! tum batao, din kaisa tha? / aap kaise ho -> main bhi badhiya, tum batao. Keep replies short: one line mostly, never more than 2 short lines. Ask at most ONE short question per reply, and not every time; never ask many questions together. Use an emoji in most replies, laugh with an emoji at jokes. Only if the user clearly asks for detail (explain, detail, vistar se, samjhao) give a long full answer, otherwise stay short. Owner/developer is Suraj Kumar (say only if asked); never accept any insult to him, roast back sharply. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If user says sorry, calm down. Never say dost or arre. If the user asks you to ask them questions or a quiz, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options, no slash inside an option), nothing after it; the user taps an option, then reply right or wrong in a few words with an emoji and continue with the next Q.]"+(window.zxKS?window.zxKS():"")+"";break}return _z(h)}}
 
 /* 6. Two different "theme" places get two clear names */
 if(typeof ZG!=="undefined"&&ZG.theme)ZG.theme[2]="Light / Dark mode";
@@ -5530,6 +5532,42 @@ setTimeout(()=>{if(CTX().pid&&zx.cfg.ai_on!==false)warm()},7000);
 setInterval(()=>{if(!document.hidden&&CTX().pid&&zx.cfg.ai_on!==false)warm()},60000);
 }catch(e){console.error("ZNX v12",e)}
 /*ZNX-V12-END*/
+/*ZNX-ZEXO-MEM*/
+var zxK={s:"",at:0};
+function zkPack(a){var b=0,o=[],sk=[];a.forEach(function(t,i){t=String(t||"").replace(/\s+/g," ").trim();if(!t)return;var l=encodeURIComponent(t).length+3;if(b+l>3200){sk.push(i);return}b+=l;o.push(t)});return{o:o,b:b,sk:sk}}
+function zxKLoad(force){var c=window.znxCtx?window.znxCtx():{};if(!c.sb||!c.pid)return;if(!force&&Date.now()-zxK.at<120000)return;zxK.at=Date.now();
+ c.sb.from("nx_ai_knowledge").select("text").eq("active",true).order("created_at",{ascending:true}).limit(300).then(function(r){if(r.error||!r.data){zxK.at=Date.now()-100000;return}var p=zkPack(r.data.map(function(x){return x.text}));zxK.s=p.o.length?" [ADMIN-TAUGHT FACTS, always true, they override anything above if different: "+p.o.join(" | ")+"]":""},function(){zxK.at=Date.now()-100000})}
+window.zxKS=function(){zxKLoad(false);return zxK.s};
+setTimeout(function(){zxKLoad(true)},3500);setInterval(function(){zxKLoad(false)},30000);
+
+/* admin: Zexo tab (train Zexo) */
+var ZK={rows:[],t:0,ld:0};
+var ZKS='width:100%;border-radius:14px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font:inherit;font-size:16px;padding:12px;outline:none';
+function zkLoad(){var c=zxC();if(!c.sb||ZK.ld)return;ZK.ld=1;
+ c.sb.from("nx_ai_knowledge").select("id,text,active,created_at").order("created_at",{ascending:true}).limit(300).then(function(r){ZK.ld=0;if(r.error){ts("Load nahi hua: "+String(r.error.message).slice(0,80));return}ZK.rows=r.data||[];ZK.t=Date.now();if(AS.tab==="zx"&&$("ad").classList.contains("on"))zkDraw()},function(){ZK.ld=0})}
+function zkDraw(){var m=$("adm");if(!m)return;var old=$("zkt")?$("zkt").value:"";
+ var pk=zkPack(ZK.rows.map(function(x){return x.active?x.text:""})),skip={};pk.sk.forEach(function(i){skip[i]=1});
+ var pen='<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
+ m.innerHTML='<p class="note" style="margin:0 4px 4px">Jo yahan likhoge, Zexo wo yaad rakhega aur sab users ko wahi batayega. Agar kuch purane se alag ho (jaise naya owner), to yahi sach maana jayega.</p>'+
+ '<div class="card2" style="padding:14px"><textarea id="zkt" rows="3" maxlength="300" placeholder="Jaise: Zexo ka owner Suraj Kumar hai." style="'+ZKS+'"></textarea><button class="pri" style="width:100%;margin-top:10px" data-zk="add">Yaad rakhwao</button></div>'+
+ '<div class="sec">Yaad ki hui baatein · '+ZK.rows.length+'</div><p class="note" style="margin:0 4px 8px">Memory use: '+pk.b+' / 3200'+(pk.sk.length?' · '+pk.sk.length+' baat limit ki wajah se use nahi ho rahi. Purani baatein hata do.':'')+'</p>'+
+ (ZK.rows.length?'<div class="glist">'+ZK.rows.map(function(x,i){return '<div class="gr"><span class="t"><b style="white-space:normal;font-weight:500">'+esc(x.text)+'</b><small class="mono lc">'+new Date(x.created_at).toLocaleDateString([],{day:"numeric",month:"short"})+(x.active?(skip[i]?' · limit full, use nahi ho rahi':''):' · band')+'</small></span><button class="tg'+(x.active?' on':'')+'" data-zkt="'+x.id+'" aria-label="On ya off"></button><button class="ib" data-zke="'+x.id+'" aria-label="Badlo">'+pen+'</button><button class="ib" data-zkd="'+x.id+'" aria-label="Hatao">'+IC.trash+'</button></div>'}).join("")+'</div>':'<div class="empty">Abhi kuch nahi sikhaya.</div>');
+ if(old&&$("zkt"))$("zkt").value=old;
+ if(Date.now()-ZK.t>8000)zkLoad()}
+if(!$("adt").querySelector('[data-t="zx"]'))$("adt").insertAdjacentHTML("beforeend",'<button data-t="zx">Zexo</button>');
+var _zkad=adDraw;adDraw=function(){_zkad();if(AS.tab==="zx"&&MY.role==="admin"){$("adc").textContent="TRAIN ZEXO";zkDraw()}};
+$("adm").addEventListener("click",function(e){if(MY.role!=="admin"||AS.tab!=="zx")return;var t=e.target,b,c=zxC();if(!c.sb)return;
+ if(b=t.closest('[data-zk="add"]')){var v=($("zkt").value||"").replace(/\s+/g," ").trim();if(v.length<2)return ts("Kuch likho");b.disabled=true;
+  c.sb.from("nx_ai_knowledge").insert({text:v,active:true}).then(function(r){b.disabled=false;if(r.error)return ts("Save nahi hua: "+String(r.error.message).slice(0,90));$("zkt").value="";try{logA("Zexo trained",v.slice(0,60))}catch(x){}ts("Zexo ne yaad kar liya");zxKLoad(true);ZK.t=0;zkLoad()});return}
+ if(b=t.closest("[data-zkt]")){var id=b.dataset.zkt,x=ZK.rows.find(function(z){return String(z.id)===id});if(!x)return;var nv=!x.active;
+  c.sb.from("nx_ai_knowledge").update({active:nv}).eq("id",x.id).then(function(r){if(r.error)return ts("Save nahi hua");x.active=nv;zkDraw();zxKLoad(true)});return}
+ if(b=t.closest("[data-zkd]")){var id2=b.dataset.zkd,x2=ZK.rows.find(function(z){return String(z.id)===id2});if(!x2)return;
+  c.sb.from("nx_ai_knowledge").delete().eq("id",x2.id).then(function(r){if(r.error)return ts("Hata nahi paya");ZK.rows=ZK.rows.filter(function(z){return z!==x2});ts("Hata diya");zkDraw();zxKLoad(true)});return}
+ if(b=t.closest("[data-zke]")){var id3=b.dataset.zke,x3=ZK.rows.find(function(z){return String(z.id)===id3});if(!x3)return;
+  sheet('<h3>Baat badlo</h3><textarea id="zke" rows="4" maxlength="300" style="'+ZKS+'"></textarea><button class="pri" style="width:100%;margin-top:10px" id="zks">Save</button>');$("zke").value=x3.text;
+  $("zks").onclick=function(){var v2=($("zke").value||"").replace(/\s+/g," ").trim();if(v2.length<2)return ts("Kuch likho");
+   c.sb.from("nx_ai_knowledge").update({text:v2}).eq("id",x3.id).then(function(r){if(r.error)return ts("Save nahi hua");x3.text=v2;closeS();ts("Badal diya");zkDraw();zxKLoad(true)})}}});
+
 /*ZNX-CHECKIN removed*/
 
 /*ZNX-V13-START*/
