@@ -3238,7 +3238,7 @@ var _zau=adUser;adUser=function(i){_zau(i);var u=AU[i],c=zxC();if(!u||!u.pid||!c
 $("sh").addEventListener("click",async function(e){var b=e.target.closest("[data-zxu]");if(!b)return;var on=!b.classList.contains("on");b.classList.toggle("on",on);var r=await zxC().sb.from("nx_ai_users").upsert({user_id:b.dataset.zxu,hist:on});if(r.error){b.classList.toggle("on",!on);ts("Save nahi hua")}else ts(on?"History on":"History off")});
 
 window.enter=enter;
-/*ZNX-LOADFIX-V1*//*C3D-START*/
+/*ZNX-LOADFIX-V1*/
 
 {/*ARENA-V1*/
 GAMES.push({id:"arn",n:"Arena 1v1",max:2,d:"1v1 gun fight · 5 rounds · shrinking zone"});
@@ -3431,7 +3431,31 @@ function mkHero(v){
  const pd=jt(ch,0,.355,.152);pd.rotation.x=.12;
  add(tubeH([[-.034,.001,.001],[-.026,.011,.007],[-.004,.0125,.0085],[.012,.0125,.0085],[.03,.001,.001]],6,6),M.gem,pd);
  add(tubeH([[.026,.001,.001],[.029,.007,.004],[.036,.006,.004],[.04,.001,.001]],10,3),M.metal,pd);
- g.scale.setScalar(.95);
+ /*ZNX-GEAR-V1*/try{
+const col=h=>mat(h,.8,null,0,{side:TH.DoubleSide}),
+ GV=col(v===0?0x3f4a38:0x6d5f45),GV2=col(v===0?0x2e3829:0x544a36),BK=col(0x17171a);
+let vs=tubeH([[.1,.19,.12,-.004],[.2,.2,.13,-.002],[.3,.226,.14,0],[.4,.242,.145,.002],[.47,.236,.132,.001]],48,8,[4,5]);
+vs=cut(vs,(x,y,z)=>(y>.3&&Math.abs(x)>.225-(y-.3)*.5)||(y>.41&&Math.abs(x)<.085&&z>0)||(y>.44&&Math.abs(x)<.07));
+add(vs,GV,ch);
+const pg=tubeH([[-.04,.001,.001],[-.034,.03,.014],[.034,.03,.014],[.04,.001,.001]],10,4,[1,1]);
+[-.075,0,.075].forEach(x=>add(pg,GV2,ch,x,.14,.128));
+add(tubeH([[.012,.001,.001,-.004],[.014,.183,.126,-.004],[.05,.183,.126,-.004],[.052,.001,.001,-.004]],48,3,[4,1]),BK,hp);
+add(tubeH([[-.02,.001,.001],[-.015,.022,.01],[.015,.022,.01],[.02,.001,.001]],8,3),M.metal,hp,0,.032,.13);
+let hm=tubeH([[.165,.104,.116,0],[.2,.106,.118,-.002],[.24,.1,.112,-.006],[.28,.076,.088,-.011],[.308,.034,.044,-.012],[.32,.001,.001,-.012]],40,8,[4,3]);
+hm=cut(hm,(x,y,z)=>z>.01&&y<.228);add(hm,GV,hd);
+add(sweep(new TH.CatmullRomCurve3([v3(-.098,.17,.005),v3(-.093,.1,.02),v3(-.05,.04,.075),v3(0,.03,.1),v3(.05,.04,.075),v3(.093,.1,.02),v3(.098,.17,.005)]),()=>.0035,5,16),BK,hd);
+hd.children.forEach(o=>{if(o.material===M.hair)o.visible=false});
+M.shoe.color.setHex(0x26221e);M.sole.color.setHex(0x0e0e10);
+[lL,lR].forEach(L=>{
+ add(tubeH([[-.435,.001,.001,0],[-.43,.068,.072,0],[-.38,.074,.079,-.002],[-.33,.078,.083,-.003],[-.32,.001,.001,-.003]],28,4,[3,1]),BK,L.kn);
+ add(tubeH([[-.07,.001,.001],[-.055,.058,.024],[0,.064,.028],[.055,.058,.024],[.07,.001,.001]],14,4,[1,1]),GV2,L.kn,0,-.03,.1)});
+[aL,aR].forEach(A=>{
+ const hh=A.e.children.find(o=>o.type==="Group");
+ if(hh)add(tubeH([[-.098,.001,.001,.01],[-.09,.037,.019,.01],[-.06,.046,.026,.008],[-.02,.047,.028,0],[.012,.04,.024,0],[.02,.001,.001,0]],18,4,[2,2]),BK,hh);
+ add(tubeH([[.07,.001,.001],[.055,.085,.088],[-.01,.108,.11],[-.08,.106,.108],[-.115,.001,.001]],18,4,[3,1]),GV,A.a)});
+add(tubeH([[.04,.001,.001],[.055,.12,.065],[.1,.145,.088],[.3,.15,.09],[.4,.125,.075],[.43,.001,.001]],24,5,[3,3]),GV2,ch,0,.04,-.2);
+}catch(e){console.error("gear",e)}
+g.scale.setScalar(.95);
  return{g,body:ch,hp,aL:aL.a,aR:aR.a,eL:aL.e,eR:aR.e,lL:lL.l,lR:lR.l,kL:lL.kn,kR:lR.kn,cL:aL.cv,cR:aR.cv,fL:lL.f,fR:lR.f,hd,lids,s:{},hy:.93,cy:.93}}
 /*ZNX-HERO-END*/
 function zcAim(c,p,dt,t,s){/*ZNX-P2-CHAR*/
@@ -3618,7 +3642,7 @@ async function start0(nt,seed0){stop();arLdInit();inGame=true;document.documentE
  const bg=new T.BoxGeometry(1,1,1),mats={};
  
  const zone=new T.Mesh(new T.CylinderGeometry(1,1,60,48,1,true),new T.MeshBasicMaterial({color:0xff3a2a,transparent:true,opacity:.2,side:T.DoubleSide,depthWrite:false,fog:false}));zone.position.y=30;sc.add(zone);
- const mkC=v=>{const c=(()=>{try{return mkHero(v)}catch(e){console.error(e);return fbHero(v)}})();sc.add(c.g);const g=gnGun();g.scale.setScalar(1);c.eR.add(g);g.position.set(0,-.26,.02);c.gun=g;return c},c1=(ldt("Building characters..."),arLdTo(40),await arLdWait(),(()=>{try{mkHero.K||(mkHero.K=heroKit())}catch(e){}})(),arLdTo(52),await arLdWait(),mkC(0)),c2=(arLdTo(74),await arLdWait(),mkC(1));arLdTo(94);c1.g.scale.setScalar(1.18);c2.g.scale.setScalar(1.18);
+ const mkC=v=>{const c=(()=>{try{return mkHero(v)}catch(e){console.error(e);window.__heroErr=String(e&&e.message||e);setTimeout(()=>{try{ts('Hero error: '+String(e&&e.message||e).slice(0,70))}catch(x){}},1200);return fbHero(v)}})();sc.add(c.g);const g=gnGun();g.scale.setScalar(1);c.eR.add(g);g.position.set(0,-.26,.02);c.gun=g;return c},c1=(ldt("Building characters..."),arLdTo(40),await arLdWait(),(()=>{try{mkHero.K||(mkHero.K=heroKit())}catch(e){}})(),arLdTo(52),await arLdWait(),mkC(0)),c2=(arLdTo(74),await arLdWait(),mkC(1));arLdTo(94);c1.g.scale.setScalar(1.18);c2.g.scale.setScalar(1.18);
  const P=()=>({x:0,y:0,z:0,vx:0,vz:0,vy:0,g:1,yaw:0,pit:0,hp:200});
  const s=S={B,rn,sc,cam,seed,me:P(),op:P(),w:[0,0],n:0,ph:"wait",pt:0,t:0,zr:62,zc:[0,0],net:nt?nt.role:0,ammo:30,rl:0,cd:0,jx:0,jy:0,fire:0,jp:0,lt:0,sn:0,rdy:0,tr:[],fl:[0,0],fk:0,bd:0,bs:1,prs:0};
  const tg=new T.BoxGeometry(.06,.06,1),tm=new T.MeshBasicMaterial({color:0xffe9a0,fog:false});
@@ -4155,7 +4179,7 @@ const _gs=gmSend;gmSend=function(){if(INV.id==="arn")return nHost([...INV.sel][0
 $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-ar]");if(!b)return;if(b.dataset.ar==="inv")inviteScreen("arn");else start(0)});
 }
 
-/*C3D-END*/
+
 
 
 /* ===== LEVEL DEVIL v2 for ZNEXORA ===== */
@@ -5640,7 +5664,6 @@ const CTX=()=>window.znxCtx?window.znxCtx():{};
 const base=()=>location.origin+location.pathname;
 const dl=(k,v)=>base()+"?p="+k+":"+v;
 function shCtx(){
- if($("c3R"))return{t:"Chained Together",l:base()+"?game=c3d"};
  if($("ldR"))return{t:"Level Devil",l:base()+"?game=devil"};
  if($("uoR"))return{t:"UNO",l:base()+"?game=uno"};
  if(tab==="play"&&inGame&&T)return{t:"Tic-Tac-Toe",l:dl("game","ttt")};
@@ -5664,7 +5687,7 @@ const me=$("me"),wr=document.createElement("span");wr.style.cssText="display:fle
 me.parentNode.insertBefore(wr,me);wr.appendChild(hb);wr.appendChild(me);
 /* floating icon (games, Enjoy Together, Favourites) */
 const mkSh=()=>{const b=document.createElement("button");b.className="ib shx";b.setAttribute("aria-label","Share");b.innerHTML=SI.share;b.onclick=e=>{e.stopPropagation();doShare()};return b};const putSh=(sel,bf)=>{const h=document.querySelector(sel);if(!h||h.querySelector(":scope>.shx"))return;const r=bf?h.querySelector(":scope>"+bf):null;h.insertBefore(mkSh(),r||h.firstChild)};
-setInterval(()=>{putSh("#et .ethr","#etmic");putSh("#fv .ethr","#fvsel");putSh("#c3R .c3T","#c3Rs");putSh("#ldR .ldT","#ldRs")},600);window.znxShare=doShare;
+setInterval(()=>{putSh("#et .ethr","#etmic");putSh("#fv .ethr","#fvsel");putSh("#ldR .ldT","#ldRs")},600);window.znxShare=doShare;
 
 /* link kholne par seedha wahi page / game khule */
 const DP=(new URLSearchParams(location.search)).get("p")||"";
@@ -6617,17 +6640,13 @@ html body .etmk{height:7%}html body .etmk.b{height:8%}
 .ingame #zxc,.ingame #morb,.ingame #mini,.ingame #fsb{display:none!important}
 .ingame *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .ingame .dot,.ingame .pri.shm::after{animation:none!important}
-#chR .chb{transition:transform .08s,background .12s}
-#chR .chb.on{transform:scale(.92)}
-#chR canvas{image-rendering:auto}
-#chR .chb.j{box-shadow:0 12px 26px -10px #8f88ff}
 </style>
 <script id="znx-polish-js-v1">(function(){
 var H=document.documentElement;
-function chk(){H.classList.toggle('ingame',!!(document.getElementById('chR')||document.getElementById('uoR')))}
+function chk(){H.classList.toggle('ingame',!!(null||document.getElementById('uoR')))}
 new MutationObserver(chk).observe(document.body,{childList:true});chk();
-document.addEventListener('gesturestart',function(e){if(document.getElementById('chR'))e.preventDefault()},{passive:false});
-document.addEventListener('dblclick',function(e){if(document.getElementById('chR'))e.preventDefault()},{passive:false});
+document.addEventListener('gesturestart',function(e){if(null)e.preventDefault()},{passive:false});
+document.addEventListener('dblclick',function(e){if(null)e.preventDefault()},{passive:false});
 })();</script>
 <script>/*ZNX-V7:ctl*/(function(){try{(function ctlModule(){
  var KEY="znx_ctl_land",ICON='<svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
@@ -6696,14 +6715,11 @@ body.znx-gp.znx-port #znxRot{display:grid}
 #znxRot small{color:#9aa0b8}
 @keyframes znxRt{0%,15%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (orientation:landscape){
-#c3J{left:calc(env(safe-area-inset-left,0px) + 28px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 18px)!important}
-#c3B{right:calc(env(safe-area-inset-right,0px) + 32px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important}
 .ldP{padding:0 calc(env(safe-area-inset-right,0px) + 24px) 0 calc(env(safe-area-inset-left,0px) + 24px)!important}
-.c3T,.ldT{padding-left:calc(env(safe-area-inset-left,0px) + 12px)!important;padding-right:calc(env(safe-area-inset-right,0px) + 12px)!important}}
-@media (orientation:landscape) and (max-height:520px){#c3L{gap:8px!important}.c3Lc{transform:scale(.8)}#c3L em{display:none}}
+.ldT{padding-left:calc(env(safe-area-inset-left,0px) + 12px)!important;padding-right:calc(env(safe-area-inset-right,0px) + 12px)!important}}
 </style><div id="znxRot"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg><b>Phone ko ghumao</b><small>Ye game landscape me chalta hai</small></div>
 <script>(function(){
-var B=document.body,D=document,GM={c3R:1,ldR:1,arR:1},cur=null;
+var B=document.body,D=document,GM={ldR:1,arR:1},cur=null;
 var IOS=/iP(hone|ad|od)/.test(navigator.userAgent);
 function fsEl(){return D.fullscreenElement||D.webkitFullscreenElement}
 function chk(){B.classList.toggle("znx-port",!!cur&&innerHeight>innerWidth)}
