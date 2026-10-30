@@ -5546,7 +5546,7 @@ const loadFav=async()=>{
   try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}
   keepL.forEach(x=>{if(!FAV.some(y=>y.url===x.url&&y.kind===x.kind)){x.tried=0;x.rt=0;FAV.unshift(x)}});if(typeof mpSync==="function")mpSync()}catch(e){}};
 window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID)return;
- try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;const r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();
+ try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;let r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();if(r.error&&f.era&&/era/i.test(String(r.error.message||""))){r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0}).select("id").maybeSingle()}
    if(r.error){f.rt=(f.rt||0)+1;f.tried=f.rt<4?0:1;if(f.rt===1||f.rt>=4)ts("Save nahi hua: "+String(r.error.message||"link").slice(0,90));continue}/*ZNX-FAVFIX1*/if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
   const have=new Set(FAV.filter(x=>x.sid).map(x=>x.sid));
   for(const id of [...FAVDB]){if(!have.has(id)){const r=await SB.from("nx_fav").delete().eq("id",id);if(!r.error)FAVDB.delete(id)}}}catch(e){}},500)};
@@ -6340,7 +6340,7 @@ enter=function(){
   try{history.replaceState(null,"",location.pathname)}catch(e){}},450)};
 
 /* ===== 2. SONG LIMIT: admin har user ko 30 / 100 / Unlimited / custom de sake ===== */
-const SL={d:30,l:null,pid:"",nm:""};
+const SL={d:100000,l:null,pid:"",nm:""};
 const slMax=()=>MY.role==="admin"?Infinity:(SL.l?(SL.l.unlimited?Infinity:(+SL.l.max_songs||SL.d)):SL.d);
 async function slLoad(){const c=CTX();if(!c.sb||!c.pid)return;
  try{const r=await c.sb.from("nx_song_limit").select("max_songs,unlimited").eq("user_id",c.pid).maybeSingle();if(!r.error)SL.l=r.data||null}catch(e){}}
