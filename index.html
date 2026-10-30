@@ -4516,10 +4516,10 @@ function xqFov(s,b,zk,dt){
  s.zmt=Math.max(r[0],Math.min(r[1],s.zmt));
  if(s.zmx==null)s.zmx=s.zmt;
  s.zmx+=(s.zmt-s.zmx)*(1-Math.exp(-dt*11));
- var m=1+(s.zmx-1)*zk;
+ var m=1+(s.zmx*1.7-1)*zk;
  return 2*Math.atan(Math.tan(b*Math.PI/360)/m)*180/Math.PI}
 zwZoom=function(s){if(!s||s.mel||s.ph==="wait")return;s.zoom=s.zoom?0:1;s.zl=s.zoom?1:0};
-var _xqSens=zcSens;zcSens=function(s){var m=1+((s.zmx||1)-1)*(s.zk||0);return _xqSens.call(this,s)/(1+(m-1)*.5)};
+var _xqSens=zcSens;zcSens=function(s){var m=1+((s.zmx||1)*1.7-1)*(s.zk||0);return _xqSens.call(this,s)/(1+(m-1)*.8)};
 
 (function(){
 var D=document,KEY="znx_hud3",SK="znx_hud3s",L={},SL={a:0,b:-1},ed=0,sel="",drag=null,xqLast=null,lastAct="",zkey="",lblT=0;
@@ -4559,7 +4559,7 @@ css.textContent=
 "#xqP b{grid-column:1/3;font-size:14px}#xqP small{grid-column:1/3;color:#9aa0b8;font-size:11.5px;margin-top:-4px}"+
 "#xqP label{display:grid;grid-template-columns:62px 1fr;align-items:center;font-size:13px}#xqP input{height:26px;padding:0;border:0;background:none;box-shadow:none;accent-color:#8f88ff;width:100%}"+
 "#xqP .xr{display:flex;gap:6px;grid-column:2;grid-row:3/5}#xqP .xr2{display:flex;gap:6px;grid-column:1/3}"+
-"#xqP button{height:38px;min-height:38px!important;min-width:0!important;padding:0 14px;border-radius:19px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-weight:600;font-size:12.5px}#xqP button.pri{background:linear-gradient(135deg,#6a62f0,#5149d6);border-color:transparent}";
+"#xqP button{height:38px;min-height:38px!important;min-width:0!important;padding:0 14px;border-radius:19px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-weight:600;font-size:12.5px}#xqP button.pri{background:linear-gradient(135deg,#6a62f0,#5149d6);border-color:transparent}#xqP #xqG{grid-column:1/3;display:flex;align-items:center;gap:10px;cursor:grab;touch-action:none;padding:2px 0 4px;-webkit-user-select:none;user-select:none}#xqP #xqG i{width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.4);flex:none}#xqP #xqG span{flex:1;font-size:11px;color:#9aa0b8}#xqP #xqM{flex:none;width:44px;height:34px;min-height:34px!important;padding:0;font-size:20px;line-height:1}#xqP.mini{width:auto;min-width:210px;grid-template-columns:1fr}#xqP.mini>:not(#xqG){display:none!important}";
 D.head.appendChild(css);
 
 /* ---------- weapon slots ---------- */
@@ -4630,14 +4630,19 @@ function upd(){var n=$("xqN");if(!n)return;var c=L[sel]||{},nm=(EL.filter(functi
  n.textContent=nm?nm:"Kisi button par tap karo";$("xqS").value=Math.round((c.s||1)*100);$("xqO").value=Math.round((c.o==null?1:c.o)*100);$("xqH").textContent=c.h?"Show":"Hide";
  $("xqS").disabled=$("xqO").disabled=$("xqH").disabled=$("xqR").disabled=!nm}
 function startEdit(){var r=$("arR");if(!r||ed)return;ed=1;r.classList.add("xq-ed");
- r.insertAdjacentHTML("beforeend",'<div id="xqP"><b id="xqN"></b><small>Drag karke move karo. Size aur visibility neeche.</small><div style="display:grid;gap:4px"><label>Size<input type="range" id="xqS" min="40" max="220" step="5"></label><label>Opacity<input type="range" id="xqO" min="20" max="100" step="5"></label></div><div class="xr"><button id="xqH">Hide</button><button id="xqR">Reset</button></div><div class="xr2"><button id="xqA">Reset all</button><button class="pri" id="xqD" style="flex:1">Done</button></div></div>');
+ r.insertAdjacentHTML("beforeend",'<div id="xqP"><div id="xqG"><i></i><span>Panel ko yahan se khincho</span><button id="xqM" aria-label="Chhota karo">–</button></div><b id="xqN"></b><small>Drag karke move karo. Size aur visibility neeche.</small><div style="display:grid;gap:4px"><label>Size<input type="range" id="xqS" min="40" max="220" step="5"></label><label>Opacity<input type="range" id="xqO" min="20" max="100" step="5"></label></div><div class="xr"><button id="xqH">Hide</button><button id="xqR">Reset</button></div><div class="xr2"><button id="xqA">Reset all</button><button class="pri" id="xqD" style="flex:1">Done</button></div></div>');
  var p=$("xqP");p.addEventListener("pointerdown",function(e){e.stopPropagation()});
  $("xqS").oninput=function(){if(!sel)return;cfg(sel).s=this.value/100;ap1(sel);keep(sel);sv()};
  $("xqO").oninput=function(){if(!sel)return;cfg(sel).o=this.value/100;ap1(sel);sv()};
  $("xqH").onclick=function(){if(!sel)return;var c=cfg(sel);c.h=!c.h;ap1(sel);sv();upd()};
  $("xqR").onclick=function(){if(!sel)return;delete L[sel];ap1(sel);sv();upd()};
  $("xqA").onclick=function(){L={};sv();applyAll();upd();ts("Saara HUD reset")};
- $("xqD").onclick=endEdit;applyAll();mark();upd()}
+ $("xqD").onclick=endEdit;xqDrag();applyAll();mark();upd()}
+function xqDrag(){var p=$("xqP"),h=$("xqG");if(!p||!h)return;var d=null;
+ h.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();var r=p.getBoundingClientRect();p.style.transform="none";p.style.left=r.left+"px";p.style.top=r.top+"px";d={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};try{h.setPointerCapture(e.pointerId)}catch(x){}});
+ h.addEventListener("pointermove",function(e){if(!d||e.pointerId!==d.id)return;var W=innerWidth,H=innerHeight,w=p.offsetWidth;p.style.left=Math.max(4,Math.min(W-w-4,e.clientX-d.dx))+"px";p.style.top=Math.max(4,Math.min(H-70,e.clientY-d.dy))+"px"});
+ ["pointerup","pointercancel"].forEach(function(v){h.addEventListener(v,function(){d=null})});
+ $("xqM").onclick=function(e){e.stopPropagation();p.classList.toggle("mini");$("xqM").textContent=p.classList.contains("mini")?"+":"–"}}
 function endEdit(){ed=0;sel="";drag=null;var r=$("arR");if(r)r.classList.remove("xq-ed");var p=$("xqP");if(p)p.remove();mark();applyAll();sv()}
 D.addEventListener("pointerdown",function(e){if(!ed)return;var r=$("arR");if(!r||!r.contains(e.target))return;
  if(e.target.closest("#xqP")||e.target.closest(".arT"))return;
