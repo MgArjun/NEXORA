@@ -4516,10 +4516,10 @@ function xqFov(s,b,zk,dt){
  s.zmt=Math.max(r[0],Math.min(r[1],s.zmt));
  if(s.zmx==null)s.zmx=s.zmt;
  s.zmx+=(s.zmt-s.zmx)*(1-Math.exp(-dt*11));
- var m=1+(s.zmx*1.7-1)*zk;
+ var m=1+(s.zmx*2.5-1)*zk;
  return 2*Math.atan(Math.tan(b*Math.PI/360)/m)*180/Math.PI}
 zwZoom=function(s){if(!s||s.mel||s.ph==="wait")return;s.zoom=s.zoom?0:1;s.zl=s.zoom?1:0};
-var _xqSens=zcSens;zcSens=function(s){var m=1+((s.zmx||1)*1.7-1)*(s.zk||0);return _xqSens.call(this,s)/(1+(m-1)*.8)};
+var _xqSens=zcSens;zcSens=function(s){var m=1+((s.zmx||1)*2.5-1)*(s.zk||0);return _xqSens.call(this,s)/(1+(m-1)*.8)};
 
 (function(){
 var D=document,KEY="znx_hud3",SK="znx_hud3s",L={},SL={a:0,b:-1},ed=0,sel="",drag=null,xqLast=null,lastAct="",zkey="",lblT=0;
@@ -4600,7 +4600,7 @@ function equip(idx){var s=S;if(!s||s.ph==="wait"||s.heal>0||s.gh)return;
 function hand(){var s=S;if(!s||s.ph==="wait"||s.heal>0||s.gh)return;
  if(s.mel&&!s.qm){equip(s.wi|0);return}
  s.mel=1;s.qm=0;s.zoom=0;s.zl=0;s.fire=0;s.mk=0;s.mh=0;s.gm=0;s.swt=.28;arSfx("mag",.5);paint()}
-function tap(k){if(k==="h")return hand();if(k==="p")return equip(1);if(SL[k]<0)return pick(k);equip(SL[k])}
+function tap(k){if(k==="h")return hand();var ix=k==="p"?1:SL[k];if(ix<0)return pick(k);var s=S;if(s&&!s.mel&&(s.wi|0)===ix)return hand();equip(ix)}
 function pick(k){var cur=SL[k],other=SL[k==="a"?"b":"a"],o=[[0,"Rifle"],[2,"SMG"],[4,"Shotgun"],[3,"Sniper"]];
  sheet('<h3>'+(k==="a"?"Weapon slot 1":"Weapon slot 2")+'</h3><div class="glist">'+o.map(function(x){return '<button class="gr" data-xw="'+x[0]+'"><span class="t"><b>'+x[1]+'</b></span><span class="ck'+(cur===x[0]?" on":"")+'"></span></button>'}).join("")+'</div>'+(cur>=0?'<button class="opt rd" data-xw="-1">Empty this slot</button>':""));
  $("sh").onclick=function(e){var b=e.target.closest("[data-xw]");if(!b)return;var v=+b.dataset.xw;
@@ -4638,6 +4638,11 @@ function startEdit(){var r=$("arR");if(!r||ed)return;ed=1;r.classList.add("xq-ed
  $("xqR").onclick=function(){if(!sel)return;delete L[sel];ap1(sel);sv();upd()};
  $("xqA").onclick=function(){L={};sv();applyAll();upd();ts("Saara HUD reset")};
  $("xqD").onclick=endEdit;xqDrag();applyAll();mark();upd()}
+function xqDrag(){var p=$("xqP"),h=$("xqG");if(!p||!h)return;var d=null;
+ h.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();var r=p.getBoundingClientRect();p.style.transform="none";p.style.left=r.left+"px";p.style.top=r.top+"px";d={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};try{h.setPointerCapture(e.pointerId)}catch(x){}});
+ h.addEventListener("pointermove",function(e){if(!d||e.pointerId!==d.id)return;var W=innerWidth,H=innerHeight,w=p.offsetWidth;p.style.left=Math.max(4,Math.min(W-w-4,e.clientX-d.dx))+"px";p.style.top=Math.max(4,Math.min(H-70,e.clientY-d.dy))+"px"});
+ ["pointerup","pointercancel"].forEach(function(v){h.addEventListener(v,function(){d=null})});
+ $("xqM").onclick=function(e){e.stopPropagation();p.classList.toggle("mini");$("xqM").textContent=p.classList.contains("mini")?"+":"–"}}
 function xqDrag(){var p=$("xqP"),h=$("xqG");if(!p||!h)return;var d=null;
  h.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();var r=p.getBoundingClientRect();p.style.transform="none";p.style.left=r.left+"px";p.style.top=r.top+"px";d={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};try{h.setPointerCapture(e.pointerId)}catch(x){}});
  h.addEventListener("pointermove",function(e){if(!d||e.pointerId!==d.id)return;var W=innerWidth,H=innerHeight,w=p.offsetWidth;p.style.left=Math.max(4,Math.min(W-w-4,e.clientX-d.dx))+"px";p.style.top=Math.max(4,Math.min(H-70,e.clientY-d.dy))+"px"});
