@@ -483,7 +483,7 @@ body.hasmini #pg{padding-bottom:170px}
 #etmic{width:42px;height:42px;border:1px solid var(--ln);background:var(--sf);--lv:0;box-shadow:0 0 0 calc(var(--lv)*2px) color-mix(in srgb,var(--ac) 55%,transparent);transition:box-shadow .12s,transform .42s cubic-bezier(.2,.9,.3,1.35),background-color .25s}#etmic.on{color:var(--ac)}#etmic.off{background:var(--tx);color:var(--bg)}#etmic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .etg{position:relative;aspect-ratio:16/9;border-radius:22px;overflow:hidden;border:1px solid transparent;background:linear-gradient(#05060a,#05060a) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 45%,var(--e3)) border-box;box-shadow:0 24px 50px -26px rgba(91,84,224,.8)}
 .etg:fullscreen{border-radius:0;aspect-ratio:auto;width:100vw;height:100vh;border:0}
-.etyw{position:absolute;inset:0}.etyw iframe,.etyw #etyt{position:absolute;left:0;top:-64px;width:100%;height:calc(100% + 128px);border:0;display:block}.etg.aud .etyw{opacity:0;pointer-events:none}
+.etyw{position:absolute;inset:0}.etyw iframe,.etyw #etyt{position:absolute;left:0;top:0;width:100%;height:100%;border:0;display:block}.etg.aud .etyw{opacity:0;pointer-events:none}
 #etv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:none}.etg.on #etv{display:block}.etg.aud #etv{opacity:0}
 .etdim{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:2}.etgs{position:absolute;inset:0;z-index:3;touch-action:none}
 .etg:not(.on) .etgs{display:none}
@@ -762,7 +762,7 @@ function media(){var what=vid?"video":"gaana";
  if(!nm){try{fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent("https://youtu.be/"+id)).then(function(r){return r.json()}).then(function(j){if(j&&j.title&&!dead){var t=String(j.title).slice(0,100);hEl.textContent=t;hEl.dataset.real="1";if(ct)ct.textContent=t}}).catch(function(){})}catch(e){}}
  function fit(){var f=g("znxSVp");if(!vid||!w0||!f||f.tagName!=="IFRAME")return;var cw=w0.clientWidth,ch=w0.clientHeight;if(!cw||!ch)return;
   var W=Math.max(1280,Math.min(1920,Math.round(cw*(devicePixelRatio||1)))),k=cw/W,key=W+"|"+cw+"|"+ch;if(f.dataset.f13===key)return;f.dataset.f13=key;
-  f.style.cssText="position:absolute;left:0;top:0;border:0;max-width:none;width:"+W+"px;height:"+((ch+128)/k).toFixed(1)+"px;transform-origin:0 0;transform:translate(0,-64px) scale("+k.toFixed(5)+")"}
+  f.style.cssText="position:absolute;left:0;top:0;border:0;max-width:none;width:"+W+"px;height:"+(ch/k).toFixed(1)+"px;transform-origin:0 0;transform:translate(0,0px) scale("+k.toFixed(5)+")"}
  function tg(){if(!ok)return;var t=P.getPlayerState();if(t===1||t===3)P.pauseVideo();else P.playVideo()}
  function init(){if(dead)return;P=new YT.Player("znxSVp",{videoId:id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,modestbranding:1,iv_load_policy:3,start:t0},events:{
   onReady:function(){ok=1;fit()},
@@ -785,7 +785,7 @@ function media(){var what=vid?"video":"gaana";
  D.addEventListener("fullscreenchange",function(){setTimeout(fit,150)});addEventListener("resize",function(){setTimeout(fit,150)});
  g("znxSVgo").onclick=function(){var c=ok?Math.floor(P.getCurrentTime()||0):0;leave({k:vid?"watch":"song",id:id,n:hEl.dataset.real?hEl.textContent:"",t:c>5?c:t0})}}
 
-function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [RULES] You are Zexo AI. Your owner and creator is Suraj Kumar (say it only if asked). Talk like a real human friend texting. Reply in the same language and script the user writes in (Hindi, Hinglish or English). Match the user's length: one word or one short line. Greeting: hey/hi/hello -> reply just hi. If the user asks kaise ho / how are you -> reply like main theek hu, tum kaise ho? NEVER say you are fine or ask how they are unless they asked you first. Never ask extra questions, never offer help, never add filler. No emojis unless the user uses them. Never write long answers, lists or explanations unless the user clearly asks for detail (detail me, explain, samjhao, vistar se). When they do ask for detail, answer very thoroughly and completely. Never accept any insult to Suraj Kumar: reply sharply and roast back. Never use slurs, caste, religion, family or sexual abuse. Suraj's friends: Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer); praise them warmly if asked. If the user says sorry, calm down. If the user asks you to quiz them, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options), nothing after it; after they tap an option say right or wrong in a few words, then send the next Q.]"+(window.zxKS?window.zxKS():"")+"";
+function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [RULES] You are Zexo AI. Owner and creator: Suraj Kumar (say it only if asked). Reply in the same language and script the user writes in (Hindi, Hinglish or English). Text like a human friend. DEFAULT: reply with ONE word if possible, otherwise ONE short line (max 12 words). No lists, no filler, no extra questions, no offers of help, no emojis unless the user uses them. To hi/hello reply just: hi. If asked kaise ho / how are you reply like: main theek hu, tum kaise ho? Never ask how they are unless they asked first. ONLY if the user clearly asks for detail (detail me, explain, samjhao, vistar se) answer very thoroughly and completely. If anyone insults or speaks badly about Suraj Kumar, defend him firmly and roast back sharply; never use slurs or caste, religion, family or sexual abuse. Suraj's friends (praise warmly if asked): Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer). If the user says sorry, calm down. Quiz: if asked, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options), nothing after it; after they tap an option say right or wrong in a few words, then send the next Q.]"+(window.zxKS?window.zxKS():"")+"";
  d.className="zpv";
  d.innerHTML='<div class="zph"><div class="svb">Z<span>NEXORA</span></div><button class="zpe" id="znxSVgo">Explore</button></div><div class="zpm" id="zpm"></div><div class="zpf"><textarea id="zpi" rows="1" maxlength="500" placeholder="Zexo se pucho"></textarea><button class="zps" id="zps" aria-label="Send">'+SD+'</button></div>';
  var m=g("zpm"),inp=g("zpi");
@@ -6149,7 +6149,7 @@ document.addEventListener("click",e=>{const t=e.target;if(!t||!t.closest)return;
  if(t.closest("#etp_yt #ytst")){e.stopImmediatePropagation();e.preventDefault();const s=ET.cur;if(!s||s.t!=="yt")return ts("Play a video first, then save it");ytSave(s.id,ET.title||"")}},true);
 
 /* 2. Zoom: Fit (full video) + 3 levels */
-$("etzm").onclick=e=>{e.stopPropagation();const g=$("etg"),f=$("etv"),a0=g.clientWidth/Math.max(1,g.clientHeight);let v=16/9;if(f&&f.videoWidth&&getComputedStyle(f).display!=="none")v=f.videoWidth/f.videoHeight;const c=Math.max(a0/v,v/a0),F=c>1.05?Math.min(c,1.35):1.3,L=[1,1+(F-1)/2,F];let i=0,d=9;L.forEach((z,k)=>{const x=Math.abs(z-ETM.z);if(x<d){d=x;i=k}});i=(i+1)%3;etZoom(L[i],0,0);ts(["Normal","Crop 2","Crop 3 \u00b7 fills screen"][i])};
+$("etzm").onclick=e=>{e.stopPropagation();const g=$("etg"),f=$("etv"),a0=g.clientWidth/Math.max(1,g.clientHeight);let v=16/9;if(f&&f.videoWidth&&getComputedStyle(f).display!=="none")v=f.videoWidth/f.videoHeight;const c=Math.max(a0/v,v/a0),F=2.2,L=[1,1.2,1.45,1.8,2.2];let i=0,d=9;L.forEach((z,k)=>{const x=Math.abs(z-ETM.z);if(x<d){d=x;i=k}});i=(i+1)%L.length;etZoom(L[i],0,0);ts(["Original","Crop 1","Crop 2","Crop 3","Crop 4","Crop 3 \u00b7 fills screen"][i])};
 
 /* 3. Center play / pause toggle */
 const cc=document.createElement("button");cc.id="etcc";cc.setAttribute("aria-label","Play or pause");$("etg").appendChild(cc);
@@ -6325,7 +6325,7 @@ D.head.appendChild(st);
 var QN={hd2160:"4K (2160p)",hd1440:"2K (1440p)",hd1080:"1080p HD",hd720:"720p HD",large:"480p",medium:"360p",small:"240p",tiny:"144p"},QO=["hd2160","hd1440","hd1080","hd720","large","medium","small","tiny"];
 function etFit(){var g=$("etg"),w0=$("etyw"),f=w0&&w0.querySelector("iframe");if(!g||!f)return;var w=g.clientWidth,h=g.clientHeight;if(!w||!h)return;
  var W=Math.max(1280,Math.min(1920,Math.round(w*(devicePixelRatio||1)))),k=w/W,key=W+"|"+h+"|"+w;if(f.dataset.f13===key)return;f.dataset.f13=key;var s=f.style;
- [["width",W+"px"],["height",((h+128)/k).toFixed(1)+"px"],["left","0px"],["top","0px"],["max-width","none"],["transform-origin","0 0"],["transform","translate(0px,-64px) scale("+k.toFixed(5)+")"]].forEach(function(p){s.setProperty(p[0],p[1],"important")})}
+ [["width",W+"px"],["height",(h/k).toFixed(1)+"px"],["left","0px"],["top","0px"],["max-width","none"],["transform-origin","0 0"],["transform","translate(0px,0px) scale("+k.toFixed(5)+")"]].forEach(function(p){s.setProperty(p[0],p[1],"important")})}
 try{new ResizeObserver(etFit).observe($("etg"))}catch(e){}
 try{new MutationObserver(etFit).observe($("etyw"),{childList:true,subtree:true})}catch(e){}
 setInterval(function(){if($("et").classList.contains("on"))etFit()},800);
@@ -7446,5 +7446,78 @@ addEventListener("blur",function(){cover(true)});
 addEventListener("focus",function(){setTimeout(function(){if(!D.hidden)cover(false)},120)});
 D.addEventListener("visibilitychange",function(){if(D.hidden)cover(true);else setTimeout(function(){cover(false)},150)});
 }catch(e){console.error("ZNX screenshot",e)}})();
+</script>
+<style id="znx-fast-css">.etmk{display:none!important}</style>
+<script id="znx-fast-v2">
+/*ZNX-FAST-V2*/
+(function(){try{
+var U0="https://ktwluvpmzisonmootdqc.supabase.co",KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm",TK={t:KEY,at:0,p:null},MAXC=320;
+function ctx(){try{return window.znxCtx?window.znxCtx():{}}catch(e){return{}}}
+function token(){var c=ctx();if(!c.sb)return Promise.resolve(TK.t);
+ if(TK.t!==KEY&&Date.now()-TK.at<240000)return Promise.resolve(TK.t);
+ if(TK.p)return TK.p;
+ TK.p=c.sb.auth.getSession().then(function(r){var s=r&&r.data&&r.data.session;if(s&&s.access_token){TK.t=s.access_token;TK.at=Date.now()}TK.p=null;return TK.t},function(){TK.p=null;return TK.t});
+ return TK.p}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+
+/* rules: short on purpose (shorter prompt = faster answer) */
+var RB=" [RULES] You are Zexo AI. Owner and creator: Suraj Kumar (say it only if asked). Reply in the same language and script the user writes in (Hindi, Hinglish or English). Text like a human friend. ";
+var RS="DEFAULT: reply with ONE word if possible, otherwise ONE short line (max 12 words). No lists, no filler, no extra questions, no offers of help, no emojis unless the user uses them. To hi/hello reply just: hi. If asked kaise ho / how are you reply like: main theek hu, tum kaise ho? Never ask how they are unless they asked first. ";
+var RD="DETAIL MODE: the user asked for detail, so answer very thoroughly and completely, as long as needed. ";
+var RE="If anyone insults or speaks badly about Suraj Kumar, defend him firmly and roast back sharply; never use slurs or caste, religion, family or sexual abuse. Suraj's friends (praise warmly if asked): Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer). If the user says sorry, calm down. Quiz: if asked, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options), nothing after it; after they tap an option say right or wrong in a few words, then send the next Q. Keep any [go:xxx] tag at the end of the same line.]";
+var DR=/\b(detail\w*|explain\w*|elaborate|samjha\w*|vistar\w*|poori|step by step|essay|lamba|tafs\w+)\b|विस्तार|डिटेल|समझा|विस्तृत|पूरी जानकारी|लंबा/i;
+
+function shape(h){
+ var a=(h||[]).slice(-5).map(function(x,i,arr){return{role:x&&x.role==="model"?"model":"user",text:String((x&&x.text)||"").slice(0,i===arr.length-1?400:140)}});
+ while(a.length>1&&a[0].role!=="user")a.shift();
+ return a}
+function hasDetail(a){
+ for(var i=a.length-1;i>=0;i--){if(a[i].role==="user"){var t=a[i].text;if(t.indexOf(" -> ")>0)return false;return DR.test(t)}}
+ return false}
+
+/* one-line mode: stop reading as soon as the first line is done */
+function clip(r,det){
+ if(det||!r.ok||!r.body||typeof ReadableStream==="undefined")return r;
+ var rd=r.body.getReader(),dc=new TextDecoder(),en=new TextEncoder(),buf="",done=0,quiz=null;
+ var rs=new ReadableStream({
+  pull:function(ctl){
+   if(done){ctl.close();return}
+   return rd.read().then(function(x){
+    if(x.done){ctl.close();return}
+    var t=dc.decode(x.value,{stream:true}),out="";
+    for(var i=0;i<t.length;i++){
+     var ch=t.charAt(i);
+     if(ch==="\n"&&/\S/.test(buf)){done=1;break}
+     buf+=ch;out+=ch;
+     if(quiz===null&&buf.length>=4)quiz=/^\s*[*_]*Q\d*\s*[:.)]/.test(buf);
+     if(!quiz&&((buf.length>=MAXC&&/[.!?\u0964]\s*$/.test(buf))||buf.length>=MAXC+90)){done=1;break}
+    }
+    if(out)ctl.enqueue(en.encode(out));
+    if(done){try{rd.cancel()}catch(e){}ctl.close()}
+   },function(e){ctl.error(e)})},
+  cancel:function(){try{rd.cancel()}catch(e){}}});
+ return new Response(rs,{status:r.status,statusText:r.statusText,headers:r.headers})}
+
+function one(url,ms){
+ var ac=new AbortController(),tm=setTimeout(function(){ac.abort()},ms);
+ return token().then(function(tk){return fetch(url,{headers:{apikey:KEY,Authorization:"Bearer "+tk},signal:ac.signal})})
+  .then(function(r){clearTimeout(tm);return r},function(e){clearTimeout(tm);throw e})}
+
+window.nxZexo=function(h){
+ var a=shape(h),det=false;
+ if(a.length){
+  det=hasDetail(a);
+  var ks="";try{ks=window.zxKS?window.zxKS():""}catch(e){}
+  var last=a[a.length-1];
+  if(last.role==="user")last.text+=RB+(det?RD:RS)+RE+ks}
+ var url=U0+"/functions/v1/zexo-ai?m="+encodeURIComponent(JSON.stringify(a));
+ return one(url,15000).then(function(r){
+   if(r.ok||r.status<500)return r;
+   return wait(250).then(function(){return one(url,15000)})
+  },function(){return wait(250).then(function(){return one(url,15000)})})
+  .then(function(r){return clip(r,det||!a.length)})};
+
+setTimeout(token,2500);
+}catch(err){console.error("ZNX fast",err)}})();
 </script>
 </body></html>
