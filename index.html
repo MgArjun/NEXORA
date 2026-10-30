@@ -762,7 +762,7 @@ function media(){var what=vid?"video":"gaana";
  if(!nm){try{fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent("https://youtu.be/"+id)).then(function(r){return r.json()}).then(function(j){if(j&&j.title&&!dead){var t=String(j.title).slice(0,100);hEl.textContent=t;hEl.dataset.real="1";if(ct)ct.textContent=t}}).catch(function(){})}catch(e){}}
  function fit(){var f=g("znxSVp");if(!vid||!w0||!f||f.tagName!=="IFRAME")return;var cw=w0.clientWidth,ch=w0.clientHeight;if(!cw||!ch)return;
   var W=Math.max(1280,Math.min(1920,Math.round(cw*(devicePixelRatio||1)))),k=cw/W,key=W+"|"+cw+"|"+ch;if(f.dataset.f13===key)return;f.dataset.f13=key;
-  f.style.cssText="position:absolute;left:0;top:0;border:0;max-width:none;width:"+W+"px;height:"+(ch/k).toFixed(1)+"px;transform-origin:0 0;transform:translate(0,0px) scale("+k.toFixed(5)+")"}
+  f.style.cssText="position:absolute;left:0;top:0;border:0;max-width:none;width:"+W+"px;height:"+(ch/k).toFixed(1)+"px;transform-origin:0 0;transform:translate("+(-(cw*.15)).toFixed(1)+"px,"+(-(ch*.15)).toFixed(1)+"px) scale("+(k*1.3).toFixed(5)+")"}
  function tg(){if(!ok)return;var t=P.getPlayerState();if(t===1||t===3)P.pauseVideo();else P.playVideo()}
  function init(){if(dead)return;P=new YT.Player("znxSVp",{videoId:id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,modestbranding:1,iv_load_policy:3,start:t0},events:{
   onReady:function(){ok=1;fit()},
@@ -1774,13 +1774,13 @@ function contactInfo(id){const u=U.find(x=>x.id===id);if(!u)return;const media=(
  sheet(`<div class="ci"><div class="ava ciav" id="ciav" style="${u.p?`background-image:url(${u.p})`:`background:${g(u.n)}`}">${u.p?"":esc(ini(u.n))}</div><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user||"user")} · ${esc(u.uid||"MG----")}</small><span class="cis${u.on?" on":""}">${u.on?"Online":esc(u.seen||"")}</span></div>
  <div class="cc-t">${[["msg",SI.chat,"Message"],["call",IC.phone,"Voice"],["rn",CMI.user,"Rename"],["mu",SI.bell,u.mute?"Muted":"Mute"]].map(t=>`<button class="cct${t[0]==="mu"&&u.mute?" on":""}" data-c="${t[0]}">${t[1]}<span>${t[2]}</span></button>`).join("")}</div>
  <div class="sec">About</div><div class="glist"><div class="gr"><span class="t"><b>${esc(u.about||"Hey there! I am using ZNEXORA")}</b></span></div></div>
- <div class="glist"><button class="gr" data-c="safe"><span class="t"><b>Verify encryption</b><small>Compare a safety code</small></span><em>›</em></button></div><div class="sec">Details</div><div class="glist"><div class="gr"><span class="t"><small class="mono">UID</small><b>${esc(u.uid||"MG----")}</b></span><button class="gb" data-c="cuid">Copy</button></div><div class="gr"><span class="t"><small class="mono">Name</small><b>${esc(u.n)}</b></span><button class="gb" data-c="rn">Rename</button></div><div class="gr"><span class="t"><small class="mono">Username</small><b>@${esc(u.user||"user")}</b></span></div><div class="gr"><span class="t"><small class="mono">Status</small><b>${u.on?"Online now":esc(u.seen||"Offline")}</b></span></div></div>
+ <div class="sec">Details</div><div class="glist"><div class="gr"><span class="t"><small class="mono">UID</small><b>${esc(u.uid||"MG----")}</b></span><button class="gb" data-c="cuid">Copy</button></div><div class="gr"><span class="t"><small class="mono">Name</small><b>${esc(u.n)}</b></span><button class="gb" data-c="rn">Rename</button></div><div class="gr"><span class="t"><small class="mono">Username</small><b>@${esc(u.user||"user")}</b></span></div><div class="gr"><span class="t"><small class="mono">Status</small><b>${u.on?"Online now":esc(u.seen||"Offline")}</b></span></div></div>
  <div class="sec">Shared media · ${media.length}</div>${media.length?`<div class="smg">${media.map(o=>`<button class="sm" data-sm="${o.i}">${o.x.k==="img"?`<img src="${MEDC[o.x.src]||o.x.src}" alt="">`:`<video src="${o.x.src}#t=0.1" muted playsinline preload="metadata"></video>`}</button>`).join("")}</div>`:'<div class="empty" style="padding:16px">No photos or videos yet.</div>'}
  <div class="glist" style="margin-top:14px"><button class="gr dang" data-c="report"><span class="t"><b>Report</b></span></button><button class="gr dang" data-c="block"><span class="t"><b>Block ${esc(u.n.split(" ")[0])}</b></span></button><button class="gr dang" data-c="del"><span class="t"><b>Delete chat</b></span></button></div>`);
  $("sh").onclick=e=>{const sm=e.target.closest("[data-sm]");if(sm){closeS();return setTimeout(()=>mvOpen(+sm.dataset.sm),300)}
   if(e.target.closest("#ciav")){closeS();return setTimeout(()=>view(id),300)}
   const b=e.target.closest("[data-c]");if(!b)return;const k=b.dataset.c;
-  if(k==="rn")return rnSheet(u);if(k==="safe")return eSafety(u);if(k==="cuid")return navigator.clipboard&&navigator.clipboard.writeText(u.uid||"").then(()=>ts("UID copied"),()=>ts("Copy failed"));
+  if(k==="rn")return rnSheet(u);if(k==="cuid")return navigator.clipboard&&navigator.clipboard.writeText(u.uid||"").then(()=>ts("UID copied"),()=>ts("Copy failed"));
   if(k==="mu"){u.mute=!u.mute;b.classList.toggle("on",!!u.mute);b.querySelector("span").textContent=u.mute?"Muted":"Mute";return ts(u.mute?"Notifications muted":"Notifications on")}
   closeS();if(k==="msg")return;if(k==="report")return setTimeout(()=>reportSheet(id),260);if(k==="call")return setTimeout(()=>clOpen(0),250);
   if(k==="block"){BL.includes(id)||BL.push(id);$("cb").click();return ts(u.n+" blocked")}
@@ -6441,7 +6441,7 @@ D.head.appendChild(st);
 var QN={hd2160:"4K (2160p)",hd1440:"2K (1440p)",hd1080:"1080p HD",hd720:"720p HD",large:"480p",medium:"360p",small:"240p",tiny:"144p"},QO=["hd2160","hd1440","hd1080","hd720","large","medium","small","tiny"];
 function etFit(){var g=$("etg"),w0=$("etyw"),f=w0&&w0.querySelector("iframe");if(!g||!f)return;var w=g.clientWidth,h=g.clientHeight;if(!w||!h)return;
  var W=Math.max(1280,Math.min(1920,Math.round(w*(devicePixelRatio||1)))),k=w/W,key=W+"|"+h+"|"+w;if(f.dataset.f13===key)return;f.dataset.f13=key;var s=f.style;
- [["width",W+"px"],["height",(h/k).toFixed(1)+"px"],["left","0px"],["top","0px"],["max-width","none"],["transform-origin","0 0"],["transform","translate(0px,0px) scale("+k.toFixed(5)+")"]].forEach(function(p){s.setProperty(p[0],p[1],"important")})}
+ [["width",W+"px"],["height",(h/k).toFixed(1)+"px"],["left","0px"],["top","0px"],["max-width","none"],["transform-origin","0 0"],["transform","translate("+(-(w*.15)).toFixed(1)+"px,"+(-(h*.15)).toFixed(1)+"px) scale("+(k*1.3).toFixed(5)+")"]].forEach(function(p){s.setProperty(p[0],p[1],"important")})}
 try{new ResizeObserver(etFit).observe($("etg"))}catch(e){}
 try{new MutationObserver(etFit).observe($("etyw"),{childList:true,subtree:true})}catch(e){}
 setInterval(function(){if($("et").classList.contains("on"))etFit()},800);
