@@ -6730,35 +6730,53 @@ try{(function(){
 })()}catch(e){console.error("ZNX sync",e)}
 /*ZNX-V13-END*/
 
-/*ZNX-FIT-V1*/
+/*ZNX-ZOOM-V3*/
 try{(function(){
-var g=$("etg"),zb=$("etzm"),zoomOn=(function(){try{return localStorage.getItem("znx_zoomoff")?0:1}catch(e){return 1}})(),ZS=(function(){try{var j=JSON.parse(localStorage.getItem("znx_zoomv")||"null");if(j&&j.z>=1.05&&j.z<=4&&isFinite(j.x)&&isFinite(j.y))return j}catch(e){}return{z:1.28,x:0,y:-.025}})(),P={},d0=1,z0=1,moved=0,ccOn=0,ccKey="",ccDone=0,ccN=0;
+var G=$("etg"),zb=$("etzm"),KEY="znx_zoom3",ZDEF=1.4,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
+try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j){S.on=j.on===0?0:1;if(j.z>=1.05&&j.z<=ZMAX)S.z=j.z}}catch(e){}
 var st=document.createElement("style");
-st.textContent="#etzm.on,#etsub.on{color:#8f88ff!important}#etzm.on svg,#etsub.on svg{filter:drop-shadow(0 0 6px #8f88ff)}#et .etk #etsub{order:5}#znxSV .svcv.pz{background:rgba(0,0,0,.12)}#znxSV .svcv.pz .svz,#znxSV .svcv.pz b{display:none}";
+st.textContent="#etzm.on{color:#8f88ff!important}#etzm.on svg{filter:drop-shadow(0 0 6px #8f88ff)}#znxSV .svcv.pz{background:rgba(0,0,0,.12)}#znxSV .svcv.pz .svz,#znxSV .svcv.pz b{display:none}";
 document.head.appendChild(st);
-/* ---- zoom: click = on (pinch and drag), click again = off (back to exact fit) ---- */
-/*ZNX-ZOOM-V2*/
-function zApply(){var W=g.clientWidth||1,H=g.clientHeight||1;if(zoomOn)etZoom(ZS.z,ZS.x*W,ZS.y*H);else etZoom(1,0,0);zb.classList.toggle("on",!!zoomOn)}
-function zSave(){if(!zoomOn||ETM.z<1.05)return;var W=g.clientWidth||1,H=g.clientHeight||1;ZS={z:ETM.z,x:ETM.x/W,y:ETM.y/H};try{localStorage.setItem("znx_zoomv",JSON.stringify(ZS))}catch(e){}}
-window.znxZoomReset=function(){setTimeout(zApply,80)};
-zb.onclick=function(e){e.stopPropagation();zoomOn=zoomOn?0:1;try{zoomOn?localStorage.removeItem("znx_zoomoff"):localStorage.setItem("znx_zoomoff","1")}catch(x){}zApply();ts(zoomOn?"Zoom on":"Original size")};
-setTimeout(zApply,0);
-function inGs(e){return zoomOn&&e.target.closest&&e.target.closest("#etgs")}
-g.addEventListener("pointerdown",function(e){if(!inGs(e))return;e.stopPropagation();P[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(P);if(k.length===1)moved=0;if(k.length===2){var a=P[k[0]],b=P[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1])||1;z0=ETM.z}},true);
-g.addEventListener("pointermove",function(e){if(!P[e.pointerId])return;e.stopPropagation();var o=P[e.pointerId];P[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(P);
- if(k.length===2){var a=P[k[0]],b=P[k[1]];etZoom(z0*Math.hypot(a[0]-b[0],a[1]-b[1])/d0,ETM.x,ETM.y);moved=1}
- else if(k.length===1){var dx=e.clientX-o[0],dy=e.clientY-o[1];if(Math.hypot(dx,dy)>1.5)moved=1;if(ETM.z>1)etZoom(ETM.z,ETM.x+dx,ETM.y+dy)}},true);
-function up(e){if(!P[e.pointerId])return;e.stopPropagation();delete P[e.pointerId];if(!Object.keys(P).length){if(moved)zSave();else if(e.type==="pointerup")etShow()}}
-g.addEventListener("pointerup",up,true);g.addEventListener("pointercancel",up,true);
-/* ---- subtitles: off by default, button to turn on/off ---- */
-var cb=document.createElement("button");cb.className="ib";cb.id="etsub";cb.setAttribute("aria-label","Subtitles");
-cb.innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 10.5a2 2 0 100 3M16 10.5a2 2 0 100 3"/></svg>';
-/*subtitle button removed*/
-function ccApply(){return;try{if(ccOn){y.loadModule("captions");try{var tl=y.getOption("captions","tracklist");if(tl&&tl.length)y.setOption("captions","track",tl[0])}catch(x){}}else{y.unloadModule("captions")}}catch(x){}}
-cb.onclick=function(e){e.stopPropagation();if(P2.kind!=="yt")return ts("Subtitles work only on YouTube videos");ccOn=ccOn?0:1;cb.classList.toggle("on",!!ccOn);ccApply();ts(ccOn?"Subtitles on (if the video has them)":"Subtitles off")};
-setInterval(function(){var k=ET.cur&&ET.cur.t==="yt"?ET.cur.id:"";if(k!==ccKey){ccKey=k;ccOn=0;ccDone=0;ccN=0;cb.classList.remove("on")}
- if(k&&!ccOn&&P2.yt&&P2.yt.getPlayerState&&P2.yt.getPlayerState()===1){if(!ccDone||++ccN%6===0){ccDone=1;ccApply()}}},700);
-})()}catch(e){console.error("ZNX fit",e)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function vAsp(){var v=$("etv");if(P2.kind==="file"&&v&&v.videoWidth&&v.videoHeight)return v.videoWidth/v.videoHeight;return 16/9}
+/* default (never pinched): crop so the video fills the box and YouTube's title strip is out of view */
+function eff(){if(!S.on)return 1;if(S.z)return S.z;var A=G.clientWidth/Math.max(1,G.clientHeight),v=vAsp(),f=Math.max(A/v,v/A);return Math.max(ZDEF,Math.min(2.2,f))}
+function apply(){if(pin)return;etZoom(eff(),0,0);zb.classList.toggle("on",!!S.on)}
+function commit(){var z=ETM.z;if(z<1.05){S.on=0}else{S.on=1;S.z=Math.min(ZMAX,z)}save();apply()}
+/* button: cropped view <-> original YouTube view. The zoom level you set is kept. */
+zb.onclick=function(e){e.stopPropagation();S.on=S.on?0:1;save();apply();ts(S.on?"Cropped view":"Original view")};
+/* two-finger pinch only. One finger is left alone, so swipe seek, volume, brightness and double tap keep working. */
+function inGs(e){return !!(e.target&&e.target.closest&&e.target.closest("#etgs"))}
+G.addEventListener("pointerdown",function(e){
+ if(!e.isTrusted||!inGs(e))return;
+ P.set(e.pointerId,[e.clientX,e.clientY]);
+ if(P.size===2){
+  pin=1;var gs=$("etgs"),me=e.pointerId;
+  P.forEach(function(v,id){if(id!==me){try{gs.dispatchEvent(new PointerEvent("pointercancel",{pointerId:id,bubbles:false}))}catch(x){}}});
+  var a=Array.from(P.values());d0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1;z0=ETM.z}
+ if(pin)e.stopPropagation()},true);
+G.addEventListener("pointermove",function(e){
+ if(!e.isTrusted||!P.has(e.pointerId))return;
+ P.set(e.pointerId,[e.clientX,e.clientY]);
+ if(!pin)return;
+ e.stopPropagation();
+ if(P.size<2)return;
+ var a=Array.from(P.values()).slice(0,2),z=Math.max(1,Math.min(ZMAX,z0*Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])/d0));
+ etZoom(z,0,0);etHud("Zoom",(z-1)/(ZMAX-1),(+z.toFixed(1))+"x")},true);
+function up(e){
+ if(!e.isTrusted||!P.has(e.pointerId))return;
+ P.delete(e.pointerId);
+ if(!pin)return;
+ e.stopPropagation();
+ if(!P.size){pin=0;commit()}}
+G.addEventListener("pointerup",up,true);G.addEventListener("pointercancel",up,true);
+/* keep the zoom after: new video, fullscreen, rotate, resize, pause */
+window.znxZoomReset=function(){setTimeout(apply,80)};
+try{new ResizeObserver(function(){apply()}).observe(G)}catch(e){}
+document.addEventListener("loadedmetadata",function(e){if(e.target&&e.target.id==="etv")apply()},true);
+setInterval(function(){if(!pin&&$("et").classList.contains("on")&&Math.abs(ETM.z-eff())>.01)apply()},700);
+setTimeout(apply,0);
+})()}catch(e){console.error("ZNX zoom",e)}
 
 
 /*ZNX-ONB-V1*/
