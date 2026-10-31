@@ -752,11 +752,11 @@ function leave(h){dead=1;clearInterval(iv);try{P&&P.destroy&&P.destroy()}catch(e
  window.znxHand=h||null;d.remove();try{history.replaceState(null,"",location.pathname)}catch(e){}
  if(window.znxEntered&&window.znxHandGo)window.znxHandGo()}
 
-function media(){var what=vid?"video":"gaana";
+function media(){var what=vid?"video":"song";
  d.innerHTML='<div class="svb">Z<span>NEXORA</span></div><div class="svm">'+
  (vid?'<div class="svw" id="znxSVw"><div id="znxSVp"></div><div class="svt" id="znxSVt"></div><div class="svcv on" id="znxSVcv"><i class="svz">Z</i><b id="znxSVct"></b><button class="svbp" id="znxSVc" aria-label="Play">'+PL+'</button></div><button class="svfs" id="znxSVfs" aria-label="Full screen">'+FS+'</button><i class="svpr"><u id="znxSVpr"></u></i></div>':'<div class="svo" id="znxSVo"></div><div class="sho"><div id="znxSVp"></div></div>')+
  '<b class="svh" id="znxSVh"></b><div class="svc"><div class="svs" id="znxSVs"><i id="znxSVf"></i><u id="znxSVk"></u></div><div class="svtm"><span id="znxSVa">0:00</span><span id="znxSVd">0:00</span></div></div><button class="svp" id="znxSVpl" aria-label="Play or pause">'+PL+'</button></div>'+
- '<div class="svf"><p>Sirf ye '+what+' dikh raha hai. Explore dabao, login karo, aur yahi '+what+' wahin se chalega.</p><button class="svg" id="znxSVgo">ZNEXORA explore karo</button></div>';
+ '<div class="svf"><p>Only this '+what+' is shown. Tap Explore and log in to keep playing it.</p><button class="svg" id="znxSVgo">Explore ZNEXORA</button></div>';
  var hEl=g("znxSVh"),ct=g("znxSVct"),w0=g("znxSVw");
  hEl.textContent=nm||("Shared "+what);if(ct)ct.textContent=nm||"Shared video";if(nm)hEl.dataset.real="1";
  if(!nm){try{fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent("https://youtu.be/"+id)).then(function(r){return r.json()}).then(function(j){if(j&&j.title&&!dead){var t=String(j.title).slice(0,100);hEl.textContent=t;hEl.dataset.real="1";if(ct)ct.textContent=t}}).catch(function(){})}catch(e){}}
@@ -767,7 +767,7 @@ function media(){var what=vid?"video":"gaana";
  function init(){if(dead)return;P=new YT.Player("znxSVp",{videoId:id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,modestbranding:1,iv_load_policy:3,start:t0},events:{
   onReady:function(){ok=1;fit()},
   onStateChange:function(e){var st=e.data;g("znxSVpl").innerHTML=st===1?PA:PL;var o=g("znxSVo");if(o)o.classList.toggle("on",st===1);var cv=g("znxSVcv");if(cv&&st!==3)cv.classList.toggle("on",st!==1);fit()},
-  onError:function(){hEl.textContent="Ye "+what+" yahan nahi chal sakta"}}})}
+  onError:function(){hEl.textContent="This "+what+" cannot play here"}}})}
  if(window.YT&&YT.Player)init();else{var pv=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=function(){if(pv)try{pv()}catch(e){}init()};var sc=D.createElement("script");sc.src="https://www.youtube.com/iframe_api";D.head.appendChild(sc)}
  g("znxSVpl").onclick=tg;var t=g("znxSVt");if(t)t.onclick=tg;var cb=g("znxSVc");if(cb)cb.onclick=function(e){e.stopPropagation();tg()};var cv0=g("znxSVcv");if(cv0)cv0.onclick=tg;
  iv=setInterval(function(){if(dead)return;fit();if(!ok)return;var D0=P.getDuration()||0,c=P.getCurrentTime()||0,p=D0?c/D0*100:0;g("znxSVf").style.width=p+"%";g("znxSVk").style.left=p+"%";g("znxSVa").textContent=fm(c);g("znxSVd").textContent=D0?fm(D0):"0:00";var pr=g("znxSVpr");if(pr)pr.style.width=p+"%"},300);
@@ -785,9 +785,9 @@ function media(){var what=vid?"video":"gaana";
  D.addEventListener("fullscreenchange",function(){setTimeout(fit,150)});addEventListener("resize",function(){setTimeout(fit,150)});
  g("znxSVgo").onclick=function(){var c=ok?Math.floor(P.getCurrentTime()||0):0;leave({k:vid?"watch":"song",id:id,n:hEl.dataset.real?hEl.textContent:"",t:c>5?c:t0})}}
 
-function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pucho. Bina login ke chat karo.",HINT=" [RULES] You are Zexo AI. Owner and creator: Suraj Kumar (say it only if asked). Reply in the same language and script the user writes in (Hindi, Hinglish or English). Text like a human friend. DEFAULT: reply with ONE word if possible, otherwise ONE short line (max 12 words). No lists, no filler, no extra questions, no offers of help, no emojis unless the user uses them. To hi/hello reply just: hi. If asked kaise ho / how are you reply like: main theek hu, tum kaise ho? Never ask how they are unless they asked first. ONLY if the user clearly asks for detail (detail me, explain, samjhao, vistar se) answer very thoroughly and completely. If anyone insults or speaks badly about Suraj Kumar, defend him firmly and roast back sharply; never use slurs or caste, religion, family or sexual abuse. Suraj's friends (praise warmly if asked): Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer). If the user says sorry, calm down. Quiz: if asked, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options), nothing after it; after they tap an option say right or wrong in a few words, then send the next Q.]"+(window.zxKS?window.zxKS():"")+"";
+function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Ask Zexo AI anything. No login needed.",HINT=" [RULES] You are Zexo AI. Owner and creator: Suraj Kumar (say it only if asked). Reply in the same language and script the user writes in (Hindi, Hinglish or English). Text like a human friend. DEFAULT: reply with ONE word if possible, otherwise ONE short line (max 12 words). No lists, no filler, no extra questions, no offers of help, no emojis unless the user uses them. To hi/hello reply just: hi. If asked kaise ho / how are you reply like: main theek hu, tum kaise ho? Never ask how they are unless they asked first. ONLY if the user clearly asks for detail (detail me, explain, samjhao, vistar se) answer very thoroughly and completely. If anyone insults or speaks badly about Suraj Kumar, defend him firmly and roast back sharply; never use slurs or caste, religion, family or sexual abuse. Suraj's friends (praise warmly if asked): Dawar Hussain, Ijaz Ahmed, Roshan Pandey, Ravikant, Sachin Verma, Li (Liza Mondal, influencer). If the user says sorry, calm down. Quiz: if asked, send ONE MCQ per message on a single line exactly as Q: question | option1/option2/option3/option4 (short options), nothing after it; after they tap an option say right or wrong in a few words, then send the next Q.]"+(window.zxKS?window.zxKS():"")+"";
  d.className="zpv";
- d.innerHTML='<div class="zph"><div class="svb">Z<span>NEXORA</span></div><button class="zpe" id="znxSVgo">Explore</button></div><div class="zpm" id="zpm"></div><div class="zpf"><textarea id="zpi" rows="1" maxlength="500" placeholder="Zexo se pucho"></textarea><button class="zps" id="zps" aria-label="Send">'+SD+'</button></div>';
+ d.innerHTML='<div class="zph"><div class="svb">Z<span>NEXORA</span></div><button class="zpe" id="znxSVgo">Explore</button></div><div class="zpm" id="zpm"></div><div class="zpf"><textarea id="zpi" rows="1" maxlength="500" placeholder="Ask Zexo"></textarea><button class="zps" id="zps" aria-label="Send">'+SD+'</button></div>';
  var m=g("zpm"),inp=g("zpi");
  m.addEventListener("scroll",function(){atB=m.scrollHeight-m.scrollTop-m.clientHeight<100},{passive:true});
  function pin(){if(atB)requestAnimationFrame(function(){m.scrollTop=m.scrollHeight})}
@@ -803,10 +803,10 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pu
   m.textContent="";
   if(!pm.length){var n=D.createElement("div");n.className="zpn";n.textContent=INTRO;m.appendChild(n)}
   pm.forEach(function(x,i){m.appendChild(bub(x,i===pm.length-1))});
-  if(busy){var b=D.createElement("div");b.className="zpb a";b.textContent="Zexo soch raha hai...";m.appendChild(b)}
+  if(busy){var b=D.createElement("div");b.className="zpb a";b.textContent="Zexo is thinking...";m.appendChild(b)}
   if(near||lastU||!pm.length)m.scrollTop=m.scrollHeight;else m.scrollTop=pv}
  async function ask(txt){txt=String(txt||"").trim().slice(0,500);if(!txt||busy||dead||off)return;
-  if(cnt>=15){pm.push({r:"a",raw:"Itna free chat kaafi hai. Aur chat ke liye Explore dabao aur login karo."});render();return}
+  if(cnt>=15){pm.push({r:"a",raw:"Free chat limit reached. Tap Explore and log in to continue."});render();return}
   cnt++;pm.push({r:"u",raw:txt});
   var h=(function(a){var b=700,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<4?200:90;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(pm.map(function(x){return{role:x.r==="u"?"user":"model",text:String(x.raw)}}));
   while(h.length>1&&h[0].role!=="user")h.shift();
@@ -819,7 +819,7 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pu
    for(;;){var x=await rd.read();if(x.done)break;if(dead)return;bot.raw+=dc.decode(x.value,{stream:true});if(bot.raw&&!shown){shown=1;busy=0;pm.push(bot)}if(shown)render()}
   }catch(e){}
   if(dead)return;
-  if(!bot.raw)bot.raw="Abhi busy hu, thodi der baad try karo.";
+  if(!bot.raw)bot.raw="Busy right now. Try again soon.";
   if(!shown){busy=0;pm.push(bot)}render()}
  /*ZNX-ZEXO-HUMAN*/
  var nL=null,nAt=0;setInterval(function(){try{
@@ -843,7 +843,7 @@ function zexo(){var pm=[],busy=0,cnt=0,off=0,atB=1,INTRO="Zexo AI se kuch bhi pu
  var vv=window.visualViewport;
  vvf=function(){if(dead)return;if(!vv||(vv.height>=innerHeight-1&&!vv.offsetTop)){d.style.height="";d.style.top=""}else{d.style.height=vv.height+"px";d.style.top=vv.offsetTop+"px"}pin()};
  if(vv){vv.addEventListener("resize",vvf);vv.addEventListener("scroll",vvf)}
- try{fetch(U0+"/rest/v1/nx_ai_cfg?id=eq.1&select=ai_on",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(a){if(a&&a[0]&&a[0].ai_on===false){off=1;pm.push({r:"a",raw:"Zexo AI abhi band hai."});render()}}).catch(function(){})}catch(e){}
+ try{fetch(U0+"/rest/v1/nx_ai_cfg?id=eq.1&select=ai_on",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(a){if(a&&a[0]&&a[0].ai_on===false){off=1;pm.push({r:"a",raw:"Zexo AI is off."});render()}}).catch(function(){})}catch(e){}
  g("znxSVgo").onclick=function(){leave({k:"zexo",msgs:pm.map(function(x){return{r:x.r,raw:x.raw}})})};
  render()}
 if(isZ)zexo();else media();
@@ -927,7 +927,7 @@ $("eye").onclick=()=>{const p=$("pw");p.type=p.type==="password"?"text":"passwor
 <div class="adsh"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span><b>Privacy shield</b><small>Admins manage accounts. They cannot read chats, calls, media or private favourites.</small></span></div>
 <div class="seg" id="adt"><button class="on" data-t="users">Users</button><button data-t="ctl">Controls</button><button data-t="rep">Reports</button><button data-t="log">Activity</button></div><div id="adm"></div><div id="adbar" class="abar"></div></div><div id="morb"><canvas id="morbc" width="64" height="64"></canvas></div>
 <button id="zxc" aria-label="Zexo AI" style="display:none"></button>
-<div id="zx" role="dialog" aria-label="Zexo AI"><div class="ch"><button class="ib" id="zxb" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ava" style="background:linear-gradient(145deg,#5b54e0,#5ec2b7)">Z</div><div class="nm"><b>Zexo AI</b><small>AI assistant</small></div><button class="ib" id="zxt" aria-label="Clear chat"></button></div><div id="zxm"></div><div class="cp"><textarea id="zxi" rows="1" placeholder="Zexo se pucho" maxlength="1000"></textarea><button class="snd" id="zxs" aria-label="Send"></button></div></div>
+<div id="zx" role="dialog" aria-label="Zexo AI"><div class="ch"><button class="ib" id="zxb" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ava" style="background:linear-gradient(145deg,#5b54e0,#5ec2b7)">Z</div><div class="nm"><b>Zexo AI</b><small>AI assistant</small></div><button class="ib" id="zxt" aria-label="Clear chat"></button></div><div id="zxm"></div><div class="cp"><textarea id="zxi" rows="1" placeholder="Ask Zexo" maxlength="1000"></textarea><button class="snd" id="zxs" aria-label="Send"></button></div></div>
 <div class="toast" id="ts"></div>
 <script>(()=>{
 const A=(d)=>'<svg viewBox="0 0 24 24">'+d+'</svg>';
@@ -1026,7 +1026,7 @@ function chatMenu(){const u=cur,TL=[["dp",CMI.img,"Photo"],["th",CMI.pal,"Theme"
   closeS();ts(k==="bl"?(BL.includes(u.id)||BL.push(u.id),u.n+" blocked"):(setTimeout(()=>enjoyWith(u),280),"Opening Enjoy Together"))}}
 function themeSheet(){let gp="All",pv=thi;const GP=["All","Cool","Warm","Nature","Vivid"],grid=()=>{$("thg").innerHTML=THEMES.map((x,i)=>({x,i})).filter(o=>gp==="All"||o.x.k===gp).map((o,n)=>`<button class="thc${o.i===pv?" on":""}" data-i="${o.i}" style="--oa:${o.x.a};--og:${o.x.g};animation-delay:${n*22}ms"><i></i><span>${o.x.n}</span></button>`).join("")};
  sheet(`<div class="th-h"><h3>Chat theme</h3><small>Tap to preview, then apply · <b id="thn">${THEMES[thi].n}</b></small></div>
- <div class="tp" id="thp" style="--bub:${THEMES[thi].a};--g2:${THEMES[thi].g};--bubt:${thInk(THEMES[thi].a)}"><div class="tpm in"><div class="m in">Kal milte hain?</div></div><div class="tpm out"><div class="m out">Pakka 👍<small>09:41 ✓✓</small></div></div></div>
+ <div class="tp" id="thp" style="--bub:${THEMES[thi].a};--g2:${THEMES[thi].g};--bubt:${thInk(THEMES[thi].a)}"><div class="tpm in"><div class="m in">See you tomorrow?</div></div><div class="tpm out"><div class="m out">Sure 👍<small>09:41 ✓✓</small></div></div></div>
  <div class="seg s3" id="thk" style="margin-top:14px">${GP.map(c=>`<button data-g="${c}" class="${c===gp?"on":""}">${c}</button>`).join("")}</div>
  <div class="thg" id="thg" data-noswipe></div>
  <div class="glist" style="margin-top:12px"><div class="gr"><i class="gi">${CMI.lock}</i><span class="t"><b>Lock theme</b><small>Only you can change it</small></span><button class="tg" id="lkt" aria-label="Lock theme"></button></div></div><button class="pri" style="width:100%;margin-top:14px" id="thd">Apply theme</button>`);grid();
@@ -1163,21 +1163,21 @@ $("svd").onclick=()=>{sv.p=1;sheet(`<h3>Delete this status?</h3><button class="o
 const hold=el=>{el.addEventListener("pointerdown",()=>{sv.p=1;sv.vid&&sv.vid.pause()});["pointerup","pointercancel","pointerleave"].forEach(v=>el.addEventListener(v,()=>{if(!document.activeElement||document.activeElement.id!=="svi"){sv.p=0;sv.vid&&sv.vid.play&&sv.vid.play().catch(()=>{})}}))};
 hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
 var SOLO=null;
-if(SOLO){var _sb=document.getElementById("sub");if(_sb)_sb.textContent="Gaana sunne ke liye login karo."}
-function soloShare(){var T=MT[MP.i];if(!MP.started||!T)return ts("Pehle koi gaana chalao");if(!T.src||T.src.t!=="yt")return ts("Sirf YouTube gaane share ho sakte hain");
+if(SOLO){var _sb=document.getElementById("sub");if(_sb)_sb.textContent="Log in to listen to this song."}
+function soloShare(){var T=MT[MP.i];if(!MP.started||!T)return ts("Play a song first");if(!T.src||T.src.t!=="yt")return ts("Only YouTube songs can be shared");
  var u=location.origin+location.pathname+"?song="+T.src.id+"&n="+encodeURIComponent(String(T.n).slice(0,80))+"&t="+Math.floor(mpPos()||0);
- if(navigator.share)navigator.share({title:T.n,text:"Ye gaana ZNEXORA par suno",url:u}).catch(function(){});
- else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){ts("Link copy ho gaya")},function(){ts("Copy nahi hua")});else ts(u)}
+ if(navigator.share)navigator.share({title:T.n,text:"Listen to this song on ZNEXORA",url:u}).catch(function(){});
+ else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){ts("Link copied")},function(){ts("Copy failed")});else ts(u)}
 function soloOpen(){
- if(!$("mpsh")&&$("mpl")){$("mpl").insertAdjacentHTML("beforebegin",'<button class="ib" id="mpsh" aria-label="Gaana share karo">'+SI.share+'</button>');$("mpsh").onclick=soloShare}
+ if(!$("mpsh")&&$("mpl")){$("mpl").insertAdjacentHTML("beforebegin",'<button class="ib" id="mpsh" aria-label="Share song">'+SI.share+'</button>');$("mpsh").onclick=soloShare}
  if(!SOLO||SOLO.on)return;SOLO.on=1;try{history.replaceState(null,"",location.pathname)}catch(e){}
  if(MP.play)mpStopAll();
  var st=document.createElement("style");st.textContent="#solo{position:fixed;inset:0;z-index:33;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);background:radial-gradient(90% 55% at 50% 32%,color-mix(in srgb,var(--ac) 30%,transparent),transparent 70%),var(--bg)}#solo .sl-in{display:grid;justify-items:center;gap:16px;width:min(360px,100%);text-align:center}#slx{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px}.sl-orb{width:190px;height:190px;border-radius:50%;margin-bottom:8px;background:conic-gradient(var(--ac),#5ec2b7,#8f88ff,var(--ac));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));filter:drop-shadow(0 0 18px color-mix(in srgb,var(--ac) 50%,transparent))}.sl-orb.on{animation:soo 6s linear infinite}@keyframes soo{to{transform:rotate(360deg)}}#slt{font-size:18px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#solo small{color:var(--mu);font-size:12.5px}.sl-tm{display:flex;justify-content:space-between;width:100%;margin-top:-6px;font:11px var(--mono);color:var(--mu)}#slp{width:64px;height:64px;margin-top:4px;border-radius:50%;padding:0;display:grid;place-items:center;border:0;background:var(--bt);color:#fff}#slp svg{width:24px;height:24px}";document.head.appendChild(st);
  var d=document.createElement("div");d.id="solo";
- d.innerHTML='<button class="ib" id="slx" aria-label="Band karo">'+XI+'</button><div class="sl-in"><div class="sl-orb" id="slo"></div><b id="slt"></b><small>Kisi ne tumhe ye gaana bheja hai</small><div class="sl" id="sls" style="width:100%"><i id="slf"></i><b id="slk"></b></div><div class="sl-tm"><span id="sla">0:00</span><span id="sld">0:00</span></div><button id="slp" aria-label="Play">'+PL+'</button></div><div style="position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"><div id="slyt"></div></div>';
+ d.innerHTML='<button class="ib" id="slx" aria-label="Close">'+XI+'</button><div class="sl-in"><div class="sl-orb" id="slo"></div><b id="slt"></b><small>Someone sent you this song</small><div class="sl" id="sls" style="width:100%"><i id="slf"></i><b id="slk"></b></div><div class="sl-tm"><span id="sla">0:00</span><span id="sld">0:00</span></div><button id="slp" aria-label="Play">'+PL+'</button></div><div style="position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"><div id="slyt"></div></div>';
  document.body.appendChild(d);$("slt").textContent=SOLO.n;
  var P=null,ok=0,iv=setInterval(function(){if(!ok)return;var D=P.getDuration()||0,t=P.getCurrentTime()||0,p=D?t/D*100:0;$("slf").style.width=p+"%";$("slk").style.left=p+"%";$("sla").textContent=mpFmt(t);$("sld").textContent=D?mpFmt(D):"0:00"},300);
- ytLoad().then(function(){P=new YT.Player("slyt",{videoId:SOLO.id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,autoplay:1,start:SOLO.t|0},events:{onReady:function(){ok=1;P.setVolume(80);try{P.playVideo()}catch(x){}},onStateChange:function(e){$("slp").innerHTML=e.data===1?PA:PL;$("slo").classList.toggle("on",e.data===1)},onError:function(){ts("Ye gaana yahan nahi chal sakta")}}})},function(){ts("YouTube load nahi hua")});
+ ytLoad().then(function(){P=new YT.Player("slyt",{videoId:SOLO.id,playerVars:{controls:0,playsinline:1,rel:0,fs:0,disablekb:1,autoplay:1,start:SOLO.t|0},events:{onReady:function(){ok=1;P.setVolume(80);try{P.playVideo()}catch(x){}},onStateChange:function(e){$("slp").innerHTML=e.data===1?PA:PL;$("slo").classList.toggle("on",e.data===1)},onError:function(){ts("This song cannot play here")}}})},function(){ts("YouTube failed to load")});
  $("slp").onclick=function(){if(!ok)return;P.getPlayerState()===1?P.pauseVideo():P.playVideo()};
  mpSlider($("sls"),function(p){if(!ok)return;var D=P.getDuration();if(D)P.seekTo(p*D,true)});
  $("slx").onclick=function(){clearInterval(iv);try{P&&P.destroy&&P.destroy()}catch(e){}d.remove()}}
@@ -1222,7 +1222,7 @@ function drawSub(k){sub=k;let b="";
  <div class="card2"><div style="padding:10px 0"><b style="font-size:15px;font-weight:600">Video call quality</b><small style="display:block;color:var(--mu);margin-top:2px">Default 720p. Higher = sharper, more data</small><div class="seg" style="margin:10px 0 2px">${Object.keys(Q).map(v=>`<button data-sg="vq:${v}" class="${ST2.vq===v?"on":""}">${Q[v]}</button>`).join("")}</div></div></div>
  <div class="card2">${tgR("sound","Sound","Soft tap sounds on buttons and games")}${tgR("vib","Vibration","Feedback on actions")}</div>`;
  if(k==="dat")b=`<div class="card2"><div class="pr2"><div class="t"><b>Device storage</b><small id="est">Checking...</small></div></div>${tgR("ds","Data saver for files","On: photos and videos are compressed. Off: original quality")}</div><button class="sr dang" style="padding:0 14px" data-act="cc"><span class="t"><b>Clear cached chats on this phone</b><small>Messages on the server stay</small></span></button><div class="sec">Media in chats</div>${mediaUsage()}`;
- if(k==="adv")b=`<div class="card2">${tgR("extra","Extra features","Random chat, random call and online games with random people")}</div><p class="note">Off = these stay hidden everywhere. When you turn it on, new sections appear in Chats and Enjoy.</p><div class="sec">Arena controls</div><div class="card2">${sgR("gyro","Gyro aim",[["0","Off"],["1","On"],["2","Inverted"]])}${sgR("gyroS","Gyro speed",[["0.5","Slow"],["1","Normal"],["1.6","Fast"]])}</div><p class="note">Gyro: phone ko landscape me pakdo aur ghumao, nishana ghumega. Agar sensor sahi nahi chalta to game apne aap gyro band kar deta hai.</p>`;
+ if(k==="adv")b=`<div class="card2">${tgR("extra","Extra features","Random chat, random call and online games with random people")}</div><p class="note">Off = these stay hidden everywhere. When you turn it on, new sections appear in Chats and Enjoy.</p><div class="sec">Arena controls</div><div class="card2">${sgR("gyro","Gyro aim",[["0","Off"],["1","On"],["2","Inverted"]])}${sgR("gyroS","Gyro speed",[["0.5","Slow"],["1","Normal"],["1.6","Fast"]])}</div><p class="note">Gyro: hold your phone in landscape and rotate it to aim. If the sensor fails, the game turns gyro off.</p>`;
  if(k==="abt")b=`<div class="card2" style="text-align:center;padding:22px 14px"><div class="brand" style="font-size:34px">Z</div><b style="letter-spacing:.5em;font-weight:300;font-size:13px;padding-left:.5em">NEXORA</b><p class="note" style="margin:14px 0 4px">Version 1.0 · build R7</p><p class="note" style="margin:0">Powered by Suraj Kumar</p></div>
  `;
  if(SUBX[k])b=SUBX[k]();
@@ -1838,7 +1838,7 @@ function adOpen(){AS.sm=false;AS.sel.clear();AS.tab="users";[...$("adt").childre
 function adDraw(){const t=AS.tab;$("adsel").style.display=t==="users"?"":"none";$("adsel").textContent=AS.sm?"Done":"Select";$("adc").textContent=({users:AU.length+" USERS",ctl:"CONTROLS",rep:REPORTS.filter(r=>r.st==="open").length+" OPEN",log:AUD.length+" ACTIONS"})[t];
  const bar=$("adbar");bar.classList.toggle("on",t==="users"&&AS.sm);
  if(t==="users"){const q=AS.q.toLowerCase(),l=AU.filter(u=>(AS.f==="all"||(AS.f==="banned"?u.banned:u.guest))&&(u.n.toLowerCase().includes(q)||u.user.includes(q)||u.uid.toLowerCase().includes(q)));AS.vis=l;
-  $("adm").innerHTML=`<input class="srch" id="adq" placeholder="Search name, username or UID" value="${esc(AS.q)}" autocomplete="off" data-noswipe><div class="seg" id="adf"><button data-f="all" class="${AS.f==="all"?"on":""}">All</button><button data-f="banned" class="${AS.f==="banned"?"on":""}">Banned</button><button data-f="guest" class="${AS.f==="guest"?"on":""}">Guests</button></div>${l.length?(()=>{/*ZNX-ADM24*/const _row=u=>`<div class="gr" data-ai="${u.id}">${AS.sm?`<span class="ck${AS.sel.has(u.id)?" on":""}"></span>`:""}<div class="ava" style="background:${g(u.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(u.n))}</div><span class="t"><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user)} · ${u.uid}</small></span>${u.banned?'<span class="chip red">Banned</span>':u.guest?'<span class="chip">Guest</span>':""}${AS.sm?"":"<em>›</em>"}</div>`;const _n=Date.now()-DAY,_a=l.filter(u=>u.cr&&u.cr>_n),_h=t=>'<div class="sec">'+t+'</div>';return _h("Last 24 hours ("+_a.length+")")+(_a.length?`<div class="glist">${_a.map(_row).join("")}</div>`:'<div class="empty">Pichle 24 ghante me koi naya user nahi</div>')+_h("All users ("+l.length+")")+`<div class="glist">${l.map(_row).join("")}</div>`})():'<div class="empty">No users found.</div>'}`;
+  $("adm").innerHTML=`<input class="srch" id="adq" placeholder="Search name, username or UID" value="${esc(AS.q)}" autocomplete="off" data-noswipe><div class="seg" id="adf"><button data-f="all" class="${AS.f==="all"?"on":""}">All</button><button data-f="banned" class="${AS.f==="banned"?"on":""}">Banned</button><button data-f="guest" class="${AS.f==="guest"?"on":""}">Guests</button></div>${l.length?(()=>{/*ZNX-ADM24*/const _row=u=>`<div class="gr" data-ai="${u.id}">${AS.sm?`<span class="ck${AS.sel.has(u.id)?" on":""}"></span>`:""}<div class="ava" style="background:${g(u.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(u.n))}</div><span class="t"><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user)} · ${u.uid}</small></span>${u.banned?'<span class="chip red">Banned</span>':u.guest?'<span class="chip">Guest</span>':""}${AS.sm?"":"<em>›</em>"}</div>`;const _n=Date.now()-DAY,_a=l.filter(u=>u.cr&&u.cr>_n),_h=t=>'<div class="sec">'+t+'</div>';return _h("Last 24 hours ("+_a.length+")")+(_a.length?`<div class="glist">${_a.map(_row).join("")}</div>`:'<div class="empty">No new users in the last 24 hours</div>')+_h("All users ("+l.length+")")+`<div class="glist">${l.map(_row).join("")}</div>`})():'<div class="empty">No users found.</div>'}`;
   const q2=$("adq");q2.oninput=e=>{AS.q=e.target.value;const p=e.target.selectionStart;adDraw();const n=$("adq");n.focus();n.setSelectionRange(p,p)};
   if(AS.sm)bar.innerHTML=`<b>${AS.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-ab="all">All</button><button class="gb" data-ab="st">Status</button><button class="gb" data-ab="fav">Global</button><button class="gb" data-ab="ban">Ban</button><button class="gb" data-ab="unban">Unban</button>`}
  else if(t==="ctl"){const T=(k,n,d)=>`<div class="pr2"><div class="t"><b>${n}</b>${d?`<small>${d}</small>`:""}</div><button class="tg ${ADC[k]?"on":""}" data-ac="${k}" aria-label="${n}"></button></div>`,S=(k,n,o)=>`<div style="padding:10px 0"><b style="font-size:15px;font-weight:600">${n}</b><div class="seg s3" style="margin:8px 0 2px">${o.map(v=>`<button data-as="${k}:${v}" class="${ADC[k]===v?"on":""}">${v}</button>`).join("")}</div></div>`;
@@ -3156,21 +3156,21 @@ function zxBub(x,last){var tm=x.t.toLocaleTimeString([],{hour:"2-digit",minute:"
  raw.split("\n").forEach(function(l){var mm=l.match(/^\s*[*_]*Q\d*\s*[:.)]\s*[*_]*\s*(.+?)\s*\|\s*(.+)$/);if(mm&&qs.length<3)qs.push({q:mm[1],o:mm[2].split("/").map(function(s){return s.trim()}).filter(Boolean).slice(0,4)});else if(l.trim())tx.push(l.trim())});
  var h=esc(tx.join("\n"));
  if(last&&qs.length)h+=qs.map(function(z){return '<div style="margin-top:8px"><b style="font-size:13px">'+esc(z.q)+'</b><div class="zxo">'+z.o.map(function(o){return '<button data-zo="'+esc(z.q+" -> "+o)+'">'+esc(o)+'</button>'}).join("")+'</div></div>'}).join("");
- if(go.length)h+='<div class="zxo">'+go.map(function(k){return '<button class="pri" data-zg="'+k+'">Wahan le chalo: '+esc(ZG[k][2])+'</button>'}).join("")+'</div>';
+ if(go.length)h+='<div class="zxo">'+go.map(function(k){return '<button class="pri" data-zg="'+k+'">Take me to: '+esc(ZG[k][2])+'</button>'}).join("")+'</div>';
  return '<div class="mr in"><div class="mw in"><div class="m in">'+h+'<small>'+tm+'</small></div></div></div>'}
-function zxSug(){var q=["Friend kaise add karu?","Theme badalna hai","Music kaise chalau?","Chat ko lock kaise kare?"];return '<div class="empty" style="padding:28px 12px">Zexo se kuch bhi pucho.<div class="zxo" style="justify-content:center;margin-top:14px">'+q.map(function(x){return '<button data-zo="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div></div>'}
-function zxDraw(){var m=$("zxm");if(!m)return;var h=zx.msgs.map(function(x,i){return zxBub(x,i===zx.msgs.length-1)}).join("");if(zx.busy)h+='<div class="mr in"><div class="mw in"><div class="m in">Zexo soch raha hai<i class="dots"></i></div></div></div>';var pv=m.scrollTop;m.innerHTML=h||zxSug()+'';var lm=zx.msgs[zx.msgs.length-1];
+function zxSug(){var q=["How to add a friend?","Change theme","How to play music?","How to lock the app?"];return '<div class="empty" style="padding:28px 12px">Ask Zexo anything.<div class="zxo" style="justify-content:center;margin-top:14px">'+q.map(function(x){return '<button data-zo="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div></div>'}
+function zxDraw(){var m=$("zxm");if(!m)return;var h=zx.msgs.map(function(x,i){return zxBub(x,i===zx.msgs.length-1)}).join("");if(zx.busy)h+='<div class="mr in"><div class="mw in"><div class="m in">Zexo is thinking<i class="dots"></i></div></div></div>';var pv=m.scrollTop;m.innerHTML=h||zxSug()+'';var lm=zx.msgs[zx.msgs.length-1];
  if(lm&&lm.r==="a"&&!zx.busy){if(zx.fix===lm)m.scrollTop=pv;else{zx.fix=lm;var ms=m.querySelectorAll(".mr.in"),el=ms[ms.length-1];if(el)m.scrollTop+=el.getBoundingClientRect().top-m.getBoundingClientRect().top-8;else m.scrollTop=1e9}}else m.scrollTop=1e9}
-function zxOpen(){if(zx.cfg.ai_on===false)return ts("Zexo AI abhi band hai");zx.open=1;$("zx").classList.add("on");zxDraw();if(zxHist()&&!zx.msgs.length)zxLoadH().then(zxDraw);setTimeout(function(){var i=$("zxi");if(i&&!matchMedia("(pointer:coarse)").matches)i.focus()},450)}
+function zxOpen(){if(zx.cfg.ai_on===false)return ts("Zexo AI is off");zx.open=1;$("zx").classList.add("on");zxDraw();if(zxHist()&&!zx.msgs.length)zxLoadH().then(zxDraw);setTimeout(function(){var i=$("zxi");if(i&&!matchMedia("(pointer:coarse)").matches)i.focus()},450)}
 function zxClose(){zx.open=0;$("zx").classList.remove("on");var c=zxC();if(!zxHist()){zx.sid++;zx.busy=0;zx.msgs=[];zx.loaded=0;if(c.sb&&c.pid)c.sb.from("nx_ai_msgs").delete().eq("user_id",c.pid).then(function(){},function(){})}if(tab==="chats"&&$("ls"))list()}
-async function zxSend(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.busy)return ts("Zexo jawab de raha hai");if(Date.now()-zx.last<1000)return;zx.last=Date.now();var c=zxC();if(!c.sb||!c.pid)return ts("Abhi connect nahi hua");var sid=zx.sid;
+async function zxSend(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.busy)return ts("Zexo is replying");if(Date.now()-zx.last<1000)return;zx.last=Date.now();var c=zxC();if(!c.sb||!c.pid)return ts("Not connected yet");var sid=zx.sid;
  zx.msgs.push({r:"u",raw:txt.slice(0,1000),t:new Date()});zx.busy=1;zxDraw();zxStore("user",txt);
- var t0=Date.now(),out="Abhi busy hu, thodi der baad try karo.";
+ var t0=Date.now(),out="Busy right now. Try again soon.";
  try{var r=await c.sb.rpc("zexo_ask",{msgs:zx.msgs.slice(-6).map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw).slice(0,500)}})});if(r.data)out=String(r.data);else if(r.error&&MY.role==="admin")out="[admin debug] "+String(r.error.message||r.error)}catch(e){if(MY.role==="admin")out="[admin debug] "+String((e&&e.message)||e)}
- if(sid!==zx.sid)return;zx.busy=0;zx.msgs.push({r:"a",raw:out,t:new Date()});if(MY.role==="admin")ts("Jawab "+((Date.now()-t0)/1000).toFixed(1)+" sec me aaya");zxStore("model",out);zxDraw()}
+ if(sid!==zx.sid)return;zx.busy=0;zx.msgs.push({r:"a",raw:out,t:new Date()});if(MY.role==="admin")ts("Reply in "+((Date.now()-t0)/1000).toFixed(1)+" sec");zxStore("model",out);zxDraw()}
 /*ZNX-PATCH-V1 zexo-fast*/
-zxSend=async function(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.cfg.ai_on===false){zxClose();return ts("Zexo AI abhi band hai")}if(zx.busy)return ts("Zexo jawab de raha hai");if(Date.now()-zx.last<600)return;zx.last=Date.now();
- var c=zxC();if(!c.sb||!c.pid)return ts("Abhi connect nahi hua");var sid=zx.sid;
+zxSend=async function(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.cfg.ai_on===false){zxClose();return ts("Zexo AI is off")}if(zx.busy)return ts("Zexo is replying");if(Date.now()-zx.last<600)return;zx.last=Date.now();
+ var c=zxC();if(!c.sb||!c.pid)return ts("Not connected yet");var sid=zx.sid;
  zx.msgs.push({r:"u",raw:txt.slice(0,1000),t:new Date()});zx.busy=1;zxDraw();zxStore("user",txt);
  zx.dbg="";var bot={r:"a",raw:"",t:new Date()},t0=Date.now(),shown=0,h=(function(a){var b=700,o=[];for(var i=a.length-1;i>=0&&b>150;i--){var t=String(a[i].text),c=o.length<4?200:90;t=t.slice(0,c);b-=t.length;o.unshift({role:a[i].role,text:t})}while(o.length>1&&o[0].role!=="user")o.shift();return o})(zx.msgs.map(function(m){return{role:m.r==="u"?"user":"model",text:String(m.raw)}}));
  try{
@@ -3180,12 +3180,12 @@ zxSend=async function(txt){txt=String(txt||"").trim();if(!txt)return;if(zx.cfg.a
   var rd=r.body.getReader(),dc=new TextDecoder();
   for(;;){var d=await rd.read();if(d.done)break;if(sid!==zx.sid)return;
    bot.raw+=dc.decode(d.value,{stream:true});
-   if(bot.raw&&!shown){shown=1;zx.busy=0;zx.msgs.push(bot);if(MY.role==="admin")ts("Pehla shabd "+((Date.now()-t0)/1000).toFixed(1)+" sec me")}
+   if(bot.raw&&!shown){shown=1;zx.busy=0;zx.msgs.push(bot);if(MY.role==="admin")ts("First word in "+((Date.now()-t0)/1000).toFixed(1)+" sec")}
    if(shown)zxDraw()}
  }catch(e){}
  if(sid!==zx.sid)return;
  
- if(!bot.raw)bot.raw="Abhi busy hu, thodi der baad try karo."+(MY.role==="admin"&&zx.dbg?" ["+zx.dbg+"]":"");
+ if(!bot.raw)bot.raw="Busy right now. Try again soon."+(MY.role==="admin"&&zx.dbg?" ["+zx.dbg+"]":"");
  if(!shown){zx.busy=0;zx.msgs.push(bot)}
  zxStore("model",bot.raw);zxDraw()};
 function zxGo(k){var g=ZG[k];if(!g)return;zxClose();setTimeout(function(){goTab(g[0]);if(!g[1])return;setTimeout(function(){var el=document.querySelector(g[1]);if(!el)return;el.scrollIntoView({block:"center",behavior:"smooth"});el.classList.add("zxhl");setTimeout(function(){el.classList.remove("zxhl")},4600)},700)},250)}
@@ -3199,7 +3199,7 @@ $("zxs").onclick=function(){var i=$("zxi"),v=i.value;i.value="";zxGrow();zxSend(
 $("zxi").oninput=zxGrow;
 $("zxi").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey&&!matchMedia("(pointer:coarse)").matches){e.preventDefault();$("zxs").click()}});
 $("zxm").addEventListener("click",function(e){var o=e.target.closest("[data-zo]");if(o)return zxSend(o.dataset.zo);var g=e.target.closest("[data-zg]");if(g)zxGo(g.dataset.zg)});
-$("zxt").onclick=function(){sheet('<h3>Chat saaf karein?</h3><p class="note">Zexo ki purani baatein mit jayengi.</p><button class="opt rd" id="zxy">'+IC.trash+'Saaf karo</button>');$("zxy").onclick=function(){closeS();zx.msgs=[];zx.sid++;zx.busy=0;var c=zxC();if(c.sb&&c.pid)c.sb.from("nx_ai_msgs").delete().eq("user_id",c.pid).then(function(){},function(){});zxDraw();ts("Chat saaf")}};
+$("zxt").onclick=function(){sheet('<h3>Clear chat?</h3><p class="note">Old Zexo messages will be deleted.</p><button class="opt rd" id="zxy">'+IC.trash+'Clear</button>');$("zxy").onclick=function(){closeS();zx.msgs=[];zx.sid++;zx.busy=0;var c=zxC();if(c.sb&&c.pid)c.sb.from("nx_ai_msgs").delete().eq("user_id",c.pid).then(function(){},function(){});zxDraw();ts("Chat cleared")}};
 document.addEventListener("click",function(e){var r=e.target.closest&&e.target.closest("[data-zx]");if(r&&!CSM){e.stopPropagation();zxOpen()}},true);
 if(window.visualViewport){var zvv=visualViewport,zfit=function(){var z=$("zx");if(zvv.height>=innerHeight-1&&!zvv.offsetTop){z.style.height="";z.style.top=""}else{z.style.height=zvv.height+"px";z.style.top=zvv.offsetTop+"px"}};zvv.addEventListener("resize",zfit);zvv.addEventListener("scroll",zfit)}
 (function(){var s=document.createElement("style");s.textContent="#zxc{width:50px;height:50px;right:20px;bottom:calc(112px + env(safe-area-inset-bottom,0px));background:var(--sf);box-shadow:0 0 0 1px var(--ln),0 10px 24px -12px var(--ac)}body.hasmini #zxc{bottom:calc(160px + env(safe-area-inset-bottom,0px))}#zxc::before{inset:0;border:0;padding:0;background:conic-gradient(var(--ac),#5ec2b7,#8f88ff,var(--ac));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));animation:zxo 9s linear infinite}#zxc::after{width:12px;height:12px;margin:-6px 0 0 -6px;background:radial-gradient(circle at 35% 30%,#fff,var(--ac) 60%,transparent 76%);animation:zxp 4s ease-in-out infinite}";document.head.appendChild(s)})();
@@ -3220,22 +3220,22 @@ setInterval(function(){try{
  zx.msgs.push({r:"a",raw:t,t:new Date(),nd:1});zxStore("model",t);zxDraw()
 }catch(e){}},5000);
 /* admin: circle on/off, history for all, history per user (admin cannot read chats) */
-function zxAdm(){return '<div class="sec">App features (sabke liye)</div><div class="card2"><div class="pr2"><div class="t"><b>Zexo AI</b><small>Off karo to sabke liye band</small></div><button class="tg '+(zx.cfg.ai_on!==false?"on":"")+'" data-zxa="ai_on" aria-label="Zexo AI"></button></div><div class="pr2"><div class="t"><b>Watch (YouTube)</b><small>Off karo to sabke liye band</small></div><button class="tg '+(zx.cfg.yt_on!==false?"on":"")+'" data-zxa="yt_on" aria-label="Watch"></button></div></div><div class="sec">Zexo AI history</div><div class="card2"><div class="pr2"><div class="t"><b>Sabke liye</b><small>On = sabki chat save. Off = chat band hote hi mit jati hai</small></div><button class="tg '+(zx.cfg.hist_all?"on":"")+'" data-zxa="hist_all" aria-label="AI history for all"></button></div></div><div class="card2"><button class="sr" data-zxpick="1"><span class="t"><b>Kuch users chuno</b><small>Sirf chune hue users ki history save hogi</small></span><em>›</em></button></div><p class="note">'+(zx.ok?"Config theek hai. ":"Config load nahi hua"+(zx.err?": "+esc(zx.err)+". ":". "))+'Admin AI chat padh nahi sakta.</p>'}
+function zxAdm(){return '<div class="sec">App features (everyone)</div><div class="card2"><div class="pr2"><div class="t"><b>Zexo AI</b><small>Turn off to disable for all</small></div><button class="tg '+(zx.cfg.ai_on!==false?"on":"")+'" data-zxa="ai_on" aria-label="Zexo AI"></button></div><div class="pr2"><div class="t"><b>Watch (YouTube)</b><small>Turn off to disable for all</small></div><button class="tg '+(zx.cfg.yt_on!==false?"on":"")+'" data-zxa="yt_on" aria-label="Watch"></button></div></div><div class="sec">Zexo AI history</div><div class="card2"><div class="pr2"><div class="t"><b>Everyone</b><small>On = chats saved. Off = chat deleted when closed</small></div><button class="tg '+(zx.cfg.hist_all?"on":"")+'" data-zxa="hist_all" aria-label="AI history for all"></button></div></div><div class="card2"><button class="sr" data-zxpick="1"><span class="t"><b>Choose users</b><small>Only chosen users get history saved</small></span><em>›</em></button></div><p class="note">'+(zx.ok?"Config OK. ":"Config failed to load"+(zx.err?": "+esc(zx.err)+". ":". "))+'Admin cannot read AI chats.</p>'}
 var _zad=adDraw;adDraw=function(){_zad();if(AS.tab==="ctl"&&MY.role==="admin"&&$("adm"))$("adm").insertAdjacentHTML("beforeend",zxAdm())};
-$("adm").addEventListener("click",async function(e){var b=e.target.closest("[data-zxa]");if(!b)return;var k=b.dataset.zxa,v=(k==="ai_on"||k==="yt_on")?(zx.cfg[k]===false):!zx.cfg[k],c=zxC();var o={id:1,circle_on:!!zx.cfg.circle_on,hist_all:!!zx.cfg.hist_all};o[k]=v;var r=await c.sb.from("nx_ai_cfg").upsert(o).select();if(r.error||!r.data||!r.data.length){zx.err=r.error?String(r.error.message||r.error):"save nahi hua (policy check karo)";ts("Save nahi hua: "+zx.err);adDraw();return}zx.err="";zx.ok=1;zx.cfg[k]=v;ts(v?"On":"Off");adDraw()});
+$("adm").addEventListener("click",async function(e){var b=e.target.closest("[data-zxa]");if(!b)return;var k=b.dataset.zxa,v=(k==="ai_on"||k==="yt_on")?(zx.cfg[k]===false):!zx.cfg[k],c=zxC();var o={id:1,circle_on:!!zx.cfg.circle_on,hist_all:!!zx.cfg.hist_all};o[k]=v;var r=await c.sb.from("nx_ai_cfg").upsert(o).select();if(r.error||!r.data||!r.data.length){zx.err=r.error?String(r.error.message||r.error):"not saved (check policy)";ts("Not saved: "+zx.err);adDraw();return}zx.err="";zx.ok=1;zx.cfg[k]=v;ts(v?"On":"Off");adDraw()});
 $("adm").addEventListener("click",function(e){if(e.target.closest("[data-zxpick]"))zxPick()});
-async function zxPick(){var c=zxC(),r=await c.sb.from("nx_ai_users").select("user_id,hist");if(r.error)return ts("Load nahi hua: "+r.error.message);
+async function zxPick(){var c=zxC(),r=await c.sb.from("nx_ai_users").select("user_id,hist");if(r.error)return ts("Load failed: "+r.error.message);
  var on=new Set((r.data||[]).filter(function(x){return x.hist}).map(function(x){return x.user_id})),q="";
- var list=function(){var l=AU.filter(function(u){return u.pid&&(u.n+" "+u.user).toLowerCase().indexOf(q)>=0});$("zpl").innerHTML=l.length?l.map(function(u){return '<div class="gr" data-zpu="'+u.pid+'"><span class="ck'+(on.has(u.pid)?" on":"")+'"></span><div class="ava" style="background:'+g(u.n)+';width:40px;height:40px;font-size:13px;flex:none">'+esc(ini(u.n))+'</div><span class="t"><b>'+esc(u.n)+'</b><small class="mono lc">@'+esc(u.user)+'</small></span></div>'}).join(""):'<div class="empty">Koi user nahi mila.</div>'};
- sheet('<div class="shd"><h3 style="margin:0">History kinke liye</h3><button class="gb" data-zp="all">All</button></div><input class="srch" id="zpq" placeholder="Search" autocomplete="off" style="margin:10px 0"><div class="glist" id="zpl" style="max-height:46dvh;overflow:auto"></div><button class="pri" style="width:100%;margin-top:12px" data-zp="save">Save</button>');list();
+ var list=function(){var l=AU.filter(function(u){return u.pid&&(u.n+" "+u.user).toLowerCase().indexOf(q)>=0});$("zpl").innerHTML=l.length?l.map(function(u){return '<div class="gr" data-zpu="'+u.pid+'"><span class="ck'+(on.has(u.pid)?" on":"")+'"></span><div class="ava" style="background:'+g(u.n)+';width:40px;height:40px;font-size:13px;flex:none">'+esc(ini(u.n))+'</div><span class="t"><b>'+esc(u.n)+'</b><small class="mono lc">@'+esc(u.user)+'</small></span></div>'}).join(""):'<div class="empty">No users found.</div>'};
+ sheet('<div class="shd"><h3 style="margin:0">History for</h3><button class="gb" data-zp="all">All</button></div><input class="srch" id="zpq" placeholder="Search" autocomplete="off" style="margin:10px 0"><div class="glist" id="zpl" style="max-height:46dvh;overflow:auto"></div><button class="pri" style="width:100%;margin-top:12px" data-zp="save">Save</button>');list();
  $("zpq").oninput=function(e){q=e.target.value.toLowerCase();list()};
  $("sh").onclick=async function(e){var u=e.target.closest("[data-zpu]");if(u){var id=u.dataset.zpu;on.has(id)?on.delete(id):on.add(id);return list()}
   var b=e.target.closest("[data-zp]");if(!b)return;var vis=AU.filter(function(x){return x.pid});
   if(b.dataset.zp==="all"){on.size>=vis.length?on.clear():vis.forEach(function(x){on.add(x.pid)});return list()}
   var w=await c.sb.from("nx_ai_users").upsert(vis.map(function(x){return{user_id:x.pid,hist:on.has(x.pid)}}));
-  if(w.error)return ts("Save nahi hua: "+w.error.message);closeS();ts("Save ho gaya")}}
+  if(w.error)return ts("Not saved: "+w.error.message);closeS();ts("Saved")}}
 var _zau=adUser;adUser=function(i){_zau(i);var u=AU[i],c=zxC();if(!u||!u.pid||!c.sb)return;var sh=$("sh");sh.insertAdjacentHTML("beforeend",'<div class="sec">Zexo AI</div><div class="glist"><div class="gr"><span class="t"><b>AI history</b><small>Sirf is user ke liye on/off</small></span><button class="tg" data-zxu="'+u.pid+'" aria-label="Zexo AI history"></button></div></div>');c.sb.from("nx_ai_users").select("hist").eq("user_id",u.pid).maybeSingle().then(function(r){var t=sh.querySelector("[data-zxu]");if(t&&r.data&&r.data.hist)t.classList.add("on")})};
-$("sh").addEventListener("click",async function(e){var b=e.target.closest("[data-zxu]");if(!b)return;var on=!b.classList.contains("on");b.classList.toggle("on",on);var r=await zxC().sb.from("nx_ai_users").upsert({user_id:b.dataset.zxu,hist:on});if(r.error){b.classList.toggle("on",!on);ts("Save nahi hua")}else ts(on?"History on":"History off")});
+$("sh").addEventListener("click",async function(e){var b=e.target.closest("[data-zxu]");if(!b)return;var on=!b.classList.contains("on");b.classList.toggle("on",on);var r=await zxC().sb.from("nx_ai_users").upsert({user_id:b.dataset.zxu,hist:on});if(r.error){b.classList.toggle("on",!on);ts("Not saved")}else ts(on?"History on":"History off")});
 
 window.enter=enter;
 /*ZNX-LOADFIX-V1*/
@@ -3632,7 +3632,7 @@ function zxAssist(s,co,d){const o=s.op;if(!o||s.ph!=="play"||!(o.hp>0)||s.mel)re
 function zfStep(s,c,p,mv,spr){if(!s||s.ph==="wait")return;const me=s.me,mine=p===me,d=mine?0:Math.hypot(p.x-me.x,p.z-me.z);if(!mine&&d>42)return;const v=(mine?.55:Math.max(.1,.75-d/42))*(.5+.5*mv)*(1+.35*(spr||0))*(p.cr?.32:1);arSfx("step",Math.min(1,v));if(mv>.5&&!p.cr)zfDust(s,p.x,p.y,p.z,1+((spr||0)>.5?1:0),.22)}
 function stop(){cancelAnimationFrame(raf);raf=0;document.documentElement.classList.remove("ldplay");if(S){try{S.rn.dispose()}catch(e){}S=null}const r=document.getElementById("arR");if(r)r.remove()}
 function exit(){if(N.ch){nTx({t:"leave"});nEnd()}stop();inGame=false;if(tab==="play"){drawPlay();pgIn(-1)}}
-/*ZNX-ARENA-FIX1*/async function start(nt,seed0){try{await start0(nt,seed0)}catch(e){console.error(e);const r=document.getElementById("arR");if(r){r.innerHTML='<div style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:24px"><div><b>Game load nahi hua</b><p style="font:12px monospace;word-break:break-word">'+String(e&&e.message||e).slice(0,200).replace(/</g,"&lt;")+'</p><button class="pri" id="arEx" style="width:180px">Back</button></div></div>';document.getElementById("arEx").onclick=exit}}}
+/*ZNX-ARENA-FIX1*/async function start(nt,seed0){try{await start0(nt,seed0)}catch(e){console.error(e);const r=document.getElementById("arR");if(r){r.innerHTML='<div style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:24px"><div><b>Game failed to load</b><p style="font:12px monospace;word-break:break-word">'+String(e&&e.message||e).slice(0,200).replace(/</g,"&lt;")+'</p><button class="pri" id="arEx" style="width:180px">Back</button></div></div>';document.getElementById("arEx").onclick=exit}}}
 var ZLD={t:0,d:0,cap:0,fin:0,on:0,l:0,t0:0};
 function arLdTo(v){ZLD.t=Math.max(ZLD.t,Math.min(100,v))}
 function arLdCrawl(c){ZLD.cap=c}
@@ -3655,7 +3655,7 @@ async function start0(nt,seed0){stop();arLdInit();inGame=true;document.documentE
  if(!document.getElementById("arcss2")){const z=document.createElement("style");z.id="arcss2";z.textContent="#arLd{position:absolute;inset:0;z-index:4;display:grid;place-content:center;justify-items:center;gap:14px;background:radial-gradient(70% 50% at 50% 40%,#2a2466,#07080d);color:#fff;text-align:center}.arLr{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#8f88ff;border-right-color:#5ec2b7;animation:arSp 1s linear infinite}@keyframes arSp{to{transform:rotate(360deg)}}#arLd b{font:700 22px system-ui;letter-spacing:.3em}#arLd small{color:#9aa0b8;font:12px ui-monospace,monospace}.arLb{width:180px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden}.arLb s{display:block;width:40%;height:100%;background:linear-gradient(90deg,#8f88ff,#5ec2b7);animation:arBr 1.2s ease-in-out infinite}@keyframes arBr{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}.arT{z-index:5!important}#arCh{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;z-index:2;pointer-events:none;border:2px solid rgba(255,255,255,.85);border-radius:50%;box-shadow:0 0 6px #000}#arCh::after{content:\"\";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;background:#ff4d6d;border-radius:50%}";document.head.appendChild(z)}
  r.insertAdjacentHTML("beforeend",'<style>#arB,#arK{display:none!important}#arHp{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%);width:min(280px,34vw);z-index:3;pointer-events:none;color:#fff;font:700 12px ui-monospace,monospace;text-align:center;text-shadow:0 1px 4px #000}#arHp i{display:block;height:12px;border-radius:6px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);overflow:hidden;margin-top:3px}#arHp s{display:block;height:100%;width:100%;background:#4cc9a0;transition:width .15s}#arAm{position:absolute;right:calc(env(safe-area-inset-right,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 58px);z-index:3;pointer-events:auto;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:14px;background:rgba(14,16,26,.6);border:1px solid rgba(255,255,255,.2);color:#fff}#arAm svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#arAm b{font:800 20px ui-monospace,monospace}#arAm small{font:600 13px ui-monospace,monospace;color:#9aa0b8}#arAm.lo b{color:#ff6a7a}.arDm{position:absolute;top:46%;z-index:5;pointer-events:none;color:#ff5a6a;font:800 28px ui-monospace,monospace;text-shadow:0 2px 8px #000;animation:arDmA .9s ease-out forwards}@keyframes arDmA{from{opacity:1;transform:translateY(0) scale(1.35)}to{opacity:0;transform:translateY(-70px) scale(.9)}}/*ZNX-ARENA-P3*/#arAm.mel{border-color:#8f88ff;box-shadow:0 0 14px -2px #8f88ff}#arAm:active{transform:scale(.96)}</style><div id="arHp"><span id="arHt">100</span><i><s id="arHs"></s></i></div><div id="arAm"><svg viewBox="0 0 24 24"><path d="M3 10h13l2-3h3v5h-3l-1 2h-4l-1 4H8l1-4H3z"/></svg><b id="arAb">30</b><small id="arAr">/ 90</small></div><i id="arCh"></i><button class="arb" id="arMk" aria-label="Medkit"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M12 10.5v6M9 13.5h6"/></svg><b id="arMkn">2</b></button><button class="arb" id="arGr" aria-label="Grenade"><svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="6.5"/><path d="M10 7.5V5h4v2.5M14 5l3-2M9 11.5l6 5"/></svg><b id="arGrn">3</b></button><div id="arLd"><i class="arLr"></i><b>ARENA 1v1</b><small id="arLdt">Starting...</small><div class="arLb"><s id="arLdb"></s></div><em id="arLdp">0%</em></div>');
  await nap();
- ldt("Loading 3D engine...");arLdTo(6);arLdCrawl(34);if(!TH){for(const u of [TURL,"https://unpkg.com/three@0.160.0/build/three.module.js"]){try{TH=await Promise.race([import(u),new Promise((_,j)=>setTimeout(()=>j(new Error("timeout")),15000))]);break}catch(e){console.warn(e)}}}if(!TH){exit();ts("3D engine load nahi hua. Internet check karo");return}arLdCrawl(0);arLdTo(36);ldt("Building arena...");await arLdWait();
+ ldt("Loading 3D engine...");arLdTo(6);arLdCrawl(34);if(!TH){for(const u of [TURL,"https://unpkg.com/three@0.160.0/build/three.module.js"]){try{TH=await Promise.race([import(u),new Promise((_,j)=>setTimeout(()=>j(new Error("timeout")),15000))]);break}catch(e){console.warn(e)}}}if(!TH){exit();ts("3D engine failed to load. Check your internet");return}arLdCrawl(0);arLdTo(36);ldt("Building arena...");await arLdWait();
  if(!r.isConnected)return;
  const seed=seed0||((Math.random()*65535)|0)+1,B=mkMap(seed),T=TH,
  rn=new T.WebGLRenderer({antialias:true,powerPreference:"high-performance"});rn.setPixelRatio(Math.min(devicePixelRatio||1,1.25));rn.setSize(innerWidth,innerHeight);r.prepend(rn.domElement);
@@ -3969,21 +3969,21 @@ setInterval(function(){var r=document.getElementById("arR");if(!r||!S)return;
 
 /*ZNX-LOADOUT-V1*/
 var ZWB=null,ZLN=["Rifle","Pistol","SMG","Sniper","Shotgun"],ZLV=[
-[{vn:"AR-47 Raptor",d:"Balanced. Har situation me bharosemand."},
- {vn:"M4 Viper",rate:.085,dmg:23,sp:.8,rc:.8,mag:30,res:90,rt:1.7,d:"Tez aur steady, recoil kam."},
- {vn:"Breaker DMR",rate:.16,dmg:38,sp:.6,rc:1.3,mag:20,res:60,rt:2,d:"Bhaari hit, thoda dheema. Door ki ladai ke liye."}],
-[{vn:"P-9 Falcon",d:"Halka aur tez nikalne wala sidearm."},
- {vn:"Desert Hawk",rate:.45,dmg:52,sp:.6,rc:1.6,mag:7,res:28,rt:1.5,d:"Do teen shot me kaam. Magazine chhota."},
- {vn:"Auto Viper",rate:.1,dmg:15,sp:1.2,rc:.6,mag:20,res:80,auto:1,rt:1.3,d:"Full-auto pistol. Close fight me tez."}],
-[{vn:"Vector-X",d:"Tez fire, balanced SMG."},
- {vn:"Hornet",rate:.05,dmg:13,sp:1.6,rc:.7,mag:40,res:120,rt:1.4,d:"Bahut tez, par bikharti hai. Bilkul paas ke liye."},
- {vn:"Wasp-9",rate:.075,dmg:20,sp:1,rc:.8,mag:30,res:90,rt:1.5,d:"Zyada damage, thoda dheema."}],
-[{vn:"Longshot AWP",d:"Ek shot, bhaari damage. Scope me best."},
- {vn:"Phantom SR",rate:.75,dmg:70,sp:.15,rc:1.6,mag:8,res:24,rt:2.2,d:"Tez bolt, damage thoda kam. Lagatar shot."},
- {vn:"Titan .50",rate:1.5,dmg:130,sp:.1,rc:3,mag:3,res:15,rt:3,d:"Do body shot me khatam. Bahut dheema."}],
-[{vn:"Pump-12",d:"Classic pump shotgun. Paas me ghatak."},
- {vn:"Storm-8",rate:.35,dmg:7,sp:1.2,rc:1.2,mag:8,res:32,auto:1,rt:2.2,d:"Auto fire. Har pellet me damage kam."},
- {vn:"Double Barrel",rate:1,dmg:14,sp:1.3,rc:2.6,mag:2,res:20,pel:10,rt:2,d:"Sirf do shot, par bahut zordar."}]];
+[{vn:"AR-47 Raptor",d:"Balanced all-rounder."},
+ {vn:"M4 Viper",rate:.085,dmg:23,sp:.8,rc:.8,mag:30,res:90,rt:1.7,d:"Fast and steady, low recoil."},
+ {vn:"Breaker DMR",rate:.16,dmg:38,sp:.6,rc:1.3,mag:20,res:60,rt:2,d:"Heavy hits, slower. For long range."}],
+[{vn:"P-9 Falcon",d:"Light, quick-draw sidearm."},
+ {vn:"Desert Hawk",rate:.45,dmg:52,sp:.6,rc:1.6,mag:7,res:28,rt:1.5,d:"Kills in 2-3 shots. Small magazine."},
+ {vn:"Auto Viper",rate:.1,dmg:15,sp:1.2,rc:.6,mag:20,res:80,auto:1,rt:1.3,d:"Full-auto pistol. Great up close."}],
+[{vn:"Vector-X",d:"Fast fire, balanced SMG."},
+ {vn:"Hornet",rate:.05,dmg:13,sp:1.6,rc:.7,mag:40,res:120,rt:1.4,d:"Very fast, but spreads. Close range."},
+ {vn:"Wasp-9",rate:.075,dmg:20,sp:1,rc:.8,mag:30,res:90,rt:1.5,d:"More damage, slower."}],
+[{vn:"Longshot AWP",d:"One heavy shot. Best scoped."},
+ {vn:"Phantom SR",rate:.75,dmg:70,sp:.15,rc:1.6,mag:8,res:24,rt:2.2,d:"Fast bolt, less damage."},
+ {vn:"Titan .50",rate:1.5,dmg:130,sp:.1,rc:3,mag:3,res:15,rt:3,d:"Two body shots kill. Very slow."}],
+[{vn:"Pump-12",d:"Classic pump shotgun. Deadly close."},
+ {vn:"Storm-8",rate:.35,dmg:7,sp:1.2,rc:1.2,mag:8,res:32,auto:1,rt:2.2,d:"Auto fire. Low damage per pellet."},
+ {vn:"Double Barrel",rate:1,dmg:14,sp:1.3,rc:2.6,mag:2,res:20,pel:10,rt:2,d:"Only two shots, very powerful."}]];
 function zlBase(){if(!ZWB)ZWB=ZW.map(function(w){return Object.assign({},w)})}
 function zlApply(ch){zlBase();for(var i=0;i<5;i++){var b=ZWB[i],v=ZLV[i][ch[i]|0]||ZLV[i][0],w=ZW[i];Object.keys(b).forEach(function(k){w[k]=b[k]});["rate","dmg","sp","rc","mag","res","rt","auto","pel"].forEach(function(k){if(v[k]!==undefined)w[k]=v[k]});w.vn=v.vn}}
 function zlSt(i,v){var b=ZWB[i],g=function(k){return v[k]!==undefined?v[k]:b[k]},rate=g("rate"),dmg=g("dmg"),pel=g("pel"),sp=g("sp"),rc=g("rc"),mag=g("mag"),eff=dmg*(pel>1?pel*.5:1);
@@ -4072,11 +4072,11 @@ function zwRl(s){s.rlt=s.rl=WP().rt*(s.ammo===0?1.25:1)}
 function zwZoom(s){if(WP().n==="SNIPER"){s.zl=((s.zl|0)+1)%3;s.zoom=s.zl?1:0;ts(["Scope off","Scope 4x","Scope 8x"][s.zl])}else{s.zoom=s.zoom?0:1;s.zl=s.zoom?1:0}}
 var _zs0=zwSet;zwSet=function(i){var s=S;if(s){s.zoom=0;s.zl=0}_zs0(i)};
 function zwGyro(){var s=S;if(!s)return;var go=function(){s.gy=((+ST2.gyro||0)+1)%3;ST2.gyro=String(s.gy);ZGY=s.gy;sv2();s.gyT=0;ts(["Gyro off","Gyro on","Gyro on (inverted)"][s.gy])};
-if(!zwGP&&typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission){DeviceMotionEvent.requestPermission().then(function(r){if(r==="granted"){zwGP=1;go()}else ts("Gyro permission nahi mili")}).catch(function(){ts("Gyro available nahi hai")});return}
+if(!zwGP&&typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission){DeviceMotionEvent.requestPermission().then(function(r){if(r==="granted"){zwGP=1;go()}else ts("Gyro permission denied")}).catch(function(){ts("Gyro not available")});return}
 zwGP=1;go()}
 /*ZNX-GYRO-HOLD-V1*/
 var ZGYI=/iP(hone|ad|od)/.test(navigator.userAgent),zgyOk=0,ZH={};
-function zgyChk(s){if(+ST2.gyro&&s.ph!=="wait"){var n=Date.now();if(!s.gyT)s.gyT=n;if(n-s.gyT>3500&&n-zgyOk>3500){ST2.gyro="0";s.gy=0;sv2();s.gyT=0;ts("Is phone par gyro sahi nahi chal raha, isliye band kar diya")}}else s.gyT=0}
+function zgyChk(s){if(+ST2.gyro&&s.ph!=="wait"){var n=Date.now();if(!s.gyT)s.gyT=n;if(n-s.gyT>3500&&n-zgyOk>3500){ST2.gyro="0";s.gy=0;sv2();s.gyT=0;ts("Gyro not working on this phone, turned off")}}else s.gyT=0}
 function znxGy(e,s,r){
  if(!r||(r.alpha==null&&r.beta==null&&r.gamma==null))return;
  zgyOk=Date.now();
@@ -4089,7 +4089,7 @@ function znxGy(e,s,r){
  if(Math.abs(yaw)<.35)yaw=0;if(Math.abs(pit)<.35)pit=0;
  var k=.0175*dt*(+ST2.gyroS||1)*arSens()*.45*(1-.5*(s.zk||0))*(m===2?-1:1);
  s.ay=(s.ay||0)+yaw*k;s.ap=(s.ap||0)+pit*k}
-window.znxGyroAsk=function(){try{if(typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission){DeviceMotionEvent.requestPermission().then(function(r){if(r!=="granted"){ST2.gyro="0";sv2();ts("Gyro permission nahi mili")}else zwGP=1}).catch(function(){})}}catch(e){}};
+window.znxGyroAsk=function(){try{if(typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission){DeviceMotionEvent.requestPermission().then(function(r){if(r!=="granted"){ST2.gyro="0";sv2();ts("Gyro permission denied")}else zwGP=1}).catch(function(){})}}catch(e){}};
 document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest('[data-sg^="gyro:"]');if(b&&b.dataset.sg!=="gyro:0")window.znxGyroAsk()},true);
 function zxHold(c,p,s,rk,rl,mine){zfSet(c,0);
  var T=TH,G=c.gun;if(!T||!G)return;
@@ -4606,7 +4606,7 @@ if(d.t==="h")return '<div class="zhs">'+d.l+'</div>';
 if(d.t==="s"){var v=zqGet(d.k),p=Math.round((v-d.mn)/(d.mx-d.mn)*100);return '<label class="zhr"><span>'+d.l+'</span><em>'+v+'%</em><input type="range" data-k="'+d.k+'" min="'+d.mn+'" max="'+d.mx+'" step="5" value="'+v+'" style="--p:'+p+'%"></label>'}
 if(d.t==="t")return '<div class="zhr zhx"><span>'+d.l+'</span><button class="zht2'+(Q[d.k]?' on':'')+'" data-t="'+d.k+'" aria-label="'+d.l+'"></button></div>';
 return '<div class="zhg"><span>'+d.l+'</span><div>'+d.o.map(function(o){return '<button data-g="'+d.k+'" data-v="'+o[1]+'" class="'+(Q[d.k]===o[1]?'on':'')+'">'+o[0]+'</button>'}).join('')+'</div></div>'};
-const zqHud=function(){var h='<button class="pri" id="zhL" style="width:100%;margin:6px 0 8px">Edit button layout</button><p class="zhn">Fire, Jump, Crouch, Reload, Zoom, Grenade, Medkit, Melee, Minimap: khinch kar kahin bhi rakho. Auto save hota hai.</p>';for(var n=0;n<2;n++){h+='<div class="zhg"><span>Weapon slot '+(n+1)+'</span><div>';for(var i=0;i<5;i++)h+='<button class="zhi'+(Q.lo[n]===i?' on':'')+'" data-n="'+n+'" data-w="'+i+'">'+zqGi(i)+'</button>';h+='</div></div>'}return h+'<button id="zhR" style="width:100%;margin-top:12px">Reset all settings</button>'};
+const zqHud=function(){var h='<button class="pri" id="zhL" style="width:100%;margin:6px 0 8px">Edit button layout</button><p class="zhn">Drag Fire, Jump, Crouch, Reload, Zoom, Grenade, Medkit, Melee and Minimap anywhere. Saved automatically.</p>';for(var n=0;n<2;n++){h+='<div class="zhg"><span>Weapon slot '+(n+1)+'</span><div>';for(var i=0;i<5;i++)h+='<button class="zhi'+(Q.lo[n]===i?' on':'')+'" data-n="'+n+'" data-w="'+i+'">'+zqGi(i)+'</button>';h+='</div></div>'}return h+'<button id="zhR" style="width:100%;margin-top:12px">Reset all settings</button>'};
 const zqDraw=function(){var b=$("zhB");if(!b)return;var sc=b.scrollTop;b.innerHTML=zqTab==="hud"?zqHud():zqP[zqTab].map(zqRow).join("");b.scrollTop=sc;[].forEach.call($("zhT").children,function(x){x.classList.toggle("on",x.dataset.p===zqTab)})};
 const zqOpen=function(){var r=$("arR");if(!r)return;if($("zhP")){$("zhP").remove();return}var p=document.createElement("div");p.id="zhP";
 p.innerHTML='<div class="zhh"><b>Settings</b><button class="ib" id="zhX" aria-label="Close">'+zqX+'</button></div><div id="zhT">'+zqTabs.map(function(t){return '<button data-p="'+t[0]+'">'+t[1]+'</button>'}).join('')+'</div><div id="zhB"></div>';
@@ -4746,7 +4746,7 @@ function tap(k){if(k==="h")return hand();var ix=k==="p"?1:SL[k];if(ix<0)return p
 function pick(k){var cur=SL[k],other=SL[k==="a"?"b":"a"],o=[[0,"Rifle"],[2,"SMG"],[4,"Shotgun"],[3,"Sniper"]];
  sheet('<h3>'+(k==="a"?"Weapon slot 1":"Weapon slot 2")+'</h3><div class="glist">'+o.map(function(x){return '<button class="gr" data-xw="'+x[0]+'"><span class="t"><b>'+x[1]+'</b></span><span class="ck'+(cur===x[0]?" on":"")+'"></span></button>'}).join("")+'</div>'+(cur>=0?'<button class="opt rd" data-xw="-1">Empty this slot</button>':""));
  $("sh").onclick=function(e){var b=e.target.closest("[data-xw]");if(!b)return;var v=+b.dataset.xw;
-  if(v>=0&&v===other)return ts("Ye weapon dusre slot me hai");
+  if(v>=0&&v===other)return ts("Weapon is in the other slot");
   var wasAct=S&&!S.mel&&(S.wi|0)===cur&&cur>=0;
   SL[k]=v;svs();closeS();
   if(v>=0)equip(v);else if(wasAct)equip(1);paint()}}
@@ -4769,16 +4769,16 @@ function keep(id){var e=$(id);if(!e)return;var r=e.getBoundingClientRect();if(!r
 function applyAll(){EL.forEach(function(x){ap1(x[0])})}
 function mark(){var r=$("arR");if(!r)return;EL.forEach(function(x){var e=$(x[0]);if(e){e.classList.toggle("xqe",!!ed);e.classList.toggle("xqs",!!ed&&x[0]===sel)}})}
 function upd(){var n=$("xqN");if(!n)return;var c=L[sel]||{},nm=(EL.filter(function(x){return x[0]===sel})[0]||[])[1];
- n.textContent=nm?nm:"Kisi button par tap karo";$("xqS").value=Math.round((c.s||1)*100);$("xqO").value=Math.round((c.o==null?1:c.o)*100);$("xqH").textContent=c.h?"Show":"Hide";
+ n.textContent=nm?nm:"Tap a button";$("xqS").value=Math.round((c.s||1)*100);$("xqO").value=Math.round((c.o==null?1:c.o)*100);$("xqH").textContent=c.h?"Show":"Hide";
  $("xqS").disabled=$("xqO").disabled=$("xqH").disabled=$("xqR").disabled=!nm}
 function startEdit(){var r=$("arR");if(!r||ed)return;ed=1;r.classList.add("xq-ed");
- r.insertAdjacentHTML("beforeend",'<div id="xqP"><div id="xqG"><i></i><span>Panel ko yahan se khincho</span><button id="xqM" aria-label="Chhota karo">–</button></div><b id="xqN"></b><small>Drag karke move karo. Size aur visibility neeche.</small><div style="display:grid;gap:4px"><label>Size<input type="range" id="xqS" min="40" max="220" step="5"></label><label>Opacity<input type="range" id="xqO" min="20" max="100" step="5"></label></div><div class="xr"><button id="xqH">Hide</button><button id="xqR">Reset</button></div><div class="xr2"><button id="xqA">Reset all</button><button class="pri" id="xqD" style="flex:1">Done</button></div></div>');
+ r.insertAdjacentHTML("beforeend",'<div id="xqP"><div id="xqG"><i></i><span>Drag panel here</span><button id="xqM" aria-label="Minimize">–</button></div><b id="xqN"></b><small>Drag to move. Size and visibility below.</small><div style="display:grid;gap:4px"><label>Size<input type="range" id="xqS" min="40" max="220" step="5"></label><label>Opacity<input type="range" id="xqO" min="20" max="100" step="5"></label></div><div class="xr"><button id="xqH">Hide</button><button id="xqR">Reset</button></div><div class="xr2"><button id="xqA">Reset all</button><button class="pri" id="xqD" style="flex:1">Done</button></div></div>');
  var p=$("xqP");p.addEventListener("pointerdown",function(e){e.stopPropagation()});
  $("xqS").oninput=function(){if(!sel)return;cfg(sel).s=this.value/100;ap1(sel);keep(sel);sv()};
  $("xqO").oninput=function(){if(!sel)return;cfg(sel).o=this.value/100;ap1(sel);sv()};
  $("xqH").onclick=function(){if(!sel)return;var c=cfg(sel);c.h=!c.h;ap1(sel);sv();upd()};
  $("xqR").onclick=function(){if(!sel)return;delete L[sel];ap1(sel);sv();upd()};
- $("xqA").onclick=function(){L={};sv();applyAll();upd();ts("Saara HUD reset")};
+ $("xqA").onclick=function(){L={};sv();applyAll();upd();ts("HUD reset")};
  $("xqD").onclick=endEdit;xqDrag();applyAll();mark();upd()}
 function xqDrag(){var p=$("xqP"),h=$("xqG");if(!p||!h)return;var d=null;
  h.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();var r=p.getBoundingClientRect();p.style.transform="none";p.style.left=r.left+"px";p.style.top=r.top+"px";d={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};try{h.setPointerCapture(e.pointerId)}catch(x){}});
@@ -4881,7 +4881,7 @@ window.arSig=function(m){
   if(navigator.vibrate)navigator.vibrate([20,40,20]);ping()}
  else if(m.t==="gmdec"){if(!N.host||m.code!==N.code||N.st)return;ts("Friend declined");closeS();nEnd()}
  else if(m.t==="gmcan"){if(N.pend===m.code){N.pend="";closeS();ts("Invite cancelled")}}};
-function page(){inGame=false;$("pg").innerHTML='<div class="sb"><button class="ib" data-pl="home" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button></div><div class="gh"><i>'+GI.arn+'</i><div><h2>Arena 1v1</h2><p>Gun fight · 5 rounds</p></div></div><div class="feat" style="margin-top:12px"><span class="tag">1 vs 1</span><b>Arena Duel</b><p>Pehle 3 round jeeto. Zone dheere dheere chhota hota hai.</p><div class="fbx"><button data-ar="solo">Play vs bot</button><button class="gh2" data-ar="inv">Play with a friend</button></div><i class="fg">'+GI.arn+'</i></div><p class="note" style="margin-top:14px">Left stick: chalo. Right side drag: dekho. FIRE: goli. JUMP: kudo. Gharon ke andar ja sakte ho, deewar aur crate ke peeche chhup sakte ho. Red zone ke bahar damage lagta hai. Apna damage sirf tumhe dikhta hai.</p>'}
+function page(){inGame=false;$("pg").innerHTML='<div class="sb"><button class="ib" data-pl="home" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button></div><div class="gh"><i>'+GI.arn+'</i><div><h2>Arena 1v1</h2><p>Gun fight · 5 rounds</p></div></div><div class="feat" style="margin-top:12px"><span class="tag">1 vs 1</span><b>Arena Duel</b><p>Win 3 rounds first. The zone keeps shrinking.</p><div class="fbx"><button data-ar="solo">Play vs bot</button><button class="gh2" data-ar="inv">Play with a friend</button></div><i class="fg">'+GI.arn+'</i></div><p class="note" style="margin-top:14px">Left stick: move. Drag right side: look. FIRE: shoot. JUMP: jump. Take cover behind walls and crates. Damage outside the red zone.</p>'}
 (window.__zg=window.__zg||{}).arn=function(){start(0)};
 const _og=openGame;openGame=function(id){if(id!=="arn")return _og(id);page()};
 const _gs=gmSend;gmSend=function(){if(INV.id==="arn")return nHost([...INV.sel][0]);return _gs()};
@@ -5617,7 +5617,7 @@ const loadFav=async()=>{
   keepL.forEach(x=>{if(!FAV.some(y=>y.url===x.url&&y.kind===x.kind)){x.tried=0;x.rt=0;FAV.unshift(x)}});if(typeof mpSync==="function")mpSync()}catch(e){}};
 window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID)return;
  try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;let r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:(String(f.title||"").replace(/\s+/g," ").trim().slice(0,100)||"Untitled"/*ZNX-NAMEFIX*/),url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();if(r.error&&f.era&&/era/i.test(String(r.error.message||""))){r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:(String(f.title||"").replace(/\s+/g," ").trim().slice(0,100)||"Untitled"/*ZNX-NAMEFIX*/),url:f.url,song_type:f.type||0}).select("id").maybeSingle()}
-   if(r.error){f.rt=(f.rt||0)+1;f.tried=f.rt<4?0:1;if(f.rt===1||f.rt>=4)ts("Save nahi hua: "+String(r.error.message||"link").slice(0,90));continue}/*ZNX-FAVFIX1*/if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
+   if(r.error){f.rt=(f.rt||0)+1;f.tried=f.rt<4?0:1;if(f.rt===1||f.rt>=4)ts("Not saved: "+String(r.error.message||"link").slice(0,90));continue}/*ZNX-FAVFIX1*/if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
   const have=new Set(FAV.filter(x=>x.sid).map(x=>x.sid));
   for(const id of [...FAVDB]){if(!have.has(id)){const r=await SB.from("nx_fav").delete().eq("id",id);if(!r.error)FAVDB.delete(id)}}}catch(e){}},500)};
 
@@ -6148,7 +6148,7 @@ function fontSheet3(){let cat="all";FONTS3.forEach(fPrev);
  sheet(`<div class="shd" style="margin-bottom:10px"><h3 style="margin:0">Font</h3><button class="gb" id="fres">Reset to default</button></div><div id="fnp" style="font-size:17px;margin:0 4px 12px;line-height:1.4"></div><div class="chips" id="fcc" data-noswipe></div><div class="fgrid" id="fgg"></div>`);
  const paint=()=>{$("fcc").innerHTML=[["all","All"]].concat(FC).map(c=>`<button data-fc="${c[0]}" class="${c[0]===cat?"on":""}">${c[1]}</button>`).join("");
   $("fgg").innerHTML=FONTS3.filter(f=>cat==="all"||f.cat===cat).map(f=>`<button class="fb${f.id===cur3().id?" on":""}" data-fid="${f.id}" style="font-family:${esc(f.s)}"><b>Aa</b><small>${esc(f.n)}</small></button>`).join("");
-  const c=cur3();$("fnp").style.fontFamily=c.s;$("fnp").textContent="Kal milte hain! The quick brown fox 0123456789"};
+  const c=cur3();$("fnp").style.fontFamily=c.s;$("fnp").textContent="Hello! The quick brown fox 0123456789"};
  paint();
  $("sh").onclick=e=>{if(e.target.closest("#fres")){ST2.font="def";sv2();apply3();paint();ts("Default font restored");return}const c=e.target.closest("[data-fc]");if(c){cat=c.dataset.fc;return paint()}
   const b=e.target.closest("[data-fid]");if(!b)return;ST2.font=b.dataset.fid;sv2();apply3();paint();if(navigator.vibrate)navigator.vibrate(5)}}
@@ -6287,7 +6287,7 @@ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[da
 const ytOff=()=>zx.cfg.yt_on===false;
 {const _e=VIEWS.enjoy;VIEWS.enjoy=function(){_e();if(ytOff()){const r=document.querySelector("[data-en=yt]");if(r)r.remove()}}}
 {const _p=etPane;etPane=function(k){if(k==="yt"&&ytOff())k="chat";return _p(k)}}
-document.addEventListener("click",e=>{if(!ytOff()||!e.target.closest)return;if(e.target.closest("[data-en=yt],#ettabs [data-p=yt]")){e.stopImmediatePropagation();e.preventDefault();ts("Watch abhi band hai")}},true);
+document.addEventListener("click",e=>{if(!ytOff()||!e.target.closest)return;if(e.target.closest("[data-en=yt],#ettabs [data-p=yt]")){e.stopImmediatePropagation();e.preventDefault();ts("Watch is off")}},true);
 setInterval(()=>{const b=document.querySelector("#ettabs [data-p=yt]");if(b)b.style.display=ytOff()?"none":""},500);
 }
 
@@ -6321,7 +6321,7 @@ html body .etmk{height:12%}html body .etmk.b{height:14%}
 `);
 
 /* 1. Save: Videos or Music (Soothing / Vibe / Energetic) */
-const SAVEC=[["w",0,"Videos","Watch list",IC.vid,""],["l",1,"Music \u00b7 Soothing","Calm and slow",IC.aud,""],["l",2,"Music \u00b7 Vibe \u00b7 Old","Purane vibe gaane",IC.aud,"old"],["l",2,"Music \u00b7 Vibe \u00b7 New","Naye vibe gaane",IC.aud,"new"],["l",3,"Music \u00b7 Energetic","High energy",IC.aud,""],["l",4,"Music \u00b7 Bhakti","Bhajan aur devotional",IC.aud,""]];
+const SAVEC=[["w",0,"Videos","Watch list",IC.vid,""],["l",1,"Music \u00b7 Soothing","Calm and slow",IC.aud,""],["l",2,"Music \u00b7 Vibe \u00b7 Old","Older vibe songs",IC.aud,"old"],["l",2,"Music \u00b7 Vibe \u00b7 New","Newer vibe songs",IC.aud,"new"],["l",3,"Music \u00b7 Energetic","High energy",IC.aud,""],["l",4,"Music \u00b7 Bhakti","Devotional songs",IC.aud,""]];
 function ytSave(id,title){
  if(!/^[\w-]{11}$/.test(id||""))return;const url="https://youtu.be/"+id;let sc="private";
  sheet(`<h3>Save</h3><div class="fld"><label>Name</label><input id="ysn" maxlength="60" value="${esc(String(title||"").slice(0,60))}" autocomplete="off"></div><div class="sec">Save to</div><div class="glist">${SAVEC.map((c,i)=>`<button class="gr" data-ys="${i}"><i class="gi">${c[4]}</i><span class="t"><b>${c[2]}</b><small>${c[3]}</small></span><em>\u203a</em></button>`).join("")}</div><div class="sec">Visible to</div><div class="seg" id="ysv"><button data-s="private" class="on">Private</button><button data-s="global">Global</button></div>`);
@@ -6381,10 +6381,10 @@ function shCtx(){
  return{t:n,l:dl("tab",tab)}}
 async function doShare(){
  if(MP.on&&MP.started)return soloShare();
- if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80))+"&t="+Math.floor(plTime()||0),tx="Ye video ZNEXORA par dekho";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copy ho gaya")}catch(e){ts(l)}return}
- const c=shCtx(),text="ZNEXORA par "+c.t+" dekho. Chat, call aur saath me enjoy karo.";
+ if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80))+"&t="+Math.floor(plTime()||0),tx="Watch this video on ZNEXORA";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copied")}catch(e){ts(l)}return}
+ const c=shCtx(),text="Check out "+c.t+" on ZNEXORA. Chat, call and enjoy together.";
  try{if(navigator.share){await navigator.share({title:"ZNEXORA",text:text,url:c.l});return}}catch(e){if(e&&e.name==="AbortError")return}
- try{await navigator.clipboard.writeText(text+" "+c.l);ts("Link copy ho gaya")}catch(e){ts(c.l)}}
+ try{await navigator.clipboard.writeText(text+" "+c.l);ts("Link copied")}catch(e){ts(c.l)}}
 
 const sty=document.createElement("style");
 sty.textContent="#znxSh{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:65;width:36px;height:36px;margin:0;padding:0;border-radius:50%;display:none;place-items:center;color:#fff;opacity:.72;background:rgba(14,16,26,.55);border:1px solid rgba(255,255,255,.18)}#znxSh.on{display:grid}#znxSh svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}";
@@ -6425,7 +6425,7 @@ window.znxFavSync=function(){
   let over=FAV.filter(mine).length-mx,cut=0;
   for(let i=0;i<FAV.length&&over>0;i++){const x=FAV[i];if(mine(x)&&!x.sid){FAV.splice(i,1);i--;over--;cut++}}
   if(cut){try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}try{mpSync()}catch(e){}
-   setTimeout(()=>ts("Song limit poori ho gayi ("+mx+"). Admin se badhwao"),80)}}
+   setTimeout(()=>ts("Song limit reached ("+mx+"). Ask admin to raise it"),80)}}
  return _fsy&&_fsy.apply(this,arguments)};
 
 /* admin panel: user ke sheet me Songs limit */
@@ -6437,7 +6437,7 @@ const _au=adUser;
 adUser=function(i){
  _au(i);const u=AU[i],c=CTX();if(!u||!u.pid||!c.sb)return;
  SL.pid=u.pid;SL.nm=u.n;
- $("sh").insertAdjacentHTML("beforeend",'<div class="sec">Songs limit</div><div class="glist"><div class="gr"><span class="t"><b>Is user ke songs</b><small class="mono lc" id="slcur">loading...</small></span></div></div><div class="seg" id="slseg" style="margin-top:8px"><button data-sl2="30">30</button><button data-sl2="100">100</button><button data-sl2="u">Unlimited</button></div><div class="cpf"><input id="slci" inputmode="numeric" placeholder="Custom (1 se 10000)" maxlength="5" autocomplete="off"><button class="gb pri" data-sl2="c">Set</button></div>');
+ $("sh").insertAdjacentHTML("beforeend",'<div class="sec">Songs limit</div><div class="glist"><div class="gr"><span class="t"><b>Songs for this user</b><small class="mono lc" id="slcur">loading...</small></span></div></div><div class="seg" id="slseg" style="margin-top:8px"><button data-sl2="30">30</button><button data-sl2="100">100</button><button data-sl2="u">Unlimited</button></div><div class="cpf"><input id="slci" inputmode="numeric" placeholder="Custom (1-10000)" maxlength="5" autocomplete="off"><button class="gb pri" data-sl2="c">Set</button></div>');
  const pid=u.pid;
  Promise.all([
   c.sb.from("nx_song_limit").select("max_songs,unlimited").eq("user_id",pid).maybeSingle().then(r=>r.data||null,()=>null),
@@ -6447,10 +6447,10 @@ $("sh").addEventListener("click",async e=>{
  const b=e.target.closest("[data-sl2]");if(!b||!SL.pid)return;
  const k=b.dataset.sl2;let row;
  if(k==="u")row={unlimited:true,max_songs:null};
- else{const n=k==="c"?parseInt($("slci").value,10):+k;if(!(n>=1&&n<=10000))return ts("1 se 10000 ke beech likho");row={unlimited:false,max_songs:n}}
+ else{const n=k==="c"?parseInt($("slci").value,10):+k;if(!(n>=1&&n<=10000))return ts("Enter 1 to 10000");row={unlimited:false,max_songs:n}}
  const r=await CTX().sb.from("nx_song_limit").upsert(Object.assign({user_id:SL.pid,updated_at:new Date().toISOString()},row));
- if(r.error)return ts("Save nahi hua: "+r.error.message);
- slShow(row);ts("Songs limit save ho gayi");
+ if(r.error)return ts("Not saved: "+r.error.message);
+ slShow(row);ts("Song limit saved");
  try{logA("Songs limit",SL.nm+": "+(row.unlimited?"unlimited":row.max_songs))}catch(x){}});
 
 /* ===== 3. ZEXO AI: tez jawab (server ko garam rakho, history chhoti) ===== */
@@ -6475,29 +6475,29 @@ setTimeout(function(){zxKLoad(true)},3500);setInterval(function(){zxKLoad(false)
 var ZK={rows:[],t:0,ld:0};
 var ZKS='width:100%;border-radius:14px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font:inherit;font-size:16px;padding:12px;outline:none';
 function zkLoad(){var c=zxC();if(!c.sb||ZK.ld)return;ZK.ld=1;
- c.sb.from("nx_ai_knowledge").select("id,text,active,created_at").order("created_at",{ascending:true}).limit(300).then(function(r){ZK.ld=0;if(r.error){ts("Load nahi hua: "+String(r.error.message).slice(0,80));return}ZK.rows=r.data||[];ZK.t=Date.now();if(AS.tab==="zx"&&$("ad").classList.contains("on"))zkDraw()},function(){ZK.ld=0})}
+ c.sb.from("nx_ai_knowledge").select("id,text,active,created_at").order("created_at",{ascending:true}).limit(300).then(function(r){ZK.ld=0;if(r.error){ts("Load failed: "+String(r.error.message).slice(0,80));return}ZK.rows=r.data||[];ZK.t=Date.now();if(AS.tab==="zx"&&$("ad").classList.contains("on"))zkDraw()},function(){ZK.ld=0})}
 function zkDraw(){var m=$("adm");if(!m)return;var old=$("zkt")?$("zkt").value:"";
  var pk=zkPack(ZK.rows.map(function(x){return x.active?x.text:""})),skip={};pk.sk.forEach(function(i){skip[i]=1});
  var pen='<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
- m.innerHTML='<p class="note" style="margin:0 4px 4px">Jo yahan likhoge, Zexo wo yaad rakhega aur sab users ko wahi batayega. Agar kuch purane se alag ho (jaise naya owner), to yahi sach maana jayega.</p>'+
- '<div class="card2" style="padding:14px"><textarea id="zkt" rows="3" maxlength="300" placeholder="Jaise: Zexo ka owner Suraj Kumar hai." style="'+ZKS+'"></textarea><button class="pri" style="width:100%;margin-top:10px" data-zk="add">Yaad rakhwao</button></div>'+
- '<div class="sec">Yaad ki hui baatein · '+ZK.rows.length+'</div><p class="note" style="margin:0 4px 8px">Memory use: '+pk.b+' / 3200'+(pk.sk.length?' · '+pk.sk.length+' baat limit ki wajah se use nahi ho rahi. Purani baatein hata do.':'')+'</p>'+
- (ZK.rows.length?'<div class="glist">'+ZK.rows.map(function(x,i){return '<div class="gr"><span class="t"><b style="white-space:normal;font-weight:500">'+esc(x.text)+'</b><small class="mono lc">'+new Date(x.created_at).toLocaleDateString([],{day:"numeric",month:"short"})+(x.active?(skip[i]?' · limit full, use nahi ho rahi':''):' · band')+'</small></span><button class="tg'+(x.active?' on':'')+'" data-zkt="'+x.id+'" aria-label="On ya off"></button><button class="ib" data-zke="'+x.id+'" aria-label="Badlo">'+pen+'</button><button class="ib" data-zkd="'+x.id+'" aria-label="Hatao">'+IC.trash+'</button></div>'}).join("")+'</div>':'<div class="empty">Abhi kuch nahi sikhaya.</div>');
+ m.innerHTML='<p class="note" style="margin:0 4px 4px">Whatever you write here, Zexo will remember and tell all users. If it differs from older facts, this one wins.</p>'+
+ '<div class="card2" style="padding:14px"><textarea id="zkt" rows="3" maxlength="300" placeholder="Example: Owner is Suraj Kumar." style="'+ZKS+'"></textarea><button class="pri" style="width:100%;margin-top:10px" data-zk="add">Teach Zexo</button></div>'+
+ '<div class="sec">Saved facts · '+ZK.rows.length+'</div><p class="note" style="margin:0 4px 8px">Memory use: '+pk.b+' / 3200'+(pk.sk.length?' · '+pk.sk.length+' baat limit ki wajah se use nahi ho rahi. Purani baatein hata do.':'')+'</p>'+
+ (ZK.rows.length?'<div class="glist">'+ZK.rows.map(function(x,i){return '<div class="gr"><span class="t"><b style="white-space:normal;font-weight:500">'+esc(x.text)+'</b><small class="mono lc">'+new Date(x.created_at).toLocaleDateString([],{day:"numeric",month:"short"})+(x.active?(skip[i]?' · over limit, unused':''):' · off')+'</small></span><button class="tg'+(x.active?' on':'')+'" data-zkt="'+x.id+'" aria-label="On or off"></button><button class="ib" data-zke="'+x.id+'" aria-label="Edit">'+pen+'</button><button class="ib" data-zkd="'+x.id+'" aria-label="Delete">'+IC.trash+'</button></div>'}).join("")+'</div>':'<div class="empty">Nothing taught yet.</div>');
  if(old&&$("zkt"))$("zkt").value=old;
  if(Date.now()-ZK.t>8000)zkLoad()}
 if(!$("adt").querySelector('[data-t="zx"]'))$("adt").insertAdjacentHTML("beforeend",'<button data-t="zx">Zexo</button>');
 var _zkad=adDraw;adDraw=function(){_zkad();if(AS.tab==="zx"&&MY.role==="admin"){$("adc").textContent="TRAIN ZEXO";zkDraw()}};
 $("adm").addEventListener("click",function(e){if(MY.role!=="admin"||AS.tab!=="zx")return;var t=e.target,b,c=zxC();if(!c.sb)return;
- if(b=t.closest('[data-zk="add"]')){var v=($("zkt").value||"").replace(/\s+/g," ").trim();if(v.length<2)return ts("Kuch likho");b.disabled=true;
-  c.sb.from("nx_ai_knowledge").insert({text:v,active:true}).then(function(r){b.disabled=false;if(r.error)return ts("Save nahi hua: "+String(r.error.message).slice(0,90));$("zkt").value="";try{logA("Zexo trained",v.slice(0,60))}catch(x){}ts("Zexo ne yaad kar liya");zxKLoad(true);ZK.t=0;zkLoad()});return}
+ if(b=t.closest('[data-zk="add"]')){var v=($("zkt").value||"").replace(/\s+/g," ").trim();if(v.length<2)return ts("Write something");b.disabled=true;
+  c.sb.from("nx_ai_knowledge").insert({text:v,active:true}).then(function(r){b.disabled=false;if(r.error)return ts("Not saved: "+String(r.error.message).slice(0,90));$("zkt").value="";try{logA("Zexo trained",v.slice(0,60))}catch(x){}ts("Zexo learned it");zxKLoad(true);ZK.t=0;zkLoad()});return}
  if(b=t.closest("[data-zkt]")){var id=b.dataset.zkt,x=ZK.rows.find(function(z){return String(z.id)===id});if(!x)return;var nv=!x.active;
-  c.sb.from("nx_ai_knowledge").update({active:nv}).eq("id",x.id).then(function(r){if(r.error)return ts("Save nahi hua");x.active=nv;zkDraw();zxKLoad(true)});return}
+  c.sb.from("nx_ai_knowledge").update({active:nv}).eq("id",x.id).then(function(r){if(r.error)return ts("Not saved");x.active=nv;zkDraw();zxKLoad(true)});return}
  if(b=t.closest("[data-zkd]")){var id2=b.dataset.zkd,x2=ZK.rows.find(function(z){return String(z.id)===id2});if(!x2)return;
-  c.sb.from("nx_ai_knowledge").delete().eq("id",x2.id).then(function(r){if(r.error)return ts("Hata nahi paya");ZK.rows=ZK.rows.filter(function(z){return z!==x2});ts("Hata diya");zkDraw();zxKLoad(true)});return}
+  c.sb.from("nx_ai_knowledge").delete().eq("id",x2.id).then(function(r){if(r.error)return ts("Could not delete");ZK.rows=ZK.rows.filter(function(z){return z!==x2});ts("Deleted");zkDraw();zxKLoad(true)});return}
  if(b=t.closest("[data-zke]")){var id3=b.dataset.zke,x3=ZK.rows.find(function(z){return String(z.id)===id3});if(!x3)return;
-  sheet('<h3>Baat badlo</h3><textarea id="zke" rows="4" maxlength="300" style="'+ZKS+'"></textarea><button class="pri" style="width:100%;margin-top:10px" id="zks">Save</button>');$("zke").value=x3.text;
-  $("zks").onclick=function(){var v2=($("zke").value||"").replace(/\s+/g," ").trim();if(v2.length<2)return ts("Kuch likho");
-   c.sb.from("nx_ai_knowledge").update({text:v2}).eq("id",x3.id).then(function(r){if(r.error)return ts("Save nahi hua");x3.text=v2;closeS();ts("Badal diya");zkDraw();zxKLoad(true)})}}});
+  sheet('<h3>Edit fact</h3><textarea id="zke" rows="4" maxlength="300" style="'+ZKS+'"></textarea><button class="pri" style="width:100%;margin-top:10px" id="zks">Save</button>');$("zke").value=x3.text;
+  $("zks").onclick=function(){var v2=($("zke").value||"").replace(/\s+/g," ").trim();if(v2.length<2)return ts("Write something");
+   c.sb.from("nx_ai_knowledge").update({text:v2}).eq("id",x3.id).then(function(r){if(r.error)return ts("Not saved");x3.text=v2;closeS();ts("Updated");zkDraw();zxKLoad(true)})}}});
 
 /*ZNX-CHECKIN removed*/
 
@@ -6524,18 +6524,18 @@ function v13Q(q){var y=P2.yt;if(!y||!ET.cur||ET.cur.t!=="yt")return;var t=plTime
 var qb=D.createElement("button");qb.className="ib";qb.id="etq";qb.setAttribute("aria-label","Video quality");qb.textContent="HD";
 $("etzm").parentNode.insertBefore(qb,$("etzm"));
 qb.onclick=function(e){e.stopPropagation();
- if(P2.kind!=="yt"||!P2.yt)return ts(P2.kind==="file"?"Is video ki quality fixed hai":"Pehle video chalao");
+ if(P2.kind!=="yt"||!P2.yt)return ts(P2.kind==="file"?"This video has fixed quality":"Play a video first");
  var av=[],cu="";try{av=P2.yt.getAvailableQualityLevels()||[];cu=P2.yt.getPlaybackQuality()||""}catch(x){}
  var L=QO.filter(function(k){return av.indexOf(k)>=0}),sel=ET.q||"auto";
- var rows=[["auto","Auto","Network ke hisaab se"+(cu&&QN[cu]?" · abhi "+QN[cu]:"")]].concat(L.map(function(k){return[k,QN[k],""]}));
- sheet('<h3>Video quality</h3><div class="glist">'+rows.map(function(r){return '<button class="gr" data-q13="'+r[0]+'"><span class="t"><b>'+r[1]+'</b>'+(r[2]?'<small>'+r[2]+'</small>':'')+'</span><span class="ck'+(r[0]===sel?' on':'')+'"></span></button>'}).join("")+'</div><p class="note">Audio quality YouTube alag se nahi deta, wo video ke saath hi aati hai.</p>');
+ var rows=[["auto","Auto","Based on network"+(cu&&QN[cu]?" · now "+QN[cu]:"")]].concat(L.map(function(k){return[k,QN[k],""]}));
+ sheet('<h3>Video quality</h3><div class="glist">'+rows.map(function(r){return '<button class="gr" data-q13="'+r[0]+'"><span class="t"><b>'+r[1]+'</b>'+(r[2]?'<small>'+r[2]+'</small>':'')+'</span><span class="ck'+(r[0]===sel?' on':'')+'"></span></button>'}).join("")+'</div><p class="note">Audio quality comes with the video.</p>');
  $("sh").onclick=function(ev){var b=ev.target.closest("[data-q13]");if(!b)return;var q=b.dataset.q13;ET.q=q;closeS();v13Q(q)}};
 
 /* 2. Zexo chat: WhatsApp-like scroll, keyboard stays open */
 var zm=$("zxm");zx.atB=1;
 zxDraw=function(){var m=$("zxm");if(!m)return;var last=zx.msgs[zx.msgs.length-1],near=zx.atB||m.scrollHeight-m.scrollTop-m.clientHeight<140,pv=m.scrollTop;
  var h=zx.msgs.map(function(x,i){return zxBub(x,i===zx.msgs.length-1)}).join("");
- if(zx.busy)h+='<div class="mr in"><div class="mw in"><div class="m in">Zexo soch raha hai<i class="dots"></i></div></div></div>';
+ if(zx.busy)h+='<div class="mr in"><div class="mw in"><div class="m in">Zexo is thinking<i class="dots"></i></div></div></div>';
  m.innerHTML=h||zxSug();
  if(!h||near||(last&&last.r==="u"))m.scrollTop=m.scrollHeight;else m.scrollTop=pv};
 zm.addEventListener("scroll",function(){zx.atB=zm.scrollHeight-zm.scrollTop-zm.clientHeight<100},{passive:true});
@@ -6547,9 +6547,9 @@ $("zxi").addEventListener("focus",function(){setTimeout(function(){if(zx.open)zm
 $("zx").addEventListener("mousedown",function(e){if(e.target.closest&&e.target.closest("#zxs,#zxm button"))e.preventDefault()});
 
 /* 3. Zexo share button (anyone can open it without login) */
-async function zxShare(){var l=location.origin+location.pathname+"?zexo=1",tx="Zexo AI se chat karo, bina login ke";
+async function zxShare(){var l=location.origin+location.pathname+"?zexo=1",tx="Chat with Zexo AI, no login needed";
  try{if(navigator.share){await navigator.share({title:"Zexo AI",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}
- try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copy ho gaya")}catch(e){ts(l)}}
+ try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copied")}catch(e){ts(l)}}
 var zt=$("zxt");
 if(zt&&!$("zxsh")){var sb=D.createElement("button");sb.className="ib";sb.id="zxsh";sb.setAttribute("aria-label","Share Zexo AI");sb.innerHTML=SI.share;zt.parentNode.insertBefore(sb,zt);sb.onclick=zxShare}
 
@@ -6563,7 +6563,7 @@ window.znxHandGo=function(){var h=window.znxHand;if(!h)return;window.znxHand=nul
    ET.kind="watch";etKind();if(yo)etPane("yt");
    $("etlink").value="https://youtu.be/"+h.id;etLoad({t:"yt",id:h.id},String(h.n||"").slice(0,100));
    if(+h.t>5)setTimeout(function(){try{P2.yt.seekTo(+h.t,true)}catch(x){}},3000)}
-  else if(h.k==="zexo"){if(zx.cfg.ai_on===false)return ts("Zexo AI abhi band hai");
+  else if(h.k==="zexo"){if(zx.cfg.ai_on===false)return ts("Zexo AI is off");
    zx.msgs=(Array.isArray(h.msgs)?h.msgs:[]).slice(-30).map(function(m){return{r:m.r==="u"?"u":"a",raw:String(m.raw||"").slice(0,1000),t:new Date()}});zxOpen()}
  }catch(e){}};
 var _e13=enter;
@@ -6646,12 +6646,12 @@ setInterval(tick,400);
 
 /* ---- adding devices ---- */
 function addSel(id,label){
- if(!id||id==="default"||id==="communications")return ts("Ye already main speaker hai");
- if(SEL.some(function(d){return d.id===id}))return ts("Ye device pehle se jura hai");
- if(SEL.length>=MAXD)return ts("Itne devices kaafi hain ("+MAXD+")");
- SEL.push({id:id,label:label||("Device "+(SEL.length+1))});save();tick();ts("Device jud gaya");panel()}
+ if(!id||id==="default"||id==="communications")return ts("This is already the main speaker");
+ if(SEL.some(function(d){return d.id===id}))return ts("Device already added");
+ if(SEL.length>=MAXD)return ts("Device limit reached ("+MAXD+")");
+ SEL.push({id:id,label:label||("Device "+(SEL.length+1))});save();tick();ts("Device added");panel()}
 function pickSheet(l){
- sheet('<h3>Device chuno</h3><div class="glist">'+l.map(function(x,i){return '<button class="gr" data-mop="'+i+'"><i class="gi">'+SPK+'</i><span class="t"><b>'+esc(x.label||("Speaker "+(i+1)))+'</b></span><em>\u203a</em></button>'}).join("")+'</div>');
+ sheet('<h3>Choose device</h3><div class="glist">'+l.map(function(x,i){return '<button class="gr" data-mop="'+i+'"><i class="gi">'+SPK+'</i><span class="t"><b>'+esc(x.label||("Speaker "+(i+1)))+'</b></span><em>\u203a</em></button>'}).join("")+'</div>');
  $("sh").onclick=function(e){var b=e.target.closest("[data-mop]");if(!b)return;var x=l[+b.dataset.mop];if(x)addSel(x.deviceId,x.label)}}
 async function add(){
  if(busy)return;busy=1;
@@ -6660,18 +6660,18 @@ async function add(){
   if(md.selectAudioOutput){var d=await md.selectAudioOutput();addSel(d.deviceId,d.label);return}
   try{var s=await md.getUserMedia({audio:true});s.getTracks().forEach(function(t){t.stop()})}catch(e){}
   var l=(await md.enumerateDevices()).filter(function(x){return x.kind==="audiooutput"&&x.deviceId!=="default"&&x.deviceId!=="communications"&&!SEL.some(function(d){return d.id===x.deviceId})});
-  if(!l.length){ts("Koi aur speaker nahi mila. Pehle Bluetooth device ko phone ya computer se connect karo");return}
+  if(!l.length){ts("No other speaker found. Connect a Bluetooth device first");return}
   pickSheet(l)
- }catch(e){if(!e||(e.name!=="NotAllowedError"&&e.name!=="AbortError"))ts("Device list nahi mili")}
+ }catch(e){if(!e||(e.name!=="NotAllowedError"&&e.name!=="AbortError"))ts("Could not load devices")}
  finally{busy=0}}
 
 function panel(){
  var rows=SEL.map(function(d,i){return '<div class="gr"><i class="gi">'+SPK+'</i><span class="t"><b>'+esc(d.label||("Device "+(i+1)))+'</b><small class="mono lc">Device '+(i+1)+(d.bad?" \u00b7 not available":"")+'</small></span><button class="ib" data-mox="'+i+'" aria-label="Remove device">'+XS+'</button></div>'}).join("");
- sheet('<h3>Multiple speakers</h3><p class="note">Pehle Bluetooth speaker ya headphone ko phone/computer se connect karo (system settings me). Phir yahan add karo. Awaaz sab par ek saath chalegi.</p><div class="glist"><div class="gr"><i class="gi">'+SPK+'</i><span class="t"><b>This device</b><small>Main speaker</small></span><button class="tg'+(defOn?" on":"")+'" data-mo="def" aria-label="Play on this device"></button></div>'+rows+'</div>'+(SEL.length<MAXD?'<button class="pri" style="width:100%;margin-top:12px" data-mo="add">Connect device '+(SEL.length+1)+'</button>':"")+'<p class="note">Alag devices ka sync perfect nahi hota, thoda echo aa sakta hai. Echo aaye to "This device" band kar do.</p>');
+ sheet('<h3>Multiple speakers</h3><p class="note">Connect a Bluetooth speaker or headphones in system settings, then add it here. Sound plays on all devices.</p><div class="glist"><div class="gr"><i class="gi">'+SPK+'</i><span class="t"><b>This device</b><small>Main speaker</small></span><button class="tg'+(defOn?" on":"")+'" data-mo="def" aria-label="Play on this device"></button></div>'+rows+'</div>'+(SEL.length<MAXD?'<button class="pri" style="width:100%;margin-top:12px" data-mo="add">Connect device '+(SEL.length+1)+'</button>':"")+'<p class="note">Devices may not sync perfectly and echo can occur. If so, turn off "This device".</p>');
  $("sh").onclick=function(e){
   var t=e.target.closest("[data-mo],[data-mox]");if(!t)return;
   if(t.dataset.mox!==undefined){SEL.splice(+t.dataset.mox,1);if(!SEL.length)defOn=true;save();tick();return panel()}
-  if(t.dataset.mo==="def"){if(!SEL.length)return ts("Pehle koi aur device jodo");defOn=!defOn;save();tick();return panel()}
+  if(t.dataset.mo==="def"){if(!SEL.length)return ts("Add another device first");defOn=!defOn;save();tick();return panel()}
   if(t.dataset.mo==="add")add()}}
 tick();
 })()}catch(e){console.error("ZNX multi-speaker",e)}
@@ -6687,7 +6687,7 @@ try{(function(){
   try{var s=y.getPlayerState();if(s===1||s===3)return;y.playVideo();
    setTimeout(function(){var z=yt();if(!z||!ET.hp)return;
     try{var t=z.getPlayerState();if(t!==1&&t!==3){z.mute();ET.fm=1;z.playVideo();
-     var ua=navigator.userActivation;if(ua&&!ua.hasBeenActive)ts("Video chal gaya. Awaaz ke liye ek baar screen tap karo")}}catch(e){}},900)}catch(e){}}
+     var ua=navigator.userActivation;if(ua&&!ua.hasBeenActive)ts("Video playing. Tap the screen for sound")}}catch(e){}},900)}catch(e){}}
  function rateReset(){clearTimeout(ET.rtT);ET.ry=0;try{var y=yt();if(y)y.setPlaybackRate(1)}catch(e){}try{$("etv").playbackRate=1}catch(e){}}
  function hb(m){ET.hp=1;if(!P2.kind)return;
   var dl=ET.rtt<1e9?Math.max(0,Math.min(1.5,(Date.now()+ET.off-m.w)/1000)):.25,tg=(m.at||0)+dl;
@@ -6740,7 +6740,7 @@ function sug(n){var b=slug(n),a=[b,b+R[0],b+"_"+R[1],b+R[2]];return a.filter(fun
 function open(){
  shown=1;var ov=D.createElement("div");ov.id="znxOnb";
  ov.style.cssText="position:fixed;inset:0;z-index:97;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(70% 45% at 50% 18%,rgba(124,108,255,.30),transparent 70%),var(--bg)";
- ov.innerHTML='<div style="width:min(400px,100%);display:grid;gap:12px"><h2 style="margin:0;font-size:26px;letter-spacing:-.04em">Apna profile banao</h2><p class="note" style="margin:0">Pehle apna naam likho. Username us naam ke hisaab se suggest hoga. Chaho to khud bhi likh sakte ho, aur baad me kabhi bhi Me > Account me badal sakte ho.</p><div class="fld"><label>Naam</label><input id="onN" maxlength="30" autocomplete="name"></div><div class="fld"><label>Username</label><input id="onU" maxlength="20" autocapitalize="off" autocomplete="off" placeholder="username"></div><div class="chips" id="onS" style="flex-wrap:wrap"></div><div id="onM" class="note" style="min-height:18px;color:#e5675f"></div><button class="pri" id="onG" style="width:100%">Aage badho</button></div>';
+ ov.innerHTML='<div style="width:min(400px,100%);display:grid;gap:12px"><h2 style="margin:0;font-size:26px;letter-spacing:-.04em">Set up your profile</h2><p class="note" style="margin:0">Enter your name. You can change your username later in Me > Account.</p><div class="fld"><label>Name</label><input id="onN" maxlength="30" autocomplete="name"></div><div class="fld"><label>Username</label><input id="onU" maxlength="20" autocapitalize="off" autocomplete="off" placeholder="username"></div><div class="chips" id="onS" style="flex-wrap:wrap"></div><div id="onM" class="note" style="min-height:18px;color:#e5675f"></div><button class="pri" id="onG" style="width:100%">Continue</button></div>';
  D.body.appendChild(ov);
  var N=D.getElementById("onN"),U=D.getElementById("onU"),S=D.getElementById("onS"),M=D.getElementById("onM"),G=D.getElementById("onG");
  N.value=GB.test(String(MY.name||"").trim())?"":String(MY.name||"");
@@ -6751,21 +6751,21 @@ function open(){
  U.addEventListener("keydown",function(e){if(e.key==="Enter")G.click()});
  G.onclick=async function(){
   var n=N.value.trim(),u=U.value.trim().toLowerCase().replace(/^@/,""),c=ctx();
-  if(n.length<2)return msg("Naam kam se kam 2 akshar ka likho.");
-  if(GB.test(n))return msg("Apna asli naam likho.");
-  if(!/^[a-z0-9_]{3,20}$/.test(u))return msg("Username: 3 se 20 akshar, sirf a-z, 0-9 aur _");
-  if(/^nx_/i.test(u))return msg("Ye username allowed nahi hai, doosra chuno.");
-  if(!c.sb)return msg("Abhi connect nahi hua.");
+  if(n.length<2)return msg("Name needs 2+ letters.");
+  if(GB.test(n))return msg("Enter your real name.");
+  if(!/^[a-z0-9_]{3,20}$/.test(u))return msg("Username: 3-20 chars, a-z, 0-9, _");
+  if(/^nx_/i.test(u))return msg("This username is not allowed.");
+  if(!c.sb)return msg("Not connected yet.");
   G.disabled=true;msg("");
   var r;try{r=await c.sb.rpc("nexora_set_username",{new_username:u,new_display_name:n})}catch(e){r={error:e}}
   var er=(r&&r.error&&r.error.message)||(r&&r.data&&r.data.error)||"";
-  if(er){G.disabled=false;return msg(/duplicate|already|taken|unique/i.test(er)?"Ye username le liya gaya hai, doosra chuno.":String(er).slice(0,90))}
+  if(er){G.disabled=false;return msg(/duplicate|already|taken|unique/i.test(er)?"Username already taken.":String(er).slice(0,90))}
   Object.assign(MY,{name:n,user:u});try{top2()}catch(e){}
-  ov.remove();ts("Profile ready");
+  ov.remove();ts("Profile ready");try{localStorage.setItem("znx_onb_"+c.pid,"1")}catch(e){}try{c.sb.auth.updateUser({data:{onb:1}})}catch(e){}
   try{if(tab==="me")show("me")}catch(e){}
  };
  setTimeout(function(){(N.value?U:N).focus()},300)}
-setInterval(function(){if(shown)return;var c=ctx(),a=D.getElementById("app");if(!c.pid||!MY.uid||!a||a.classList.contains("hide"))return;if(need())open()},1000);
+var chk=0;setInterval(function(){if(shown||chk)return;var c=ctx(),a=D.getElementById("app");if(!c.pid||!MY.uid||!a||a.classList.contains("hide"))return;chk=1;var key="znx_onb_"+c.pid;try{if(localStorage.getItem(key)){shown=1;return}}catch(e){}c.sb.auth.getUser().then(function(r){var u=r&&r.data&&r.data.user;if(!u){chk=0;return}var md=u.user_metadata||{},fresh=Date.now()-Date.parse(u.created_at)<864e5;if(md.onb||!fresh||!need()){shown=1;try{localStorage.setItem(key,"1")}catch(e){}return}open()},function(){chk=0})},1000);
 })()}catch(e){console.error("ZNX onboarding",e)}
 
 /*ZNX-HUDSYNC-V1*/
@@ -6820,7 +6820,7 @@ function zmKeep(){if(zmSA){if(zmSA.paused)zmSA.play().catch(function(){});return
 const zmGo0=mpGo;
 mpGo=function(){MP.zr=0;MP.zc=0;zmKeep();return zmGo0.apply(this,arguments)};
 /* 3. watchdog: always moves to the next song, even if screen is off or app was in background */
-function znxArm(){if(MP.arm)return;MP.arm=1;MP.noxf=1;ts("Music ruk gaya. Ek baar screen tap karo");var f=function(){MP.arm=0;MP.zc=0;MP.zn=0;try{var d=mpDk[MP.d];if(MP.want&&d.ext==="yt"&&d.ypr)d.yp.playVideo()}catch(e){}};document.addEventListener("pointerdown",f,{once:true,capture:true})}
+function znxArm(){if(MP.arm)return;MP.arm=1;MP.noxf=1;ts("Music stopped. Tap the screen once");var f=function(){MP.arm=0;MP.zc=0;MP.zn=0;try{var d=mpDk[MP.d];if(MP.want&&d.ext==="yt"&&d.ypr)d.yp.playVideo()}catch(e){}};document.addEventListener("pointerdown",f,{once:true,capture:true})}
 const zmXFS=mpIOS?0:12;
 mpWatch=function(){
  try{
@@ -6839,7 +6839,7 @@ mpWatch=function(){
    if(s===1||s===3){MP.zn=0;return}
    if(age>3500&&Date.now()-(MP.zn||0)>(document.hidden?6000:2500)){if((MP.zc||0)<2){MP.zn=Date.now();MP.zc=(MP.zc||0)+1;try{d.yp.playVideo()}catch(e){}}else znxArm()}
    if(age>8000&&!MP.zr&&MP.i>=0&&MT[MP.i]&&MT[MP.i].src.t==="yt"){MP.zr=1;try{d.yp.loadVideoById(MT[MP.i].src.id)}catch(e){}}
-   else if(age>17000&&MP.zr===1){MP.zr=2;ts("Skipped: song start nahi hua");mpStep(1)}
+   else if(age>17000&&MP.zr===1){MP.zr=2;ts("Skipped: song did not start");mpStep(1)}
   }else if(d.ext==="audio"&&d.au){
    if(d.au.ended&&age>3000)mpEnded();
    else if(d.au.paused&&age>3500&&Date.now()-(MP.zn||0)>2500){MP.zn=Date.now();d.au.play().catch(function(){})}}
@@ -6899,12 +6899,12 @@ function setEra(era){
  const pm=MP.mood,pe=MP.era;
  MP.mood=2;MP.era=era;MP.bag=[];
  const l=mpList();
- if(!l.length){MP.mood=pm;MP.era=pe;ts("Is section me abhi koi song nahi hai");return}
+ if(!l.length){MP.mood=pm;MP.era=pe;ts("No songs in this section yet");return}
  mpGo(rpick(l),1);
 }
 function eraSheet(){
  const on=k=>(MP.mood===2&&MP.era===k)?'<span class="ck on"></span>':"";
- sheet(`<h3>Vibe</h3><div class="glist"><button class="gr" data-ev="old"><span class="t"><b>Old</b><small>Purane vibe gaane</small></span>${on("old")}</button><button class="gr" data-ev="new"><span class="t"><b>New</b><small>Naye vibe gaane</small></span>${on("new")}</button></div>`);
+ sheet(`<h3>Vibe</h3><div class="glist"><button class="gr" data-ev="old"><span class="t"><b>Old</b><small>Older vibe songs</small></span>${on("old")}</button><button class="gr" data-ev="new"><span class="t"><b>New</b><small>Newer vibe songs</small></span>${on("new")}</button></div>`);
  $("sh").onclick=e=>{const b=e.target.closest("[data-ev]");if(!b)return;closeS();setEra(b.dataset.ev)};
 }
 const mo=$("mpmo");
@@ -6920,7 +6920,7 @@ mo.addEventListener("contextmenu",e=>e.preventDefault());
 /* naya song add karte waqt: Bhakti button + Vibe ke liye Old / New */
 let curEra=null;
 const ERA='<div class="znxEra" style="display:none"><div class="sec">Vibe style</div><div class="seg znxEs"><button data-era="old">Old</button><button data-era="new">New</button></div></div>';
-const ERA_Y='<div class="znxEra"><div class="sec">Vibe type (sirf Music · Vibe ke liye)</div><div class="seg"><button data-era="old">Old</button><button data-era="new">New</button></div></div>';
+const ERA_Y='<div class="znxEra"><div class="sec">Vibe type</div><div class="seg"><button data-era="old">Old</button><button data-era="new">New</button></div></div>';
 function inj(){
  const sh=$("sh");if(!sh)return;
  ["mat","fvt","faTT"].forEach(id=>{
@@ -6965,7 +6965,7 @@ document.addEventListener("click",e=>{
   vibe=!!on&&on.dataset.t==="2";
   if(t.id==="fak"){const k=document.querySelector("#faK .on");vibe=vibe&&!!k&&k.dataset.k==="listen"}
  }
- if(vibe&&!curEra){e.stopImmediatePropagation();e.preventDefault();ts("Vibe ke liye Old ya New chuno")}
+ if(vibe&&!curEra){e.stopImmediatePropagation();e.preventDefault();ts("Choose Old or New for Vibe")}
 },true);
 
 /* naye song par era lagao (sync se pehle) */
@@ -7456,7 +7456,7 @@ document.addEventListener('dblclick',function(e){if(null)e.preventDefault()},{pa
  function startEdit(g){edit=true;document.body.classList.add("ct-edit");
   var E=els(g);for(var k in E){E[k].classList.add("ct-ed");E[k].dataset.ctk=k}
   var c=conf(g),p=document.createElement("div");p.id="ctP";
-  p.innerHTML='<b>Controls move karo</b><small>Kisi bhi button ko khinch kar kahin bhi rakho</small><label>Size<input type="range" id="ctS" min="70" max="150" step="5"></label><label>Opacity<input type="range" id="ctO" min="30" max="100" step="5"></label><div><button id="ctR">Reset</button><button class="pri" id="ctD">Done</button></div>';
+  p.innerHTML='<b>Move controls</b><small>Drag any button anywhere</small><label>Size<input type="range" id="ctS" min="70" max="150" step="5"></label><label>Opacity<input type="range" id="ctO" min="30" max="100" step="5"></label><div><button id="ctR">Reset</button><button class="pri" id="ctD">Done</button></div>';
   document.body.appendChild(p);
   var S=document.getElementById("ctS"),O=document.getElementById("ctO");S.value=Math.round(c.s*100);O.value=Math.round(c.o*100);
   S.oninput=function(){conf(g).s=S.value/100;apply(g);save()};
@@ -7467,7 +7467,7 @@ document.addEventListener('dblclick',function(e){if(null)e.preventDefault()},{pa
   document.querySelectorAll(".ct-ed").forEach(function(e){e.classList.remove("ct-ed")});
   var p=document.getElementById("ctP");if(p)p.remove();save()}
  function addGear(g){var bar=document.querySelector("#"+G[g].root+" "+G[g].bar);if(!bar||bar.querySelector(".ct-gear"))return;
-  var b=document.createElement("button");b.className="ib ct-gear";b.setAttribute("aria-label","Controls move karo");b.innerHTML=ICON;
+  var b=document.createElement("button");b.className="ib ct-gear";b.setAttribute("aria-label","Move controls");b.innerHTML=ICON;
   b.onclick=function(ev){ev.stopPropagation();edit?stopEdit():startEdit(g)};bar.appendChild(b)}
  document.addEventListener("pointerdown",function(e){if(!edit||!live)return;
   var t=e.target.closest&&e.target.closest(".ct-ed");if(!t)return;
@@ -7496,7 +7496,7 @@ body.znx-gp.znx-port #znxRot{display:grid}
 @media (orientation:landscape){
 .ldP{padding:0 calc(env(safe-area-inset-right,0px) + 24px) 0 calc(env(safe-area-inset-left,0px) + 24px)!important}
 .ldT{padding-left:calc(env(safe-area-inset-left,0px) + 12px)!important;padding-right:calc(env(safe-area-inset-right,0px) + 12px)!important}}
-</style><div id="znxRot"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg><b>Phone ko ghumao</b><small>Ye game landscape me chalta hai</small></div>
+</style><div id="znxRot"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg><b>Rotate your phone</b><small>This game plays in landscape</small></div>
 <script>(function(){
 var B=document.body,D=document,GM={ldR:1,arR:1},cur=null;
 var IOS=/iP(hone|ad|od)/.test(navigator.userAgent);
@@ -7676,7 +7676,7 @@ html body .ldl{border-radius:18px;border:1px solid transparent;background:linear
 html body .ldl.cur{box-shadow:0 0 18px -6px var(--ac)}
 html body #ctP{border-radius:26px;gap:10px;border:1px solid transparent;background:linear-gradient(rgba(14,16,26,.95),rgba(14,16,26,.95)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;box-shadow:0 30px 60px -24px var(--ac)}
 html body #ctP input[type=range]{accent-color:var(--ac)}
-html body .ct-ed{outline-color:var(--ac)!important}</style><script id="znx-login-safe">/*ZNX-PATCH-DH-V1*/setTimeout(function(){try{var g=document.getElementById("go"),m=document.getElementById("msg");if(g&&!g.onclick&&m&&!m.textContent){m.textContent="App load nahi hua. Page reload karo (Ctrl+Shift+R).";}}catch(e){}},4000);</script>
+html body .ct-ed{outline-color:var(--ac)!important}</style><script id="znx-login-safe">/*ZNX-PATCH-DH-V1*/setTimeout(function(){try{var g=document.getElementById("go"),m=document.getElementById("msg");if(g&&!g.onclick&&m&&!m.textContent){m.textContent="App failed to load. Reload the page (Ctrl+Shift+R).";}}catch(e){}},4000);</script>
 <script>/*ZNX-SHOT-V1*/
 (function(){try{
 var D=document,last=0,hold=0,nm="",$=function(i){return D.getElementById(i)};
