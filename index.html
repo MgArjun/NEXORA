@@ -2206,7 +2206,7 @@ function etKill(){if(P2.yt&&P2.yt.destroy){try{P2.yt.destroy()}catch(e){}}P2.yt=
 function ytLoad(){return new Promise((res,rej)=>{if(window.YT&&YT.Player)return res();const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";sc.onerror=()=>rej();window.onYouTubeIframeAPIReady=()=>res();document.head.appendChild(sc);setTimeout(()=>rej(),7000)})}
 async function etLoad(src,title){if(!etCan())return ts("Only the host controls playback");if(src&&src.t==="yt"&&window.ytRec)window.ytRec(src.id,title);const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";if(src.t==="yt"||!/^blob:/.test(src.url||""))etTx({t:"src",src:src,title:ET.title,kind:ET.kind});else if(ET.ch)ts("Device files play only on your phone");$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
  if(src.t==="yt"){v.pause();v.removeAttribute("src");v.style.display="none";P2.kind="yt";
-  try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById(src.id)}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{etMask(e.data);if(e.data===0)etNext()}}})}}
+  try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById({videoId:src.id,suggestedQuality:'highres'})}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{etMask(e.data);if(e.data===0)etNext()}}})}}
   catch(x){P2.kind="";ET.cur=null;$("etg").classList.remove("on");$("etn").style.display="";$("etn").innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>YouTube cannot load in this preview</b><small>This preview blocks outside players. On your own site it plays here with your controls.</small><button class="pri" id="etpick">From device</button>'}}
  else{if(P2.yt)etKill();P2.kind="file";v.style.display="";v.src=src.url;v.volume=P2.vol/100;v.play().catch(()=>{});v.onended=etNext}
  etShow();etUI();if(ET.pane==="queue")etQueue()}
@@ -6344,7 +6344,7 @@ cc.onclick=e=>{e.stopPropagation();plToggle()};
 let lastSrc="";
 setInterval(()=>{const g=$("etg"),live=g.classList.contains("on")&&!!P2.kind&&!g.classList.contains("aud"),p=live&&plPaused(),show=live&&(p||$("etk").classList.contains("on"));
  cc.classList.toggle("on",!!show);const k=p?"p":"a";if(cc.dataset.i!==k){cc.dataset.i=k;cc.innerHTML=p?PL:PA}
- const sk=JSON.stringify(ET.cur||"");if(sk!==lastSrc){lastSrc=sk;if(window.znxZoomReset)window.znxZoomReset()}},250);
+ const sk=JSON.stringify(ET.cur||"");if(sk!==lastSrc){lastSrc=sk;if(window.znxCropOn)window.znxCropOn();if(window.znxZoomReset)window.znxZoomReset()}},250);
 
 /* 4. Own-player feel: no "YouTube" text, no Shorts */
 const yp=$("etp_yt"),secs=s=>{const a=s.trim().split(":").map(Number);return a.some(isNaN)?-1:a.reduce((t,v)=>t*60+v,0)};
@@ -6381,7 +6381,7 @@ function shCtx(){
  return{t:n,l:dl("tab",tab)}}
 async function doShare(){
  if(MP.on&&MP.started)return soloShare();
- if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80))+"&t="+Math.floor(plTime()||0),tx="Watch this video on ZNEXORA";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copied")}catch(e){ts(l)}return}
+ if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80))+"&t="+Math.floor(plTime()||0)+"&z="+(Math.max(1.3,+ETM.z||1.3)).toFixed(2),tx="Watch this video on ZNEXORA";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copied")}catch(e){ts(l)}return}
  const c=shCtx(),text="Check out "+c.t+" on ZNEXORA. Chat, call and enjoy together.";
  try{if(navigator.share){await navigator.share({title:"ZNEXORA",text:text,url:c.l});return}}catch(e){if(e&&e.name==="AbortError")return}
  try{await navigator.clipboard.writeText(text+" "+c.l);ts("Link copied")}catch(e){ts(c.l)}}
@@ -6732,7 +6732,7 @@ try{(function(){
 
 /*ZNX-ZOOM-V5*/
 try{(function(){
-var G=$("etg"),zb=$("etzm"),KEY="znx_zoom5",ZDEF=1.08,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
+var G=$("etg"),zb=$("etzm"),KEY="znx_zoom5",ZDEF=1.3,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
 try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j){S.on=j.on===0?0:1;if(j.z>=1.05&&j.z<=ZMAX)S.z=j.z}}catch(e){}
 var st=document.createElement("style");
 st.textContent="#etzm.on{color:#8f88ff!important}#etzm.on svg{filter:drop-shadow(0 0 6px #8f88ff)}#znxSV .svcv.pz{background:rgba(0,0,0,.12)}#znxSV .svcv.pz .svz,#znxSV .svcv.pz b{display:none}";
@@ -6746,10 +6746,10 @@ setInterval(function(){
  if(yt){
   var k=ET.cur&&ET.cur.id||"",t=plTime(),pz=plPaused();
   var cr=!!S.on;
-  if(k!==vk){vk=k;lt=null;wp=pz;hold=n+(cr?2200:7500)}
-  if(wp&&!pz)hold=Math.max(hold,n+(cr?900:3800));
+  if(k!==vk){vk=k;lt=null;wp=pz;hold=n+(cr?5000:9000)}
+  if(wp&&!pz)hold=Math.max(hold,n+(cr?2600:5200));
   wp=pz;
-  if(lt!==null){var ex=(n-lp)/1000*(pz?0:1);if(Math.abs((t-lt)-ex)>1.2)hold=n+(cr?1300:5800)}
+  if(lt!==null){var ex=(n-lp)/1000*(pz?0:1);if(Math.abs((t-lt)-ex)>1.2)hold=n+(cr?3200:7000)}
   lt=t;lp=n;on=pz||n<hold}
  else{lt=null;vk=""}
  ot.classList.toggle("on",!!on);ob.classList.toggle("on",!!on);ot.classList.toggle("slow",!S.on);ob.classList.toggle("slow",!S.on)},150);
@@ -6787,7 +6787,7 @@ function up(e){
  if(!P.size){pin=0;commit()}}
 G.addEventListener("pointerup",up,true);G.addEventListener("pointercancel",up,true);
 /* keep the zoom after: new video, fullscreen, rotate, resize, pause */
-window.znxZoomReset=function(){setTimeout(apply,80)};
+window.znxZoomReset=function(){setTimeout(apply,80)};window.znxCropOn=function(){S.on=1;save()};
 try{new ResizeObserver(function(){apply()}).observe(G)}catch(e){}
 document.addEventListener("loadedmetadata",function(e){if(e.target&&e.target.id==="etv")apply()},true);
 setInterval(function(){if(!pin&&$("et").classList.contains("on")&&Math.abs(ETM.z-eff())>.01)apply()},700);
@@ -7974,14 +7974,14 @@ html body #arR .xs.on{border-color:#a39cff;box-shadow:0 0 0 1px #a39cff,0 0 18px
  LB={auto:'Auto',hd2160:'4K',hd1440:'2K',hd1080:'1080p',hd720:'720p',large:'480p',medium:'360p',small:'240p',tiny:'144p'};
  function ifr(){return D.querySelector('#etyw iframe')}
  function cmd(f,a){var i=ifr();try{if(i&&i.contentWindow)i.contentWindow.postMessage(JSON.stringify({event:'command',func:f,args:a||[]}),'*')}catch(e){}}
- function pin(){if(Q==='auto')return;cmd('setPlaybackQualityRange',[Q,Q]);cmd('setPlaybackQuality',[Q])}
+ function pin(){if(Q==='auto'){cmd('setPlaybackQualityRange',['hd1080','highres']);cmd('setPlaybackQuality',['highres']);return}cmd('setPlaybackQualityRange',[Q,Q]);cmd('setPlaybackQuality',[Q])}
  function lab(){var b=D.getElementById('etq');if(b)b.textContent=LB[Q]||'HD'}
  /* YouTube picks quality from the player's pixel size, so make the size follow the chosen quality */
  function apply(){
   var g=D.getElementById('etg'),f=ifr();if(!g||!f)return;
   var w=g.clientWidth,h=g.clientHeight;if(!w||!h)return;
   var dp=devicePixelRatio||1,Wa=Math.max(1280,Math.min(1920,Math.round(w*dp)));
-  var Wt=Q==='auto'?Wa:(MAP[Q]||1280),k=w/Wt,key=Wt+'|'+w+'|'+h;
+  var Wt=Q==='auto'?(window.znxAutoW?window.znxAutoW(Wa):Wa):(MAP[Q]||1280),k=w/Wt,key=Wt+'|'+w+'|'+h;
   if(f.dataset.f15!==key){
    var s=f.style;
    [['width',Wt+'px'],['height',(h/k).toFixed(1)+'px'],['left','0px'],['top','0px'],['max-width','none'],['transform-origin','0 0'],['transform','scale('+k.toFixed(5)+')']].forEach(function(p){s.setProperty(p[0],p[1],'important')});
@@ -7991,9 +7991,13 @@ html body #arR .xs.on{border-color:#a39cff;box-shadow:0 0 0 1px #a39cff,0 0 18px
  D.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-q13]');if(!b)return;
   Q=b.dataset.q13||'auto';lab();
-  [150,700,1600,3200].forEach(function(t){setTimeout(function(){apply();if(Q==='auto')cmd('setPlaybackQualityRange',['tiny','highres']);else pin()},t)})},true);
+  [150,700,1600,3200].forEach(function(t){setTimeout(function(){apply();pin()},t)})},true);
  setInterval(apply,400);
  setInterval(pin,3000);
  setInterval(lab,1500);
 }catch(e){console.error('ZNX patch SV2',e)}})();</script>
+
+<!--ZNX-FIX5-->
+<style id="znx-fix5-css">#etyw iframe,#etyw #etyt{pointer-events:none!important}html body #etzt,html body #etzb{transition:opacity .35s ease!important}html body #etzt.on,html body #etzb.on{transition:none!important;opacity:1!important}html body #etzt{height:24%!important}html body #etzb{height:26%!important}html body #etcc{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;margin:-32px 0 0 -32px!important;transform:none!important;transition:opacity .2s!important;background:rgba(14,16,26,.62)!important;border:1px solid rgba(255,255,255,.3)!important;z-index:8!important}html body #etcc:active{transform:scale(.94)!important}html body #etcc svg{width:28px!important;height:28px!important}html body #et .etk #etp{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}html body #et .etk #etp svg{width:22px!important;height:22px!important}html body #etcb,html body #etcv button{display:none!important}html body #znxSV #znxSVz{transform:scale(var(--zz,1.3))!important}html body #znxSV .svcv{transition:opacity .15s!important}html body #znxSV .svw.ns .svcv{background:rgba(0,0,0,.2)!important}html body #znxSV .svw.ns .svcv .svz,html body #znxSV .svw.ns .svcv b{display:none!important}</style>
+<script id="znx-fix5-js">(function(){try{window.znxAutoW=function(Wa){var weak=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4);return Math.max(Wa,weak?2560:3840)};var z=parseFloat(new URLSearchParams(location.search).get('z'));document.documentElement.style.setProperty('--zz',String(z>=1&&z<=4?z:1.3));setInterval(function(){var w=document.getElementById('znxSVw'),p=document.getElementById('znxSVpl');if(w&&p&&p.innerHTML.indexOf('<rect')>=0)w.classList.add('ns')},120);}catch(e){console.error('ZNX fix5',e)}})();</script>
 </body></html>
