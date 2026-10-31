@@ -6730,17 +6730,30 @@ try{(function(){
 })()}catch(e){console.error("ZNX sync",e)}
 /*ZNX-V13-END*/
 
-/*ZNX-ZOOM-V3*/
+/*ZNX-ZOOM-V4*/
 try{(function(){
-var G=$("etg"),zb=$("etzm"),KEY="znx_zoom3",ZDEF=1.4,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
+var G=$("etg"),zb=$("etzm"),KEY="znx_zoom4",ZDEF=1.08,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
 try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j){S.on=j.on===0?0:1;if(j.z>=1.05&&j.z<=ZMAX)S.z=j.z}}catch(e){}
 var st=document.createElement("style");
 st.textContent="#etzm.on{color:#8f88ff!important}#etzm.on svg{filter:drop-shadow(0 0 6px #8f88ff)}#znxSV .svcv.pz{background:rgba(0,0,0,.12)}#znxSV .svcv.pz .svz,#znxSV .svcv.pz b{display:none}";
+st.textContent+="#etzt,#etzb{position:absolute;left:0;right:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s ease}#etzt{top:0;height:15%;background:linear-gradient(#000 0,#000 55%,rgba(0,0,0,.55) 78%,transparent)}#etzb{bottom:0;height:17%;background:linear-gradient(transparent,rgba(0,0,0,.55) 22%,#000 45%)}#etzt.on,#etzb.on{opacity:1}";
 document.head.appendChild(st);
+var ot=document.createElement("i"),ob=document.createElement("i");ot.id="etzt";ob.id="etzb";G.appendChild(ot);G.appendChild(ob);
+/* light black strips at top and bottom hide YouTube's title and suggestions while paused, loading, after a skip, and for the first seconds of a video */
+var lt=null,lp=0,hold=0,vk="";
+setInterval(function(){
+ var yt=P2.kind==="yt"&&G.classList.contains("on"),n=performance.now(),on=0;
+ if(yt){
+  var k=ET.cur&&ET.cur.id||"",t=plTime(),pz=plPaused();
+  if(k!==vk){vk=k;lt=null;hold=n+4500}
+  if(lt!==null){var ex=(n-lp)/1000*(pz?0:1);if(Math.abs((t-lt)-ex)>1.2)hold=n+2600}
+  lt=t;lp=n;on=pz||n<hold}
+ else{lt=null;vk=""}
+ ot.classList.toggle("on",!!on);ob.classList.toggle("on",!!on)},150);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function vAsp(){var v=$("etv");if(P2.kind==="file"&&v&&v.videoWidth&&v.videoHeight)return v.videoWidth/v.videoHeight;return 16/9}
-/* default (never pinched): crop so the video fills the box and YouTube's title strip is out of view */
-function eff(){if(!S.on)return 1;if(S.z)return S.z;var A=G.clientWidth/Math.max(1,G.clientHeight),v=vAsp(),f=Math.max(A/v,v/A);return Math.max(ZDEF,Math.min(2.2,f))}
+/* default (never pinched): only a light fill, like a YouTube pinch. Never more than 1.3x so the picture is not cut. */
+function eff(){if(!S.on)return 1;if(S.z)return S.z;var A=G.clientWidth/Math.max(1,G.clientHeight),v=vAsp(),f=Math.max(A/v,v/A);return Math.max(ZDEF,Math.min(1.3,f))}
 function apply(){if(pin)return;etZoom(eff(),0,0);zb.classList.toggle("on",!!S.on)}
 function commit(){var z=ETM.z;if(z<1.05){S.on=0}else{S.on=1;S.z=Math.min(ZMAX,z)}save();apply()}
 /* button: cropped view <-> original YouTube view. The zoom level you set is kept. */
@@ -6776,7 +6789,7 @@ try{new ResizeObserver(function(){apply()}).observe(G)}catch(e){}
 document.addEventListener("loadedmetadata",function(e){if(e.target&&e.target.id==="etv")apply()},true);
 setInterval(function(){if(!pin&&$("et").classList.contains("on")&&Math.abs(ETM.z-eff())>.01)apply()},700);
 setTimeout(apply,0);
-})()}catch(e){console.error("ZNX zoom",e)}
+})()}catch(e){console.error("ZNX zoom4",e)}
 
 
 /*ZNX-ONB-V1*/
