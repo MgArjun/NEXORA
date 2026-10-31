@@ -2206,7 +2206,7 @@ function etKill(){if(P2.yt&&P2.yt.destroy){try{P2.yt.destroy()}catch(e){}}P2.yt=
 function ytLoad(){return new Promise((res,rej)=>{if(window.YT&&YT.Player)return res();const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";sc.onerror=()=>rej();window.onYouTubeIframeAPIReady=()=>res();document.head.appendChild(sc);setTimeout(()=>rej(),7000)})}
 async function etLoad(src,title){if(!etCan())return ts("Only the host controls playback");if(src&&src.t==="yt"&&window.ytRec)window.ytRec(src.id,title);const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";if(src.t==="yt"||!/^blob:/.test(src.url||""))etTx({t:"src",src:src,title:ET.title,kind:ET.kind});else if(ET.ch)ts("Device files play only on your phone");$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
  if(src.t==="yt"){v.pause();v.removeAttribute("src");v.style.display="none";P2.kind="yt";
-  try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById({videoId:src.id,suggestedQuality:'highres'})}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{etMask(e.data);if(e.data===0)etNext()}}})}}
+  try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById(src.id)}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{etMask(e.data);if(e.data===0)etNext()}}})}}
   catch(x){P2.kind="";ET.cur=null;$("etg").classList.remove("on");$("etn").style.display="";$("etn").innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>YouTube cannot load in this preview</b><small>This preview blocks outside players. On your own site it plays here with your controls.</small><button class="pri" id="etpick">From device</button>'}}
  else{if(P2.yt)etKill();P2.kind="file";v.style.display="";v.src=src.url;v.volume=P2.vol/100;v.play().catch(()=>{});v.onended=etNext}
  etShow();etUI();if(ET.pane==="queue")etQueue()}
@@ -7974,7 +7974,7 @@ html body #arR .xs.on{border-color:#a39cff;box-shadow:0 0 0 1px #a39cff,0 0 18px
  LB={auto:'Auto',hd2160:'4K',hd1440:'2K',hd1080:'1080p',hd720:'720p',large:'480p',medium:'360p',small:'240p',tiny:'144p'};
  function ifr(){return D.querySelector('#etyw iframe')}
  function cmd(f,a){var i=ifr();try{if(i&&i.contentWindow)i.contentWindow.postMessage(JSON.stringify({event:'command',func:f,args:a||[]}),'*')}catch(e){}}
- function pin(){if(Q==='auto'){cmd('setPlaybackQualityRange',['hd1080','highres']);cmd('setPlaybackQuality',['highres']);return}cmd('setPlaybackQualityRange',[Q,Q]);cmd('setPlaybackQuality',[Q])}
+ function pin(){if(Q==='auto'){return}cmd('setPlaybackQualityRange',[Q,Q]);cmd('setPlaybackQuality',[Q])}
  function lab(){var b=D.getElementById('etq');if(b)b.textContent=LB[Q]||'HD'}
  /* YouTube picks quality from the player's pixel size, so make the size follow the chosen quality */
  function apply(){
@@ -8000,4 +8000,54 @@ html body #arR .xs.on{border-color:#a39cff;box-shadow:0 0 0 1px #a39cff,0 0 18px
 <!--ZNX-FIX5-->
 <style id="znx-fix5-css">#etyw iframe,#etyw #etyt{pointer-events:none!important}html body #etzt,html body #etzb{transition:opacity .35s ease!important}html body #etzt.on,html body #etzb.on{transition:none!important;opacity:1!important}html body #etzt{height:24%!important}html body #etzb{height:26%!important}html body #etcc{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;margin:-32px 0 0 -32px!important;transform:none!important;transition:opacity .2s!important;background:rgba(14,16,26,.62)!important;border:1px solid rgba(255,255,255,.3)!important;z-index:8!important}html body #etcc:active{transform:scale(.94)!important}html body #etcc svg{width:28px!important;height:28px!important}html body #et .etk #etp{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}html body #et .etk #etp svg{width:22px!important;height:22px!important}html body #etcb,html body #etcv button{display:none!important}html body #znxSV #znxSVz{transform:scale(var(--zz,1.3))!important}html body #znxSV .svcv{transition:opacity .15s!important}html body #znxSV .svw.ns .svcv{background:rgba(0,0,0,.2)!important}html body #znxSV .svw.ns .svcv .svz,html body #znxSV .svw.ns .svcv b{display:none!important}</style>
 <script id="znx-fix5-js">(function(){try{window.znxAutoW=function(Wa){var weak=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4);return Math.max(Wa,weak?2560:3840)};var z=parseFloat(new URLSearchParams(location.search).get('z'));document.documentElement.style.setProperty('--zz',String(z>=1&&z<=4?z:1.3));setInterval(function(){var w=document.getElementById('znxSVw'),p=document.getElementById('znxSVpl');if(w&&p&&p.innerHTML.indexOf('<rect')>=0)w.classList.add('ns')},120);}catch(e){console.error('ZNX fix5',e)}})();</script>
+<!--ZNX-PSV1-START--><style id="znx-psv1-css">:root{--znx-crop:1.3}
+/* 1. remove extra options from the player bar */
+html body #etq,html body #etzm,html body #etmx{display:none!important}
+/* 2. fixed picture, same crop as the shared player, no user zoom */
+html body #etg .etyw{transform:scale(var(--znx-crop))!important}
+html body #etg #etv{transform:none!important}
+/* 3. top and bottom fade: same as the shared player */
+html body #etg #etzt{height:20%!important;background:linear-gradient(rgba(4,5,10,.97),rgba(4,5,10,.86) 30%,rgba(4,5,10,.52) 58%,rgba(4,5,10,.18) 82%,rgba(4,5,10,0))!important}
+html body #etg #etzb{height:22%!important;background:linear-gradient(to top,rgba(4,5,10,.97),rgba(4,5,10,.86) 30%,rgba(4,5,10,.52) 58%,rgba(4,5,10,.18) 82%,rgba(4,5,10,0))!important}
+html body #etg #etzt::before,html body #etg #etzb::before{display:none!important}
+html body #etg #etzt,html body #etg #etzb,html body #etg #etzt.on,html body #etg #etzb.on,html body #etg #etzt.slow,html body #etg #etzb.slow{transition:opacity .45s cubic-bezier(.4,0,.2,1)!important}
+html body #etg #etzt.on,html body #etg #etzb.on{opacity:1!important}
+/* 4. pause look: light dim, no blur (same as shared) */
+html body #etg[data-st="2"] #etcv{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(0,0,0,.12)!important}
+/* 5. centre play/pause: one fixed size, never changes */
+html body #etg #etcc{width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important;margin:-30px 0 0 -30px!important;transform:none!important}
+html body #etg #etcc svg{width:26px!important;height:26px!important}
+/* 6. small corner badges fade away when idle, tap brings them back */
+html body #etg .znx-c{transition:opacity .7s ease}
+html body #etg.znx-idle .znx-c{opacity:0!important;pointer-events:none!important}</style><script id="znx-psv1-js">(function(){try{
+var D=document,$=function(i){return D.getElementById(i)};
+
+/* one finger only: stops pinch-zoom. Swipe seek, volume, brightness and double tap are untouched */
+function inEt(e){var g=$("etg");return !!(g&&e.target&&g.contains(e.target))}
+["pointerdown","pointermove","pointerup","pointercancel"].forEach(function(t){
+ addEventListener(t,function(e){if(e.pointerType==="touch"&&!e.isPrimary&&inEt(e))e.stopImmediatePropagation()},true)});
+
+/* auto quality exactly like the shared player (plain size, no forced 4K) */
+window.znxAutoW=function(Wa){return Wa};
+
+/* know if the video is paused, so the pause look matches the shared player */
+addEventListener("message",function(e){
+ if(!/(^|\.)youtube(-nocookie)?\.com$/.test(String(e.origin||"").replace(/^https?:\/\//,"")))return;
+ var d;try{d=typeof e.data==="string"?JSON.parse(e.data):e.data}catch(x){return}
+ if(!d)return;var s=null;
+ if(d.event==="onStateChange"&&typeof d.info==="number")s=d.info;
+ else if(d.event==="infoDelivery"&&d.info&&typeof d.info.playerState==="number")s=d.info.playerState;
+ if(s===null)return;var g=$("etg");if(g)g.setAttribute("data-st",String(s))});
+
+/* corner badges: tag them, fade after 3.5 s, show again on touch */
+var last=Date.now();
+function touch(e){if(inEt(e))last=Date.now()}
+addEventListener("pointerdown",touch,true);addEventListener("pointermove",touch,true);
+function tag(){var g=$("etg");if(!g)return;var gr=g.getBoundingClientRect();if(!gr.width)return;
+ [].forEach.call(g.children,function(c){
+  if(c.classList.contains("znx-c"))return;
+  var r=c.getBoundingClientRect();
+  if(r.width&&r.width<gr.width*.5&&r.height<gr.height*.5&&r.left-gr.left<gr.width*.35&&r.top-gr.top<gr.height*.3)c.classList.add("znx-c")})}
+setInterval(function(){var g=$("etg");if(!g)return;tag();g.classList.toggle("znx-idle",Date.now()-last>3500)},300);
+}catch(err){console.error("ZNX player patch",err)}})();</script><!--ZNX-PSV1-END-->
 </body></html>
