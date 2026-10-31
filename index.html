@@ -2305,7 +2305,7 @@ function vcDrop(map,k){const p=map[k];if(!p)return;delete map[k];try{p.pc.close(
 function vcStop(){Object.keys(VC.vo).forEach(k=>vcDrop(VC.vo,k));if(VC.s){VC.s.getTracks().forEach(t=>t.stop());VC.s=null}VC.an=null;VC.on=0;VC.mic=0;vcMirror();vcUi()}
 function vcDetach(){vcStop();Object.keys(VC.vi).forEach(k=>vcDrop(VC.vi,k));VC.rm=null;VC.key="";VC.hm=0}
 async function vcSpeak(){if(VC.on)return true;if(!VC.rm)return false;if(CL.on){ts("End the call to use voice");return false}
- let st;try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!!ST2.vcEc,noiseSuppression:!!ST2.noise,autoGainControl:false,channelCount:1}})}catch(e){ts("Allow the microphone to use voice");return false}
+ let st;try{st=await navigator.mediaDevices.getUserMedia({audio:(function(g){/*ZNX-GAMEMIC-V1*/var o={echoCancellation:g?true:!!ST2.vcEc,noiseSuppression:g?true:!!ST2.noise,autoGainControl:false,channelCount:1};if(g){o.googEchoCancellation=true;o.googEchoCancellation2=true;o.googNoiseSuppression=true;o.googHighpassFilter=true}return o})(VC.key==="g")})}catch(e){ts("Allow the microphone to use voice");return false}
  if(!VC.rm){st.getTracks().forEach(t=>t.stop());return false}
  const ac=vcAc();if(ac){try{const an=ac.createAnalyser();an.fftSize=256;ac.createMediaStreamSource(st).connect(an);VC.an=an;VC.d=new Uint8Array(an.frequencyBinCount)}catch(e){VC.an=null}}
  VC.s=st;VC.on=1;VC.mic=VC.hm?0:1;st.getAudioTracks().forEach(t=>t.enabled=!!VC.mic);vcMirror();vcUi();vcSync();vcLevel();return true}
