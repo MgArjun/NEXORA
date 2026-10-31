@@ -6730,26 +6730,29 @@ try{(function(){
 })()}catch(e){console.error("ZNX sync",e)}
 /*ZNX-V13-END*/
 
-/*ZNX-ZOOM-V4*/
+/*ZNX-ZOOM-V5*/
 try{(function(){
-var G=$("etg"),zb=$("etzm"),KEY="znx_zoom4",ZDEF=1.08,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
+var G=$("etg"),zb=$("etzm"),KEY="znx_zoom5",ZDEF=1.08,ZMAX=4,S={on:1,z:0},P=new Map(),pin=0,d0=1,z0=1;
 try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j){S.on=j.on===0?0:1;if(j.z>=1.05&&j.z<=ZMAX)S.z=j.z}}catch(e){}
 var st=document.createElement("style");
 st.textContent="#etzm.on{color:#8f88ff!important}#etzm.on svg{filter:drop-shadow(0 0 6px #8f88ff)}#znxSV .svcv.pz{background:rgba(0,0,0,.12)}#znxSV .svcv.pz .svz,#znxSV .svcv.pz b{display:none}";
-st.textContent+="#etzt,#etzb{position:absolute;left:0;right:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s ease}#etzt{top:0;height:15%;background:linear-gradient(#000 0,#000 55%,rgba(0,0,0,.55) 78%,transparent)}#etzb{bottom:0;height:17%;background:linear-gradient(transparent,rgba(0,0,0,.55) 22%,#000 45%)}#etzt.on,#etzb.on{opacity:1}";
+st.textContent+="#etzt,#etzb{position:absolute;left:0;right:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.4,0,.2,1)}#etzt.slow,#etzb.slow{transition-duration:.7s}#etzt{top:0;height:18%;background:radial-gradient(130% 100% at 50% 0,rgba(124,108,255,.10),transparent 72%),linear-gradient(to bottom,rgba(4,5,10,.97) 0,rgba(4,5,10,.94) 18%,rgba(4,5,10,.85) 34%,rgba(4,5,10,.67) 50%,rgba(4,5,10,.43) 66%,rgba(4,5,10,.20) 81%,rgba(4,5,10,.06) 93%,rgba(4,5,10,0) 100%)}#etzb{bottom:0;height:20%;background:radial-gradient(130% 100% at 50% 100%,rgba(124,108,255,.10),transparent 72%),linear-gradient(to top,rgba(4,5,10,.97) 0,rgba(4,5,10,.94) 18%,rgba(4,5,10,.85) 34%,rgba(4,5,10,.67) 50%,rgba(4,5,10,.43) 66%,rgba(4,5,10,.20) 81%,rgba(4,5,10,.06) 93%,rgba(4,5,10,0) 100%)}#etzt::before,#etzb::before{content:'';position:absolute;inset:0;-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}#etzt::before{-webkit-mask:linear-gradient(to bottom,#000 25%,transparent);mask:linear-gradient(to bottom,#000 25%,transparent)}#etzb::before{-webkit-mask:linear-gradient(to top,#000 25%,transparent);mask:linear-gradient(to top,#000 25%,transparent)}#etzt.on,#etzb.on{opacity:1}";
 document.head.appendChild(st);
 var ot=document.createElement("i"),ob=document.createElement("i");ot.id="etzt";ob.id="etzb";G.appendChild(ot);G.appendChild(ob);
-/* light black strips at top and bottom hide YouTube's title and suggestions while paused, loading, after a skip, and for the first seconds of a video */
-var lt=null,lp=0,hold=0,vk="";
+/* soft eased fade at top and bottom hides YouTube's title and suggestions. Shorter in cropped view, longer in original view. */
+var lt=null,lp=0,hold=0,vk="",wp=0;
 setInterval(function(){
  var yt=P2.kind==="yt"&&G.classList.contains("on"),n=performance.now(),on=0;
  if(yt){
   var k=ET.cur&&ET.cur.id||"",t=plTime(),pz=plPaused();
-  if(k!==vk){vk=k;lt=null;hold=n+4500}
-  if(lt!==null){var ex=(n-lp)/1000*(pz?0:1);if(Math.abs((t-lt)-ex)>1.2)hold=n+2600}
+  var cr=!!S.on;
+  if(k!==vk){vk=k;lt=null;wp=pz;hold=n+(cr?2200:7500)}
+  if(wp&&!pz)hold=Math.max(hold,n+(cr?900:3800));
+  wp=pz;
+  if(lt!==null){var ex=(n-lp)/1000*(pz?0:1);if(Math.abs((t-lt)-ex)>1.2)hold=n+(cr?1300:5800)}
   lt=t;lp=n;on=pz||n<hold}
  else{lt=null;vk=""}
- ot.classList.toggle("on",!!on);ob.classList.toggle("on",!!on)},150);
+ ot.classList.toggle("on",!!on);ob.classList.toggle("on",!!on);ot.classList.toggle("slow",!S.on);ob.classList.toggle("slow",!S.on)},150);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function vAsp(){var v=$("etv");if(P2.kind==="file"&&v&&v.videoWidth&&v.videoHeight)return v.videoWidth/v.videoHeight;return 16/9}
 /* default (never pinched): only a light fill, like a YouTube pinch. Never more than 1.3x so the picture is not cut. */
@@ -6789,7 +6792,7 @@ try{new ResizeObserver(function(){apply()}).observe(G)}catch(e){}
 document.addEventListener("loadedmetadata",function(e){if(e.target&&e.target.id==="etv")apply()},true);
 setInterval(function(){if(!pin&&$("et").classList.contains("on")&&Math.abs(ETM.z-eff())>.01)apply()},700);
 setTimeout(apply,0);
-})()}catch(e){console.error("ZNX zoom4",e)}
+})()}catch(e){console.error("ZNX zoom5",e)}
 
 
 /*ZNX-ONB-V1*/
