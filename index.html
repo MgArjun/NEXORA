@@ -7966,4 +7966,34 @@ html body #arR .xs.on{border-color:#a39cff;box-shadow:0 0 0 1px #a39cff,0 0 18px
  var tries=0,tm=setInterval(function(){if(init()||++tries>40)clearInterval(tm)},250);
  init();
 }catch(e){console.error('ZNX patch SV1',e)}})();</script>
+
+<!--ZNX-PATCH-SV2-->
+<script id="znx-sv2">(function sv2(){try{
+ var D=document,Q='auto',
+ MAP={hd2160:3840,hd1440:2560,hd1080:1920,hd720:1280,large:854,medium:640,small:426,tiny:256},
+ LB={auto:'Auto',hd2160:'4K',hd1440:'2K',hd1080:'1080p',hd720:'720p',large:'480p',medium:'360p',small:'240p',tiny:'144p'};
+ function ifr(){return D.querySelector('#etyw iframe')}
+ function cmd(f,a){var i=ifr();try{if(i&&i.contentWindow)i.contentWindow.postMessage(JSON.stringify({event:'command',func:f,args:a||[]}),'*')}catch(e){}}
+ function pin(){if(Q==='auto')return;cmd('setPlaybackQualityRange',[Q,Q]);cmd('setPlaybackQuality',[Q])}
+ function lab(){var b=D.getElementById('etq');if(b)b.textContent=LB[Q]||'HD'}
+ /* YouTube picks quality from the player's pixel size, so make the size follow the chosen quality */
+ function apply(){
+  var g=D.getElementById('etg'),f=ifr();if(!g||!f)return;
+  var w=g.clientWidth,h=g.clientHeight;if(!w||!h)return;
+  var dp=devicePixelRatio||1,Wa=Math.max(1280,Math.min(1920,Math.round(w*dp)));
+  var Wt=Q==='auto'?Wa:(MAP[Q]||1280),k=w/Wt,key=Wt+'|'+w+'|'+h;
+  if(f.dataset.f15!==key){
+   var s=f.style;
+   [['width',Wt+'px'],['height',(h/k).toFixed(1)+'px'],['left','0px'],['top','0px'],['max-width','none'],['transform-origin','0 0'],['transform','scale('+k.toFixed(5)+')']].forEach(function(p){s.setProperty(p[0],p[1],'important')});
+   f.dataset.f15=key}
+  /* stop the old fitter from overwriting our size */
+  f.dataset.f13=Wa+'|'+h+'|'+w}
+ D.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-q13]');if(!b)return;
+  Q=b.dataset.q13||'auto';lab();
+  [150,700,1600,3200].forEach(function(t){setTimeout(function(){apply();if(Q==='auto')cmd('setPlaybackQualityRange',['tiny','highres']);else pin()},t)})},true);
+ setInterval(apply,400);
+ setInterval(pin,3000);
+ setInterval(lab,1500);
+}catch(e){console.error('ZNX patch SV2',e)}})();</script>
 </body></html>
