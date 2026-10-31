@@ -3458,7 +3458,30 @@ add(tubeH([[.04,.001,.001],[.055,.12,.065],[.1,.145,.088],[.3,.15,.09],[.4,.125,
 g.scale.setScalar(.95);
  return{g,body:ch,hp,aL:aL.a,aR:aR.a,eL:aL.e,eR:aR.e,lL:lL.l,lR:lR.l,kL:lL.kn,kR:lR.kn,cL:aL.cv,cR:aR.cv,fL:lL.f,fR:lR.f,hd,lids,s:{},hy:.93,cy:.93}}
 /*ZNX-HERO-END*/
-function zpAnim(c,p,s,mine){/*ZNX-PUNCH-V1*/var raw=mine?(s.mk||0):(p.mk||0),k=Math.abs(raw),L=mine?!!s.mhl:raw<0,e=0;if(k>0){if(k<.4){var a=k/.4;e=1-(1-a)*(1-a)*(1-a)}else{var r=Math.min(1,(k-.4)/.6);e=1-r*r*(3-2*r)}}var gA=-.6,gE=-2.1,pA=-1.5,pE=-.1,gz=.16,A1=gA+(pA-gA)*e,E1=gE+(pE-gE)*e,Z1=gz-.06*e,A2=gA-.12*e,E2=gE-.1*e,pa=L?c.aL:c.aR,pe=L?c.eL:c.eR,ga=L?c.aR:c.aL,ge=L?c.eR:c.eL;pa.rotation.x=A1;pe.rotation.x=E1;pa.rotation.z=(L?1:-1)*Z1;ga.rotation.x=A2;ge.rotation.x=E2;ga.rotation.z=(L?-1:1)*gz;c.body.rotation.y+=(L?.3:-.3)*e;c.body.rotation.x+=.08*e}
+function zfSet(c,on,L){
+ var T=TH;
+ if(!c.zf){var mt=new T.MeshStandardMaterial({color:0x17171a,roughness:.55}),
+  mk=function(j){var h=j&&j.children.find(function(o){return o.type==="Group"});if(!h)return null;
+   var f=new T.Group(),m=new T.Mesh(new T.SphereGeometry(.05,14,10),mt);m.scale.set(1.05,.95,1.15);m.position.set(0,-.055,.012);f.add(m);
+   var k=new T.Mesh(new T.BoxGeometry(.09,.035,.045),mt);k.position.set(0,-.085,.03);f.add(k);
+   f.visible=false;h.add(f);return{h:h,f:f,on:false}};
+  c.zf={L:mk(c.eL),R:mk(c.eR)}}
+ ["L","R"].forEach(function(n){var o=c.zf[n];if(!o)return;var w=!!on&&((n==="L")===!!L);if(o.on===w)return;o.on=w;
+  o.h.children.forEach(function(ch){if(ch!==o.f&&ch.isMesh)ch.visible=!w});o.f.visible=w})}
+function zpAnim(c,p,s,mine){/*ZNX-FIST*/
+ var raw=mine?(s.mk||0):(p.mk||0),k=Math.abs(raw),L=mine?!!s.mhl:raw<0;
+ if(!(k>0)){zfSet(c,0);return}
+ var E=function(x){return x*x*(3-2*x)},A1,E1,w,u;
+ if(k<.3){u=E(k/.3);A1=-.9;E1=-2.2;w=u}
+ else if(k<.55){u=E((k-.3)/.25);A1=-.9-.6*u;E1=-2.2+2.1*u;w=1}
+ else if(k<.75){A1=-1.5;E1=-.1;w=1}
+ else{u=E((k-.75)/.25);A1=-1.5;E1=-.1;w=1-u}
+ var pa=L?c.aL:c.aR,pe=L?c.eL:c.eR,sg=L?1:-1;
+ pa.rotation.x=pa.rotation.x*(1-w)+A1*w;
+ pe.rotation.x=pe.rotation.x*(1-w)+E1*w;
+ pa.rotation.z=pa.rotation.z*(1-w)+sg*.1*w;
+ c.body.rotation.y+=sg*.3*w;
+ zfSet(c,w>.35,L)}
 function zcAim(c,p,dt,t,s){/*ZNX-P2-CHAR*/
 const Z=c.z||(c.z={pr:{},f:0,ay:0,ap:0,sg:1,hy:null}),S=c.s||{},me=p===s.me,K=r=>1-Math.exp(-dt*r),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 let ds=p.yaw-(p.by==null?p.yaw:p.by);ds=Math.atan2(Math.sin(ds),Math.cos(ds));
@@ -3731,11 +3754,11 @@ addEventListener("resize",()=>{if(S===s)ap()});ap()}
    s.cd-=dt;if(s.rl>0){s.rl-=dt;if(s.rl<=0){s.rl=0;arSfx("click",.7);const nd=Math.min(WP().mag-s.ammo,s.res);s.ammo+=nd;s.res-=nd}}
    const hx=m.x,hy=m.y+1.4,hz=m.z,zkq=m.pit+(s.kc||0),cp=Math.cos(zkq),D=[sy*cp,Math.sin(zkq),cy*cp];
    if(s.mel){
-    if(s.mk>0){s.mk+=dt/.26;
+    if(s.mk>0){s.mk+=dt/.4;
      if(!s.mh&&s.mk>=.45){s.mh=1;const ex=o.x-m.x,ez=o.z-m.z,ed=Math.hypot(ex,ez);let ea=Math.atan2(ex,ez)-m.yaw;ea=Math.abs(Math.atan2(Math.sin(ea),Math.cos(ea)));
       if(ed<2.2&&ea<1&&Math.abs(o.y-m.y)<1.5&&o.hp>0&&(ed<.3||ray(B,[m.x,m.y+1.2,m.z],[ex/ed,0,ez/ed],ed)>=ed-.35)){if(s.net)zxMelee(s,20);else o.hp-=20;s.hm=.25;arSfx("thud");arSfx("hit");s.shk=Math.max(s.shk||0,.22);try{zxDmgFx(s,20,1);zfxBurst(s,[o.x,o.y+1.4,o.z],[0,0,1])}catch(e){}if(navigator.vibrate)navigator.vibrate(15)}}
      if(s.mk>=1){s.mk=0;s.mh=0}}
-    else if(s.fire&&s.cd<=0){s.mk=.001;s.mh=0;s.cd=.26;s.mhl=!s.mhl;arSfx("swing")}}
+    else if(s.fire&&s.cd<=0){s.mk=.001;s.mh=0;s.cd=.42;s.mhl=!s.mhl;arSfx("swing")}}
    if(!s.fire)s.fh=0;if(!s.mel&&s.fire&&(WP().auto||!s.fh)&&s.ammo>0&&s.rl<=0&&s.cd<=0){s.fh=1;s.cd=WP().rate;s.ammo--;s.fl[0]=.08;s.rc=Math.min(1,(s.rc||0)+.14);zhShot(s);
     const spr=WP().sp*(.003+.012*Math.min(1,Math.hypot(m.vx,m.vz)/SPD)+(m.g?0:.015)+.004*(s.rc||0))*(s.zoom?.5:1)*(m.cr?.6:1);let d=[D[0]+(Math.random()-.5)*spr,D[1]+(Math.random()-.5)*spr,D[2]+(Math.random()-.5)*spr];
     const l2=Math.hypot(d[0],d[1],d[2]);d=d.map(v=>v/l2);d=zxAssist(s,[s.cx,s.cy,s.cz],d);const co=[s.cx,s.cy,s.cz],aL=ray(B,co,d,90),ap0=[co[0]+d[0]*aL,co[1]+d[1]*aL,co[2]+d[2]*aL],og=[m.x,m.y+(m.cr?1:1.45),m.z],dv=[ap0[0]-og[0],ap0[1]-og[1],ap0[2]-og[2]],dl=Math.hypot(dv[0],dv[1],dv[2])||1;d=dv.map(v=>+(v/dl).toFixed(3));const oo=og.map(v=>+v.toFixed(2));
@@ -3992,15 +4015,22 @@ function zxLoadout(s,net,go){
  ov.addEventListener("pointerdown",function(e){e.stopPropagation()});
  function bars(st){var L=["DMG","RATE","CTRL","MAG"],h="",k;for(k=0;k<4;k++)h+='<div class="zlb"><span>'+L[k]+'</span><i><s style="width:'+Math.round(st.bars[k])+'%"></s></i></div>';return h}
  function draw(){
- var h='<div class="zlh"><b>CHOOSE YOUR GUN</b></div><div class="zsgw">',T=[0,2,3,4],a,v,t;
+ var T=[0,2,3,4],a,v,t,ac=ov._a|0,h='<div class="zlh"><b>CHOOSE 2 GUNS</b></div><div class="zss"><button data-sl="0" class="'+(ac===0?"on":"")+'"><small>GUN 1</small>'+zlName(sa,ch)+'</button><button data-sl="1" class="'+(ac===1?"on":"")+'"><small>GUN 2</small>'+(sb<0?"Empty":zlName(sb,ch))+'</button></div><div class="zsgw">';
  for(a=0;a<T.length;a++){t=T[a];h+='<div class="zsgr"><span class="zsgl">'+ZLN[t]+'</span>';
-  for(v=0;v<ZLV[t].length;v++)h+='<button class="zsg'+(sa===t&&ch[t]===v?' on':'')+'" data-g="'+t+':'+v+'">'+ZLV[t][v].vn+'</button>';
+  for(v=0;v<ZLV[t].length;v++)h+='<button class="zsg'+(((sa===t||sb===t)&&ch[t]===v)?' on':'')+'" data-g="'+t+':'+v+'">'+ZLV[t][v].vn+'</button>';
   h+='</div>'}
  h+='</div><div class="zlf"><button class="zlg" data-go="1">'+(net?"Ready":"Start")+'</button></div>';
  ov.innerHTML=h}
- /*ZNX-SIMPLEGUN*/
- ov.addEventListener("click",function(e){var b=e.target.closest("[data-g]");if(!b||done)return;e.stopImmediatePropagation();var p=b.dataset.g.split(":"),t=+p[0],v=+p[1];ch[t]=v;sa=t;sb=-1;tab=t;if(navigator.vibrate)navigator.vibrate(6);draw()});
- /*ZNX-SIMPLEGUN-END*/
+ /*ZNX-TWOGUN*/
+ ov.addEventListener("click",function(e){
+  var b=e.target.closest("[data-sl],[data-g]");if(!b||done)return;e.stopImmediatePropagation();
+  if(b.dataset.sl!==undefined){ov._a=+b.dataset.sl;return draw()}
+  var p=b.dataset.g.split(":"),t=+p[0],v=+p[1],ac=ov._a|0,oth=ac?sa:sb;
+  if(ac&&sb===t&&ch[t]===v){sb=-1;return draw()}
+  if(t===oth){ts("Ye gun dusre slot me hai");return}
+  ch[t]=v;if(ac)sb=t;else{sa=t;ov._a=1}
+  if(navigator.vibrate)navigator.vibrate(6);draw()});
+ /*ZNX-TWOGUN-END*/
  ov.addEventListener("click",function(e){var b=e.target.closest("button");if(!b||done)return;
   if(b.dataset.t!==undefined){tab=+b.dataset.t;return draw()}
   if(b.dataset.c!==undefined){ch[tab]=+b.dataset.c;if(tab!==1&&sa!==tab&&sb!==tab){sa=tab;if(sb===sa)sb=-1}return draw()}
@@ -4060,7 +4090,7 @@ function znxGy(e,s,r){
  s.ay=(s.ay||0)+yaw*k;s.ap=(s.ap||0)+pit*k}
 window.znxGyroAsk=function(){try{if(typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission){DeviceMotionEvent.requestPermission().then(function(r){if(r!=="granted"){ST2.gyro="0";sv2();ts("Gyro permission nahi mili")}else zwGP=1}).catch(function(){})}}catch(e){}};
 document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest('[data-sg^="gyro:"]');if(b&&b.dataset.sg!=="gyro:0")window.znxGyroAsk()},true);
-function zxHold(c,p,s,rk,rl,mine){
+function zxHold(c,p,s,rk,rl,mine){zfSet(c,0);
  var T=TH,G=c.gun;if(!T||!G)return;
  var pit=Math.max(-.7,Math.min(.7,p.pit||0));
  var old=function(){c.aR.rotation.x=-1.45-pit*.8+rk*.22+rl*.7;c.aR.rotation.z=-.3+rl*.4;c.eR.rotation.x=-.08-rk*.1+rl*.5;c.aL.rotation.x=-1.35-pit*.8+rk*.18+rl*.55;c.aL.rotation.z=.36-rl*.15;c.eL.rotation.x=-.5-rl*.4};
@@ -5548,7 +5578,7 @@ const loadFav=async()=>{
   try{localStorage.setItem("znx_fav",JSON.stringify(FAV))}catch(e){}
   keepL.forEach(x=>{if(!FAV.some(y=>y.url===x.url&&y.kind===x.kind)){x.tried=0;x.rt=0;FAV.unshift(x)}});if(typeof mpSync==="function")mpSync()}catch(e){}};
 window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID)return;
- try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;let r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();if(r.error&&f.era&&/era/i.test(String(r.error.message||""))){r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:f.title,url:f.url,song_type:f.type||0}).select("id").maybeSingle()}
+ try{for(const f of FAV.filter(x=>!x.sid&&!x.tried)){f.tried=1;let r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:(String(f.title||"").replace(/\s+/g," ").trim().slice(0,100)||"Untitled"/*ZNX-NAMEFIX*/),url:f.url,song_type:f.type||0,...(f.era?{era:f.era}:{})}).select("id").maybeSingle();if(r.error&&f.era&&/era/i.test(String(r.error.message||""))){r=await SB.from("nx_fav").insert({owner:PID,kind:f.kind==="listen"?"listen":"watch",scope:f.scope==="global"?"global":"private",name:(String(f.title||"").replace(/\s+/g," ").trim().slice(0,100)||"Untitled"/*ZNX-NAMEFIX*/),url:f.url,song_type:f.type||0}).select("id").maybeSingle()}
    if(r.error){f.rt=(f.rt||0)+1;f.tried=f.rt<4?0:1;if(f.rt===1||f.rt>=4)ts("Save nahi hua: "+String(r.error.message||"link").slice(0,90));continue}/*ZNX-FAVFIX1*/if(r.data){f.sid=r.data.id;f.mine=true;FAVDB.add(r.data.id)}}
   const have=new Set(FAV.filter(x=>x.sid).map(x=>x.sid));
   for(const id of [...FAVDB]){if(!have.has(id)){const r=await SB.from("nx_fav").delete().eq("id",id);if(!r.error)FAVDB.delete(id)}}}catch(e){}},500)};
@@ -7654,4 +7684,8 @@ function f(){var p=D.getElementById("znxAud");if(!p)return;
  var n=D.querySelectorAll("#etstk .ava").length;
  p.classList.toggle("znx-show",n>=2)}
 setInterval(f,300);f()})();</script>
+<script>/*ZNX-V15-CSS*/
+(function(){var s=document.createElement("style");
+s.textContent="#zloR .zss{display:flex;gap:8px;flex:none}#zloR .zss button{flex:1;height:50px;border-radius:14px;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font-size:13px;font-weight:600;text-align:left;padding:0 14px}#zloR .zss button.on{border-color:#a39cff;background:rgba(143,136,255,.28);box-shadow:0 0 18px -6px #8f88ff}#zloR .zss small{display:block;font:600 9.5px ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#a39cff;margin-bottom:2px}";
+document.head.appendChild(s)})();</script>
 </body></html>
