@@ -7918,4 +7918,52 @@ html body #arR .xs.on{border-color:#a39cff;box-shadow:0 0 0 1px #a39cff,0 0 18px
  },true);
  setInterval(function(){document.querySelectorAll(Q).forEach(fill)},350);
 })();</script>
+
+<!--ZNX-PATCH-SV1-->
+<script id="znx-sv1">(function sv1(){try{
+ var D=document;
+ var s=D.createElement('style');s.id='znx-sv1-css';
+ var G1='linear-gradient(rgba(4,5,10,.97),rgba(4,5,10,.86) 30%,rgba(4,5,10,.52) 58%,rgba(4,5,10,.18) 82%,rgba(4,5,10,0))';
+ var G2='linear-gradient(to top,rgba(4,5,10,.97),rgba(4,5,10,.86) 30%,rgba(4,5,10,.52) 58%,rgba(4,5,10,.18) 82%,rgba(4,5,10,0))';
+ s.textContent=
+ 'html body .etg.on::before{content:none!important;display:none!important}'+
+ '#znxSV #znxSVz{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;transform:scale(1.08);transform-origin:50% 50%;will-change:transform;pointer-events:none}'+
+ '#znxSV .svmt,#znxSV .svmb{position:absolute;left:0;right:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.4,0,.2,1)}'+
+ '#znxSV .svmt{top:0;height:20%;background:'+G1+'}'+
+ '#znxSV .svmb{bottom:0;height:22%;background:'+G2+'}'+
+ '#znxSV .svmt.on,#znxSV .svmb.on{opacity:1}'+
+ '#znxSV .svcv{transition:opacity .55s cubic-bezier(.4,0,.2,1)!important}';
+ D.head.appendChild(s);
+
+ function sec(t){var a=String(t||'').split(':').map(Number);return a.some(isNaN)?0:a.reduce(function(x,v){return x*60+v},0)}
+
+ function init(){
+  var w=D.getElementById('znxSVw'),p=D.getElementById('znxSVp');
+  if(!w||!p||w.dataset.sv1)return !!(w&&w.dataset.sv1);
+  w.dataset.sv1='1';
+  /* default crop, same as Enjoy Together */
+  var z=D.createElement('div');z.id='znxSVz';
+  p.parentNode.insertBefore(z,p);z.appendChild(p);
+  /* soft top/bottom fades hide YouTube title and suggestions */
+  var t=D.createElement('i'),b=D.createElement('i');
+  t.className='svmt';b.className='svmb';
+  var tap=w.querySelector('.svt');
+  w.insertBefore(t,tap);w.insertBefore(b,tap);
+  var pl=D.getElementById('znxSVpl'),ha=D.getElementById('znxSVa');
+  var hold=0,started=0,lt=null,lp=0;
+  var iv=setInterval(function(){
+   if(!D.getElementById('znxSVw')){clearInterval(iv);return}
+   var n=performance.now(),playing=!!pl&&pl.innerHTML.indexOf('<rect')>=0,cur=ha?sec(ha.textContent):0;
+   if(playing&&!started){started=1;hold=n+2600}
+   if(lt!==null&&started){
+    var ex=playing?(n-lp)/1000:0;
+    if(Math.abs((cur-lt)-ex)>1.4)hold=Math.max(hold,n+1500)}
+   lt=cur;lp=n;
+   var on=!playing||n<hold;
+   t.classList.toggle('on',on);b.classList.toggle('on',on)},150);
+  return true}
+
+ var tries=0,tm=setInterval(function(){if(init()||++tries>40)clearInterval(tm)},250);
+ init();
+}catch(e){console.error('ZNX patch SV1',e)}})();</script>
 </body></html>
