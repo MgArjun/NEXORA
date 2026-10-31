@@ -735,7 +735,7 @@ html body #arR .arb{will-change:transform;transition:transform .12s ease-out,fil
 #znxSV .zpf{display:flex;align-items:flex-end;gap:8px}
 #znxSV .zpf textarea{flex:1;min-width:0;min-height:44px;max-height:120px;height:44px;resize:none;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:#141722;color:#eceef6;font:inherit;font-size:16px;padding:11px 16px;outline:none}
 #znxSV .zps{width:44px;height:44px;flex:none;border-radius:50%;padding:0;display:grid;place-items:center;border:0;color:#fff;background:linear-gradient(135deg,#6a62f0,#5149d6);cursor:pointer}</style><script id="znx-sv-js">(function(){
-var D=document,q=new URLSearchParams(location.search),R=/^[A-Za-z0-9_-]{11}$/,w=q.get("watch")||"",s=q.get("song")||"",isZ=q.get("zexo")==="1",vid=R.test(w),id=vid?w:(R.test(s)?s:""),t0=Math.max(0,Math.min(86400,parseInt(q.get("t")||"0",10)||0));
+var D=document,q=new URLSearchParams(location.search),R=/^[A-Za-z0-9_-]{11}$/,w=q.get("watch")||q.get("w")||"",s=q.get("song")||q.get("s")||"",isZ=q.get("zexo")==="1",vid=R.test(w),id=vid?w:(R.test(s)?s:""),t0=Math.max(0,Math.min(86400,parseInt(q.get("t")||"0",10)||0));
 if(!id&&!isZ)return;
 var g=function(i){return D.getElementById(i)},nm=String(q.get("n")||"").slice(0,80),P=null,ok=0,iv=0,dead=0,vvf=null,
 U0="https://ktwluvpmzisonmootdqc.supabase.co",KEY="sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm",
@@ -1165,7 +1165,7 @@ hold(document.querySelector("#sv .zl"));hold(document.querySelector("#sv .zr"));
 var SOLO=null;
 if(SOLO){var _sb=document.getElementById("sub");if(_sb)_sb.textContent="Log in to listen to this song."}
 function soloShare(){var T=MT[MP.i];if(!MP.started||!T)return ts("Play a song first");if(!T.src||T.src.t!=="yt")return ts("Only YouTube songs can be shared");
- var u=location.origin+location.pathname+"?song="+T.src.id+"&n="+encodeURIComponent(String(T.n).slice(0,80))+"&t="+Math.floor(mpPos()||0);
+ var u=location.origin+location.pathname+"?s="+T.src.id;
  if(navigator.share)navigator.share({title:T.n,text:"Listen to this song on ZNEXORA",url:u}).catch(function(){});
  else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){ts("Link copied")},function(){ts("Copy failed")});else ts(u)}
 function soloOpen(){
@@ -3690,7 +3690,7 @@ async function start0(nt,seed0){stop();arLdInit();inGame=true;document.documentE
   if(s.over){const win=s.w[0]>s.w[1];ov('<div class="c"><b>'+(s.w[0]===s.w[1]?"DRAW":win?"YOU WIN!":"YOU LOSE")+'</b><small>'+s.w[0]+" - "+s.w[1]+'</small>'+(s.net?"":'<button class="pri" id="arAg">Play again</button>')+'<button id="arBk">Back</button></div>',1);
    if($("arAg"))$("arAg").onclick=()=>start(0);$("arBk").onclick=exit}
   else ov("<b>"+(won?"ROUND WON":"ROUND LOST")+"<br>"+s.w[0]+" - "+s.w[1]+"</b>")};
- s.hurt=(d)=>{s.me.hp-=d;s.zhit=Math.min(1,(s.zhit||0)+d/25);if(d>2){s.shk=Math.min(.5,(s.shk||0)+d/60);arSfx("hurt",Math.min(1,d/12))}$("arV").style.opacity=Math.min(1,.3+d/22);setTimeout(()=>$("arV")&&($("arV").style.opacity=0),d>8?420:200);if(d>2&&navigator.vibrate)navigator.vibrate(12)};
+ s.hurt=(d)=>{s.me.hp-=d;s.zhit=Math.min(1,(s.zhit||0)+d/25);if(d>2){s.shk=Math.min(.5,(s.shk||0)+d/60)}$("arV").style.opacity=Math.min(1,.3+d/22);setTimeout(()=>$("arV")&&($("arV").style.opacity=0),d>8?420:200);if(d>2&&navigator.vibrate)navigator.vibrate(12)};
  s.shot=(o,d,fromMe)=>{if(!fromMe){zxPing(s,o);const dd=Math.hypot(o[0]-s.me.x,o[2]-s.me.z);zfxSnd(0,"RIFLE",1,dd)}const L=ray(B,o,d,90),c=fromMe?c1:c2,mw=new T.Vector3();try{c.gun.userData.fl.getWorldPosition(mw)}catch(e){mw.set(o[0],o[1],o[2])}const e=[o[0]+d[0]*L,o[1]+d[1]*L,o[2]+d[2]*L],v=[e[0]-mw.x,e[1]-mw.y,e[2]-mw.z],l=Math.hypot(v[0],v[1],v[2])||1;zfxShot(s,fromMe,mw,o,d,L,e)};
  s.onNet=m=>{
   if(!m||!m.t)return;
@@ -6477,7 +6477,7 @@ function shCtx(){
  return{t:n,l:dl("tab",tab)}}
 async function doShare(){
  if(MP.on&&MP.started)return soloShare();
- if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?watch="+ET.cur.id+"&n="+encodeURIComponent(String(ET.title||"Video").slice(0,80))+"&t="+Math.floor(plTime()||0)+"&z="+(Math.max(1.3,+ETM.z||1.3)).toFixed(2),tx="Watch this video on ZNEXORA";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copied")}catch(e){ts(l)}return}
+ if($("et").classList.contains("on")&&ET.cur&&ET.cur.t==="yt"){const l=base()+"?w="+ET.cur.id,tx="Watch this video on ZNEXORA";try{if(navigator.share){await navigator.share({title:ET.title||"ZNEXORA",text:tx,url:l});return}}catch(e){if(e&&e.name==="AbortError")return}try{await navigator.clipboard.writeText(tx+" "+l);ts("Link copied")}catch(e){ts(l)}return}
  const c=shCtx(),text="Check out "+c.t+" on ZNEXORA. Chat, call and enjoy together.";
  try{if(navigator.share){await navigator.share({title:"ZNEXORA",text:text,url:c.l});return}}catch(e){if(e&&e.name==="AbortError")return}
  try{await navigator.clipboard.writeText(text+" "+c.l);ts("Link copied")}catch(e){ts(c.l)}}
