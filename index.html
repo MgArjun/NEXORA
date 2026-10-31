@@ -3992,13 +3992,15 @@ function zxLoadout(s,net,go){
  ov.addEventListener("pointerdown",function(e){e.stopPropagation()});
  function bars(st){var L=["DMG","RATE","CTRL","MAG"],h="",k;for(k=0;k<4;k++)h+='<div class="zlb"><span>'+L[k]+'</span><i><s style="width:'+Math.round(st.bars[k])+'%"></s></i></div>';return h}
  function draw(){
-  var h='<div class="zlh"><b>LOADOUT</b><small>'+(net?"Dono players apni gun chunenge":"Robot apni gun khud chunega")+'</small></div><div class="zlt">',k;
-  for(k=0;k<5;k++)h+='<button data-t="'+k+'" class="'+(tab===k?"on":"")+'">'+ZLN[k]+(sa===k?" · 1":sb===k?" · 2":k===1?" · Side":"")+'</button>';
-  h+='</div><div class="zlc">';
-  ZLV[tab].forEach(function(v,n){var st=zlSt(tab,v);
-   h+='<button data-c="'+n+'" class="zlk'+(ch[tab]===n?" on":"")+'"><b>'+v.vn+'</b><em>'+ZLN[tab]+'</em>'+bars(st)+'<small>'+(st.pel>1?st.raw+" x"+st.pel:Math.round(st.raw))+' dmg · '+st.rpm+' rpm · mag '+st.mag+' · reload '+st.rt+'s</small><p>'+v.d+'</p></button>'});
-  h+='</div><div class="zlf"><button data-s="a">Slot 1: <b>'+zlName(sa,ch)+'</b></button><button data-s="b">Slot 2: <b>'+(sb<0?"Khali":zlName(sb,ch))+'</b></button><button class="zlg" data-go="1">'+(net?"Ready":"Start")+'</button></div>';
-  ov.innerHTML=h}
+ var h='<div class="zlh"><b>CHOOSE YOUR GUN</b></div><div class="zsgw">',T=[0,2,3,4],a,v,t;
+ for(a=0;a<T.length;a++){t=T[a];h+='<div class="zsgr"><span class="zsgl">'+ZLN[t]+'</span>';
+  for(v=0;v<ZLV[t].length;v++)h+='<button class="zsg'+(sa===t&&ch[t]===v?' on':'')+'" data-g="'+t+':'+v+'">'+ZLV[t][v].vn+'</button>';
+  h+='</div>'}
+ h+='</div><div class="zlf"><button class="zlg" data-go="1">'+(net?"Ready":"Start")+'</button></div>';
+ ov.innerHTML=h}
+ /*ZNX-SIMPLEGUN*/
+ ov.addEventListener("click",function(e){var b=e.target.closest("[data-g]");if(!b||done)return;e.stopImmediatePropagation();var p=b.dataset.g.split(":"),t=+p[0],v=+p[1];ch[t]=v;sa=t;sb=-1;tab=t;if(navigator.vibrate)navigator.vibrate(6);draw()});
+ /*ZNX-SIMPLEGUN-END*/
  ov.addEventListener("click",function(e){var b=e.target.closest("button");if(!b||done)return;
   if(b.dataset.t!==undefined){tab=+b.dataset.t;return draw()}
   if(b.dataset.c!==undefined){ch[tab]=+b.dataset.c;if(tab!==1&&sa!==tab&&sb!==tab){sa=tab;if(sb===sa)sb=-1}return draw()}
@@ -7637,4 +7639,19 @@ window.nxZexo=function(h){
 setTimeout(token,2500);
 }catch(err){console.error("ZNX fast",err)}})();
 </script>
+<script id="znx-v14">/*ZNX-V14-PANEL*/
+(function(){
+var D=document,st=D.createElement("style");
+st.textContent="#znxAud:not(.znx-show){display:none!important}"+
+"#zloR .zsgw{flex:1;min-height:0;overflow:auto;display:grid;gap:10px;align-content:start;padding:4px 0}"+
+"#zloR .zsgr{display:flex;align-items:center;gap:8px;flex-wrap:wrap}"+
+"#zloR .zsgl{width:72px;flex:none;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9aa0b8}"+
+"#zloR .zsg{height:46px;min-width:120px;padding:0 16px;border-radius:14px;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font-size:14px;font-weight:600}"+
+"#zloR .zsg.on{border-color:#a39cff;background:rgba(143,136,255,.3);box-shadow:0 0 18px -6px #8f88ff}"+
+"#zloR .zlf{justify-content:center}#zloR .zlf .zlg{flex:none;width:min(260px,70vw)}";
+D.head.appendChild(st);
+function f(){var p=D.getElementById("znxAud");if(!p)return;
+ var n=D.querySelectorAll("#etstk .ava").length;
+ p.classList.toggle("znx-show",n>=2)}
+setInterval(f,300);f()})();</script>
 </body></html>
