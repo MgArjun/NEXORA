@@ -3503,25 +3503,25 @@ function poseH(c,spd,air,t,vy,pp,raw){
  const L=(k,v,r)=>{const o=S[k]==null?v:S[k];return S[k]=o+(v-o)*(1-Math.exp(-dt*(r||10)))},K=(v,a,b)=>Math.max(a,Math.min(b,v));
  const jraw=air;if(air){S.at=(S.at||0)+dt;if(S.at<.07)air=false}else S.at=0;S.jk=(S.jk||0)+(((jraw&&S.at<.09&&(vy||0)>2)?1:0)-(S.jk||0))*(1-Math.exp(-dt*28));
  const mv=L("mv",air?0:K(spd*1.12,0,1),16),g=K(mv*5,0,1),w=1-g;
- const spr=pp&&raw?K((raw-1)/.25,0,1):0,yw=pp?(pp.by!=null?pp.by:pp.yaw):0,fwS=L("fw",pp?(pp.vx*Math.sin(yw)+pp.vz*Math.cos(yw))/7:1,10),laS=L("la",pp?(pp.vx*Math.cos(yw)-pp.vz*Math.sin(yw))/7:0,10);S.sv=(S.sv||0)+(K(spd,0,1)-(S.sv||0))*(1-Math.exp(-dt*18));S.ph=(S.ph||0)+dt*(.4+1.48*Math.min(1,Math.max(S.sv,0))*7*(1+.1*spr))*Math.min(1,mv*5);if(spd<.04&&!air){const _n=Math.round(S.ph/Math.PI)*Math.PI;S.ph+=(_n-S.ph)*(1-Math.exp(-dt*9))}
+ const spr=pp&&raw?K((raw-.97)/.2,0,1):0,yw=pp?(pp.by!=null?pp.by:pp.yaw):0,fwS=L("fw",pp?(pp.vx*Math.sin(yw)+pp.vz*Math.cos(yw))/7:1,10),laS=L("la",pp?(pp.vx*Math.cos(yw)-pp.vz*Math.sin(yw))/7:0,10);S.sv=(S.sv||0)+(K(spd,0,1)-(S.sv||0))*(1-Math.exp(-dt*18));S.rv=(S.rv||0)+(((pp&&raw!=null)?raw:spd)-(S.rv||0))*(1-Math.exp(-dt*14));S.ph=(S.ph||0)+dt*6.2832*(S.rv*SPD)/((pp&&pp.cr)?2.3:3.6+2*spr)*Math.min(1,mv*5);if(spd<.04&&!air){const _n=Math.round(S.ph/Math.PI)*Math.PI;S.ph+=(_n-S.ph)*(1-Math.exp(-dt*9))}
  const ph=S.ph,s=Math.sin(ph),co=Math.cos(ph);const stc=Math.floor((ph-1.5708)/3.14159);if(S.stc==null)S.stc=stc;if(stc!==S.stc){S.stc=stc;if(!air&&mv>.2&&c.onStep)c.onStep(mv,spr)}
  if(air&&!S.air)S.lead=s>=0?1:-1;
  if(S.air&&!air){S.dp=K(.25+(Math.abs(S.v0||0)-6)/14,.2,1);S.lc=.15+.1*S.dp}
  S.air=air;if(air)S.v0=vy||0;S.lc=Math.max(0,(S.lc||0)-dt);
  const aw=L("aw",air?1:0,air?18:14),ig=1-aw,rise=air?K((vy||0)/10,-1,1):0,up=Math.max(0,rise),fa=Math.max(0,-rise),lead=(S.lead||1)>0,
  cr=L("cr",S.lc>0?(S.dp||.5):0,S.lc>0?(S.dp===1.4?14:24):(S.dp===0?14:18)),c7=.85*(cr+.35*(S.jk||0)),amp=.22+.68*mv;
- const bkw=K(-fwS*2.2,0,1),sdw=K(Math.abs(laS)*1.8,0,1)*(1-bkw),sg=1-2*bkw,am=amp*(1+.3*spr)*(1-.25*sdw)*(1-.15*bkw),kn=1+.8*spr;let lt=-s*am*g*sg,rt=s*am*g*sg,kl=.05+g*(.1+mv)*Math.max(0,co)*kn,kr=.05+g*(.1+mv)*Math.max(0,-co)*kn;
+ const bkw=K(-fwS*2.2,0,1),sdw=K(Math.abs(laS)*1.8,0,1)*(1-bkw),sg=1-2*bkw,am=amp*(1+.6*spr)*(1-.25*sdw)*(1-.15*bkw),kn=1+1.5*spr;let lt=-s*am*g*sg,rt=s*am*g*sg,kl=.05+g*(.1+mv)*Math.max(0,co)*kn,kr=.05+g*(.1+mv)*Math.max(0,-co)*kn;
  /*ZNX-JUMP-V2*/const tk=air?Math.max(0,1-Math.max(0,(S.at||0)-.07)/.2):0,tF=-(.5+.35*up+.25*tk),tB=.15+.2*up-.1*fa,nF=.75+.7*up-.1*fa+.5*tk,nB=.6+.8*up+.4*tk;
  lt=lt*ig+(lead?tF:tB)*aw-c7;rt=rt*ig+(lead?tB:tF)*aw-c7;kl=kl*ig+(lead?nF:nB)*aw+2*c7;kr=kr*ig+(lead?nB:nF)*aw+2*c7;
  c.lL.rotation.x=lt;c.lR.rotation.x=rt;c.lL.rotation.z=sdw*(1-aw)*.3*Math.max(0,s)*(laS>0?1:-1);c.lR.rotation.z=-sdw*(1-aw)*.3*Math.max(0,-s)*(laS>0?1:-1);c.kL.rotation.x=kl;c.kR.rotation.x=kr;
  c.fL.rotation.x=-(lt+kl)+.3*mv*Math.max(0,lt)*ig+.25*up*aw;c.fR.rotation.x=-(rt+kr)+.3*mv*Math.max(0,rt)*ig+.25*up*aw;
- const sw=.7*mv*g,ax=-(.1+.4*up)+.12*fa+.4*tk;
+ const sw=.7*mv*g*(1+.45*spr),ax=-(.1+.4*up)+.12*fa+.4*tk;
  c.aL.rotation.x=(s*sw-.04)*ig+ax*aw-.35*cr;c.aR.rotation.x=(-s*sw-.04)*ig+ax*aw-.35*cr;
  c.eL.rotation.x=-(.12+(.3+.5*mv)*g+.55*mv*Math.max(0,-s)*g)*ig-(.3+.3*up)*aw;
  c.eR.rotation.x=-(.12+(.3+.5*mv)*g+.55*mv*Math.max(0,s)*g)*ig-(.3+.3*up)*aw;
  const oz=(.07+.05*mv)*ig+(.13+.15*fa+.06*up)*aw;c.aL.rotation.z=-oz;c.aR.rotation.z=oz;
- const lean=L("ln",(.02+.2*mv+.17*spr)*ig+(.1+.1*up)*aw+.3*cr+.22*tk,9),br=Math.sin(t*1.9),
- bob=Math.cos(2*ph)*(.012+.03*mv)*g*ig,drop=.85*(1-Math.cos(c7)),
+ const lean=L("ln",(.02+.2*mv+.3*spr)*ig+(.1+.1*up)*aw+.3*cr+.22*tk,9),br=Math.sin(t*1.9),
+ bob=Math.cos(2*ph)*(.012+.03*mv+.025*spr)*g*ig,drop=.85*(1-Math.cos(c7)),
  ty=-s*.16*mv*g*ig,tz=co*.03*g*ig-laS*.14*ig*g+Math.sin(t*.5)*.02*w*ig;
  c.hp.position.y=c.hy+bob-drop-.05*tk;c.body.position.y=c.cy+bob-drop-.05*tk+br*.003*w;
  c.hp.rotation.y=-ty*.6;c.hp.rotation.z=-tz*.5+Math.sin(t*.35)*.035*w*ig;
@@ -3709,7 +3709,7 @@ async function start0(nt,seed0){stop();arLdInit();inGame=true;document.documentE
  J.addEventListener("pointerdown",e=>{s.jr=J.getBoundingClientRect();jid=e.pointerId;try{J.setPointerCapture(e.pointerId)}catch(x){}if(s.auto){s.auto=0;const ab=$("arAu");if(ab)ab.classList.remove("on")}jm(e)});J.addEventListener("pointermove",e=>{if(e.pointerId===jid)jm(e)});
  ["pointerup","pointercancel","lostpointercapture"].forEach(v=>J.addEventListener(v,e=>{if(e.pointerId===jid){jid=null;kn.style.transform="";J.classList.remove("act");J.style.setProperty("--jm","0");s.jx=s.jy=0}}));
  const hold=(id,f)=>{const b=$(id);b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId)}catch(x){}b.classList.add("on");if(navigator.vibrate)navigator.vibrate(6);f(1)});["pointerup","pointercancel","lostpointercapture"].forEach(v=>b.addEventListener(v,()=>{b.classList.remove("on");f(0)}))};
- hold("arF",v=>{if(s.gm)zgBtn(s,v);else s.fire=v});{const fb=$("arF");let fx=0,fy=0,fid=null;fb.addEventListener("pointerdown",e=>{fid=e.pointerId;fx=e.clientX;fy=e.clientY});fb.addEventListener("pointermove",e=>{if(e.pointerId!==fid)return;s.ay=(s.ay||0)-(e.clientX-fx)*.0065*arSens();s.ap=(s.ap||0)-(e.clientY-fy)*.0065*arSens();fx=e.clientX;fy=e.clientY});["pointerup","pointercancel","lostpointercapture"].forEach(v=>fb.addEventListener(v,e=>{if(e.pointerId===fid)fid=null}))}hold("arU",v=>{if(v)s.jp=1});hold("arRl",v=>{if(v&&!s.mel&&s.rl<=0&&s.ammo<WP().mag&&s.res>0)zwRl(s)});$("arAu").addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();s.auto=s.auto?0:1;$("arAu").classList.toggle("on",!!s.auto)});
+ hold("arF",v=>{if(s.gm)zgBtn(s,v);else s.fire=v});{const fb=$("arF");let fx=0,fy=0,fid=null;fb.addEventListener("pointerdown",e=>{fid=e.pointerId;fx=e.clientX;fy=e.clientY});fb.addEventListener("pointermove",e=>{if(e.pointerId!==fid)return;s.ay=(s.ay||0)-(e.clientX-fx)*.0065*arSens();s.ap=(s.ap||0)-(e.clientY-fy)*.0065*arSens();fx=e.clientX;fy=e.clientY});["pointerup","pointercancel","lostpointercapture"].forEach(v=>fb.addEventListener(v,e=>{if(e.pointerId===fid)fid=null}))}hold("arU",v=>{if(v)s.jp=1});hold("arRl",v=>{if(v&&!s.mel&&s.rl<=0&&s.ammo<WP().mag&&s.res>0)zwRl(s)});$("arAu").addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();s.auto=s.auto?0:1;if(s.auto)s.me.cr=0;$("arAu").classList.toggle("on",!!s.auto)});
  r.addEventListener("pointerdown",e=>{if(e.target.closest("#arJ,.arb,.arT,#arO")||lid!==null)return;lid=e.pointerId;lx=e.clientX;ly=e.clientY;try{r.setPointerCapture(e.pointerId)}catch(x){}});
  r.addEventListener("pointermove",e=>{if(e.pointerId!==lid)return;s.ay=(s.ay||0)-(e.clientX-lx)*.0065*arSens();s.ap=(s.ap||0)-(e.clientY-ly)*.0065*arSens();lx=e.clientX;ly=e.clientY});
  ["pointerup","pointercancel","lostpointercapture"].forEach(v=>r.addEventListener(v,e=>{if(e.pointerId===lid)lid=null}));
@@ -3741,8 +3741,8 @@ addEventListener("resize",()=>{if(S===s)ap()});ap()}
   if(s.ph==="cd"){const c=3-s.pt;ov(c>0?"<b>ROUND "+s.n+"<br>"+Math.ceil(c)+"</b>":"");if(c<=0){s.ph="play";s.pt=0;ov("")}}
   else if(s.ph==="end"&&s.pt>3&&!s.over&&s.net!==2){s.begin(s.n+1);if(s.net===1){const nn=s.n;nTx({t:"go",n:nn});setTimeout(()=>{if(S===s)nTx({t:"go",n:nn})},350);setTimeout(()=>{if(S===s)nTx({t:"go",n:nn})},900)}}
   if(s.ph==="play"){s.t+=dt;
-   const sy=Math.sin(m.yaw),cy=Math.cos(m.yaw),qx=s.jx,qy=s.auto?1:s.jy,qm=Math.hypot(qx,qy),qd=qm<.12?0:Math.min(1,(qm-.12)/.78),qu=qm?qx/qm:0,qv=qm?qy/qm:0,qw=qu*(1-zsm(.45,.7,Math.abs(qv))*(1-zsm(.1,.4,Math.abs(qu)))),qn=Math.hypot(qw,qv)||1,wx=(sy*qv-cy*qw)/qn*qd,wz=(cy*qv+sy*qw)/qn*qd,k=Math.min(1,dt*(m.g?14:9));let bf=1;{const aim=!!(s.fire||s.zoom||(s.mel&&s.mk>0));if(m.by==null)m.by=m.yaw;let tb=m.by;if(aim)tb=m.yaw;else if(qd>.03)tb=Math.atan2(wx,wz);let df=tb-m.by;df=Math.atan2(Math.sin(df),Math.cos(df));m.by+=df*(1-Math.exp(-dt*(aim?(m.g?30:10):(m.g?16:6))));if(!aim&&qd>.03)bf=Math.max(.85,1-Math.abs(df)/8)}
-   const sp0=!!s.auto&&qd>.5&&qv>.3&&!s.zoom&&!m.cr&&!s.fire,sm=(1-.42*(s.crk=(s.crk||0)+((m.cr?1:0)-(s.crk||0))*Math.min(1,dt*7)))/*ZNX-MOVE-V1*/*(s.zoom?(WP().n==="SNIPER"?.38:.6):1)*(s.fire&&!s.mel?.86:1)*(.82+.5*(s.sp||0))*(qv<-.3?.75:1),ka=m.g?1-Math.exp(-dt*(qd>0?48:70)):1-Math.exp(-dt*(qd>0?9:2.5));
+   /*ZNX-RUN-V1*/if(s.auto&&m.cr)m.cr=0;const sy=Math.sin(m.yaw),cy=Math.cos(m.yaw),qx=s.jx,qy=s.auto?1:s.jy,qm=Math.hypot(qx,qy),qd=qm<.12?0:Math.min(1,(qm-.12)/.78),qu=qm?qx/qm:0,qv=qm?qy/qm:0,qw=qu*(1-zsm(.45,.7,Math.abs(qv))*(1-zsm(.1,.4,Math.abs(qu)))),qn=Math.hypot(qw,qv)||1,wx=(sy*qv-cy*qw)/qn*qd,wz=(cy*qv+sy*qw)/qn*qd,k=Math.min(1,dt*(m.g?14:9));let bf=1;{const aim=!!(s.fire||s.zoom||(s.mel&&s.mk>0));if(m.by==null)m.by=m.yaw;let tb=m.by;if(aim)tb=m.yaw;else if(qd>.03)tb=Math.atan2(wx,wz);let df=tb-m.by;df=Math.atan2(Math.sin(df),Math.cos(df));m.by+=df*(1-Math.exp(-dt*(aim?(m.g?30:10):(m.g?16:6))));if(!aim&&qd>.03)bf=Math.max(.85,1-Math.abs(df)/8)}
+   const sp0=!!s.auto&&qd>.5&&qv>.3&&!s.zoom&&!m.cr&&!s.fire,sm=(1-.3*(s.crk=(s.crk||0)+((m.cr?1:0)-(s.crk||0))*Math.min(1,dt*14)))/*ZNX-MOVE-V1*/*(s.zoom?(WP().n==="SNIPER"?.38:.6):1)*(s.fire&&!s.mel?.86:1)*(.82+.38*(s.sp||0))*(qv<-.3?.75:1),ka=m.g?1-Math.exp(-dt*(qd>0?48:70)):1-Math.exp(-dt*(qd>0?9:2.5));
    s.sp=(s.sp||0)+((sp0&&m.g?1:0)-(s.sp||0))*Math.min(1,dt*6);
    m.vx+=(wx*SPD*sm*bf-m.vx)*ka;m.vz+=(wz*SPD*sm*bf-m.vz)*ka;
    m.mv=qd>.5&&qv>.3&&!m.cr;m.co=m.g?.12:(m.co||0)-dt;if(s.jp)s.jb=.14;s.jb=(s.jb||0)-dt;
@@ -6726,6 +6726,76 @@ try{(function(){
  document.addEventListener("pointerdown",function(){if(ET.fm)tryUnmute()},true);
 })()}catch(e){console.error("ZNX sync",e)}
 /*ZNX-V13-END*/
+
+/*ZNX-ONB-V1*/
+try{(function(){
+var D=document,shown=0,GB=/^(guest|nexora user|user)$/i,R=[Math.floor(10+Math.random()*90),Math.floor(100+Math.random()*900),Math.floor(1000+Math.random()*9000)];
+function ctx(){return window.znxCtx?window.znxCtx():{}}
+function need(){var n=String(MY.name||"").trim();return !n||GB.test(n)||/^nx_/i.test(MY.user||"")}
+function slug(n){var s=String(n).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,14);return s.length>=3?s:"user"}
+function sug(n){var b=slug(n),a=[b,b+R[0],b+"_"+R[1],b+R[2]];return a.filter(function(x,i){return /^[a-z0-9_]{3,20}$/.test(x)&&a.indexOf(x)===i}).slice(0,4)}
+function open(){
+ shown=1;var ov=D.createElement("div");ov.id="znxOnb";
+ ov.style.cssText="position:fixed;inset:0;z-index:97;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(70% 45% at 50% 18%,rgba(124,108,255,.30),transparent 70%),var(--bg)";
+ ov.innerHTML='<div style="width:min(400px,100%);display:grid;gap:12px"><h2 style="margin:0;font-size:26px;letter-spacing:-.04em">Apna profile banao</h2><p class="note" style="margin:0">Pehle apna naam likho. Username us naam ke hisaab se suggest hoga. Chaho to khud bhi likh sakte ho, aur baad me kabhi bhi Me > Account me badal sakte ho.</p><div class="fld"><label>Naam</label><input id="onN" maxlength="30" autocomplete="name"></div><div class="fld"><label>Username</label><input id="onU" maxlength="20" autocapitalize="off" autocomplete="off" placeholder="username"></div><div class="chips" id="onS" style="flex-wrap:wrap"></div><div id="onM" class="note" style="min-height:18px;color:#e5675f"></div><button class="pri" id="onG" style="width:100%">Aage badho</button></div>';
+ D.body.appendChild(ov);
+ var N=D.getElementById("onN"),U=D.getElementById("onU"),S=D.getElementById("onS"),M=D.getElementById("onM"),G=D.getElementById("onG");
+ N.value=GB.test(String(MY.name||"").trim())?"":String(MY.name||"");
+ function paint(){var n=N.value.trim();S.innerHTML=n.length>=2?sug(n).map(function(x){return '<button data-s="'+x+'">@'+x+'</button>'}).join(""):""}
+ function msg(t){M.textContent=t}
+ paint();N.addEventListener("input",function(){paint();msg("")});
+ S.addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b){U.value=b.dataset.s;msg("")}});
+ U.addEventListener("keydown",function(e){if(e.key==="Enter")G.click()});
+ G.onclick=async function(){
+  var n=N.value.trim(),u=U.value.trim().toLowerCase().replace(/^@/,""),c=ctx();
+  if(n.length<2)return msg("Naam kam se kam 2 akshar ka likho.");
+  if(GB.test(n))return msg("Apna asli naam likho.");
+  if(!/^[a-z0-9_]{3,20}$/.test(u))return msg("Username: 3 se 20 akshar, sirf a-z, 0-9 aur _");
+  if(/^nx_/i.test(u))return msg("Ye username allowed nahi hai, doosra chuno.");
+  if(!c.sb)return msg("Abhi connect nahi hua.");
+  G.disabled=true;msg("");
+  var r;try{r=await c.sb.rpc("nexora_set_username",{new_username:u,new_display_name:n})}catch(e){r={error:e}}
+  var er=(r&&r.error&&r.error.message)||(r&&r.data&&r.data.error)||"";
+  if(er){G.disabled=false;return msg(/duplicate|already|taken|unique/i.test(er)?"Ye username le liya gaya hai, doosra chuno.":String(er).slice(0,90))}
+  Object.assign(MY,{name:n,user:u});try{top2()}catch(e){}
+  ov.remove();ts("Profile ready");
+  try{if(tab==="me")show("me")}catch(e){}
+ };
+ setTimeout(function(){(N.value?U:N).focus()},300)}
+setInterval(function(){if(shown)return;var c=ctx(),a=D.getElementById("app");if(!c.pid||!MY.uid||!a||a.classList.contains("hide"))return;if(need())open()},1000);
+})()}catch(e){console.error("ZNX onboarding",e)}
+
+/*ZNX-HUDSYNC-V1*/
+try{(function(){
+var KS=["znx_hud3","znx_hud3s","znx_hud2","znx_ars","znx_aas","znx_lo","znx_ctl_land"],ready=0,last="",busy=0;
+function ctx(){return window.znxCtx?window.znxCtx():{}}
+function loc(){var o={};KS.forEach(function(k){try{var v=localStorage.getItem(k);if(v!=null)o[k]=v}catch(e){}});return o}
+function canon(o){return KS.filter(function(k){return o[k]!=null}).map(function(k){return k+"="+o[k]}).join("\n")}
+async function init(){var c=ctx();if(!c.sb||!c.pid||busy)return;busy=1;
+ try{
+  var r=await c.sb.from("nx_settings").select("data").eq("user_id",c.pid).maybeSingle();
+  if(r.error){busy=0;return}
+  var d=r.data&&r.data.data,sv=d&&d.hudb;
+  if(sv&&typeof sv==="object"&&Object.keys(sv).length){
+   var s=canon(sv);
+   if(s!==canon(loc())){
+    var g=null;try{g=sessionStorage.getItem("znx_hudr")}catch(e){}
+    if(g!==s){
+     KS.forEach(function(k){try{if(sv[k]!=null)localStorage.setItem(k,String(sv[k]));else localStorage.removeItem(k)}catch(e){}});
+     try{sessionStorage.setItem("znx_hudr",s)}catch(e){}
+     location.reload();return}}
+   last=s}
+  ready=1
+ }catch(e){}
+ busy=0}
+setInterval(function(){
+ var c=ctx();if(!c.pid||!c.sb)return;
+ if(!ready){init();return}
+ var l=loc(),s=canon(l);
+ if(s===last||!Object.keys(l).length)return;
+ last=s;ST2.hudb=l;sv2()},3000);
+})()}catch(e){console.error("ZNX hud sync",e)}
+
 
 /*ZNX-MUSIC-FIX1*/
 /* 1. YouTube API loads once for everyone (this was why the first song failed) */
