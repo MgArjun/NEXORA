@@ -3661,7 +3661,7 @@ async function start0(nt,seed0){stop();arLdInit();inGame=true;document.documentE
  rn=new T.WebGLRenderer({antialias:true,powerPreference:"high-performance"});rn.setPixelRatio(Math.min(devicePixelRatio||1,1.25));rn.setSize(innerWidth,innerHeight);r.prepend(rn.domElement);
  const sc=new T.Scene();sc.background=new T.Color(0x9ccfe8);sc.fog=new T.Fog(0x9ccfe8,60,170);try{const es=new T.Scene(),sg=new T.Mesh(new T.SphereGeometry(10,24,16),new T.MeshBasicMaterial({side:T.BackSide,vertexColors:true})),pp=sg.geometry.attributes.position,cc=[];for(let i=0;i<pp.count;i++){const k=(pp.getY(i)/10+1)/2;cc.push(.35+.35*k,.4+.4*k,.45+.55*k)}sg.geometry.setAttribute('color',new T.Float32BufferAttribute(cc,3));es.add(sg);sc.environment=new T.PMREMGenerator(rn).fromScene(es,.02).texture}catch(e){console.error(e)}
  sc.add(new T.HemisphereLight(0xffffff,0x667755,1.0));const dl=new T.DirectionalLight(0xffffff,1.1);dl.position.set(30,50,20);sc.add(dl);
- const cam=new T.PerspectiveCamera(65,innerWidth/innerHeight,.1,300);
+ const cam=new T.PerspectiveCamera(65,innerWidth/innerHeight,.25,300);
  const gnd=new T.Mesh(new T.PlaneGeometry(400,400),new T.MeshLambertMaterial({color:0x5c8a4a}));gnd.rotation.x=-Math.PI/2;sc.add(gnd);
  const bg=new T.BoxGeometry(1,1,1),mats={};
  
@@ -3929,8 +3929,8 @@ ZMAP.build=function(T,grp,B,mats,nb){
  var b,D=nb.deco||[],R=nb.roads||[];
  for(i=0;i<B.length;i++){b=B[i];add(b.c,0,b.x-b.w/2,b.x+b.w/2,b.y0||0,b.h,b.z-b.d/2,b.z+b.d/2)}
  for(i=0;i<D.length;i++){b=D[i];add(b.c,b.e,b.x-b.w/2,b.x+b.w/2,b.y0,b.y1,b.z-b.d/2,b.z+b.d/2)}
- for(i=0;i<R.length;i++){b=R[i];add(b.c,0,b.x-b.w/2,b.x+b.w/2,0,.03,b.z-b.d/2,b.z+b.d/2)}
- for(var key in G){var g=G[key],mk="z"+key,m=mats[mk]||(mats[mk]=g.e?new T.MeshBasicMaterial({color:g.c}):new T.MeshLambertMaterial({color:g.c,side:T.DoubleSide})),geo=new T.BufferGeometry();
+ for(i=0;i<R.length;i++){b=R[i];add(b.c,0,b.x-b.w/2,b.x+b.w/2,0,.02,b.z-b.d/2,b.z+b.d/2)}
+ for(var key in G){var g=G[key],mk="z"+key,m=mats[mk]||(mats[mk]=g.e?new T.MeshBasicMaterial({color:g.c}):new T.MeshLambertMaterial({color:g.c,side:T.FrontSide})),geo=new T.BufferGeometry();
   geo.setAttribute("position",new T.Float32BufferAttribute(g.p,3));geo.setAttribute("normal",new T.Float32BufferAttribute(g.n,3));geo.setIndex(new T.Uint32BufferAttribute(g.i,1));
   var me=new T.Mesh(geo,m);me.frustumCulled=false;me.userData.dec=1;grp.add(me);ZMAP.geos.push(geo)}};
 
@@ -3949,7 +3949,7 @@ function zmGen(seed,n){
  function fr(x,z,hw,hd,m){if(m===undefined)m=2;if(Math.hypot(x,z)+Math.max(hw,hd)>R-4)return false;for(var i=0;i<occ.length;i++){var o=occ[i];if(Math.abs(x-o[0])<hw+o[2]+m&&Math.abs(z-o[1])<hd+o[3]+m)return false}return true}
  function cl(x,z,hw,hd){occ.push([x,z,hw,hd])}
  function door(c,b0){b0=b0||0;return{c:c,w:1.9,b:b0,t:b0+2.6}}
- function win(c,b0){b0=b0||0;return{c:c,w:1.4,b:b0+1,t:b0+2.1}}
+ function win(c,b0){b0=b0||0;return{c:c,w:1.6,b:b0+.9,t:b0+2.75}}
  function bigd(c){return{c:c,w:4,b:0,t:4.2}}
  function hwin(c){return{c:c,w:1.6,b:2.6,t:3.8}}
  function wall(ax,fix,a0,a1,t,y0,y1,c,ops){
@@ -3968,8 +3968,8 @@ function zmGen(seed,n){
   q=[s0+dir*.1,face-dir*.1];hh=[base+1.2,top+1.2];
   for(i=0;i<2;i++)for(j=-1;j<=1;j+=2){if(ax==="z")dc(lane+j*(wd/2+.05),q[i],.12,.12,base,hh[i],T.trim);else dc(q[i],lane+j*(wd/2+.05),.12,.12,base,hh[i],T.trim)}
   var m={ax:ax,lane:lane,face:face,dir:dir,base:base,top:top,n:n,run:run,s0:s0,into:null};STL.push(m);return m}
- function pedge(ax,fix,a0,a1,y0,hh,c,gap){
-  function seg(p,q){if(q-p<.2)return;var m=(p+q)/2;if(ax==="x")bx(m,fix,q-p,.3,y0+hh,c,{y0:y0,k:"w"});else bx(fix,m,.3,q-p,y0+hh,c,{y0:y0,k:"w"})}
+ function pedge(ax,fix,a0,a1,y0,hh,c,gap){if(hh<1)hh=1.25;
+  function seg(p,q){if(q-p<.2)return;var m=(p+q)/2;if(ax==="x"){bx(m,fix,q-p,.4,y0+hh,c,{y0:y0,k:"w"});dc(m,fix,q-p+.1,.55,y0+hh-.01,y0+hh+.09,T.trim)}else{bx(fix,m,.4,q-p,y0+hh,c,{y0:y0,k:"w"});dc(fix,m,.55,q-p+.1,y0+hh-.01,y0+hh+.09,T.trim)}}
   if(gap&&gap[1]>a0&&gap[0]<a1){seg(a0,Math.max(a0,gap[0]));seg(Math.min(a1,gap[1]),a1)}else seg(a0,a1)}
  /* props */
  function crate(x,z,s,hh){hh=hh||s;var c=pk([T.prop,T.prop3]),q=s/2,k=shade(c,.6);bx(x,z,s,s,hh,c,{k:"p"});[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(a){dc(x+a[0]*q,z+a[1]*q,.13,.13,0,hh+.02,k)});dc(x,z,s+.05,s+.05,hh*.5-.07,hh*.5+.07,shade(c,.78))}
@@ -3979,7 +3979,7 @@ function zmGen(seed,n){
  function lowwall(x,z,len,rot){var w=rot?.4:len,d=rot?len:.4;bx(x,z,w,d,1,T.wall2,{k:"p"});dc(x,z,w+.08,d+.08,.95,1.08,shade(T.wall2,.8))}
  function fence(x,z,len,rot,c){c=c||T.prop;bx(x,z,rot?.3:len,rot?len:.3,1.1,c,{k:"p"});var nn=Math.max(2,Math.round(len/2.2)),i,p;for(i=0;i<=nn;i++){p=-len/2+i*len/nn;if(rot)dc(x,z+p,.2,.2,0,1.35,shade(c,.7));else dc(x+p,z,.2,.2,0,1.35,shade(c,.7))}}
  function rock(x,z,s){var c=T.rock,h=rr(1,2.4);bx(x,z,s,s*rr(.8,1.2),h,c,{k:"p"});bx(x+s*.4,z+s*.3,s*.6,s*.6,h*.6,shade(c,.9),{k:"p"});dc(x,z,s*.9,s*.9,h-.02,h+.12,shade(c,1.15))}
- function tree(x,z,s){s=s||1;var tl=ti===4?1.5:1,lf=T.leaf,l2=T.leaf2||shade(lf,.8);bx(x,z,.55,.55,2.8*tl,T.trunk,{k:"p"});dc(x,z,3.6*s,3.6*s,2.2*tl,3.4*tl,lf);dc(x,z,2.7*s,2.7*s,3.4*tl,4.4*tl,l2);dc(x,z,1.7*s,1.7*s,4.4*tl,5.2*tl,lf);if(ti===5){dc(x,z,1.8*s,1.8*s,5,5.3,0xffffff);dc(x,z,2.8*s,2.8*s,3.3,3.5,0xffffff)}}
+ function tree(x,z,s){s=s||1;var tl=ti===4?1.5:1,lf=T.leaf,l2=T.leaf2||shade(lf,.8);bx(x,z,.8,.8,2.8*tl,T.trunk,{k:"p"});bx(x,z,3.4*s,3.4*s,3.8*tl,lf,{y0:2.8*tl,k:"p"});bx(x,z,2.6*s,2.6*s,4.8*tl,l2,{y0:3.8*tl,k:"p"});bx(x,z,1.7*s,1.7*s,5.7*tl,lf,{y0:4.8*tl,k:"p"});bx(x,z,.9*s,.9*s,6.4*tl,l2,{y0:5.7*tl,k:"p"});dc(x,z,1.1,1.1,0,.6,T.trunk);if(ti===5){dc(x,z,1.8*s,1.8*s,5,5.3,0xffffff);dc(x,z,2.8*s,2.8*s,3.3,3.5,0xffffff)}}
  function bush(x,z){var c=T.leaf;dc(x,z,1.8,1.5,0,1.1,shade(c,.9));dc(x+.4,z+.3,1.2,1.1,0,1.5,c)}
  function car(x,z,rot,c,wrk){var L=4.4,W=1.9,w=rot?W:L,d=rot?L:W,cw=rot?W-.1:2.3,cd=rot?2.3:W-.1,ox=rot?0:-.2,oz=rot?-.2:0;
   bx(x,z,w,d,.95,c,{k:"p"});bx(x+ox,z+oz,cw,cd,1.75,shade(c,1.1),{y0:.95,k:"p"});dc(x+ox,z+oz,cw+.05,cd+.05,1.05,1.6,0x1b2230);
@@ -4002,10 +4002,10 @@ function zmGen(seed,n){
   pedge("z",x-w/2+.15,z-d/2+.15,z+d/2-.15,hh,.7,T.prop3,side===3?gz:null);pedge("z",x+w/2-.15,z-d/2+.15,z+d/2-.15,hh,.7,T.prop3,side===2?gz:null);
   var m;if(side===0){m=stairsTo("z",x,z+d/2,-1,1.6,0,hh,.6,T.floor);m.into=[0,-1]}else if(side===1){m=stairsTo("z",x,z-d/2,1,1.6,0,hh,.6,T.floor);m.into=[0,1]}else if(side===2){m=stairsTo("x",z,x+w/2,-1,1.6,0,hh,.6,T.floor);m.into=[-1,0]}else{m=stairsTo("x",z,x-w/2,1,1.6,0,hh,.6,T.floor);m.into=[1,0]}}
  /* houses */
- function bsize(k){return k===0?[rr(5.6,7),rr(5.8,7)]:k===1?[rr(9,11),rr(7.2,8.6)]:[rr(12.5,14.5),rr(10.6,12)]}
+ function bsize(k){return k===0?[rr(7.5,9),rr(7.5,9)]:k===1?[rr(12,14.5),rr(9.5,11.5)]:[rr(16,19),rr(13.5,16)]}
  function building(x,z,k,w,d,eSt,colr){
   var c1=colr||pk([T.wall,T.wall2]),H=3.4,t=.4,x0=x-w/2,x1=x+w/2,z0=z-d/2,z1=z+d/2,ss=eSt?1:-1,dir=pr(.5)?1:-1,top=H+.3,xs=x1-t/2,xw=x0+t/2,N,S,O,xp,xl,xr,zq;
-  dc(x,z,w-.7,d-.7,0,.05,T.floor);
+  dc(x,z,w-.7,d-.7,0,.06,T.floor);
   if(k===0){N=[door(x+.18*w),win(x-.28*w)];S=[door(x-.18*w),win(x+.28*w)];O=[win(z)]}
   else if(k===1){xp=x+w*.05;xl=(x0+xp)/2;xr=(xp+x1)/2;N=[door(xl),win(xr)];S=[door(xr),win(xl)];O=[door(z+d*.18),win(z-d*.22)];wall("z",xp,z0+t,z1-t,.3,0,H,c1,[door(z-d*.05)])}
   else{xp=x-w*.15;xl=(x0+xp)/2;xr=(xp+x1)/2;zq=z+d*.04;N=[door(xl),win(xr)];S=[door(xr),win(xl)];O=[door(z-d*.2),win(z+d*.25)];wall("z",xp,z0+t,z1-t,.3,0,H,c1,[door(z-d*.22)]);wall("x",zq,xp+.15,x1-t,.3,0,H,c1,[door(xr)])}
@@ -4016,7 +4016,7 @@ function zmGen(seed,n){
   pedge("x",z0+.15,x0+.15,x1-.15,top,.7,c1,null);pedge("x",z1-.15,x0+.15,x1-.15,top,.7,c1,null);
   pedge("z",x1-.15,z0+.15,z1-.15,top,.7,c1,ss>0?gap:null);pedge("z",x0+.15,z0+.15,z1-.15,top,.7,c1,ss<0?gap:null);
   var sm=stairsTo("z",ss>0?x1+.8:x0-.8,face,dir,1.5,0,top,run,shade(c1,.8));sm.into=[-ss,0];
-  furnish(x,z,w,d,k===0?1:k===1?2:3);
+  furnish(x,z,w,d,k===0?1:k===1?2:3);if(k>0){bx(x-w*.2,z-dir*d*.2,2.4,1.1,top+1.3,T.prop3,{y0:top,k:"p"});bx(x+w*.22,z-dir*d*.12,1.3,1.3,top+1.3,T.wall2,{y0:top,k:"p"});bx(x+w*.28,z-dir*d*.28,.9,.9,top+2.2,T.wall2,{y0:top,k:"p"})}
   if(T.neon){dc(x,z0-.24,w*.6,.08,2.7,2.95,pk(T.neon),1);dc(x,z1+.24,w*.6,.08,2.7,2.95,pk(T.neon),1);dc(x,z,w+.62,d+.62,top+.05,top+.12,pk(T.neon),1)}
   if(k===2){
    var rw=w*.42,rd=d*.52,rcx=ss>0?x0+1.2+rw/2:x1-1.2-rw/2,rcz=z-d*.02,H2=3.2,rx0=rcx-rw/2,rx1=rcx+rw/2,rz0=rcz-rd/2,rz1=rcz+rd/2,c2=pk([T.wall,T.wall2]),tE=ss>0,B0=top;
@@ -4033,7 +4033,7 @@ function zmGen(seed,n){
  function put(k,x,z,eSt){var s=bsize(k),w=s[0],d=s[1];if(!fr(x,z,w/2+2.1,d/2+.5))return false;cl(x,z,w/2+2.1,d/2+.5);building(x,z,k,w,d,eSt===undefined?pr(.5):eSt);return true}
  function warehouse(x,z){
   var w=rr(24,27),d=rr(15,17),H=6,t=.5,c1=T.wall,x0=x-w/2,x1=x+w/2,z0=z-d/2,z1=z+d/2,top=H+.3,i;
-  if(!fr(x,z,w/2+2.5,d/2+1))return false;cl(x,z,w/2+2.5,d/2+1);dc(x,z,w-.8,d-.8,0,.05,T.floor);
+  if(!fr(x,z,w/2+2.5,d/2+1))return false;cl(x,z,w/2+2.5,d/2+1);dc(x,z,w-.8,d-.8,0,.06,T.floor);
   wall("x",z0+t/2,x0,x1,t,0,H,c1,[bigd(x-w*.3),bigd(x+w*.12),hwin(x-w*.1),hwin(x+w*.38),hwin(x-w*.42)]);
   wall("x",z1-t/2,x0,x1,t,0,H,c1,[bigd(x+w*.3),bigd(x-w*.12),hwin(x+w*.1),hwin(x-w*.38),hwin(x+w*.42)]);
   wall("z",x1-t/2,z0+t,z1-t,t,0,H,c1,[]);wall("z",x0+t/2,z0+t,z1-t,t,0,H,c1,[door(z),hwin(z-5),hwin(z+5)]);
@@ -4073,7 +4073,7 @@ function zmGen(seed,n){
   cell=28;rw=8;K=Math.floor(R/cell)+1;
   for(i=-K;i<=K;i++){pos=i*cell;if(Math.abs(pos)<R-6){Ln=2*Math.sqrt(R*R-pos*pos);RD.push({x:pos,z:0,w:rw,d:Ln,c:T.road});RD.push({x:0,z:pos,w:Ln,d:rw,c:T.road});for(m=-Ln/2+3;m<Ln/2-2;m+=6){dc(pos,m,.25,2.6,.03,.08,T.mark,!!T.neon);dc(m,pos,2.6,.25,.03,.08,T.mark,!!T.neon)}}}
   for(a=-K;a<K;a++)for(b2=-K;b2<K;b2++){cx=(a+.5)*cell;cz=(b2+.5)*cell;if(Math.hypot(cx,cz)>R-12)continue;
-   dc(cx,cz,cell-rw,cell-rw,0,.06,T.walk);u=g();
+   dc(cx,cz,cell-rw,cell-rw,0,.04,T.walk);u=g();
    if(u<.16){if(!(pr(.5)&&fr(cx,cz,6,3,.5)&&(cl(cx,cz,6,3),stackc(cx-1.5,cz,pk([T.prop,T.prop2,T.prop3])),true))){place(cx-4,cz-4);place(cx+4,cz+4)}}
    else if(u<.6){put(2,cx+rr(-1,1),cz+rr(-1,1))||put(1,cx,cz)}
    else if(u<.85){put(1,cx,cz+rr(-3,3))||put(0,cx,cz)}
