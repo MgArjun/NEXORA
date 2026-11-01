@@ -5252,11 +5252,82 @@ window.arSig=function(m){
   if(navigator.vibrate)navigator.vibrate([20,40,20]);ping()}
  else if(m.t==="gmdec"){if(!N.host||m.code!==N.code||N.st)return;ts("Friend declined");closeS();nEnd()}
  else if(m.t==="gmcan"){if(N.pend===m.code){N.pend="";closeS();ts("Invite cancelled")}}};
-function page(){inGame=false;$("pg").innerHTML='<div class="sb"><button class="ib" data-pl="home" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button></div><div class="gh"><i>'+GI.arn+'</i><div><h2>Arena 1v1</h2><p>Gun fight · 5 rounds</p></div></div><div class="feat" style="margin-top:12px"><span class="tag">1 vs 1</span><b>Arena Duel</b><p>Win 3 rounds first. The zone keeps shrinking.</p><div class="fbx"><button data-ar="solo">Play vs bot</button><button class="gh2" data-ar="inv">Play with a friend</button></div><i class="fg">'+GI.arn+'</i></div><p class="note" style="margin-top:14px">Left stick: move. Drag right side: look. FIRE: shoot. JUMP: jump. Take cover behind walls and crates. Damage outside the red zone.</p>'}
+function page(){inGame=false;$("pg").innerHTML='<div class="sb"><button class="ib" data-pl="home" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button></div><div class="gh"><i>'+GI.arn+'</i><div><h2>Arena 1v1</h2><p>Gun fight · 5 rounds</p></div></div><div class="feat" style="margin-top:12px"><span class="tag">1 vs 1</span><b>Arena Duel</b><p>Win 3 rounds first. The zone keeps shrinking.</p><div class="fbx" style="flex-wrap:wrap"><button data-ar="solo">Play vs bots</button><button class="gh2" data-ar="inv">Play with a friend</button><button class="gh2" data-ar="cus">Custom play</button></div><i class="fg">'+GI.arn+'</i></div><p class="note" style="margin-top:14px">Left stick: move. Drag right side: look. FIRE: shoot. JUMP: jump. Take cover behind walls and crates. Damage outside the red zone.</p>'}
 (window.__zg=window.__zg||{}).arn=function(){start(0)};
 const _og=openGame;openGame=function(id){if(id!=="arn")return _og(id);page()};
 const _gs=gmSend;gmSend=function(){if(INV.id==="arn")return nHost([...INV.sel][0]);return _gs()};
-$("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-ar]");if(!b)return;if(b.dataset.ar==="inv")inviteScreen("arn");else start(0)});
+$("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-ar]");if(!b)return;{const k=b.dataset.ar;if(k==="inv")inviteScreen("arn");else if(k==="solo")arBotSheet();else if(k==="cus")lbHost();else if(k==="lbx")lbLeave();else if(k==="lbs")lbStart();else if(k==="lbi")lbInviteSheet();else if(k==="lbm")lbMic()}});
+$("pg").addEventListener("click",e=>{if(tab!=="play")return;const t=e.target.closest("[data-tm]");if(t&&LB.ch)lbTeam(t.dataset.tm)});
+
+/*ZNX-ARC-V1 bots picker*/
+function arBotSheet(){
+ sheet('<h3>Play vs bots</h3><p class="note">How many bots?</p><div class="glist">'+[1,2,3].map(n=>'<button class="gr" data-nb="'+n+'"><span class="t"><b>'+n+(n>1?" bots":" bot")+'</b><small>'+(n===1?"1 vs 1":"You vs "+n)+'</small></span><em>\u203a</em></button>').join("")+'</div>');
+ $("sh").onclick=e=>{const b=e.target.closest("[data-nb]");if(!b)return;const n=+b.dataset.nb;closeS();if(n>1){ts("2 and 3 bots come with the match engine patch");return}start(0)}}
+
+/*ZNX-ARC-V1 custom lobby*/
+const LB={ch:null,live:0,host:0,code:"",hp:"",m:[],inv:new Set(),pend:"",rt:0,got:0,view:0,room:null};
+LB.room={key:"g",tx:m=>lbTx(m),me:()=>clCtx().pid,ids:()=>{const me=LB.m.find(x=>x.pid===clCtx().pid);return me&&me.team?LB.m.filter(x=>x.team===me.team&&x.pid!==me.pid).map(x=>x.pid):[]},ui:()=>{}};
+function lbTx(m){if(LB.ch&&LB.live)try{LB.ch.send({type:"broadcast",event:"m",payload:Object.assign({from:clCtx().pid},m)})}catch(e){}}
+function lbNm(p,f){const u=(clCtx().byPid||{})[p];return u?u.n:String(f||"Friend").slice(0,30)}
+function lbEnd(){clearInterval(LB.rt);if(VC.key==="g")vcDetach();const c=LB.ch;LB.ch=null;LB.live=0;LB.host=0;LB.m=[];LB.got=0;LB.view=0;if(c)try{clCtx().sb.removeChannel(c)}catch(e){}}
+function lbOpen(code,cb){const c=clCtx();if(!c.sb||!c.pid){ts("Not connected yet.");return 0}lbEnd();const ch=c.sb.channel("arc:"+code,{config:{broadcast:{self:false}}});LB.ch=ch;LB.code=code;
+ ch.on("broadcast",{event:"m"},p=>lbGot(p.payload)).subscribe(s=>{if(LB.ch!==ch)return;if(s==="SUBSCRIBED"){LB.live=1;cb&&cb()}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")ts("Connection is weak")});return 1}
+function lbSt(){lbTx({t:"st",m:LB.m.map(x=>({pid:x.pid,n:x.n,team:x.team}))});lbDraw();try{vcSync()}catch(e){}}
+function lbSet(x,t){t=(t==="a"||t==="b")?t:null;if(t&&LB.m.filter(z=>z.team===t&&z!==x).length>=4)return ts("Team is full");x.team=t;lbSt()}
+function lbTeam(t){const me=clCtx().pid,x=LB.m.find(z=>z.pid===me);if(!x||x.team===t)return;
+ if(LB.host)return lbSet(x,t);
+ if(LB.m.filter(z=>z.team===t).length>=4)return ts("Team is full");
+ lbTx({t:"team",team:t})}
+function lbGot(m){if(!m||!m.t)return;
+ if(m.t==="vsig"){if(LB.m.some(x=>x.pid===m.from)){vcAttach(LB.room);vcGot(m)}return}
+ if(LB.host){
+  if(m.t==="join"){if(!LB.inv.has(m.from)||LB.m.length>=8)return;if(!LB.m.some(x=>x.pid===m.from)){const n=lbNm(m.from,m.n);LB.m.push({pid:m.from,n:n,team:null});ts(n.split(" ")[0]+" joined")}lbSt()}
+  else if(m.t==="team"){const x=LB.m.find(z=>z.pid===m.from);if(x)lbSet(x,m.team)}
+  else if(m.t==="leave"){const i=LB.m.findIndex(z=>z.pid===m.from);if(i>0){ts(LB.m[i].n.split(" ")[0]+" left");LB.m.splice(i,1);lbSt()}}
+ }else{
+  if(m.from!==LB.hp)return;
+  if(m.t==="st"&&Array.isArray(m.m)){LB.got=1;clearInterval(LB.rt);LB.m=m.m.slice(0,8).map(x=>({pid:String(x.pid),n:String(x.n||"Friend").slice(0,30),team:(x.team==="a"||x.team==="b")?x.team:null}));lbDraw();try{vcSync()}catch(e){}}
+  else if(m.t==="go")ts("Host pressed Start. Teams are locked");
+  else if(m.t==="end"){ts("The host closed the lobby");lbLeave(1)}}}
+function lbDraw(){if(!LB.ch||tab!=="play")return;LB.view=1;inGame=true;
+ const me=clCtx().pid,mm=LB.m.find(x=>x.pid===me)||{},vo=!!(VC.on&&VC.key==="g"),
+ av=x=>'<div class="ava" style="background:'+g(x.n)+';width:34px;height:34px;font-size:12px;flex:none">'+esc(ini(x.n))+'</div>',
+ col=t=>{const l=LB.m.filter(x=>x.team===t);return '<div class="card2" style="padding:12px;margin:0"><div class="shd"><b>Team '+t.toUpperCase()+'</b><span class="mono">'+l.length+'/4</span></div>'+(l.length?l.map(x=>'<div class="pr2" style="min-height:48px">'+av(x)+'<div class="t"><b style="font-size:13.5px">'+esc(x.n.split(" ")[0])+(x.pid===me?" (You)":"")+'</b></div></div>').join(""):'<div class="empty" style="padding:14px 4px;font-size:12px">Empty</div>')+(mm.team!==t&&l.length<4?'<button class="pri" style="width:100%;height:42px;margin-top:8px" data-tm="'+t+'">Join</button>':"")+'</div>'},
+ wait=LB.m.filter(x=>!x.team),ok=LB.m.some(x=>x.team==="a")&&LB.m.some(x=>x.team==="b");
+ $("pg").innerHTML='<div class="sb"><button class="ib" data-ar="lbx" aria-label="Leave">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button><h2>Custom play</h2><span style="flex:1"></span><button class="ib" data-ar="lbm" aria-label="Voice" style="'+(vo?"color:var(--ac)":"")+'">'+CI.mic+'</button></div>'+
+ '<p class="note" style="margin:-6px 0 12px">Pick your team. Your voice is heard only by your own team.</p>'+
+ '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+col("a")+col("b")+'</div>'+
+ (wait.length?'<div class="sec">Not in a team yet</div><div class="glist">'+wait.map(x=>'<div class="gr" style="min-height:52px">'+av(x)+'<span class="t"><b>'+esc(x.n)+(x.pid===me?" (You)":"")+'</b></span></div>').join("")+'</div>':"")+
+ (LB.host?'<div style="display:grid;gap:8px;margin-top:14px"><button data-ar="lbi">Invite friends</button><button class="pri" data-ar="lbs"'+(ok?"":' disabled style="opacity:.5"')+'>Start</button></div>':'<p class="note" style="text-align:center;margin-top:14px">Waiting for the host to start...</p>')}
+function lbHost(){const c=clCtx();if(!c.sb||!c.pid)return ts("Not connected yet.");
+ const code=Array.from(crypto.getRandomValues(new Uint8Array(8)),v=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[v%32]).join("");
+ if(!lbOpen(code))return;LB.host=1;LB.hp=c.pid;LB.m=[{pid:c.pid,n:MY.name,team:null}];LB.inv=new Set();lbDraw();lbInviteSheet()}
+function lbInviteSheet(){if(!LB.host)return;
+ const l=U.filter(u=>u.pid&&!BL.includes(u.id)&&!LB.m.some(x=>x.pid===u.pid)).sort((a,b)=>b.on-a.on);
+ sheet('<h3>Invite friends</h3>'+(l.length?l.map(u=>'<div class="pr2"><div class="ava" style="background:'+g(u.n)+';width:42px;height:42px;font-size:14px">'+esc(ini(u.n))+'</div><div class="t"><b>'+esc(u.n)+'</b><small>'+(u.on?"Online":"Offline")+'</small></div><button class="pri" style="height:36px;padding:0 16px;border-radius:18px;font-size:13px" data-lv="'+u.id+'"'+(LB.inv.has(u.pid)?" disabled":"")+'>'+(LB.inv.has(u.pid)?"Sent":"Invite")+'</button></div>').join(""):'<div class="empty">No friends to invite.</div>'));
+ $("sh").onclick=e=>{const b=e.target.closest("[data-lv]");if(!b||b.disabled)return;const u=U.find(x=>x.id==b.dataset.lv);if(!u||!u.pid)return;
+  if(LB.inv.size>=7)return ts("Invite limit reached");
+  LB.inv.add(u.pid);b.disabled=true;b.textContent="Sent";
+  clSig(u.pid,{t:"gminv",g:"arc",code:LB.code,name:MY.name}).then(ok=>{if(!ok){LB.inv.delete(u.pid);ts("Could not reach "+u.n.split(" ")[0])}})}}
+function lbStart(){if(!LB.host)return;if(!(LB.m.some(x=>x.team==="a")&&LB.m.some(x=>x.team==="b")))return ts("Both teams need at least 1 player");
+ lbTx({t:"go"});ts("Teams locked. The match engine comes in the next patch")}
+async function lbMic(){if(!LB.ch)return;if(VC.on&&VC.key==="g"){vcStop();ts("Voice off");lbDraw();return}vcAttach(LB.room);if(await vcSpeak()){ts("Voice on");lbDraw()}}
+function lbLeave(q){if(LB.ch){if(LB.host){lbTx({t:"end"});LB.inv.forEach(p=>{if(!LB.m.some(x=>x.pid===p))clSig(p,{t:"gmcan",g:"arc",code:LB.code})})}else if(!q)lbTx({t:"leave"})}
+ lbEnd();inGame=false;if(tab==="play"){page();pgIn(-1)}}
+function arcSig(m){
+ if(m.t==="gminv"){if(!/^[A-Z0-9]{4,10}$/.test(m.code||""))return;const c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
+  if(!ST2.invite||(u&&BL.includes(u.id))||CL.on||LB.ch||N.ch||S){clSig(m.from,{t:"gmdec",g:"arc",code:m.code});return}
+  const nm=String(m.name||"A friend").slice(0,30);LB.pend=m.code;
+  sheet('<div class="ci"><div class="ava ciav" style="width:72px;height:72px;font-size:26px;cursor:default;background:'+g(nm)+'">'+esc(ini(nm))+'</div><b>'+esc(nm)+'</b><small>invited you to Arena Custom play</small></div><div class="grid" style="grid-template-columns:1fr 1fr"><button id="arcd">Decline</button><button class="pri" id="arcj">Join</button></div>');
+  $("sh").onclick=e=>{if(e.target.closest("#arcd")){closeS();LB.pend="";clSig(m.from,{t:"gmdec",g:"arc",code:m.code})}else if(e.target.closest("#arcj")){closeS();lbJoin(m)}};
+  if(navigator.vibrate)navigator.vibrate([20,40,20]);ping()}
+ else if(m.t==="gmdec"){if(LB.host&&m.code===LB.code){LB.inv.delete(m.from);ts(lbNm(m.from,"Friend").split(" ")[0]+" declined")}}
+ else if(m.t==="gmcan"){if(LB.pend===m.code){LB.pend="";closeS();ts("Invite cancelled")}}}
+function lbJoin(m){if(LB.pend!==m.code)return ts("Invite is no longer available");LB.pend="";
+ if(!lbOpen(m.code,()=>{lbTx({t:"join",n:MY.name});let k=0;clearInterval(LB.rt);LB.rt=setInterval(()=>{if(LB.got||!LB.ch){clearInterval(LB.rt);return}if(++k>8){clearInterval(LB.rt);ts("Lobby is not available");lbLeave(1);return}lbTx({t:"join",n:MY.name})},1500)}))return;
+ LB.host=0;LB.hp=m.from;LB.got=0;nShow()}
+{const _cg0=clGot;clGot=function(m){if(m&&m.g==="arc"&&m.from){arcSig(m);return}return _cg0.apply(this,arguments)}}
+
 }
 
 
@@ -5264,7 +5335,7 @@ $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.clo
 
 /* ===== LEVEL DEVIL v2 for ZNEXORA ===== */
 {
-GAMES.push({id:"devil",n:"Level Devil",max:1,d:"15 long trap levels. Trust nothing.",r:1});
+/*ZNX-ARC-V1*/GAMES.splice(Math.min(2,GAMES.length),0,{id:"devil",n:"Level Devil",max:1,d:"15 long trap levels. Trust nothing.",r:1});
 GI.devil=A('<path d="M5 3l3 5M19 3l-3 5"/><circle cx="12" cy="13.5" r="7"/><path d="M9 12.5h.01M15 12.5h.01M9.5 17c1.5.9 3.5.9 5 0"/>');
 
 const W=640,H=360,PW=18,PH=26,SPD=200,G=1650,JV=560,FIX=1/120,EPS=.01,KEY="znx_ld";
