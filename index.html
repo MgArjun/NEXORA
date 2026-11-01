@@ -3468,9 +3468,32 @@ function zfSet(c,on,L){
   c.zf={L:mk(c.eL),R:mk(c.eR)}}
  ["L","R"].forEach(function(n){var o=c.zf[n];if(!o)return;var w=!!on&&((n==="L")===!!L);if(o.on===w)return;o.on=w;
   o.h.children.forEach(function(ch){if(ch!==o.f&&ch.isMesh)ch.visible=!w});o.f.visible=w})}
+/*ZNX-POSE-V1*/
+function zxCe(c){var w=(c&&c.s&&c.s.zcw)||0;return w*w*(3-2*w)}
+function zfBoth(c,on){if(!c.zf)zfSet(c,0);var z=c.zf;if(!z)return;["L","R"].forEach(function(n){var o=z[n];if(!o)return;var w=!!on;if(o.on===w)return;o.on=w;o.h.children.forEach(function(ch){if(ch!==o.f&&ch.isMesh)ch.visible=!w});o.f.visible=w})}
+function zxCrouch(c,p,dt){
+ if(!c||!c.lL||!c.kL||!c.fL||!c.lR||!c.kR||!c.fR||!p)return;
+ var S=c.s||(c.s={}),T=p.cr?1:0,W=S.zcw||0;
+ W+=(T-W)*(1-Math.exp(-dt*(T?10:8)));if(W<.003)W=0;S.zcw=W;
+ if(!W)return;
+ var e=W*W*(3-2*W),mv=Math.min(1,S.mv||0),sw=Math.sin(S.ph||0)*.2*mv;
+ /* front leg: thigh almost flat, shin leaned. back leg: tucked close to the butt, knee out */
+ var aR=-1.5+sw,kR=2.3,aL=-1.3-sw;
+ var Hf=.44*Math.cos(aR)+.41*Math.cos(aR+kR);
+ var cb=Math.max(-1,Math.min(1,(Hf-.44*Math.cos(aL))/.41)),kL=Math.acos(cb)-aL;
+ var hy=Hf+.08;
+ var B=function(o,v){o.rotation.x+=(v-o.rotation.x)*e};
+ B(c.lR,aR);B(c.kR,kR);B(c.lL,aL);B(c.kL,kL);
+ B(c.fR,-(aR+kR));B(c.fL,-(aL+kL));
+ c.lR.rotation.z+=(.1-c.lR.rotation.z)*e;
+ c.lL.rotation.z+=(-.3-c.lL.rotation.z)*e;
+ var ho=c.hp.position.y,hn=ho+(hy-ho)*e;
+ c.hp.position.y=hn;c.body.position.y+=hn-ho;
+ c.body.rotation.x+=.42*e;
+ c.hd.rotation.x-=.3*e}
 function zpAnim(c,p,s,mine){/*ZNX-FIST*/
  var raw=mine?(s.mk||0):(p.mk||0),k=Math.abs(raw),L=mine?!!s.mhl:raw<0;
- if(!(k>0)){zfSet(c,0);return}
+ if(!(k>0)){zfBoth(c,1);return}
  var E=function(x){return x*x*(3-2*x)},A1,E1,w,u;
  if(k<.3){u=E(k/.3);A1=-.9;E1=-2.2;w=u}
  else if(k<.55){u=E((k-.3)/.25);A1=-.9-.6*u;E1=-2.2+2.1*u;w=1}
@@ -3481,7 +3504,7 @@ function zpAnim(c,p,s,mine){/*ZNX-FIST*/
  pe.rotation.x=pe.rotation.x*(1-w)+E1*w;
  pa.rotation.z=pa.rotation.z*(1-w)+sg*.1*w;
  c.body.rotation.y+=sg*.3*w;
- zfSet(c,w>.35,L)}
+ zfBoth(c,1)}
 function zcAim(c,p,dt,t,s){/*ZNX-P2-CHAR*/
 const Z=c.z||(c.z={pr:{},f:0,ay:0,ap:0,sg:1,hy:null}),S=c.s||{},me=p===s.me,K=r=>1-Math.exp(-dt*r),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 let ds=p.yaw-(p.by==null?p.yaw:p.by);ds=Math.atan2(Math.sin(ds),Math.cos(ds));
@@ -3781,7 +3804,7 @@ if(s.ammo===0&&s.res>0)zwRl(s)}
    if(o.fresh||Math.hypot(tx-o.x,tz-o.z)>5){o.x=tx;o.z=tz;o.y=ty;o.fresh=0}else{const q=1-Math.exp(-dt*22);o.x+=(tx-o.x)*q;o.z+=(tz-o.z)*q;o.y+=(ty-o.y)*q}o.vx=o.tvx;o.vz=o.tvz;if(o.tyaw!=null){let dy2=o.tyaw-o.yaw;dy2=Math.atan2(Math.sin(dy2),Math.cos(dy2));const q2=1-Math.exp(-dt*20);o.yaw+=dy2*q2;o.pit+=(o.tpit-o.pit)*q2}if(o.tby!=null){if(o.by==null)o.by=o.tby;let d3=o.tby-o.by;d3=Math.atan2(Math.sin(d3),Math.cos(d3));o.by+=d3*(1-Math.exp(-dt*14))}}
   for(let i=s.tr.length-1;i>=0;i--){const q=s.tr[i];q.l-=dt;if(q.l<=0){sc.remove(q.m);s.tr.splice(i,1)}}
   zgTick(s,dt);zfxTick(s,dt,t);try{zhUpd(s,dt)}catch(e){}s.fl[0]-=dt;s.fl[1]-=dt;s.swt=Math.max(0,(s.swt||0)-dt);s.rc=Math.max(0,(s.rc||0)-dt*5);s.land=Math.max(0,(s.land||0)-dt*8);s.shk=Math.max(0,(s.shk||0)-dt*2.2);if(s.rl>0&&!s.rlp){s.rlp=1;arSfx("click");setTimeout(()=>arSfx("mag"),520*(s.rlt||1.6)/1.6);setTimeout(()=>arSfx("click"),1350*(s.rlt||1.6)/1.6)}if(!(s.rl>0))s.rlp=0;
-  [[c1,m,0],[c2,o,1]].forEach(z=>{const c=z[0],p=z[1],sp=Math.hypot(p.vx,p.vz)/SPD;const ml=z[2]?!!p.mel:!!s.mel;if(c.gm!==ml){c.gm=ml;if(ml){c.body.add(c.gun);c.gun.position.set(.02,.3,-.17);c.gun.rotation.set(0,0,.5);c.gun.scale.setScalar(.9);c.gun.visible=false}else{c.body.add(c.gun);c.gun.scale.setScalar(1);c.gun.visible=true}}c.g.position.set(p.x,p.y-(p.su||0),p.z);c.g.rotation.y=(p.by!=null?p.by:p.yaw);if(p.cr){c.s.lc=1;c.s.dp=1.4}else if(c.s.dp===1.4){c.s.lc=0;c.s.dp=0}if(!z[2]&&!ml){const G=WP().gs;c.gun.scale.set(G[0],G[1],G[2])}if(!c.onStep)c.onStep=(a,b)=>zfStep(s,c,p,a,b);c.aL.rotation.set(0,0,0);c.aR.rotation.set(0,0,0);c.eL.rotation.set(0,0,0);c.eR.rotation.set(0,0,0);poseH(c,Math.min(1,sp),!p.g,t,p.vy||0,p,sp);zcAim(c,p,dt,t,s);{const dd=s.dead&&s.dead.w===z[2]?s.dead:null,f=dd?Math.min(1,dd.t/.7):0;c.g.rotation.x=-1.5*f*f*(3-2*f)}
+  [[c1,m,0],[c2,o,1]].forEach(z=>{const c=z[0],p=z[1],sp=Math.hypot(p.vx,p.vz)/SPD;const ml=z[2]?!!p.mel:!!s.mel;if(c.gm!==ml){c.gm=ml;if(ml){c.body.add(c.gun);c.gun.position.set(.02,.3,-.17);c.gun.rotation.set(0,0,.5);c.gun.scale.setScalar(.9);c.gun.visible=false}else{c.body.add(c.gun);c.gun.scale.setScalar(1);c.gun.visible=true}}c.g.position.set(p.x,p.y-(p.su||0),p.z);c.g.rotation.y=(p.by!=null?p.by:p.yaw);if(p.cr){c.s.lc=1;c.s.dp=1.4}else if(c.s.dp===1.4){c.s.lc=0;c.s.dp=0}if(!z[2]&&!ml){const G=WP().gs;c.gun.scale.set(G[0],G[1],G[2])}if(!c.onStep)c.onStep=(a,b)=>zfStep(s,c,p,a,b);c.aL.rotation.set(0,0,0);c.aR.rotation.set(0,0,0);c.eL.rotation.set(0,0,0);c.eR.rotation.set(0,0,0);poseH(c,Math.min(1,sp),!p.g,t,p.vy||0,p,sp);zcAim(c,p,dt,t,s);zxCrouch(c,p,dt);{const dd=s.dead&&s.dead.w===z[2]?s.dead:null,f=dd?Math.min(1,dd.t/.7):0;c.g.rotation.x=-1.5*f*f*(3-2*f)}
    {const mine=!z[2],rk=zfxRk(s,mine),rl=mine&&s.rl>0?Math.sin(Math.min(1,1-s.rl/(s.rlt||1.6))*Math.PI):0;
    if(ml){zpAnim(c,p,s,mine)}else{
    zxHold(c,p,s,rk,rl,mine);
@@ -4358,8 +4381,8 @@ function zxHold(c,p,s,rk,rl,mine){zfSet(c,0);if(zvPose(c,p,s,mine))return;
   var w=Z.e.copy(dT).addScaledVector(d1,-dT.dot(d1));if(w.lengthSq()<1e-6)w.set(0,0,1);w.normalize();
   var y=Z.f.copy(d1).negate(),x=Z.g.crossVectors(y,w);
   Z.m.makeBasis(x,y,w);a.quaternion.setFromRotationMatrix(Z.m);e.rotation.set(-(Math.PI-gam),0,0)}
- var _sw=mine?Math.max(0,s.swt||0)/.28:0;_sw=_sw*_sw*(3-2*_sw);var _cr=Math.min(1,((c.s&&c.s.cr)||0)/1.4),_m=Math.min(1,(c.s&&c.s.mv)||0),_ph=(c.s&&c.s.ph)||0;G.position.set(-.04+.008*Math.sin(_ph)*_m,.3-.3*_sw-.04*_cr+.008*Math.cos(_ph*2)*_m,.14-rk*.05-.04*_cr);
- G.rotation.set(-Math.PI/2-pit*.9+rk*.1+rl*.45+.9*(typeof _sw==="number"?_sw:0),0,0);
+ var _sw=mine?Math.max(0,s.swt||0)/.28:0;_sw=_sw*_sw*(3-2*_sw);var _cr=Math.min(1,((c.s&&c.s.cr)||0)/1.4),_m=Math.min(1,(c.s&&c.s.mv)||0),_ph=(c.s&&c.s.ph)||0;G.position.set(-.04+.035*Math.sin(_ph)*_m,.38-.3*_sw-.04*_cr+.012*Math.cos(_ph*2)*_m,.16-rk*.05-.04*_cr);c.body.rotation.z+=.035*Math.sin(_ph)*_m;c.body.rotation.y+=-.04*Math.sin(_ph)*_m;
+ G.rotation.set(-Math.PI/2-pit*.9-.4*zxCe(c)+rk*.1+rl*.45+.9*(typeof _sw==="number"?_sw:0),0,0);
  G.updateMatrix();
  ik(c.aL,c.eL,c.cL,Z.t.set(0,-.27,-.05).applyMatrix4(G.matrix),-1);
  ik(c.aR,c.eR,c.cR,Z.t.set(0,-.18,-.05).applyMatrix4(G.matrix),1)}
