@@ -1277,8 +1277,8 @@ const ORDER=["chats","enjoy","play","util","me"];
 let inGame=false;
 function drawUtil(){
  var rows=[['s','Search','Search anything on the web','<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>'],['t','Tools','Compress photo and PDF, edit PDF','<path d="M14.5 6.5a4 4 0 00-5 5L3.5 17.5l3 3 6-6a4 4 0 005-5l-2.5 2.5-2-2z"/>'],['a','Nexo AI','Ask Zexo AI, summarize pages','<path d="M12 3l1.9 5.4L19 10l-5.1 1.6L12 17l-1.9-5.4L5 10l5.1-1.6z"/>']];
- $('pg').innerHTML='<div class="hd"><h2>Utility</h2></div><div class="zse"><input class="srch" id="utq" placeholder="Search something..." aria-label="Search" autocomplete="off" enterkeyhint="search" data-noswipe></div><div class="glist">'+rows.map(function(r){return '<button class="gr" data-ut="'+r[0]+'"'+(r[0]==='t'?' data-tl="1"':'')+'><i>'+A(r[3])+'</i><span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><em>\u203a</em></button>'}).join('')+'</div>';
- var q=$('utq');q.onkeydown=function(e){if(e.key==='Enter'&&q.value.trim().length>1){e.preventDefault();utGo(q.value.trim());q.value='';q.blur()}};
+ $('pg').innerHTML='<div class="hd"><h2>Utility</h2></div><div class="glist">'+rows.map(function(r){return '<button class="gr" data-ut="'+r[0]+'"'+(r[0]==='t'?' data-tl="1"':'')+'><i>'+A(r[3])+'</i><span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><em>\u203a</em></button>'}).join('')+'</div>';
+ 
  if(!drawUtil.b){drawUtil.b=1;$('pg').addEventListener('click',function(e){if(tab!=='util')return;var b=e.target.closest('[data-ut]');if(!b)return;var k=b.dataset.ut;if(k==='s')utGo('');else if(k==='a')zxOpen()})}}
 function utGo(t){var b=$('zsT');if(!b)return ts('Search is not ready');b.click();if(t)setTimeout(function(){var i=$('zsI');if(!i)return;i.value=t;i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))},80)}
 const VIEWS={util:drawUtil,chats:drawChats,status:drawStatus,play:drawPlay,enjoy:drawEnjoy,me:drawMe};
@@ -2588,7 +2588,7 @@ function ytFav(v){let kind="watch",ty=1,sc="private";const url="https://youtu.be
 function ytChips(){const c=$("ytch");if(c)c.innerHTML=Object.keys(YCQ).map(q=>`<button data-yc="${q}" class="${q===YL?"on":""}">${q}</button>`).join("")}
 function ytList(){const l=$("ytl");if(!l)return;
  if(YE){l.innerHTML=`<div class="empty" style="padding:24px 10px">${esc(YE)}</div>`;return}
- l.innerHTML=YR.length?YR.map(v=>`<div class="ytc" data-yp="${v.id}"><div class="th"><img src="${esc(v.th)}" alt="" loading="lazy"><i></i>${v.d?`<u class="ytd">${esc(v.d)}</u>`:""}</div><div class="mt"><span><b>${esc(v.t)}</b><small>${esc(v.c)}${v.v?" \u00b7 "+esc(v.v)+" views":""}</small></span><button class="ib" data-yf="${v.id}" aria-label="Save to favourites">${STAR}</button><button class="ib" data-yq="${v.id}" aria-label="Add to queue">${PLUS}</button></div></div>`).join(""):'<div class="znx-wh">'+A('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>')+'<b>Search to watch</b><small>Type a video name in the box above.</small></div>'}
+ l.innerHTML=YR.length?YR.map(v=>`<div class="ytc" data-yp="${v.id}"><div class="th"><img src="${esc(v.th)}" alt="" loading="lazy"><i></i>${v.d?`<u class="ytd">${esc(v.d)}</u>`:""}</div><div class="mt"><span><b>${esc(v.t)}</b><small>${esc(v.c)}${v.v?" \u00b7 "+esc(v.v)+" views":""}</small></span><button class="ib" data-yf="${v.id}" aria-label="Save to favourites">${STAR}</button><button class="ib" data-yq="${v.id}" aria-label="Add to queue">${PLUS}</button></div></div>`).join(""):'<div class="znx-wh znx-hero"><div class="zhp"><i class="zhg"></i><span class="zhs"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="zhb"><s></s><s></s><s></s><s></s><s></s><s></s></span></div><b>Search to watch</b><small>Type a video name above, tap a result and watch it in a clean player. Friends can join in sync.</small></div>'}
 window.ytRec=function(id,t){if(!/^[\w-]{11}$/.test(id||""))return;try{var k="znx_yth_"+((window.znxCtx&&window.znxCtx().pid)||"x"),a=JSON.parse(localStorage.getItem(k)||"[]").filter(function(x){return x.id!==id});a.unshift({id:id,n:String(t||"").slice(0,80),t:Date.now()});localStorage.setItem(k,JSON.stringify(a.slice(0,40)))}catch(e){}};
 function ytHist(k){if(k!=="for you")return"";var ids=[];try{var a=JSON.parse(localStorage.getItem("znx_yth_"+((window.znxCtx&&window.znxCtx().pid)||"x"))||"[]");a.slice(0,10).forEach(function(x){ids.push(x.id)})}catch(e){}try{FAV.filter(function(f){return f.kind==="watch"}).slice(0,6).forEach(function(f){var s=parseSrc(f.url);if(s&&s.t==="yt")ids.push(s.id)})}catch(e){}ids=ids.filter(function(v,i){return ids.indexOf(v)===i}).slice(0,12);return ids.length?"&h="+ids.join(","):""}
 async function ytSearch(q){q=String(q||"").trim();if(q.length<2)return;const my=++YS,k=q.toLowerCase(),c=YC.get(k);
@@ -3211,7 +3211,7 @@ if(window.visualViewport){var zvv=visualViewport,zfit=function(){var z=$("zx");i
 (function(){var s=document.createElement("style");s.textContent="#zxc{width:50px;height:50px;right:20px;bottom:calc(112px + env(safe-area-inset-bottom,0px));background:var(--sf);box-shadow:0 0 0 1px var(--ln),0 10px 24px -12px var(--ac)}body.hasmini #zxc{bottom:calc(160px + env(safe-area-inset-bottom,0px))}#zxc::before{inset:0;border:0;padding:0;background:conic-gradient(var(--ac),#5ec2b7,#8f88ff,var(--ac));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));animation:zxo 9s linear infinite}#zxc::after{width:12px;height:12px;margin:-6px 0 0 -6px;background:radial-gradient(circle at 35% 30%,#fff,var(--ac) 60%,transparent 76%);animation:zxp 4s ease-in-out infinite}";document.head.appendChild(s)})();
 function zxTick(){var b=$("zxc");if(!b)return;if(zx.open&&zx.cfg.ai_on===false)zxClose();
  if(!zx.ok&&!zx.tr&&zxC().pid&&Date.now()-(zx.tt||0)>15000){zx.tr=1;zx.tt=Date.now();zxCfg().then(function(){zx.tr=0})}
- var ok=zx.cfg.ai_on!==false&&tab==="enjoy"&&!sub&&!!zxC().pid&&!$("app").classList.contains("hide")&&!zx.open&&!CSM&&!document.querySelector("#chat.on,#ov.on,#mp.on,#et.on,#fv.on,#ad.on,#cl.on,#uoR,#lk.on");
+ var ok=false&&zx.cfg.ai_on!==false&&tab==="enjoy"&&!sub&&!!zxC().pid&&!$("app").classList.contains("hide")&&!zx.open&&!CSM&&!document.querySelector("#chat.on,#ov.on,#mp.on,#et.on,#fv.on,#ad.on,#cl.on,#uoR,#lk.on");
  b.style.display=ok?"block":"none"}
 setInterval(zxTick,600);setInterval(zxCfg,45000);
 /*ZNX-ZEXO-HUMAN*/
@@ -7115,7 +7115,7 @@ $('tdl').onclick=function(){if(!S)return;var o=S,rm=[o];if(o.cv)rm.push(o.cv);rm
   PDFLib.PDFDocument.load(BUF).then(function(src){return PDFLib.PDFDocument.create().then(function(out){var q=Promise.resolve();P.forEach(function(p,i){q=q.then(function(){if(!p.items.length)return out.copyPages(src,[i]).then(function(c){out.addPage(c[0])});return flat(p).then(function(ab){return out.embedJpg(ab)}).then(function(jp){out.addPage([p.w1,p.h1]).drawImage(jp,{x:0,y:0,width:p.w1,height:p.h1})})})});return q.then(function(){return out.save()})})})
   .then(function(u8){var bl=new Blob([u8],{type:'application/pdf'});dl(bl,dlName(file.name,'edited','pdf'),{o:file.size,ob:BUF,ed:P.filter(function(p){return p.items.length}).length});ts('Saved '+fsz(bl.size))}).catch(function(){ts('Could not save')}).then(function(){b.disabled=false})}}
 /* ---- entry row in Enjoy tab ---- */
-function inject(){var l=D.querySelector('#pg .glist [data-en=together]');if(l&&!D.querySelector('#pg [data-tl]'))l.parentNode.insertAdjacentHTML('beforeend','<button class="gr" data-tl="1"><i>'+sv('<path d="M14.5 6.5a4 4 0 00-5 5L3.5 17.5l3 3 6-6a4 4 0 005-5l-2.5 2.5-2-2z"/>')+'</i><span class="t"><b>Tools</b><small>Compress photo and PDF, edit PDF</small></span><em>\u203a</em></button>')}
+function inject(){return;var l=D.querySelector('#pg .glist [data-en=together]');if(l&&!D.querySelector('#pg [data-tl]'))l.parentNode.insertAdjacentHTML('beforeend','<button class="gr" data-tl="1"><i>'+sv('<path d="M14.5 6.5a4 4 0 00-5 5L3.5 17.5l3 3 6-6a4 4 0 005-5l-2.5 2.5-2-2z"/>')+'</i><span class="t"><b>Tools</b><small>Compress photo and PDF, edit PDF</small></span><em>\u203a</em></button>')}
 var pg=$('pg');if(pg)new MutationObserver(inject).observe(pg,{childList:true,subtree:true});
 D.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-tl]'))home()});
 })();
@@ -7265,7 +7265,7 @@ D.addEventListener("keydown",function(e){
 
 /* ===== inject search box. Runs right when the Enjoy page is drawn, so nothing jumps afterwards ===== */
 window.znxOpenR=openR;function injBell(){var b=$("bell");if(b&&!$("zsT")){var w=D.createElement("span");w.style.cssText="display:flex;align-items:center";b.parentNode.insertBefore(w,b);w.appendChild(b);var t=D.createElement("button");t.className="ib";t.id="zsT";t.setAttribute("aria-label","Search");t.innerHTML=SI;t.onclick=function(){open("")};w.appendChild(t)}}
-function inj(){var pg=$("pg"),h=pg&&pg.querySelector(".hd h2");
+function inj(){return;var pg=$("pg"),h=pg&&pg.querySelector(".hd h2");
  if(h&&h.textContent.trim()==="Enjoy"&&!pg.querySelector("#zsE")){h.closest(".hd").insertAdjacentHTML("afterend",'<div class="zse"><input class="srch" id="zsE" placeholder="Search something..." aria-label="Search" autocomplete="off" enterkeyhint="search" data-noswipe></div>')}}
 injBell();inj();
 if($("pg"))new MutationObserver(inj).observe($("pg"),{childList:true});
@@ -7364,9 +7364,9 @@ D.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.close
   if(ctl)ctl.abort();ctl=new AbortController();var my=ctl;
   pn.classList.add('on');pb.textContent='Reading the page...';
   var title=((art.querySelector('h1')||{}).textContent||'').slice(0,120),txt=art.innerText.replace(/\s+/g,' ').trim();
-  var mk=function(t){return JSON.stringify([{role:'user',text:'Summarize this web page in 5 to 7 short bullet points, in the same language as the page. Title: '+title+'. Text: '+t}])};
-  var n=Math.min(txt.length,4000),m=encodeURIComponent(mk(txt.slice(0,n)));
-  while(m.length>6500&&n>300){n=Math.floor(n*.8);m=encodeURIComponent(mk(txt.slice(0,n)))}
+  var mk=function(t){return JSON.stringify([{role:'user',text:'Explain this web page in the same language as the page, in simple clear words, so a normal reader fully understands it. Format: first an Overview of 2 sentences. Then 6 to 8 bullet points, each with 1 or 2 full sentences giving the key facts, names and numbers. End with one line starting with Bottom line. Title: '+title+'. Text: '+t}])};
+  var n=Math.min(txt.length,5500),m=encodeURIComponent(mk(txt.slice(0,n)));
+  while(m.length>7800&&n>300){n=Math.floor(n*.8);m=encodeURIComponent(mk(txt.slice(0,n)))}
   var tk=KEY;try{var c=window.znxCtx&&window.znxCtx();if(c&&c.sb){var s=(await c.sb.auth.getSession()).data.session;if(s)tk=s.access_token}}catch(e){}
   var tm=setTimeout(function(){my.abort()},30000);
   try{var r=await fetch(U0+'/functions/v1/zexo-ai?m='+m,{headers:{apikey:KEY,Authorization:'Bearer '+tk},signal:my.signal});
@@ -7380,8 +7380,26 @@ D.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.close
  function run(t){var q=$('ytq'),g=$('ytgo');if(!q||!g)return;q.value=t;g.click();q.value=''}
  setInterval(function(){
   var et=$('et');if(!et||!et.classList.contains('on')||!et.classList.contains('zw')){fed=0;return}
-  var q=$('ytq'),l=$('ytl'),g=$('ytgo');if(!q||!l||!g)return;
+  return;
   if(!$('znxCh')){var sb=q.closest('.srcb');if(sb){sb.insertAdjacentHTML('afterend','<div class="chips" id="znxCh" data-noswipe>'+TERMS.map(function(t,i){return '<button data-zt="'+t[1]+'" class="'+(i?'':'on')+'">'+t[0]+'</button>'}).join('')+'</div>');
    $('znxCh').onclick=function(e){var bt=e.target.closest('[data-zt]');if(!bt)return;[].forEach.call(this.children,function(x){x.classList.toggle('on',x===bt)});run(bt.dataset.zt)}}}
   if(!fed&&l.querySelector('.znx-wh')){fed=1;run('for you')}},700);
-})()}catch(e){console.error(e)}})();</script></body></html>
+})()}catch(e){console.error(e)}})();</script><style id="znx-v17-css">/*ZNX-V17-DONE*/
+#znxCh{display:none!important}
+.znx-hero{padding:30px 20px 44px!important;gap:12px!important}
+.znx-hero b{font-size:20px!important;letter-spacing:-.03em}
+.znx-hero small{max-width:270px!important}
+.zhp{position:relative;width:min(270px,74vw);aspect-ratio:16/9;margin-bottom:10px;border-radius:24px;display:grid;place-items:center;overflow:hidden;border:1px solid transparent;background:linear-gradient(#07080f,#07080f) padding-box,linear-gradient(140deg,rgba(163,156,255,.7),rgba(255,255,255,.08) 45%,rgba(77,224,208,.6)) border-box;box-shadow:0 30px 60px -28px var(--ac),0 0 40px -18px #4de0d0}
+.zhg{position:absolute;inset:0;background:radial-gradient(80% 90% at 20% 0,rgba(124,108,255,.45),transparent 70%),radial-gradient(70% 80% at 100% 100%,rgba(77,224,208,.32),transparent 70%)}
+.zhp::after{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.12),transparent);transform:translateX(-130%);animation:zhSw 4.2s ease-in-out infinite}
+@keyframes zhSw{55%,100%{transform:translateX(330%)}}
+.zhs{position:relative;z-index:1;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--bt);box-shadow:0 0 0 6px rgba(143,136,255,.16),0 16px 30px -10px var(--ac)}
+.zhs svg{width:24px;height:24px;fill:#fff;stroke:none;opacity:1;margin-left:3px}
+.zhb{position:absolute;z-index:1;left:16px;right:16px;bottom:10px;height:14px;display:flex;align-items:flex-end;gap:5px}
+.zhb s{flex:1;height:100%;border-radius:2px;background:linear-gradient(#a39cff,#4de0d0);opacity:.75;transform-origin:bottom;animation:zhEq 1.3s ease-in-out infinite}
+.zhb s:nth-child(2){animation-delay:.18s}.zhb s:nth-child(3){animation-delay:.36s}.zhb s:nth-child(4){animation-delay:.12s}.zhb s:nth-child(5){animation-delay:.3s}.zhb s:nth-child(6){animation-delay:.06s}
+@keyframes zhEq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+#etp_yt .srcb{box-shadow:0 0 30px -14px #4de0d0}
+@media (prefers-reduced-motion:reduce){.zhp::after,.zhb s{animation:none}}
+</style>
+</body></html>
