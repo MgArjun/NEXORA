@@ -3103,7 +3103,7 @@ function uoDraw(){if(uoDead())return;const s=UO.s,v=UO.ph?s.turn:0,over=s.phase=
   else{if(mine&&s.drawn!=null)ac+=`<button class="pri" data-uo="pass">Keep and pass</button>`;else if(cd)ac+=`<button data-uo="draw">${s.pending?"Draw "+s.pending.n:"Draw"}</button>`;
    if((mine&&s.hands[v].length<=2&&!s.uno[v])||s.unoPend===v)ac+=`<button class="uno" data-uo="uno">UNO!</button>`}
   if(s.unoPend>=0&&s.unoPend!==v)ac+=`<button class="pri" data-uo="catch">Catch ${esc(nm(s.unoPend))}</button>`}
- const chips=s.names.map((p,i)=>i===v?"":`<div class="uopl${s.turn===i&&!over?" on":""}${s.out[i]?" out":""}"><div class="ava" style="background:${g(p)}">${esc(ini(p))}</div>${esc(p)}<em>${s.out[i]?"OUT":s.hands[i].length+" cards"}</em>${s.uno[i]&&s.hands[i].length===1?"<i>UNO</i>":""}</div>`).join("");
+ const chips=s.names.map((p,i)=>`<div class="uopl${s.turn===i&&!over?" on":""}${s.out[i]?" out":""}"><div class="ava" style="background:${g(p)}">${esc(ini(p))}</div>${esc(p)}<em>${s.out[i]?"OUT":s.hands[i].length+" cards"}</em>${s.uno[i]&&s.hands[i].length===1?"<i>UNO</i>":""}</div>`).join("");
  const bk=A('<path d="M15 18l-6-6 6-6"/>'),rd=A('<path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4"/><path d="M20 4v5h-5M4 20v-5h5"/>');
  $("uoS").innerHTML=`<div class="uoT"><button class="ib" data-uo="exit" aria-label="Leave game">${bk}</button><b>UNO · ${s.mode==="nomercy"?"No Mercy":"Classic"}</b>${UO.net?gvBtn('data-uo="mic"'):""}<button class="ib" data-uo="share" aria-label="Share">${SI.share}</button><button class="ib" data-uo="redo" aria-label="Restart">${rd}</button></div>
  <div class="uoO">${chips}</div>
@@ -3303,12 +3303,12 @@ function lTok(x,u,px,py,h,c,hl,t,sc){x.save();x.translate(px*u,py*u);x.fillStyle
  const r=.32*u*sc;x.fillStyle=dk(c);x.beginPath();x.ellipse(0,.08*u*sc,r*.9,r*.42,0,0,7);x.fill();
  const gd=x.createRadialGradient(-r*.35,-.26*u*sc,r*.1,0,-.14*u*sc,r*1.3);gd.addColorStop(0,lt(c,.6));gd.addColorStop(.5,c);gd.addColorStop(1,dk(c));x.fillStyle=gd;x.strokeStyle="#fff";x.lineWidth=2.5;x.beginPath();x.arc(0,-.14*u*sc,r,0,7);x.fill();x.stroke();
  x.fillStyle="rgba(255,255,255,.55)";x.beginPath();x.arc(-r*.3,-.14*u*sc-r*.35,r*.22,0,7);x.fill();x.restore()}
-function lDraw(t){const cv=$("loCv"),S=LD.s;if(!cv||!S)return;const x=cv.getContext("2d"),u=48;if(!LD.bg)LD.bg=lBg();x.clearRect(0,0,720,720);x.drawImage(LD.bg,0,0);
+function lDraw(t){const cv=$("loCv"),S=LD.s;if(!cv||!S)return;const x=cv.getContext("2d"),u=48;if(!LD.bg)LD.bg=lBg();x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,720,720);x.save();x.translate(25,40);x.scale(.93,.93);x.drawImage(LD.bg,0,0);
  const grp={},dr=[];S.pl.forEach((p,i)=>S.tk[i].forEach((_,k)=>{const v=LD.v[i]&&LD.v[i][k];if(!v)return;const key=v.q.length?"m"+i+k:Math.round(v.x*2)+","+Math.round(v.y*2);(grp[key]=grp[key]||[]).push({i,k,v})}));
  for(const key in grp){const a=grp[key],n=a.length;a.forEach((o,j)=>{let ox=0,oy=0,sc=1;if(n>1){const an=j/n*6.283+.5;ox=Math.cos(an)*.2;oy=Math.sin(an)*.14;sc=.78}o.px=o.v.x+ox;o.py=o.v.y+oy;o.sc=sc;dr.push(o);LD.dp[o.i+"_"+o.k]=[o.px,o.py]})}
  dr.sort((a,b)=>a.py-b.py);const hl=S.ph==="pick"&&lMine()?S.mv:[];
  dr.forEach(o=>{const m=o.i===S.turn&&hl.includes(o.k);lTok(x,u,o.px,o.py,o.v.h+(m?.08+.08*Math.abs(Math.sin(t*6)):0),LC[S.pl[o.i].col],m,t,o.sc)});
- LD.pt.forEach(p=>{x.globalAlpha=Math.min(1,p.l*1.5);x.fillStyle=p.c;x.beginPath();x.arc(p.x*u,p.y*u,3.5,0,7);x.fill()});x.globalAlpha=1}
+ LD.pt.forEach(p=>{x.globalAlpha=Math.min(1,p.l*1.5);x.fillStyle=p.c;x.beginPath();x.arc(p.x*u,p.y*u,3.5,0,7);x.fill()});x.globalAlpha=1;x.restore()}
 function lStep(dt){const S=LD.s;if(!S)return;S.pl.forEach((p,i)=>S.tk[i].forEach((_,k)=>{const v=LD.v[i]&&LD.v[i][k];if(!v||!v.q.length)return;const w=v.q[0];if(!v.on){v.on=1;v.t=0;v.fx=v.x;v.fy=v.y}
  v.t+=dt*1000/v.d;const e=Math.min(1,v.t),z=e<.5?2*e*e:1-Math.pow(-2*e+2,2)/2;v.x=v.fx+(w.x-v.fx)*z;v.y=v.fy+(w.y-v.fy)*z;v.h=Math.sin(Math.PI*e)*(w.f?1.1:.4);
  if(e>=1){v.x=w.x;v.y=w.y;v.h=0;v.q.shift();v.on=0;w.f?LSd.land():LSd.step();if(!v.q.length){LD.busy--;const cb=v.cb;v.cb=null;cb&&cb()}}}));
@@ -3372,7 +3372,7 @@ function lMount(){let r=$("ldoR");if(r)r.remove();r=document.createElement("div"
   if(t.closest("#loD")){const S=LD.s;if(!S||S.ph!=="roll"||!lMine())return;lA();const v=1+(Math.random()*6|0);if(LD.net)lTx({t:"roll",v});return lRoll(v)}
   if(em)return lSendEm(em.dataset.em);if(t.closest("#loS"))return lSendTx();if(!b)return;const k=b.dataset.lo;if(k==="emo")return lEmoPop();if(k==="exit")return ldoExit();if(k==="mic")return lMicTap();if(k==="redo")return lRedo()});
  r.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="loI")lSendTx()});
- $("loCv").addEventListener("pointerdown",e=>{const S=LD.s;if(!S||S.ph!=="pick"||!lMine())return;const r2=e.currentTarget.getBoundingClientRect(),cx=(e.clientX-r2.left)/r2.width*15,cy=(e.clientY-r2.top)/r2.height*15;let best=-1,bd=.75;
+ $("loCv").addEventListener("pointerdown",e=>{const S=LD.s;if(!S||S.ph!=="pick"||!lMine())return;const r2=e.currentTarget.getBoundingClientRect(),cx=((e.clientX-r2.left)/r2.width*720-25)/44.64,cy=((e.clientY-r2.top)/r2.height*720-40)/44.64;let best=-1,bd=.75;
   S.mv.forEach(k=>{const d=LD.dp[S.turn+"_"+k];if(!d)return;const q=Math.hypot(d[0]-cx,d[1]-cy);if(q<bd){bd=q;best=k}});if(best<0)return;lA();if(LD.net)lTx({t:"mv",k:best});doMove(best)})}
 function lBoot(list,mode,d){if($("chat").classList.contains("on"))$("cb").click();if(tab!=="play")show("play");closeS();
  const n=list.length,cols=n===2?[0,2]:n===3?[0,1,2]:[0,1,2,3];
@@ -3478,7 +3478,7 @@ lDice=function(v,cb){const d=$("loD"),w=d&&d.querySelector(".dw");if(!d||!w){lFa
  lA();lCube(v,1);if(!d.querySelector(".dsh"))d.insertAdjacentHTML("beforeend",'<i class="dsh"></i>');
  const D=1200,UP="cubic-bezier(.2,.7,.4,1)",DN="cubic-bezier(.6,0,.9,.5)",
  kf=(y,s,o,e)=>({transform:`translateY(${y}px) scale(${s})`,offset:o,easing:e});
- w.animate([kf(0,1,0,UP),kf(-90,1.25,.2,DN),kf(0,1,.4,UP),kf(-46,1.12,.56,DN),kf(0,1,.7,UP),kf(-16,1.04,.82,DN),kf(0,1,.92,"linear"),kf(0,1,1,"linear")],{duration:D});
+ w.animate([kf(0,1,0,UP),kf(-9,1.12,.2,DN),kf(0,1,.4,UP),kf(-5,1.07,.56,DN),kf(0,1,.7,UP),kf(-2,1.03,.82,DN),kf(0,1,.92,"linear"),kf(0,1,1,"linear")],{duration:D});
  d.querySelector(".dsh").animate([{transform:"scale(1)",opacity:.6,offset:0},{transform:"scale(.5)",opacity:.25,offset:.2},{transform:"scale(1)",opacity:.6,offset:.4},{transform:"scale(.75)",opacity:.4,offset:.56},{transform:"scale(1)",opacity:.6,offset:.7},{transform:"scale(.9)",opacity:.5,offset:.82},{transform:"scale(1)",opacity:.6,offset:1}],{duration:D});
  lNoise(.4,500,.06,0);
  [[.4,.4],[.7,.26],[.92,.13]].forEach(a=>lClk(a[0]*D/1000,a[1],1200+Math.random()*1800));
@@ -3622,7 +3622,7 @@ lDice=function(v,cb){const d=$("loD"),w=d&&d.querySelector(".dw");if(!d||!w){lFa
  lA();lCube(v,1);if(!d.querySelector(".dsh"))d.insertAdjacentHTML("beforeend",'<i class="dsh"></i>');
  const D=1200,UP="cubic-bezier(.2,.7,.4,1)",DN="cubic-bezier(.6,0,.9,.5)",
  kf=(y,s,o,e)=>({transform:"translateY("+y+"px) scale("+s+")",offset:o,easing:e});
- w.animate([kf(0,1,0,UP),kf(-90,1.25,.2,DN),kf(0,1,.4,UP),kf(-46,1.12,.56,DN),kf(0,1,.7,UP),kf(-16,1.04,.82,DN),kf(0,1,.92,"linear"),kf(0,1,1,"linear")],{duration:D});
+ w.animate([kf(0,1,0,UP),kf(-9,1.12,.2,DN),kf(0,1,.4,UP),kf(-5,1.07,.56,DN),kf(0,1,.7,UP),kf(-2,1.03,.82,DN),kf(0,1,.92,"linear"),kf(0,1,1,"linear")],{duration:D});
  d.querySelector(".dsh").animate([{transform:"scale(1)",opacity:.6,offset:0},{transform:"scale(.5)",opacity:.25,offset:.2},{transform:"scale(1)",opacity:.6,offset:.4},{transform:"scale(.75)",opacity:.4,offset:.56},{transform:"scale(1)",opacity:.6,offset:.7},{transform:"scale(.9)",opacity:.5,offset:.82},{transform:"scale(1)",opacity:.6,offset:1}],{duration:D});
  LSd.roll();
  if(v===6)setTimeout(()=>{if($("loD"))LSd.six()},D*.92);
@@ -4162,7 +4162,7 @@ function ldStart(i){ldStop();inGame=true;document.documentElement.classList.add(
 function ldPage(){inGame=false;const b=ldBest();
  $("pg").innerHTML='<div class="sb"><button class="ib" data-pl="home" aria-label="Back">'+A('<path d="M15 18l-6-6 6-6"/>')+'</button></div><div class="gh"><i>'+GI.devil+'</i><div><h2>Level Devil</h2><p>'+LV.length+' long levels \u00b7 trust nothing</p></div></div>'+
  '<div class="feat" style="margin-top:12px"><span class="tag">'+(b>0?"Continue":"Start")+'</span><b>Level '+(b+1)+'</b><p>'+esc(LV[b].n)+'</p><div class="fbx"><button data-ld="go:'+b+'">'+(b>0?"Continue":"Play")+'</button>'+(b>0?'<button class="gh2" data-ld="go:0">New game</button>':"")+'</div><i class="fg">'+GI.devil+'</i></div>'+
- '<div class="sec">Levels</div><div class="ldg">'+LV.map((l,i)=>'<button class="ldl'+(i>b?" lk":"")+(i===b?" cur":"")+'" data-ld="'+(i>b?"lk":"go:"+i)+'"><b>'+(i+1)+'</b><small>'+(i>b?"Locked":esc(l.n))+'</small></button>').join("")+'</div><p class="note" style="margin-top:14px">Move: arrows / A D or on-screen buttons. Jump: space / W (hold for higher). Press R to restart from your checkpoint. Flags save your progress inside a level.</p>'}
+ '<div class="sec">Levels</div><div class="ldg">'+LV.map((l,i)=>i>b+1?'':'<button class="ldl'+(i>b?" lk":"")+(i===b?" cur":"")+'" data-ld="'+(i>b?"lk":"go:"+i)+'"><b>'+(i+1)+'</b><small>'+(i>b?"Locked":esc(l.n))+'</small></button>').join("")+'</div><p class="note" style="margin-top:14px">Move: arrows / A D or on-screen buttons. Jump: space / W (hold for higher). Press R to restart from your checkpoint. Flags save your progress inside a level.</p>'}
 $("pg").addEventListener("click",e=>{if(tab!=="play")return;const b=e.target.closest("[data-ld]");if(!b)return;const v=b.dataset.ld;if(v==="lk")return ts("Clear the earlier levels first");ldStart(+v.split(":")[1])});
 
 /* ---------- hook into Play ---------- */
@@ -6915,7 +6915,7 @@ function inEt(e){var g=$("etg");return !!(g&&e.target&&g.contains(e.target))}
  addEventListener(t,function(e){if(e.pointerType==="touch"&&!e.isPrimary&&inEt(e))e.stopImmediatePropagation()},true)});
 
 /* auto quality exactly like the shared player (plain size, no forced 4K) */
-window.znxAutoW=function(Wa){return Wa};
+window.znxAutoW=function(Wa){return Math.min(Wa,window.__znxCap||Wa)};
 
 /* know if the video is paused, so the pause look matches the shared player */
 addEventListener("message",function(e){
@@ -7402,4 +7402,64 @@ D.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.close
 #etp_yt .srcb{box-shadow:0 0 30px -14px #4de0d0}
 @media (prefers-reduced-motion:reduce){.zhp::after,.zhb s{animation:none}}
 </style>
+<style id="znx-v18-css">/*ZNX-V18-DONE*/
+.zhb{display:none!important}
+#loCv{box-shadow:none!important;border-radius:0!important}
+.loDh{overflow:hidden;border-radius:20px}
+.zsg0{font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin:2px 4px 12px}
+</style>
+<script id="znx-v18-js">/*ZNX-V18-JS*/
+(function(){try{
+var D=document,$=function(i){return D.getElementById(i)};
+function toast(m){var t=$('ts');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('on')},1800)}
+/* 1. auto quality: wait first, then step down one level at a time */
+var L=[[1920,'hd1080'],[1280,'hd720'],[854,'large'],[640,'medium'],[426,'small'],[256,'tiny']],lv=0,since=0,first=1,okSince=0;
+function cmd(f,a){var i=D.querySelector('#etyw iframe');try{if(i&&i.contentWindow)i.contentWindow.postMessage(JSON.stringify({event:'command',func:f,args:a||[]}),'*')}catch(e){}}
+function setQ(n){lv=n;window.__znxCap=L[n][0];cmd('setPlaybackQualityRange',[L[n][1],L[n][1]]);cmd('setPlaybackQuality',[L[n][1]])}
+setInterval(function(){
+ var g=$('etg'),et=$('et');
+ if(!g||!et||!et.classList.contains('on')||!g.classList.contains('on')){since=0;okSince=0;first=1;return}
+ var s=g.getAttribute('data-st'),n=Date.now();
+ if(s===null)return;
+ if(s==='0'){first=1;since=0;return}
+ if(s==='1'){since=0;first=0;if(lv>0){if(!okSince)okSince=n;else if(n-okSince>60000){okSince=n;setQ(lv-1)}}else okSince=0;return}
+ okSince=0;
+ if(s==='3'||s==='-1'||s==='5'){
+  if(!since){since=n;return}
+  if(n-since>(first?4500:2800)&&lv<L.length-1){since=n;first=0;setQ(lv+1);toast('Switching to lower quality')}
+ }else since=0},500);
+/* 2. related videos while watching */
+var cur='',tmr=0;
+function dec(s){var t=D.createElement('textarea');t.innerHTML=String(s||'');return t.value}
+function secs(t){var a=String(t||'').split(':').map(Number);return a.some(isNaN)?-1:a.reduce(function(x,v){return x*60+v},0)}
+function mk(tag,cls,txt){var e=D.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function rel(id,title){
+ var box=$('ytl');if(!box||!window.nxYt||!title)return;cur=id;var my=id;
+ window.nxYt('yts','&q='+encodeURIComponent(String(title).slice(0,80))).then(function(r){return r.json()}).then(function(j){
+  if(cur!==my)return;box=$('ytl');if(!box)return;
+  var a=((j&&j.items)||[]).filter(function(x){return /^[\w-]{11}$/.test(x.id||'')&&x.id!==my&&!(secs(x.d)>=0&&secs(x.d)<=60)}).slice(0,12);
+  if(!a.length)return;
+  box.textContent='';box.appendChild(mk('div','zsg0','Up next'));
+  a.forEach(function(x){
+   var c=mk('div','ytc'),th=mk('div','th'),mt=mk('div','mt'),sp=mk('span'),t=dec(x.t);
+   c.setAttribute('data-sg',x.id);
+   if(/^https:\/\/i\.ytimg\.com\//.test(x.th||'')){var im=D.createElement('img');im.src=x.th;im.alt='';im.loading='lazy';th.appendChild(im)}
+   th.appendChild(mk('i'));if(x.d)th.appendChild(mk('u','ytd',String(x.d).slice(0,9)));
+   sp.appendChild(mk('b',null,t));sp.appendChild(mk('small',null,dec(x.c)+(x.v?' \u00b7 '+String(x.v).slice(0,12)+' views':'')));
+   mt.appendChild(sp);c.appendChild(th);c.appendChild(mt);box.appendChild(c)})
+ }).catch(function(){})}
+D.addEventListener('click',function(e){
+ if(!e.target||!e.target.closest)return;
+ var s=e.target.closest('#etp_yt [data-sg]');
+ if(s){
+  e.stopImmediatePropagation();e.preventDefault();
+  var id=s.getAttribute('data-sg'),tt=(s.querySelector('b')||{}).textContent||'',l=$('etlink'),g=$('etgo');
+  if(l&&g){l.value='https://youtu.be/'+id;g.click();clearTimeout(tmr);tmr=setTimeout(function(){rel(id,tt)},900);var et=$('et');if(et)et.scrollTo({top:0,behavior:'smooth'})}
+  return}
+ var c=e.target.closest('#etp_yt [data-yp]');
+ if(c&&!e.target.closest('[data-yf],[data-yq]')){
+  var id2=c.getAttribute('data-yp'),t2=(c.querySelector('.mt b')||{}).textContent||'';
+  clearTimeout(tmr);tmr=setTimeout(function(){rel(id2,t2)},1200)}
+},true);
+}catch(err){console.error('ZNX V18',err)}})();</script>
 </body></html>
