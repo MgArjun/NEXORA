@@ -5572,6 +5572,31 @@ etUI=function(){
 };
 }catch(err){console.error("ZNX stable patch",err)}})();
 
+/*Z3D-F*/{const _w=mpWatch,Z={since:0,n:0,rel:0,b:0,at:0,last:0,t0:0};
+mpWatch=function(){
+ if(!document.hidden){Z.since=0;Z.n=0;Z.rel=0;Z.b=0;return _w.apply(this,arguments)}
+ try{
+  if(MP.xf)mpXfEnd();
+  if(!MP.want||!MP.started)return;
+  const d=mpDk[MP.d],now=Date.now();
+  if(MP.t0!==Z.t0){Z.t0=MP.t0;Z.since=0;Z.n=0;Z.rel=0;Z.b=0}
+  if(d.ext==="yt"&&d.ypr){
+   const s=d.yp.getPlayerState();
+   if(s===0){if(now-MP.t0>3000&&now-Z.last>2000){Z.last=now;mpEnded()}return}
+   if(s===1){Z.since=0;if(Z.at&&now-Z.at>8000){Z.n=0;Z.rel=0;Z.b=0;Z.at=0}return}
+   if(!Z.since){Z.since=now;return}
+   const wait=s===3?9000:Math.min(16000,1200*Math.pow(2,Z.b));
+   if(now-Z.since<wait)return;
+   Z.since=now;Z.b=(Z.at&&now-Z.at<8000)?Math.min(4,Z.b+1):0;Z.at=now;Z.n++;
+   if(Z.n<=3)d.yp.playVideo();
+   else if(Z.rel<2){Z.rel++;Z.n=0;const T=MT[MP.i];if(T&&T.src.t==="yt")d.yp.loadVideoById({videoId:T.src.id,startSeconds:Math.max(0,Math.floor(mpPos()))})}
+   else{Z.rel=0;Z.n=0;Z.b=0;mpStep(1)}
+  }else if(d.ext==="audio"&&d.au){
+   if(d.au.ended){if(now-MP.t0>3000&&now-Z.last>2000){Z.last=now;mpEnded()}}
+   else if(d.au.paused){if(!Z.since)Z.since=now;else if(now-Z.since>1500){Z.since=now;d.au.play().catch(function(){})}}else Z.since=0}
+ }catch(e){}};
+if("mediaSession" in navigator){const go=p=>{if(!p&&document.hidden&&Date.now()-Z.at<3000)return;MP.want=p?1:0;try{const d=mpDk[MP.d];if(d.ext==="yt"&&d.ypr)p?d.yp.playVideo():d.yp.pauseVideo();else if(d.au)p?d.au.play():d.au.pause()}catch(e){}};
+ [["play",()=>go(1)],["pause",()=>go(0)]].forEach(a=>{try{navigator.mediaSession.setActionHandler(a[0],a[1])}catch(e){}})}}
 /*ZNX-BHAKTI-V1*/
 try{{
 if(MN.indexOf("Bhakti")<0){
