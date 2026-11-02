@@ -7519,12 +7519,29 @@ function prep(html,url){
  var h=d.head;if(!h){h=d.createElement('head');d.documentElement.insertBefore(h,d.documentElement.firstChild)}
  var b=d.createElement('base');b.href=url;h.insertBefore(b,h.firstChild);
  if(!d.querySelector('meta[name=viewport]')){var m=d.createElement('meta');m.name='viewport';m.content='width=device-width,initial-scale=1';h.appendChild(m)}
- var s=d.createElement('style');s.textContent='html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}a{-webkit-touch-callout:none}';h.appendChild(s);
+ var s=d.createElement('style');s.textContent='html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}a{-webkit-touch-callout:none}html{background:#fff!important;filter:invert(1) hue-rotate(180deg)}img,picture,video,canvas,iframe,svg image,[style*="background-image"]{filter:invert(1) hue-rotate(180deg)}';h.appendChild(s);
  var j=d.createElement('script');j.textContent=inj();h.appendChild(j);
  return '<!doctype html>'+d.documentElement.outerHTML}
-function get(u,sig){var f=function(){return fetch('https://r.jina.ai/'+u,{signal:sig,headers:{'X-Return-Format':'html',Accept:'text/html'}}).then(function(r){if(!r.ok)throw 0;return r.text()})};
- return f().catch(function(e){if(sig.aborted)throw e;return new Promise(function(r){setTimeout(r,500)}).then(f)})}
-function msg(t,s,rt){var m=$('zpM');m.innerHTML='<div class="zsm"><b>'+t+'</b><small>'+s+'</small>'+(rt?'<button class="gb pri" data-r>Retry</button>':'')+'<button class="gb" data-o>Open in browser</button></div>';m.style.display='grid';v.classList.remove('ld','ok')}
+function get(u,sig){
+ var ctl=[];
+ var stop=function(){ctl.forEach(function(c){try{c.abort()}catch(e){}})};
+ var good=function(t,min){
+  if(!/<(html|body|div|p)\b/i.test(t)||t.length<300)return false;
+  var x=t.replace(/<(script|style|noscript)[\s\S]*?<\/\1>/gi,'').replace(/<[^>]*>/g,'');
+  return x.replace(/\s+/g,' ').length>=min};
+ return new Promise(function(res,rej){
+  var done=0,fails=0,total=3;
+  var fin=function(t){if(done)return;done=1;stop();res(t)};
+  var bad=function(){if(done)return;fails++;if(fails>=total){done=1;stop();rej(0)}};
+  if(sig)sig.addEventListener('abort',function(){if(!done){done=1;stop();rej(0)}});
+  var run=function(url,hd,min){
+   var c=new AbortController();ctl.push(c);
+   fetch(url,{signal:c.signal,headers:hd}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){if(good(t,min))fin(t);else bad()}).catch(bad)};
+  run('https://api.allorigins.win/raw?url='+encodeURIComponent(u),{},600);
+  run('https://corsproxy.io/?url='+encodeURIComponent(u),{},600);
+  run('https://r.jina.ai/'+u,{'X-Return-Format':'html',Accept:'text/html'},0);
+ })}
+ function msg(t,s,rt){var m=$('zpM');m.innerHTML='<div class="zsm"><b>'+t+'</b><small>'+s+'</small>'+(rt?'<button class="gb pri" data-r>Retry</button>':'')+'<button class="gb" data-o>Open in browser</button></div>';m.style.display='grid';v.classList.remove('ld','ok')}
 function hideP(){sel='';$('zpS').classList.remove('on')}
 function open(u,push){u=ok(u);if(!u)return;
  var h=host(u),y=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:[^#]*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/);
@@ -7571,4 +7588,87 @@ if(o&&ok(o)){var n=0,iv=setInterval(function(){var a=$('app');if(a&&!a.classList
 (window.__zg=window.__zg||{}).ludo=function(){if(window.ldoStart)window.ldoStart('bot',1,1)};
 new MutationObserver(function(){var t=D.querySelector('#ldoR .loT');if(t&&!t.querySelector('.zpsh')&&!$('loMic')){var b=D.createElement('button');b.className='ib zpsh';b.setAttribute('aria-label','Share');b.innerHTML=SH;b.onclick=function(){shareU(base+'?game=ludo')};t.insertBefore(b,t.lastElementChild)}}).observe(D.body,{childList:true});
 }catch(err){console.error('ZNX page viewer',err)}})();</script>
+
+<!--ZNX-PATCH-W1-->
+<style id="znx-patch-w1">
+/* ===== Ludo one-phone: board never moves ===== */
+#ldoR .loM{height:84px;flex:none;overflow:hidden;align-items:center}
+#ldoR.ph .loM{height:52px;justify-content:center}
+#ldoR #loSt{height:42px;width:min(240px,58vw);margin:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;white-space:nowrap}
+#ldoR #loSt small{display:block;height:14px;line-height:14px;margin-top:2px;overflow:hidden}
+#ldoR.ph #loSt{width:min(340px,92vw);text-align:center;align-items:center}
+#ldoR #loSt{text-overflow:ellipsis}
+#ldoR .loB,#ldoR #loPh{flex:none}
+/* ===== Website viewer: night mode ===== */
+#zpV .zpf{background:#0b0d13}
+#zpV .zpf iframe{background:#0b0d13}
+/* ===== Cute cat when there are no chats ===== */
+.znx-cat{display:grid;justify-items:center;gap:6px;padding:34px 10px 20px;text-align:center}
+.znx-cat svg{width:min(230px,66vw);height:auto;cursor:pointer;overflow:visible;-webkit-tap-highlight-color:transparent}
+.znx-cat b{font-size:17px;letter-spacing:-.02em;margin-top:2px}
+.znx-cat small{color:var(--mu);font-size:13px;max-width:250px;line-height:1.45}
+.znx-cat .pri{margin-top:10px;height:44px;padding:0 24px;border-radius:22px}
+#zcat .bd{transform-origin:100px 132px;animation:zcB 3.4s ease-in-out infinite}
+@keyframes zcB{50%{transform:scale(1.025,1.06)}}
+#zcat .tl{transform-origin:150px 120px;animation:zcT 4s ease-in-out infinite}
+@keyframes zcT{50%{transform:rotate(-6deg)}}
+#zcat.awake .tl{animation:zcT2 .9s ease-in-out infinite}
+@keyframes zcT2{50%{transform:rotate(-22deg)}}
+#zcat .hd{transform-origin:100px 104px;transition:transform .7s cubic-bezier(.3,1.3,.5,1)}
+#zcat.sleep .hd{transform:translate(10px,20px) rotate(12deg)}
+#zcat.awake .hd{animation:zcL 3.2s ease-in-out infinite}
+@keyframes zcL{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}60%{transform:rotate(8deg)}}
+#zcat .eo{display:none;transform-origin:100px 79px;animation:zcK 4s infinite}
+#zcat.awake .eo{display:block}
+#zcat.awake .ec{display:none}
+@keyframes zcK{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+#zcat .pp{animation:zcP 3.2s ease-in-out infinite}
+@keyframes zcP{25%{transform:translateX(-2px)}60%{transform:translateX(2px)}}
+#zcat .zz{opacity:0;transform-box:fill-box;transform-origin:center}
+#zcat.sleep .zz{animation:zcZ 3.6s ease-in infinite}
+#zcat.sleep .zz.b{animation-delay:1.2s}
+#zcat.sleep .zz.c{animation-delay:2.4s}
+@keyframes zcZ{0%{opacity:0;transform:translate(0,8px) scale(.6)}25%{opacity:.9}100%{opacity:0;transform:translate(12px,-26px) scale(1.1)}}
+#zcat.pop svg{animation:zcJ .5s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes zcJ{40%{transform:translateY(-10px) scale(1.04)}}
+</style>
+<script id="znx-patch-w1j">
+(function(){try{
+var D=document,TM=0;
+var HTML='<div class="znx-cat sleep" id="zcat"><svg viewBox="0 0 200 150" role="img" aria-label="Sleeping cat. Tap to wake it up">'
++'<ellipse cx="100" cy="136" rx="66" ry="8" fill="rgba(0,0,0,.18)"/>'
++'<path class="tl" d="M150 122C186 122 190 92 168 86" stroke="#9a96c0" stroke-width="12" fill="none" stroke-linecap="round"/>'
++'<ellipse class="bd" cx="100" cy="108" rx="58" ry="30" fill="#b8b4d8"/>'
++'<ellipse cx="78" cy="130" rx="13" ry="7" fill="#c9c5e6"/><ellipse cx="122" cy="130" rx="13" ry="7" fill="#c9c5e6"/>'
++'<g class="hd">'
++'<polygon points="76,64 80,38 98,58" fill="#b8b4d8"/><polygon points="124,64 120,38 102,58" fill="#b8b4d8"/>'
++'<polygon points="80,58 83,45 93,57" fill="#f4a9c0"/><polygon points="120,58 117,45 107,57" fill="#f4a9c0"/>'
++'<circle cx="100" cy="82" r="27" fill="#b8b4d8"/><ellipse cx="100" cy="92" rx="11" ry="8" fill="#d9d6ee"/>'
++'<path class="ec" d="M82 80q6 6 12 0M106 80q6 6 12 0" stroke="#4a4670" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
++'<g class="eo"><circle cx="89" cy="79" r="6.5" fill="#fff"/><circle cx="111" cy="79" r="6.5" fill="#fff"/><circle class="pp" cx="89" cy="79" r="3.4" fill="#2a2548"/><circle class="pp" cx="111" cy="79" r="3.4" fill="#2a2548"/></g>'
++'<path d="M97 89h6l-3 4z" fill="#f08aa8"/>'
++'<path d="M100 93v3M100 96q-4 4-8 2M100 96q4 4 8 2" stroke="#4a4670" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
++'<path d="M74 90l-14-3M74 94l-14 3M126 90l14-3M126 94l14 3" stroke="#8f8bb5" stroke-width="1.4" stroke-linecap="round"/>'
++'</g>'
++'<text class="zz" x="136" y="62" font-size="16" fill="#8f88ff" font-weight="700">z</text>'
++'<text class="zz b" x="146" y="48" font-size="13" fill="#8f88ff" font-weight="700">z</text>'
++'<text class="zz c" x="154" y="36" font-size="10" fill="#8f88ff" font-weight="700">z</text>'
++'</svg><b>No chats yet</b><small>Find someone to chat with. Tap the cat, it is sleepy.</small><button class="pri" id="zcatBtn">Find someone</button></div>';
+function sleep(c){c.classList.remove('awake');c.classList.add('sleep')}
+function wake(c,ms){c.classList.remove('sleep');c.classList.add('awake','pop');setTimeout(function(){c.classList.remove('pop')},520);clearTimeout(TM);TM=setTimeout(function(){if(c.isConnected)sleep(c)},ms)}
+function bind(c){
+ c.querySelector('svg').addEventListener('click',function(){if(c.classList.contains('awake')){sleep(c);clearTimeout(TM)}else wake(c,5500);if(navigator.vibrate)navigator.vibrate(8)});
+ c.querySelector('#zcatBtn').addEventListener('click',function(){var p=D.getElementById('pl');if(p)p.click()})}
+var busy=0;
+function fill(){
+ var ls=D.getElementById('ls');if(!ls)return;
+ var q=D.getElementById('sq');if(q&&q.value.trim())return;
+ var e=ls.querySelector(':scope>.empty');if(!e||!/No chats found/.test(e.textContent))return;
+ e.outerHTML=HTML;var c=D.getElementById('zcat');if(c)bind(c)}
+var pg=D.getElementById('pg');
+if(pg)new MutationObserver(function(){if(busy)return;busy=1;requestAnimationFrame(function(){busy=0;fill()})}).observe(pg,{childList:true,subtree:true});
+setInterval(function(){var c=D.getElementById('zcat');if(c&&c.classList.contains('sleep')&&!D.hidden&&Math.random()<.35)wake(c,4500)},12000);
+fill();
+}catch(err){console.error('ZNX patch W1',err)}})();
+</script>
 </body></html>
