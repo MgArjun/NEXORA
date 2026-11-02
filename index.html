@@ -3341,7 +3341,21 @@ const g=new T.BufferGeometry();g.setAttribute("position",new T.Float32BufferAttr
 const RD=[.17,.18,.21];rib(0,W,.05,()=>RD);rib(0,.5,.07,i=>i%8<4?[.95,.9,.4]:RD);rib(W/2+.6,1.2,.06,i=>i%2?[.9,.1,.1]:[1,1,1]);rib(-W/2-.6,1.2,.06,i=>i%2?[.9,.1,.1]:[1,1,1]);rib(W/2-.5,.3,.07,()=>[.9,.9,.9]);rib(-W/2+.5,.3,.07,()=>[.9,.9,.9]);
 const tm=new T.MeshLambertMaterial({color:0x2d6a34}),tk=new T.MeshLambertMaterial({color:0x6b4a2a}),tg1=new T.ConeGeometry(2.6,7,8),tg2=new T.CylinderGeometry(.4,.5,2,6);
 for(let i=0,n=0;i<500&&n<90;i++){const a=Rn()*6.2832,rd=40+Rn()*190,x=Math.cos(a)*rd,z=Math.sin(a)*rd;let ok=1;for(let k=0;k<S;k+=3){const p=cp[k];if((p.x-x)**2+(p.z-z)**2<(W/2+7)**2){ok=0;break}}if(!ok)continue;n++;const t1=new T.Mesh(tg1,tm);t1.position.set(x,5.5,z);const t2=new T.Mesh(tg2,tk);t2.position.set(x,1,z);sc.add(t1,t2)}
-const mkc=col=>{const g=new T.Group(),m=c=>new T.MeshLambertMaterial({color:c}),b=new T.Mesh(new T.BoxGeometry(1.9,.7,4.2),m(col));b.position.y=.7;g.add(b);const c=new T.Mesh(new T.BoxGeometry(1.6,.55,2),m(0x1a2230));c.position.set(0,1.28,-.2);g.add(c);
+/*Z3D-E*/for(let i=0;i<28;i++){const a=i/28*6.2832,r=430+Math.random()*120,h=60+Math.random()*90,m=new T.Mesh(new T.ConeGeometry(70+Math.random()*60,h*2,6),new T.MeshLambertMaterial({color:i%3?0x4b5f86:0x6a7aa0}));m.position.set(Math.cos(a)*r,h*.7,Math.sin(a)*r);sc.add(m)}
+for(let i=0;i<14;i++){const c=new T.Mesh(new T.SphereGeometry(18+Math.random()*14,10,8),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75}));c.scale.set(2,.6,1);c.position.set((Math.random()-.5)*700,110+Math.random()*50,(Math.random()-.5)*700);sc.add(c)}
+for(let k=0;k<S;k+=14){const p=cp[k],q=cp[(k+1)%S],tx=q.x-p.x,tz=q.z-p.z,l=Math.hypot(tx,tz)||1,nx=-tz/l,nz=tx/l,s=(k/14)%2?1:-1,x=p.x+nx*(W/2+3)*s,z=p.z+nz*(W/2+3)*s;
+const po=new T.Mesh(new T.CylinderGeometry(.12,.15,6,6),new T.MeshLambertMaterial({color:0x555a66}));po.position.set(x,3,z);
+const lb=new T.Mesh(new T.SphereGeometry(.4,8,8),new T.MeshBasicMaterial({color:0xfff2b0}));lb.position.set(x,6.2,z);sc.add(po,lb)}
+const mkc=col=>{const g=new T.Group(),M=(c,e)=>new T.MeshStandardMaterial({color:c,metalness:.35,roughness:.35,emissive:e||0}),
+bx=(w,h,d,mt,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),mt);o.position.set(x,y,z);g.add(o);return o},body=M(col);
+bx(1.9,.45,4.3,body,0,.55,0);bx(1.75,.3,2.3,body,0,.88,.4);bx(1.8,.16,1.3,body,0,.78,1.55).rotation.x=.14;
+bx(1.45,.46,1.9,M(0x0b1220,0x0a1a30),0,1.1,-.1);bx(1.9,.07,.55,M(0x111111),0,1.3,-2);
+[-.6,.6].forEach(x=>bx(.1,.4,.1,M(0x111111),x,1.1,-2));
+const wh=(x,z)=>{const t=new T.Mesh(new T.CylinderGeometry(.44,.44,.34,16).rotateZ(1.5708),M(0x0e0e10));t.position.set(x,.44,z);g.add(t);const r=new T.Mesh(new T.CylinderGeometry(.26,.26,.36,10).rotateZ(1.5708),M(0xc8ccd6));r.position.set(x,.44,z);g.add(r)};
+[[-.98,1.4],[.98,1.4],[-.98,-1.4],[.98,-1.4]].forEach(a=>wh(a[0],a[1]));
+[-.6,.6].forEach(x=>{bx(.4,.14,.06,new T.MeshBasicMaterial({color:0xffffee}),x,.72,2.16);bx(.4,.12,.05,new T.MeshBasicMaterial({color:0xff2d3c}),x,.8,-2.15)});
+bx(1.7,.02,3.8,new T.MeshBasicMaterial({color:col,transparent:true,opacity:.35}),0,.1,0);return g};
+const mkc0=col=>{const g=new T.Group(),m=c=>new T.MeshLambertMaterial({color:c}),b=new T.Mesh(new T.BoxGeometry(1.9,.7,4.2),m(col));b.position.y=.7;g.add(b);const c=new T.Mesh(new T.BoxGeometry(1.6,.55,2),m(0x1a2230));c.position.set(0,1.28,-.2);g.add(c);
 [[-1,1.4],[1,1.4],[-1,-1.4],[1,-1.4]].forEach(q=>{const w=new T.Mesh(new T.CylinderGeometry(.42,.42,.3,12).rotateZ(1.5708),m(0x111111));w.position.set(q[0]*.95,.42,q[1]);g.add(w)});
 const tl=new T.Mesh(new T.BoxGeometry(1.5,.18,.05),new T.MeshBasicMaterial({color:0xff2d3c}));tl.position.set(0,.8,-2.12);g.add(tl);return g};
 const pl=o?o.pl:[{n:MY.name,me:1},{n:"Bot Rex",bot:1},{n:"Bot Zed",bot:1},{n:"Bot Nia",bot:1}],CC=[0xd92b3c,0x2b6fe0,0xf0b429,0x2fb36a],me0=clCtx().pid,t0=cp[1].clone().sub(cp[S-1]).setY(0).normalize();
@@ -3372,6 +3386,12 @@ if(me.fin&&!$("gxOk")){gxOv('<div class="c"><b>FINISHED P'+rank(me)+'</b><small>
 rn.render(sc,cam)}catch(e){if(!GX.er){GX.er=1;console.error(e);ts("Game error")}}};
 gxLd(95,"Final touches...");await gxNap();gxLdEnd();GX.raf=requestAnimationFrame(loop)}
 /* ================= HAUNTED HOUSE ================= */
+/*Z3D-A*/function znxTex(T,k,rx,ry){const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");
+if(k==="f"){for(let i=0;i<8;i++)for(let j=0;j<8;j++){x.fillStyle=(i+j)%2?"#3b3e46":"#2c2f36";x.fillRect(i*32,j*32,32,32)}}
+else{x.fillStyle="#555967";x.fillRect(0,0,256,256);x.fillStyle="rgba(0,0,0,.25)";for(let i=0;i<256;i+=64)x.fillRect(i,0,2,256);x.fillRect(0,170,256,3)}
+for(let i=0;i<3200;i++){x.fillStyle="rgba("+(Math.random()<.5?"0,0,0":"255,255,255")+","+(Math.random()*.1).toFixed(3)+")";x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*3,1+Math.random()*3)}
+if(k==="w"){for(let i=0;i<14;i++){const g=x.createLinearGradient(0,0,0,256),px=Math.random()*256;g.addColorStop(0,"rgba(20,10,5,0)");g.addColorStop(1,"rgba(20,10,5,"+(.12+Math.random()*.18).toFixed(2)+")");x.fillStyle=g;x.fillRect(px,0,2+Math.random()*8,256)}}
+const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rx||1,ry||1);if(T.SRGBColorSpace)t.colorSpace=T.SRGBColorSpace;return t}
 async function ghStart(o){const r=gxRoot("ghR","Haunted House"),I=gxInput(r);GX.rt=1;r.querySelector("#gxX").onclick=gxExit;
 gxLd(6,"Loading 3D engine...");await gxNap();const T=await gx3();if(!T){gxExit();return ts("3D engine failed to load")}if(!r.isConnected)return;gxLd(26,"Building the hospital...");await gxNap();
 const seed=(o&&o.seed)||((Math.random()*65535)|0)+1,Rn=gxR(seed),C=7,RW=5,CS=9,H=3.2,TT=.4,X0=-C*CS/2,Z0=-RW*CS/2,cx=c=>X0+(c+.5)*CS,cz=q=>Z0+(q+.5)*CS,K=(c,q)=>c+","+q,adj={},open=new Set();
@@ -3382,9 +3402,9 @@ const sc=new T.Scene();sc.background=new T.Color(0x010103);sc.fog=new T.FogExp2(
 const cam=new T.PerspectiveCamera(70,innerWidth/innerHeight,.1,80),spot=new T.SpotLight(0xfff2d6,90,36,.45,.55,1.6),ppl=new T.PointLight(0xffe0b0,12,9,2);sc.add(spot,spot.target,ppl);
 const rs=()=>{rn.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()};addEventListener("resize",rs);GX.stops.push(()=>removeEventListener("resize",rs));
 r.insertAdjacentHTML("beforeend",'<i class="gxVg"></i><i id="gxRd"></i>');
-const Wl=[],F=[],bg=new T.BoxGeometry(1,1,1),wm=new T.MeshLambertMaterial({color:0x3d4048});
+const Wl=[],F=[],bg=new T.BoxGeometry(1,1,1),/*Z3D-C*/wm=new T.MeshLambertMaterial(typeof znxTex==="function"?{map:znxTex(T,"w",3,1),color:0xd2d4de}:{color:0x3d4048});
 const addB=(x,z,w,d,h,y0,mat,arr)=>{const m=new T.Mesh(bg,mat);m.scale.set(w,h,d);m.position.set(x,y0+h/2,z);sc.add(m);const e={x,z,w,d,m};if(arr)arr.push(e);return e},seg=(x,z,w,d)=>addB(x,z,w,d,H,0,wm,Wl);
-const fl=new T.Mesh(new T.PlaneGeometry(C*CS+10,RW*CS+10),new T.MeshLambertMaterial({color:0x22252b}));fl.rotation.x=-Math.PI/2;sc.add(fl);const ce=new T.Mesh(new T.PlaneGeometry(C*CS+10,RW*CS+10),new T.MeshLambertMaterial({color:0x0e0f12}));ce.rotation.x=Math.PI/2;ce.position.y=H;sc.add(ce);
+/*Z3D-B*/const flr=new T.Mesh(new T.PlaneGeometry(C*CS+10,RW*CS+10),new T.MeshLambertMaterial(typeof znxTex==="function"?{map:znxTex(T,"f",C*1.6,RW*1.6),color:0xcfd0d8}:{color:0x22252b}));flr.rotation.x=-Math.PI/2;sc.add(flr);const ce=new T.Mesh(new T.PlaneGeometry(C*CS+10,RW*CS+10),new T.MeshLambertMaterial({color:0x0e0f12}));ce.rotation.x=Math.PI/2;ce.position.y=H;sc.add(ce);
 let G=null;const gl=(CS-2.6)/2;
 for(let c=-1;c<C;c++)for(let q=0;q<RW;q++){const x=X0+(c+1)*CS,op=c>=0&&c<C-1&&open.has(K(c,q)+"|"+K(c+1,q))||(c===C-1&&q===2);
 if(op){seg(x,cz(q)-CS/2+gl/2,TT,gl);seg(x,cz(q)+CS/2-gl/2,TT,gl);if(c===C-1)G=addB(x,cz(2),TT,2.6,H,0,new T.MeshLambertMaterial({color:0xaa2222}),Wl)}else seg(x,cz(q),TT,CS)}
@@ -3404,7 +3424,11 @@ const mkP=colr=>{const g=new T.Group(),M=c=>new T.MeshLambertMaterial({color:c})
 bx(.5,.65,.3,colr,0,1.15,0);const hd=new T.Mesh(new T.SphereGeometry(.18,12,10),M(sk));hd.position.y=1.7;g.add(hd);bx(.3,.1,.3,0x1a1410,0,1.86,0);
 const lim=(x,y,w,h,c)=>{const p=new T.Group();p.position.set(x,y,0);g.add(p);bx(w,h,.2,c,0,-h/2,0,p);return p};g.userData={ll:lim(-.13,.8,.17,.8,0x23272f),rl:lim(.13,.8,.17,.8,0x23272f),la:lim(-.33,1.45,.14,.6,sk),ra:lim(.33,1.45,.14,.6,sk)};return g};
 const gmesh=new T.Group(),gmt=new T.MeshLambertMaterial({color:0xdfe8f2,emissive:0x45566a,transparent:true,opacity:.78,side:T.DoubleSide}),gc=new T.Mesh(new T.ConeGeometry(.55,1.9,14,1,true),gmt);gc.position.y=1;gmesh.add(gc);const gh0=new T.Mesh(new T.SphereGeometry(.3,12,10),gmt);gh0.position.y=2;gmesh.add(gh0);
-[-.1,.1].forEach(x=>{const e=new T.Mesh(bg,new T.MeshBasicMaterial({color:0}));e.scale.set(.07,.12,.05);e.position.set(x,2.02,.27);gmesh.add(e)});sc.add(gmesh);
+[-.1,.1].forEach(x=>{const e=new T.Mesh(bg,new T.MeshBasicMaterial({color:0}));e.scale.set(.07,.12,.05);e.position.set(x,2.02,.27);gmesh.add(e)});/*Z3D-D*/for(let i=0;i<18;i++){const h=new T.Mesh(new T.ConeGeometry(.05,1.1+Math.random()*.7,5),new T.MeshBasicMaterial({color:0x07080c}));h.position.set((Math.random()-.5)*.55,1.6,-.15-Math.random()*.25);h.rotation.x=Math.PI+(Math.random()-.5)*.4;gmesh.add(h)}
+[-.1,.1].forEach(x=>{const e=new T.Mesh(new T.SphereGeometry(.05,8,8),new T.MeshBasicMaterial({color:0xff1a2a}));e.position.set(x,2.02,.29);gmesh.add(e)});
+[-.45,.45].forEach(x=>{const a=new T.Mesh(new T.CylinderGeometry(.04,.07,1.3,6),gmt);a.position.set(x,1.25,.4);a.rotation.x=1.25;gmesh.add(a)});
+const gl2=new T.PointLight(0xff3040,6,7,2);gl2.position.set(0,1.6,.5);gmesh.add(gl2);
+sc.add(gmesh);
 const meP=clCtx().pid,list=o?o.pl:[{n:MY.name,pid:meP}],PC=[0x2b6fe0,0xd92b3c,0x2fb36a],ps=list.map((p,k)=>{const mesh=mkP(PC[k%3]);sc.add(mesh);return{pid:p.pid,n:p.n,me:p.pid===meP,mesh,x:cx(0)+k*.8,z:cz(2),tx:0,tz:0,yaw:0,ty:0,spd:0,ph:0,hid:0,run:0,fl:1,fnd:0}}),me=ps.find(p=>p.me);ps.forEach(p=>{p.tx=p.x;p.tz=p.z});
 const host=!o||NX.host,gh={x:cx(C-1),z:cz(4),tx:cx(C-1),tz:cz(4),st:"patrol",pth:[],pi:0,wait:2,lost:0,last:null,grace:8,yaw:0,snd:6,rp:0};
 let cy=1.5708,cpt=.12,stam=1,fuses=0,fl=1,beat=0,ev=8,stept=0,hint=null,hh=0,sn=0,gs=0,flash=0,won=0,gst=0,lt=0;
