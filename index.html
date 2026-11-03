@@ -1513,9 +1513,9 @@ const MPR={1:{a:[165,265],o:[20,50],s:[34,50],l:[58,66]},2:{a:[250,335],o:[25,60
 let mpLH=-1;
 const mpGap=(x,y)=>{const d=Math.abs(x-y)%360;return d>180?360-d:d};
 const mpPal=(m,avoid)=>{const r=MPR[m]||MPR[2],rd=v=>v[0]+Math.random()*(v[1]-v[0]);let a=0,best=-1;for(let n=0;n<14&&best<75;n++){const c=Math.round(rd(r.a)+360)%360,gp=avoid<0?360:mpGap(c,avoid);if(gp>best){best=gp;a=c}}const b=(a+Math.round(rd(r.o))+360)%360,p=[hsl2hex(a,rd(r.s),rd(r.l)),hsl2hex(b,rd(r.s)-4,rd(r.l)-4)];p.h=a;return p};
-const mpList=()=>MT.map((t,i)=>i).filter(i=>(!MP.mood||MT[i].m===MP.mood)&&(!(MP.mood===2&&MP.era)||MT[i].era===MP.era)&&(!MP.pl||MP.pl.has(MT[i].url)));
+const mpList=()=>MT.map((t,i)=>i).filter(i=>(MP.mood?MT[i].m===MP.mood:MT[i].m!==5)&&(!(MP.mood===2&&MP.era)||MT[i].era===MP.era)&&(!MP.pl||MP.pl.has(MT[i].url)));
 const mpPick=l=>l[(Math.random()*l.length)|0];
-function mpSync(){const cf=MT[MP.i]&&MT[MP.i].fid,oc={};MT.forEach(t=>oc[t.fid]=t.c);MT.length=0;FAV.filter(x=>x.kind==="listen").forEach(x=>{const src=parseSrc(x.url);if(src)MT.push({n:x.title,m:x.type||1,src,url:x.url,fid:x.id,scope:x.scope,c:oc[x.id]||mpPal(x.type||1,-1)})});
+function mpSync(){const cf=MT[MP.i]&&MT[MP.i].fid,oc={};MT.forEach(t=>oc[t.fid]=t.c);MT.length=0;FAV.filter(x=>x.kind==="listen").forEach(x=>{const src=parseSrc(x.url);if(src&&(x.type!==5||window.__PODOK))MT.push({n:x.title,m:x.type||1,src,url:x.url,fid:x.id,scope:x.scope,c:oc[x.id]||mpPal(x.type||1,-1)})});
  const k=MT.findIndex(t=>t.fid===cf);if(k>=0)MP.i=k;const sg=MT.map(t=>t.fid).join();if(sg!==MP.sig){MP.sig=sg;MP.bag=[];MP.hist=[]}}
 /* playback: YouTube (hidden player) or direct audio, one control surface */
 const mpDk=[{yp:null,ypr:0,pend:"",au:null,ext:"",g:1},{yp:null,ypr:0,pend:"",au:null,ext:"",g:1}],mpIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1),XF_SEC=mpIOS?0:9;
@@ -1844,7 +1844,7 @@ function adOpen(){AS.sm=false;AS.sel.clear();AS.tab="users";[...$("adt").childre
 function adDraw(){const t=AS.tab;$("adsel").style.display=t==="users"?"":"none";$("adsel").textContent=AS.sm?"Done":"Select";$("adc").textContent=({users:AU.length+" USERS",ctl:"CONTROLS",rep:REPORTS.filter(r=>r.st==="open").length+" OPEN",log:AUD.length+" ACTIONS"})[t];
  const bar=$("adbar");bar.classList.toggle("on",t==="users"&&AS.sm);
  if(t==="users"){const q=AS.q.toLowerCase(),l=AU.filter(u=>(AS.f==="all"||(AS.f==="banned"?u.banned:u.guest))&&(u.n.toLowerCase().includes(q)||u.user.includes(q)||u.uid.toLowerCase().includes(q)));AS.vis=l;
-  $("adm").innerHTML=`<input class="srch" id="adq" placeholder="Search name, username or UID" value="${esc(AS.q)}" autocomplete="off" data-noswipe><div class="seg" id="adf"><button data-f="all" class="${AS.f==="all"?"on":""}">All</button><button data-f="banned" class="${AS.f==="banned"?"on":""}">Banned</button><button data-f="guest" class="${AS.f==="guest"?"on":""}">Guests</button></div>${l.length?(()=>{/*ZNX-ADM24*/const _row=u=>`<div class="gr" data-ai="${u.id}">${AS.sm?`<span class="ck${AS.sel.has(u.id)?" on":""}"></span>`:""}<div class="ava" style="background:${g(u.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(u.n))}</div><span class="t"><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user)} · ${u.uid}</small></span>${u.banned?'<span class="chip red">Banned</span>':u.guest?'<span class="chip">Guest</span>':""}${AS.sm?"":"<em>›</em>"}</div>`;const _n=Date.now()-DAY,_a=l.filter(u=>u.cr&&u.cr>_n),_h=t=>'<div class="sec">'+t+'</div>';return _h("Last 24 hours ("+_a.length+")")+(_a.length?`<div class="glist">${_a.map(_row).join("")}</div>`:'<div class="empty">No new users in the last 24 hours</div>')+_h("All users ("+l.length+")")+`<div class="glist">${l.map(_row).join("")}</div>`})():'<div class="empty">No users found.</div>'}`;
+  $("adm").innerHTML=`<input class="srch" id="adq" placeholder="Search name, username or UID" value="${esc(AS.q)}" autocomplete="off" data-noswipe><div class="seg" id="adf"><button data-f="all" class="${AS.f==="all"?"on":""}">All</button><button data-f="banned" class="${AS.f==="banned"?"on":""}">Banned</button><button data-f="guest" class="${AS.f==="guest"?"on":""}">Guests</button></div>${l.length?(()=>{/*ZNX-ADM24*/const _row=u=>`<div class="gr" data-ai="${u.id}">${AS.sm?`<span class="ck${AS.sel.has(u.id)?" on":""}"></span>`:""}<div class="ava" style="background:${g(u.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(u.n))}</div><span class="t"><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user)} · ${u.uid}</small></span>${u.banned?'<span class="chip red">Banned</span>':u.guest?'<span class="chip">Guest</span>':""}${AS.sm?"":"<em>›</em>"}</div>`;const _n=Date.now()-DAY,_a=l.filter(u=>(window.znxLG||{})[u.pid]).sort((x,y)=>window.znxLG[y.pid][0]-window.znxLG[x.pid][0]),_h=t=>'<div class="sec">'+t+'</div>';return _h("Logged in, last 24 hours ("+_a.length+")")+(_a.length?`<div class="glist">${_a.map(u=>window.znxLR(_row(u),u)).join("")}</div>`:'<div class="empty">No one logged in during the last 24 hours</div>')+_h("All users ("+l.length+")")+`<div class="glist">${l.map(_row).join("")}</div>`})():'<div class="empty">No users found.</div>'}`;
   const q2=$("adq");q2.oninput=e=>{AS.q=e.target.value;const p=e.target.selectionStart;adDraw();const n=$("adq");n.focus();n.setSelectionRange(p,p)};
   if(AS.sm)bar.innerHTML=`<b>${AS.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-ab="all">All</button><button class="gb" data-ab="st">Status</button><button class="gb" data-ab="fav">Global</button><button class="gb" data-ab="ban">Ban</button><button class="gb" data-ab="unban">Unban</button>`}
  else if(t==="ctl"){const T=(k,n,d)=>`<div class="pr2"><div class="t"><b>${n}</b>${d?`<small>${d}</small>`:""}</div><button class="tg ${ADC[k]?"on":""}" data-ac="${k}" aria-label="${n}"></button></div>`,S=(k,n,o)=>`<div style="padding:10px 0"><b style="font-size:15px;font-weight:600">${n}</b><div class="seg s3" style="margin:8px 0 2px">${o.map(v=>`<button data-as="${k}:${v}" class="${ADC[k]===v?"on":""}">${v}</button>`).join("")}</div></div>`;
@@ -6244,6 +6244,143 @@ clStat=async function(){const pc=CL.pc;if(!pc||pc.connectionState!=="connected")
 
 
 
+
+/*ZNX-PATCH-Z1*/
+(function(){try{
+var zD=document,zQ=function(i){return zD.getElementById(i)},zC=function(){return window.znxCtx?window.znxCtx():{}};
+
+/* ---------- 1. admin controls: Save button + real sign-up switch ---------- */
+var zSnap=JSON.stringify(ADC);
+function zDirty(){return JSON.stringify(ADC)!==zSnap}
+function zCtlLoad(force){
+ var c=zC();if(!c.sb)return Promise.resolve();
+ if(!force&&zDirty())return Promise.resolve();
+ return c.sb.from('nx_app_ctl').select('data').eq('id',1).maybeSingle().then(function(r){
+  if(r.error||!r.data||!r.data.data)return;
+  if(!force&&zDirty())return;
+  var d=r.data.data;
+  Object.keys(d).forEach(function(k){if(k in ADC)ADC[k]=d[k]});
+  zSnap=JSON.stringify(ADC);
+  if(MY.role==='admin'&&zQ('ad').classList.contains('on')&&AS.tab==='ctl')adDraw();
+ },function(){})}
+setTimeout(function(){zCtlLoad(1)},1500);
+setInterval(function(){zCtlLoad(0)},40000);
+
+var zAd0=adDraw;
+adDraw=function(){
+ zAd0();
+ if(AS.tab==='ctl'&&MY.role==='admin'&&zQ('adm')){
+  var d=zDirty();
+  zQ('adm').insertAdjacentHTML('afterbegin','<button class="pri" id="ctSave" style="width:100%;margin-bottom:10px'+(d?'':';opacity:.5')+'"'+(d?'':' disabled')+'>Save changes</button><p class="note" style="margin:0 4px 12px">'+(d?'You have unsaved changes.':'All changes are saved.')+'</p>')}
+ if(AS.tab==='users')zLgFetch()};
+zQ('adm').addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('#ctSave');if(!b||b.disabled)return;
+ var c=zC();if(!c.sb)return;b.disabled=true;
+ c.sb.from('nx_app_ctl').upsert({id:1,data:ADC,updated_at:new Date().toISOString()}).then(function(r){
+  if(r.error){ts('Not saved: '+String(r.error.message).slice(0,80));b.disabled=false;return}
+  zSnap=JSON.stringify(ADC);
+  try{logA('Controls saved','Sign-ups '+(ADC.signups?'open':'closed'))}catch(x){}
+  ts('Saved');adDraw()})});
+
+var zPass=0;
+function zGate(e){
+ var el=e.currentTarget;
+ if(zPass){zPass=0;return}
+ if(el.id==='go'&&zQ('go').textContent!=='Create account')return;
+ e.stopImmediatePropagation();e.preventDefault();
+ zCtlLoad(1).then(function(){
+  if(ADC.signups===false){var m=zQ('msg');if(m)m.textContent='New sign-ups are closed right now.';return}
+  zPass=1;el.click()})}
+['go','gs'].forEach(function(i){var el=zQ(i);if(el)el.addEventListener('click',zGate,true)});
+
+/* ---------- 2. users who logged in, last 24 hours ---------- */
+window.znxLG={};window.znxLGF={};
+var zLgT=0,zLgDone=0;
+function zLgRec(){
+ var c=zC();if(!c.sb||!c.pid||zLgDone)return;zLgDone=1;
+ var k='znx_lg_'+c.pid,l=0;try{l=+localStorage.getItem(k)||0}catch(e){}
+ if(Date.now()-l<30*60000)return;
+ try{localStorage.setItem(k,String(Date.now()))}catch(e){}
+ c.sb.from('nx_logins').insert({user_id:c.pid}).then(function(r){if(r&&r.error){zLgDone=0;try{localStorage.removeItem(k)}catch(e){}}},function(){zLgDone=0})}
+setInterval(zLgRec,5000);
+function zLgFetch(){
+ if(Date.now()-zLgT<20000)return;zLgT=Date.now();
+ var c=zC();if(!c.sb)return;
+ var since=new Date(Date.now()-864e5).toISOString();
+ Promise.all([
+  c.sb.from('nx_logins').select('user_id,at').gte('at',since).order('at',{ascending:false}).limit(2000),
+  c.sb.from('profiles').select('id,last_seen').gte('last_seen',since).limit(1000)
+ ]).then(function(a){
+  var m={},f={};
+  ((a[0]&&a[0].data)||[]).forEach(function(x){(m[x.user_id]=m[x.user_id]||[]).push(Date.parse(x.at))});
+  ((a[1]&&a[1].data)||[]).forEach(function(x){if(!m[x.id]){m[x.id]=[Date.parse(x.last_seen)];f[x.id]=1}});
+  window.znxLG=m;window.znxLGF=f;
+  var ae=zD.activeElement;
+  if(zQ('ad').classList.contains('on')&&AS.tab==='users'&&!(ae&&ae.id==='adq'))adDraw()
+ },function(){})}
+window.znxLR=function(h,u){
+ var t=(window.znxLG||{})[u.pid]||[],f=(window.znxLGF||{})[u.pid];
+ var fm=function(x){var d=new Date(x),n=new Date(),tm=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return d.toDateString()===n.toDateString()?tm:'Yesterday '+tm};
+ var s=(f?'Active ':'Login ')+t.slice(0,6).map(fm).join(', ')+(t.length>6?' +'+(t.length-6):'');
+ return h.replace('</small></span>','</small><small class="mono lc" style="display:block;white-space:normal;color:var(--ac)">'+s+'</small></span>')};
+
+/* ---------- 3. podcast (only for people the admin allows) ---------- */
+MN[5]='Podcast';
+try{TYN[5]='Podcast'}catch(e){}
+var zPod=false,zPodT=0;
+window.__PODOK=false;
+var zSl=zQ('mpsl');
+if(zSl&&!zQ('mppod')){
+ zSl.insertAdjacentHTML('beforebegin','<button class="ib" id="mppod" aria-label="Podcast" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="2.2"/><path d="M7.5 6a6.4 6.4 0 000 8M16.5 6a6.4 6.4 0 010 8M4.7 3.5a10 10 0 000 13M19.3 3.5a10 10 0 010 13M12 12.6V21"/></svg></button>');
+ zQ('mppod').onclick=zPodTap}
+function zPodSet(v){
+ zPod=v;window.__PODOK=v;
+ var b=zQ('mppod');if(b)b.style.display=v?'':'none';
+ zQ('mp').classList.toggle('pd',v);
+ if(!v&&MP.mood===5){MP.mood=0;MP.bag=[]}
+ try{mpSync();if(zQ('mp').classList.contains('on'))mpUI()}catch(e){}}
+function zPodLoad(){
+ var c=zC();if(!c.sb||!c.pid)return;
+ if(MY.role==='admin'){if(!zPod)zPodSet(true);return}
+ c.sb.from('nx_podcast_access').select('allowed').eq('user_id',c.pid).maybeSingle().then(function(r){
+  if(r.error)return;var v=!!(r.data&&r.data.allowed);if(v!==zPod)zPodSet(v)},function(){})}
+setInterval(function(){if(!zC().pid)return;if(Date.now()-zPodT<45000)return;zPodT=Date.now();zPodLoad()},2000);
+function zPodTap(){
+ if(!zPod)return;
+ if(MP.mood===5){MP.mood=0;MP.bag=[];mpUI();ts('All songs');return}
+ MP.mood=5;MP.era='';MP.bag=[];
+ var l=mpList();
+ if(!l.length){MP.mood=0;mpUI();ts('No podcasts yet. Save one with type Podcast');return}
+ mpGo(l[(Math.random()*l.length)|0],1);ts('Podcast mode')}
+var zMu0=mpUI;
+mpUI=function(){zMu0.apply(this,arguments);var b=zQ('mppod');if(b)b.classList.toggle('on',MP.mood===5)};
+var zPu0=mpPulse;
+mpPulse=function(t,dt,m,pl){return zPu0.call(this,t,dt,m===5?1:m,pl)};
+function zInj(){
+ var sh=zQ('sh');if(!sh||!zPod)return;
+ ['mat','fvt','faTT'].forEach(function(id){
+  var sg=sh.querySelector('#'+id);
+  if(sg&&!sg.querySelector('[data-t="5"]'))sg.insertAdjacentHTML('beforeend','<button data-t="5">Podcast</button>')})}
+new MutationObserver(zInj).observe(zQ('sh'),{childList:true,subtree:true});
+
+/* admin: per-user podcast switch */
+var zAu0=adUser;
+adUser=function(i){
+ zAu0(i);
+ var u=AU[i],c=zC();if(!u||!u.pid||!c.sb)return;
+ var sh=zQ('sh');
+ sh.insertAdjacentHTML('beforeend','<div class="sec">Podcast</div><div class="glist"><div class="gr"><span class="t"><b>Podcast access</b><small>Only people you allow can see Podcast in Music</small></span><button class="tg" data-pdu="'+u.pid+'" aria-label="Podcast access"></button></div></div>');
+ c.sb.from('nx_podcast_access').select('allowed').eq('user_id',u.pid).maybeSingle().then(function(r){
+  var t=sh.querySelector('[data-pdu]');if(t&&r.data&&r.data.allowed)t.classList.add('on')})};
+zQ('sh').addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-pdu]');if(!b)return;
+ var on=!b.classList.contains('on');b.classList.toggle('on',on);
+ zC().sb.from('nx_podcast_access').upsert({user_id:b.dataset.pdu,allowed:on,updated_at:new Date().toISOString()}).then(function(r){
+  if(r.error){b.classList.toggle('on',!on);ts('Not saved');return}
+  ts(on?'Podcast access on':'Podcast access off');
+  try{logA('Podcast access',on?'allowed':'removed')}catch(x){}})});
+
+}catch(err){console.error('ZNX patch Z1',err)}})();
 })();</script><script>
 
 (function(){
@@ -7721,7 +7858,7 @@ var HTML='<div class="znx-cat sleep" id="zcat"><svg viewBox="0 0 200 150" role="
 +'<text class="zz" x="136" y="62" font-size="16" fill="#8f88ff" font-weight="700">z</text>'
 +'<text class="zz b" x="146" y="48" font-size="13" fill="#8f88ff" font-weight="700">z</text>'
 +'<text class="zz c" x="154" y="36" font-size="10" fill="#8f88ff" font-weight="700">z</text>'
-+'</svg><b>No chats yet</b><small>Find someone to chat with. Tap the cat, it is sleepy.</small><button class="pri" id="zcatBtn">Find someone</button></div>';
++'</svg><b>No chats yet</b><small>Find someone to chat with.</small><button class="pri" id="zcatBtn">Find someone</button></div>';
 function sleep(c){c.classList.remove('awake');c.classList.add('sleep')}
 function wake(c,ms){c.classList.remove('sleep');c.classList.add('awake','pop');setTimeout(function(){c.classList.remove('pop')},520);clearTimeout(TM);TM=setTimeout(function(){if(c.isConnected)sleep(c)},ms)}
 function bind(c){
@@ -8101,4 +8238,29 @@ function wrap(){
 var pg=$('pg'),busy=0;
 if(pg){new MutationObserver(function(){if(busy)return;busy=1;requestAnimationFrame(function(){busy=0;wrap()})}).observe(pg,{childList:true,subtree:true});wrap()}
 }catch(err){console.error('ZNX patch Y1',err)}})();</script>
+<style id="znx-z1-css">
+/* ===== Ludo (robot / online): compact names, big centered dice. One phone mode untouched ===== */
+html body #ldoR:not(.ph) .loP{gap:4px;max-width:340px}
+html body #ldoR:not(.ph) .loc{padding:4px 2px 3px;border-radius:12px;font-size:10px;gap:0}
+html body #ldoR:not(.ph) .loc i{width:20px;height:20px;font-size:9px}
+html body #ldoR:not(.ph) .loc em{font-size:8.5px;letter-spacing:0}
+html body #ldoR:not(.ph) .loc.on{transform:none}
+html body #ldoR:not(.ph) .loP:has(.loc:nth-child(4)){grid-template-columns:repeat(4,1fr);gap:4px}
+html body #ldoR:not(.ph) .loP:has(.loc:nth-child(4)) .loc{grid-template-columns:none;grid-template-rows:none;justify-items:center;column-gap:0;padding:4px 2px 3px}
+html body #ldoR:not(.ph) .loP:has(.loc:nth-child(4)) .loc i{grid-row:auto}
+html body #ldoR:not(.ph) .loM{flex-direction:column;justify-content:center;gap:0;height:auto;overflow:visible;padding-bottom:6px}
+html body #ldoR:not(.ph) #loD{transform:scale(1.3);margin:10px 0 8px}
+html body #ldoR:not(.ph) #loSt{height:auto;min-height:30px;width:min(300px,90vw);text-align:center;align-items:center;font-size:14px}
+html body #ldoR:not(.ph) .loB,
+html body #ldoR:not(.ph):has(.loc:nth-child(4)) .loB{width:min(100%,calc(100dvh - 380px),640px)!important}
+html body #ldoR:not(.ph):has(.loC) .loB,
+html body #ldoR:not(.ph):has(.loC):has(.loc:nth-child(4)) .loB{width:min(100%,calc(100dvh - 440px),640px)!important}
+/* ===== empty chats: no cat ===== */
+.znx-cat svg{display:none!important}
+.znx-cat{padding-top:70px}
+/* ===== podcast ===== */
+#mppod.on{color:var(--ac)}
+#mppod.on svg{filter:drop-shadow(0 0 6px var(--ac))}
+#mp.pd .mpr2 .ib{width:36px;height:36px;min-width:36px!important;min-height:36px!important}
+</style>
 </body></html>
