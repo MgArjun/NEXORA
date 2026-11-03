@@ -2372,8 +2372,8 @@ $("etgo").onclick=()=>{const src=parseSrc($("etlink").value);if(!src)return ts("
 $("etlink").addEventListener("keydown",e=>{if(e.key==="Enter")$("etgo").click()});
 function etPickFile(){const i=document.createElement("input");i.type="file";i.accept="video/*,audio/*";i.onchange=()=>{const f=i.files[0];if(!f)return;if(ET.url)URL.revokeObjectURL(ET.url);ET.url=URL.createObjectURL(f);etLoad({t:"url",url:ET.url},f.name.replace(/\.[^.]+$/,""))};i.click()}
 $("etst").onclick=()=>{const src=parseSrc($("etlink").value)||ET.cur;if(!src)return ts("Paste a link first");const url=$("etlink").value.trim()||(src.t==="yt"?"https://youtu.be/"+src.id:src.url),lis=ET.kind==="listen";
- sheet(`<h3>Save to favourites</h3><div class="fld"><label>Name</label><input id="fvn" maxlength="60" value="${esc(ET.title||"")}" placeholder="Give it a name"></div>${lis?`<div class="sec">Type</div><div class="seg" id="fvt"><button data-t="1" class="on">Soothing</button><button data-t="2">Vibe</button><button data-t="3">Energetic</button></div>`:""}<div class="sec">Visible to</div><div class="seg" id="fvs"><button data-s="private" class="on">Private</button><button data-s="global">Global</button></div><p class="note">Private is only yours. Global shows up for everyone. The link stays saved.</p><button class="pri" style="width:100%" id="fvok">Save</button>`);
- nameFill($("fvn"),()=>url);let sc="private",ty=1;$("sh").onclick=e=>{const b=e.target.closest("#fvs button,#fvt button");if(b){[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.s)sc=b.dataset.s;if(b.dataset.t)ty=+b.dataset.t;return}
+ sheet(`<h3>Save to favourites</h3><div class="fld"><label>Name</label><input id="fvn" maxlength="60" value="${esc(ET.title||"")}" placeholder="Give it a name"></div>${lis?`<div class="sec">Type</div><div class="seg" id="fvt"><button data-t="1" class="on">Soothing</button><button data-t="2">Vibe</button><button data-t="3">Energetic</button></div>`:""}<div class="sec">Visible to</div><div class="seg" id="fvs"><button data-s="private">Private</button><button data-s="global" class="on">Global</button></div><p class="note">Private is only yours. Global shows up for everyone. The link stays saved.</p><button class="pri" style="width:100%" id="fvok">Save</button>`);
+ nameFill($("fvn"),()=>url);let sc="global",ty=1;$("sh").onclick=e=>{const b=e.target.closest("#fvs button,#fvt button");if(b){[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.s)sc=b.dataset.s;if(b.dataset.t)ty=+b.dataset.t;return}
   if(e.target.closest("#fvok")){const nm=$("fvn").value.trim();if(!nm)return ts("Give it a name");if(favDup(url))return ts("This link already exists");FAV.unshift({id:Date.now(),kind:ET.kind,title:nm,url,scope:sc,type:lis?ty:0});favSave();closeS();ts("Saved to favourites");if(ET.pane==="saved")etSaved()}}};
 $("ets").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));ET.kind=b.dataset.k==="l"?"listen":"watch";$("etg").classList.toggle("aud",ET.kind==="listen");$("etlink").placeholder=ET.kind==="listen"?"Paste a YouTube or audio link":"Paste YouTube or video link";if(ET.pane==="saved"||ET.pane==="queue")etPane(ET.pane)};
 const etSend=()=>{const i=$("etmsg"),t=i.value.trim();if(!t)return;ET.msgs.push({n:MY.name,t:t,me:1});etTx({t:"chat",n:MY.name,m:t});i.value="";etChat()};$("etsd").onclick=etSend;$("etmsg").addEventListener("keydown",e=>{if(e.key==="Enter")etSend()});
@@ -2547,7 +2547,7 @@ function fvMenu(id){const x=FAV.find(z=>z.id==id);if(!x)return;sheet(`<h3>${esc(
   if(k==="scope"){if(x.mine===false)return;x.scope=x.scope==="private"?"global":"private";favSave();closeS();fvDraw();return ts(x.scope==="global"?"Now visible to everyone":"Now only yours")}
   if(k==="del"){if(!favCan(x))return;FAV=FAV.filter(z=>z!==x);favSave();closeS();fvDraw();return ts("Removed")}
   if(k==="rename"){sheet(`<h3>Rename</h3><input id="fvrn" maxlength="60" value="${esc(x.title)}" style="margin-bottom:10px"><button class="pri" style="width:100%" id="fvrk">Save</button>`);$("sh").onclick=e2=>{if(e2.target.closest("#fvrk")){const v=$("fvrn").value.trim();if(!v)return ts("Give it a name");x.title=v;favSave();closeS();fvDraw()}}}}}
-function fvAddSheet(){let kind=FS.kind,ty=1,sc="private";sheet(`<h3>Add to favourites</h3><div class="seg" id="faK"><button data-k="watch" class="${kind==="watch"?"on":""}">Video</button><button data-k="listen" class="${kind==="listen"?"on":""}">Song</button></div><div class="fld"><label>YouTube or media link</label><input id="fal" placeholder="https://youtu.be/..." autocomplete="off" inputmode="url" autocapitalize="off"></div><div class="fld"><label>Name</label><input id="fan" maxlength="60" placeholder="Name"></div><div id="faT"><div class="sec">Type</div><div class="seg" id="faTT"><button data-t="1" class="on">Soothing</button><button data-t="2">Vibe</button><button data-t="3">Energetic</button></div></div><div class="sec">Visible to</div><div class="seg" id="faS"><button data-s="private" class="on">Private</button><button data-s="global">Global</button></div><button class="pri" style="width:100%;margin-top:6px" id="fak">Save</button>`);
+function fvAddSheet(){let kind=FS.kind,ty=1,sc="global";sheet(`<h3>Add to favourites</h3><div class="seg" id="faK"><button data-k="watch" class="${kind==="watch"?"on":""}">Video</button><button data-k="listen" class="${kind==="listen"?"on":""}">Song</button></div><div class="fld"><label>YouTube or media link</label><input id="fal" placeholder="https://youtu.be/..." autocomplete="off" inputmode="url" autocapitalize="off"></div><div class="fld"><label>Name</label><input id="fan" maxlength="60" placeholder="Name"></div><div id="faT"><div class="sec">Type</div><div class="seg" id="faTT"><button data-t="1" class="on">Soothing</button><button data-t="2">Vibe</button><button data-t="3">Energetic</button></div></div><div class="sec">Visible to</div><div class="seg" id="faS"><button data-s="private">Private</button><button data-s="global" class="on">Global</button></div><button class="pri" style="width:100%;margin-top:6px" id="fak">Save</button>`);
  const tv=()=>$("faT").style.display=kind==="listen"?"":"none";tv();nameFill($("fan"),()=>$("fal").value,$("fal"));
  $("sh").onclick=e=>{const b=e.target.closest("#faK button,#faTT button,#faS button");if(b){[...b.parentNode.children].forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.k){kind=b.dataset.k;tv()}if(b.dataset.t)ty=+b.dataset.t;if(b.dataset.s)sc=b.dataset.s;return}
   if(e.target.closest("#fak")){const u=$("fal").value.trim(),nm=$("fan").value.trim();if(!parseSrc(u))return ts("Paste a valid YouTube or media link");if(favDup(u))return ts("This link already exists");if(!nm)return ts("Give it a name");FAV.unshift({id:Date.now(),kind,title:nm,url:u,scope:sc,type:kind==="listen"?ty:0});favSave();closeS();FS.kind=kind;[...$("fvkind").children].forEach(x=>x.classList.toggle("on",x.dataset.k===kind));fvDraw();ts("Saved to favourites")}}}
@@ -5203,8 +5203,8 @@ html body .etmk{height:12%}html body .etmk.b{height:14%}
 /* 1. Save: Videos or Music (Soothing / Vibe / Energetic) */
 const SAVEC=[["w",0,"Videos","Watch list",IC.vid,""],["l",1,"Music \u00b7 Soothing","Calm and slow",IC.aud,""],["l",2,"Music \u00b7 Vibe \u00b7 Old","Older vibe songs",IC.aud,"old"],["l",2,"Music \u00b7 Vibe \u00b7 New","Newer vibe songs",IC.aud,"new"],["l",3,"Music \u00b7 Energetic","High energy",IC.aud,""],["l",4,"Music \u00b7 Bhakti","Devotional songs",IC.aud,""]];
 function ytSave(id,title){
- if(!/^[\w-]{11}$/.test(id||""))return;const url="https://youtu.be/"+id;let sc="private";
- sheet(`<h3>Save</h3><div class="fld"><label>Name</label><input id="ysn" maxlength="60" value="${esc(String(title||"").slice(0,60))}" autocomplete="off"></div><div class="sec">Save to</div><div class="glist">${SAVEC.map((c,i)=>`<button class="gr" data-ys="${i}"><i class="gi">${c[4]}</i><span class="t"><b>${c[2]}</b><small>${c[3]}</small></span><em>\u203a</em></button>`).join("")}</div><div class="sec">Visible to</div><div class="seg" id="ysv"><button data-s="private" class="on">Private</button><button data-s="global">Global</button></div>`);
+ if(!/^[\w-]{11}$/.test(id||""))return;const url="https://youtu.be/"+id;let sc="global";
+ sheet(`<h3>Save</h3><div class="fld"><label>Name</label><input id="ysn" maxlength="60" value="${esc(String(title||"").slice(0,60))}" autocomplete="off"></div><div class="sec">Save to</div><div class="glist">${SAVEC.map((c,i)=>`<button class="gr" data-ys="${i}"><i class="gi">${c[4]}</i><span class="t"><b>${c[2]}</b><small>${c[3]}</small></span><em>\u203a</em></button>`).join("")}</div><div class="sec">Visible to</div><div class="seg" id="ysv"><button data-s="private">Private</button><button data-s="global" class="on">Global</button></div>`);
  $("sh").onclick=e=>{const v=e.target.closest("#ysv button");if(v){[...v.parentNode.children].forEach(x=>x.classList.toggle("on",x===v));sc=v.dataset.s;return}
   const b=e.target.closest("[data-ys]");if(!b)return;const c=SAVEC[+b.dataset.ys],kind=c[0]==="l"?"listen":"watch",nm=$("ysn").value.trim();
   if(!nm)return ts("Give it a name");
@@ -6381,6 +6381,115 @@ zQ('sh').addEventListener('click',function(e){
   try{logA('Podcast access',on?'allowed':'removed')}catch(x){}})});
 
 }catch(err){console.error('ZNX patch Z1',err)}})();
+/*ZNX-PATCH-P1*/
+try{(function(){
+var PD={v:false,t:0,n:0};
+var st=document.createElement('style');st.id='znx-p1-css';
+st.textContent='#mpps{display:flex;margin:0 0 0 2px}#mpps:empty{display:none}#mpps .ib{width:40px;height:40px;min-width:40px!important;min-height:40px!important;border-radius:50%;border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--sf) 70%,transparent),color-mix(in srgb,var(--sf) 70%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box;color:var(--mu)}#mpps .ib.on{color:var(--ac);box-shadow:0 0 18px -6px var(--ac)}html body #mp.pd .mpr2 .ib{width:42px;height:42px;min-width:44px!important;min-height:44px!important}#zae{margin:0 0 6px}#zat{margin:12px 0 6px}';
+document.head.appendChild(st);
+
+/* 1. podcast button: just under the back button */
+var MIC='<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3M9 21h6"/></svg>';
+function podTap(){
+ if(!PD.v)return;
+ if(MP.mood===5){MP.mood=0;MP.bag=[];mpUI();ts('All songs');return}
+ MP.mood=5;MP.era='';MP.bag=[];
+ var l=mpList();
+ if(!l.length){MP.mood=0;mpUI();ts('No podcasts yet. Save one with type Podcast');return}
+ mpGo(l[(Math.random()*l.length)|0],1);ts('Podcast mode')}
+function place(){
+ var b=$('mppod'),r=document.querySelector('#mp .mphd .mprow');if(!b||!r)return;
+ var w=$('mpps');if(!w){w=document.createElement('div');w.id='mpps';r.parentNode.insertBefore(w,r.nextSibling)}
+ if(b.parentNode!==w){w.appendChild(b);b.innerHTML=MIC;b.onclick=podTap}}
+place();setInterval(place,1500);
+
+/* 2. podcast access: only admin or allowed users */
+function injAdd(){
+ var sh=$('sh');if(!sh||!window.__PODOK)return;
+ ['mat','fvt','faTT'].forEach(function(id){var sg=sh.querySelector('#'+id);if(sg&&!sg.querySelector('[data-t="5"]'))sg.insertAdjacentHTML('beforeend','<button data-t="5">Podcast</button>')})}
+new MutationObserver(injAdd).observe($('sh'),{childList:true,subtree:true});
+function podSet(v){
+ PD.v=v;window.__PODOK=v;
+ var b=$('mppod');if(b)b.style.display=v?'':'none';
+ if(!v&&MP.mood===5){MP.mood=0;MP.bag=[]}
+ try{mpSync();if($('mp').classList.contains('on'))mpUI()}catch(e){}
+ injAdd()}
+function podCheck(){
+ var c=clCtx();if(!c.sb||!c.pid)return;
+ PD.t=Date.now();PD.n++;
+ c.sb.from('nx_podcast_access').select('allowed').eq('user_id',c.pid).maybeSingle().then(function(r){
+  if(r.error)return;var v=!!(r.data&&r.data.allowed);if(v!==PD.v)podSet(v)},function(){})}
+setInterval(function(){
+ var c=clCtx();if(!c.pid)return;
+ if(MY.role==='admin'){if(!PD.v)podSet(true);return}
+ if(Date.now()-PD.t<(PD.n<4?3000:30000))return;
+ podCheck()},1500);
+
+/* 3. add song: minimal, Vibe + Global by default */
+mpAdd=function(){
+ var ty=2,era='new',gl=true;
+ var T=[[2,'Vibe'],[1,'Soothing'],[3,'Energetic'],[4,'Bhakti']].concat(window.__PODOK?[[5,'Podcast']]:[]);
+ sheet('<h3>Add a song</h3>'
+  +'<label class="lf"><input id="zal" placeholder=" " autocomplete="off" inputmode="url" autocapitalize="off"><span>YouTube link</span></label>'
+  +'<label class="lf" style="margin-top:10px"><input id="zan" maxlength="60" placeholder=" " autocomplete="off"><span>Song name</span></label>'
+  +'<div class="chips" id="zat" data-noswipe>'+T.map(function(t){return '<button data-t="'+t[0]+'" class="'+(t[0]===2?'on':'')+'">'+t[1]+'</button>'}).join('')+'</div>'
+  +'<div class="seg" id="zae"><button data-e="new" class="on">New</button><button data-e="old">Old</button></div>'
+  +'<div class="pr2"><div class="t"><b>Share with everyone</b><small>Turn off to keep it only for you</small></div><button class="tg on" id="zag" aria-label="Share with everyone"></button></div>'
+  +'<button class="pri" id="zak" style="width:100%;margin-top:6px">Save and play</button>');
+ nameFill($('zan'),function(){return $('zal').value},$('zal'));
+ $('sh').onclick=function(e){
+  var c=e.target.closest('#zat button');
+  if(c){ty=+c.dataset.t;[].forEach.call(c.parentNode.children,function(x){x.classList.toggle('on',x===c)});$('zae').style.display=ty===2?'':'none';return}
+  var g=e.target.closest('#zae button');
+  if(g){era=g.dataset.e;[].forEach.call(g.parentNode.children,function(x){x.classList.toggle('on',x===g)});return}
+  if(e.target.closest('#zag')){gl=!gl;$('zag').classList.toggle('on',gl);return}
+  if(e.target.closest('#zak')){
+   var u=$('zal').value.trim(),nm=$('zan').value.trim();
+   if(!parseSrc(u))return ts('Paste a valid YouTube or audio link');
+   if(favDup(u))return ts('This link already exists');
+   if(ty===5&&!window.__PODOK)return ts('Podcast is not allowed for you');
+   if(!nm)nm='New song';
+   var id=Date.now();
+   FAV.unshift({id:id,kind:'listen',title:nm,url:u,scope:gl?'global':'private',type:ty,era:ty===2?era:''});
+   favSave();mpSync();closeS();ts('Saved');
+   var k=MT.findIndex(function(t){return t.fid===id});if(k>=0)mpGo(k,1)}}};
+
+/* 4. music: no crossfade, no stop-start loop. 3 s, then 5 s, then stop */
+MP.noxf=1;
+var W={t0:0,s:0,n:0,pl:0,e:0,lock:0};
+function playNow(d){try{if(d.ext==='yt'){d.yp.playVideo()}else if(d.au){var p=d.au.play();if(p&&p.catch)p.catch(function(){})}}catch(e){}}
+function pauseNow(d){try{if(d.ext==='yt'){d.yp.pauseVideo()}else if(d.au){d.au.pause()}}catch(e){}}
+mpWatch=function(){
+ try{
+  if(MP.want)W.lock=0;
+  if(MP.xf)mpXfEnd();
+  if(!MP.want||!MP.started){W.s=0;W.n=0;return}
+  var d=mpDk[MP.d],now=Date.now(),st,playing;
+  if(MP.t0!==W.t0){W.t0=MP.t0;W.s=0;W.n=0;W.pl=0}
+  if(d.ext==='yt'){
+   if(!d.ypr||!d.yp.getPlayerState)return;
+   st=d.yp.getPlayerState();
+   if(st===0){if(now-MP.t0>3000&&now-W.e>2500){W.e=now;mpEnded()}return}
+   playing=(st===1||st===3)}
+  else if(d.ext==='audio'&&d.au){
+   if(d.au.ended){if(now-MP.t0>3000&&now-W.e>2500){W.e=now;mpEnded()}return}
+   playing=!d.au.paused}
+  else return;
+  if(playing){W.s=0;W.n=0;W.pl=1;return}
+  if(!W.s){W.s=now;return}
+  if(!W.pl&&!document.hidden){
+   if(now-MP.t0>20000){W.s=0;ts('Skipped: song did not start');mpStep(1);return}
+   if(W.n<1&&now-W.s>3500){W.n=1;playNow(d)}
+   return}
+  if(now-W.s<(W.n===0?3000:5000))return;
+  W.s=now;W.n++;
+  if(W.n<=2){playNow(d)}
+  else{pauseNow(d);MP.want=0;MP.play=0;W.lock=1;W.n=0;W.s=0;mpUI();ts('Music paused. Tap play to continue')}
+ }catch(e){}};
+document.addEventListener('visibilitychange',function(){
+ if(!document.hidden&&W.lock&&!MP.want&&MP.started){W.lock=0;W.s=0;W.n=0;MP.want=1;playNow(mpDk[MP.d]);mpUI()}});
+})()}catch(err){console.error('ZNX patch P1',err)}
+
 })();</script><script>
 
 (function(){
