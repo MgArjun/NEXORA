@@ -8681,4 +8681,43 @@ if(fb&&!$('etsp')){
   else{var i=D.querySelector('#etyw iframe');try{if(i&&i.contentWindow)i.contentWindow.postMessage(JSON.stringify({event:'command',func:'setPlaybackRate',args:[r]}),'*')}catch(x){}}
   sp.textContent=r+'x';toast('Speed '+r+'x')}}
 }catch(err){console.error('ZNX fullscreen patch',err)}})()</script>
+<!--ZNX-PZ1--><style id="znx-pz1-css">
+#znxFh{display:none!important}
+html body #et .etk{left:10px!important;right:10px!important;bottom:8px!important;padding:2px 8px 0!important;border-radius:16px!important;background:rgba(8,10,18,.4)!important;gap:0 2px!important}
+html body #et .etk .ib{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
+html body #et .etk #etp,html body #et .etk #etp svg{width:30px!important;height:30px!important}
+html body #et .etk #etp svg{width:16px!important;height:16px!important}
+html body #et .etk .ib svg{width:17px!important;height:17px!important}
+html body #et .etk #etsp{font:600 10px ui-monospace,Menlo,monospace!important;letter-spacing:.04em}
+html body #et .etk .etsk{height:18px!important}
+html body #etg #etcc{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;margin:-22px 0 0 -22px!important;background:rgba(10,12,20,.32)!important;border:1px solid rgba(255,255,255,.2)!important;box-shadow:0 0 22px -8px var(--ac)!important}
+html body #etg #etcc svg{width:18px!important;height:18px!important}
+#tcl{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important}
+#pzb{width:42px!important;height:36px!important;min-width:42px!important;min-height:36px!important;padding:0!important;border-radius:12px!important;display:grid;place-items:center;border:1px solid transparent!important;background:linear-gradient(var(--sf),var(--sf)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box!important}
+#pzb i{width:20px;height:20px;border-radius:50%;box-shadow:0 0 0 2px var(--sf),0 0 12px -2px var(--ac)}
+#pzp{display:none;flex-wrap:wrap;gap:10px;padding:12px;border-radius:20px;border:1px solid transparent;background:linear-gradient(color-mix(in srgb,var(--sf) 94%,transparent),color-mix(in srgb,var(--sf) 94%,transparent)) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box}
+#pzp.on{display:flex;animation:rise .3s both}
+.pzs{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:0!important;border-radius:50%!important;background:var(--c)!important;border:2px solid rgba(255,255,255,.28)!important;box-shadow:0 8px 16px -8px var(--c);transition:transform .3s cubic-bezier(.2,.9,.3,1.4)}
+.pzs.on{outline:2px solid var(--ac);outline-offset:2px;transform:scale(1.1)}
+.pzr{background:conic-gradient(#e5484d,#f5c518,#2fa86b,#3b7be0,#a855f7,#e5484d)!important}
+</style><script id="znx-pz1">
+(function(){try{
+var D=document,$=function(i){return D.getElementById(i)};
+var COL=['#000000','#ffffff','#e5484d','#ff8a3d','#f5c518','#2fa86b','#2bb5a8','#3b7be0','#6a62f0','#a855f7','#ec4899','#8a8fa6','#7a4a2a','#1f2a44'];
+function build(){
+ var tcl=$('tcl'),tse=$('tse');if(!tcl||!tse||tcl.dataset.pz)return;tcl.dataset.pz='1';
+ var b=D.createElement('button');b.className='tx';b.id='pzb';b.type='button';b.setAttribute('aria-label','Text colour');b.innerHTML='<i></i>';
+ tcl.parentNode.insertBefore(b,tcl);
+ var p=D.createElement('div');p.id='pzp';
+ p.innerHTML=COL.map(function(c){return '<button type="button" class="pzs" data-c="'+c+'" style="--c:'+c+'" aria-label="Colour '+c+'"></button>'}).join('')+'<button type="button" class="pzs pzr" data-c="" aria-label="Custom colour"></button>';
+ tse.parentNode.insertBefore(p,tse.nextSibling);
+ function paint(){var v=tcl.value;b.firstChild.style.background=v;[].forEach.call(p.querySelectorAll('.pzs[data-c]'),function(s){s.classList.toggle('on',!!s.dataset.c&&s.dataset.c===v)})}
+ b.onclick=function(){p.classList.toggle('on');paint()};
+ p.onclick=function(e){var s=e.target.closest('.pzs');if(!s)return;if(!s.dataset.c){tcl.click();return}tcl.value=s.dataset.c;tcl.dispatchEvent(new Event('input',{bubbles:true}));paint()};
+ tcl.addEventListener('input',paint);
+ setInterval(function(){if(!tcl.isConnected)return;paint();if(getComputedStyle(tse).display==='none')p.classList.remove('on')},350);
+ paint()}
+new MutationObserver(build).observe(D.body,{childList:true,subtree:true});build();
+}catch(e){console.error('ZNX PZ1',e)}})();
+</script>
 </body></html>
