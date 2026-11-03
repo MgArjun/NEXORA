@@ -7395,7 +7395,7 @@ var st=D.createElement('style');st.textContent='#tlR{position:fixed;inset:0;z-in
 '.tlh{display:flex;align-items:center;gap:8px;margin-bottom:12px}.tlh b{flex:1;text-align:center;font-size:15px}.tlv{border-radius:20px;overflow:hidden;background:#000;display:grid;place-items:center;max-height:38dvh}.tlv img{max-width:100%;max-height:38dvh}'+
 '#tlR input[type=range]{width:100%;height:30px;padding:0;border:0;background:none;accent-color:var(--ac)}#tlR input[type=color]{width:44px;height:36px;padding:2px;border-radius:10px;flex:none}'+
 '#tsc{flex:1;min-height:0;overflow:auto;touch-action:pan-x pan-y;background:rgba(128,128,150,.12);border-radius:18px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:12px}'+
-'.tpg{position:relative;background:#fff;container-type:inline-size;flex:none;box-shadow:0 12px 30px -16px #000;transition:width .25s cubic-bezier(.2,.9,.2,1)}.pz .tpg{transition:none}.tpg canvas{width:100%;display:block}.tov{position:absolute;inset:0}'+
+'.tpg{position:relative;background:#fff;container-type:inline-size;flex:none;box-shadow:0 6px 16px -10px #000}.pz .tpg{transition:none}.tpg canvas{width:100%;display:block}.tov{position:absolute;inset:0}'+
 '.ti{position:absolute;line-height:1.15;white-space:pre;touch-action:none;outline:none;min-width:2cqw;cursor:move}.ti.s{outline:1.5px dashed #6a62f0;outline-offset:2px}.cv{position:absolute}.ti img{width:100%;display:block;pointer-events:none}'+
 '.rz{position:absolute;right:-9px;bottom:-9px;width:20px;height:20px;border-radius:50%;background:#6a62f0;border:2px solid #fff;display:none}.ti.s .rz{display:block}'+
 '#ttb{display:grid;gap:8px;padding-top:10px}.trw{display:flex;gap:6px;align-items:center;flex-wrap:wrap}';D.head.appendChild(st);
@@ -7524,7 +7524,7 @@ $('tlk').onclick=function(){LK=!LK;this.textContent=LK?'Ratio: locked':'Ratio: f
 $('tdl').onclick=function(){if(!S)return;var o=S,rm=[o];if(o.cv)rm.push(o.cv);rm.forEach(function(i){i.el.remove();var a=i.p.items;a.splice(a.indexOf(i),1)});sel(null)};
  var d0=0,z0=1,dist=function(e){return Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)||1};
  sc.addEventListener('touchstart',function(e){if(e.touches.length===2){d0=dist(e);z0=Z;sc.classList.add('pz')}},{passive:true});
- sc.addEventListener('touchmove',function(e){if(e.touches.length===2&&d0){e.preventDefault();zoom(z0*dist(e)/d0,(e.touches[0].clientX+e.touches[1].clientX)/2,(e.touches[0].clientY+e.touches[1].clientY)/2)}},{passive:false});
+ var zq=null,zr=0;sc.addEventListener('touchmove',function(e){if(e.touches.length===2&&d0){e.preventDefault();zq=[z0*dist(e)/d0,(e.touches[0].clientX+e.touches[1].clientX)/2,(e.touches[0].clientY+e.touches[1].clientY)/2];if(!zr)zr=requestAnimationFrame(function(){zr=0;var a=zq;zq=null;if(a)zoom(a[0],a[1],a[2])})}},{passive:false});
  sc.addEventListener('touchend',function(e){if(e.touches.length<2){d0=0;sc.classList.remove('pz')}});
  function flat(p){var W=p.vp.width,H=p.vp.height,c=D.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.drawImage(p.cv,0,0);
   p.items.forEach(function(o){if(o.k==='c'){x.fillStyle=o.c;x.fillRect(o.x*W,o.y*H,o.w*W,o.h*H)}else if(o.k==='i'){var w=o.w*W,h=o.h!=null?o.h*H:w*o.im.naturalHeight/o.im.naturalWidth;x.save();x.translate(o.x*W+w/2,o.y*H+h/2);x.rotate((o.r||0)*Math.PI/180);x.drawImage(o.im,-w/2,-h/2,w,h);x.restore()}else{var s=o.fs*W;x.font=s+'px '+o.fam+',sans-serif';x.fillStyle=o.c;x.textBaseline='top';o.el.textContent.split('\n').forEach(function(l,i){x.fillText(l,o.x*W,o.y*H+i*1.15*s+.07*s)})}});
@@ -8776,4 +8776,69 @@ function build(){
 new MutationObserver(build).observe(D.body,{childList:true,subtree:true});build();
 }catch(e){console.error('ZNX PZ1',e)}})();
 </script>
+
+<!--ZNX-SMOOTH-X2-->
+<style id="znx-smooth-x2">
+/* ZNX-SMOOTH-X2 : Tools / Edit PDF / Create PDF smooth */
+html body #tlR,html body #cpR,html body #cpK{animation-duration:.18s!important;overscroll-behavior:contain}
+/* lagatar chalne wale heavy animations band */
+html body #tlR::before{animation:none!important;display:none!important}
+html body #et::before{animation:none!important}
+html body #tlR #tsc,html body #tlR .tlv{animation:none!important;background:radial-gradient(circle,rgba(150,160,255,.10) 1px,transparent 1.4px) 0 0/24px 24px padding-box,linear-gradient(var(--zin,color-mix(in srgb,var(--sf) 62%,var(--bg))),var(--zin,color-mix(in srgb,var(--sf) 62%,var(--bg)))) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box!important}
+html body #tlR .tlv{background:linear-gradient(#05060a,#05060a) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 50%,var(--e3)) border-box!important}
+/* buttons: tez, halka */
+html body #tlR button,html body #tlR .gr,html body #cpR button,html body #cpK button,html body #tdc button,html body #pzp button{
+ transition:transform .09s ease-out,background-color .12s,opacity .12s,filter .12s!important;
+ touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+html body .znxTap{transform:scale(.95)!important;filter:brightness(1.14)!important}
+html body #tlR .gr.znxTap{transform:scale(.985)!important;background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 18%,transparent),transparent)!important}
+html body #tlR .gr::after{transition:opacity .15s!important}
+/* Tools list: tap se pehle jhatka nahi */
+html body #tlR .gr{animation:zyRise .22s cubic-bezier(.2,.9,.2,1) both!important}
+html body #tlR .gr:nth-child(2){animation-delay:30ms!important}
+html body #tlR .gr:nth-child(3){animation-delay:60ms!important}
+html body #tlR .gr:nth-child(4){animation-delay:90ms!important}
+/* bade touch target */
+html body #ttb .gb,html body #tlR .tlh .ib{min-height:44px}
+html body #ttb .gb{padding:0 14px}
+/* PDF pages: halka shadow, koi width animation nahi */
+html body #tlR .tpg{box-shadow:0 6px 16px -10px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.08)!important;transition:none!important}
+html body #tlR .tpg canvas{transform:translateZ(0)}
+html body #tsc{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;will-change:scroll-position;scroll-behavior:auto!important}
+html body #tlR .ti{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html body #tlR .ti[contenteditable="true"],html body #tlR .ti[contenteditable="plaintext-only"]{-webkit-user-select:text;user-select:text;cursor:text}
+html body #tlR input[type=range]{touch-action:pan-x}
+@media (prefers-reduced-motion:reduce){html body #tlR .gr{animation:none!important}}
+</style>
+<script id="znx-smooth-x2-js">(function znxPayload(){
+ try{
+  var D=document;
+
+  /* 1. error banner: apne aap hat jaye, tap se bhi hat jaye */
+  function banner(){
+   var e=D.getElementById('znxErr');if(!e)return;
+   e.onclick=function(){e.remove()};
+   clearTimeout(banner.t);
+   banner.t=setTimeout(function(){var x=D.getElementById('znxErr');if(x)x.remove()},4000)}
+  new MutationObserver(banner).observe(D.body,{childList:true});
+  addEventListener('unhandledrejection',function(ev){try{ev.preventDefault()}catch(x){}console.warn('Promise error:',ev.reason)});
+
+  /* 2. turant "pressed" feedback (CSS :active kabhi late hota hai) */
+  var SEL='#tlR button,#tlR .gr,#cpR button,#cpK button,#tdc button,#pzp button,#tlR .ib';
+  var cur=null,t0=0,tm=0;
+  function lift(){
+   var b=cur;if(!b)return;cur=null;
+   var w=Math.max(0,90-(Date.now()-t0));
+   clearTimeout(tm);tm=setTimeout(function(){b.classList.remove('znxTap')},w)}
+  D.addEventListener('pointerdown',function(e){
+   var b=e.target.closest&&e.target.closest(SEL);if(!b)return;
+   if(cur&&cur!==b)cur.classList.remove('znxTap');
+   cur=b;t0=Date.now();clearTimeout(tm);b.classList.add('znxTap')},{capture:true,passive:true});
+  ['pointerup','pointercancel','dragstart'].forEach(function(k){D.addEventListener(k,lift,{capture:true,passive:true})});
+
+  /* 3. double-tap zoom aur long-press menu Tools me band */
+  D.addEventListener('dblclick',function(e){if(e.target.closest&&e.target.closest('#tlR,#cpR,#cpK'))e.preventDefault()},{passive:false});
+  D.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('#tlR .gr,#tlR button,#cpR button'))e.preventDefault()});
+ }catch(err){console.error('ZNX patch X2',err)}
+})();</script>
 </body></html>
