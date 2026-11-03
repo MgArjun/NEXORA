@@ -6489,6 +6489,122 @@ mpWatch=function(){
 document.addEventListener('visibilitychange',function(){
  if(!document.hidden&&W.lock&&!MP.want&&MP.started){W.lock=0;W.s=0;W.n=0;MP.want=1;playNow(mpDk[MP.d]);mpUI()}});
 })()}catch(err){console.error('ZNX patch P1',err)}
+/*ZNX-PATCH-PAD1*/
+try{(function PATCH(){
+ var D=document;
+ var LS=function(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
+
+ /* ---------- style ---------- */
+ if(!D.getElementById('znx-pad-css')){
+  var st=D.createElement('style');st.id='znx-pad-css';
+  st.textContent=
+   '.pad{display:grid;gap:10px}'+
+   '.padh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px}'+
+   '.padh b{font-size:19px;letter-spacing:-.02em}'+
+   '.padh .seg{margin:0;width:156px}'+
+   '.padh .seg button,.padb .seg button{height:34px;font-size:12.5px}'+
+   '.pad input{height:48px;margin:0}'+
+   '.padg{display:flex;gap:8px;margin-bottom:8px}'+
+   '.pat{flex:1;min-width:0;height:42px;padding:0 6px;border-radius:21px;border:1px solid var(--ln);background:var(--sf);color:var(--mu);font-size:13px;font-weight:600;white-space:nowrap}'+
+   '.pat.on{color:var(--tx);border-color:color-mix(in srgb,var(--ac) 70%,transparent);background:color-mix(in srgb,var(--ac) 20%,var(--sf));box-shadow:0 0 18px -8px var(--ac)}'+
+   '.pae{margin:0}'+
+   '.padb{display:flex;gap:10px;align-items:center;margin-top:2px}'+
+   '.padb .seg{margin:0;flex:none;width:168px}'+
+   '.padb .pri{flex:1;height:46px;border-radius:23px}';
+  D.head.appendChild(st);
+ }
+
+ /* ---------- one Add sheet for everything ---------- */
+ function dup(u,kind){
+  var s=parseSrc(u);if(!s)return false;
+  var key=function(x){return x.t==='yt'?'yt:'+x.id:x.url},k=key(s);
+  return FAV.some(function(f){if(f.kind!==kind)return false;var x=parseSrc(f.url);return !!x&&key(x)===k});
+ }
+ function pa(o){
+  o=o||{};
+  var kind=o.kind==='watch'?'watch':'listen',ty=+LS('znx_pad_t')||2,era='new',sc='global',busy=0,podOK=!!window.__PODOK;
+  if(ty===5&&!podOK)ty=2;
+  var TL=[[1,'Soothing'],[2,'Vibe'],[3,'Energetic'],[4,'Bhakti']].concat(podOK?[[5,'Podcast']]:[]);
+  var rows=TL.length===5?[TL.slice(0,3),TL.slice(3)]:[TL.slice(0,2),TL.slice(2)];
+  var h='<div class="pad"><div class="padh"><b>Add</b><div class="seg" id="pak"><button data-k="listen">Music</button><button data-k="watch">Video</button></div></div>'+
+   '<input id="pal" placeholder="Paste link" autocomplete="off" inputmode="url" autocapitalize="off">'+
+   '<input id="pan" placeholder="Name" maxlength="100" autocomplete="off">'+
+   '<div id="pat">'+rows.map(function(r){return '<div class="padg">'+r.map(function(t){return '<button class="pat" data-t="'+t[0]+'">'+t[1]+'</button>'}).join('')+'</div>'}).join('')+
+   '<div class="seg pae" id="pae"><button data-e="new">New</button><button data-e="old">Old</button></div></div>'+
+   '<div class="padb"><div class="seg" id="pav"><button data-s="global">Everyone</button><button data-s="private">Only me</button></div><button class="pri" id="pas">Save</button></div></div>';
+  sheet(h);
+  if(o.url)$('pal').value=o.url;
+  if(o.name)$('pan').value=String(o.name).slice(0,100);
+  function paint(){
+   [].forEach.call($('pak').children,function(b){b.classList.toggle('on',b.dataset.k===kind)});
+   [].forEach.call($('pat').querySelectorAll('.pat'),function(b){b.classList.toggle('on',+b.dataset.t===ty)});
+   $('pat').style.display=kind==='listen'?'':'none';
+   $('pae').style.display=ty===2?'':'none';
+   [].forEach.call($('pae').children,function(b){b.classList.toggle('on',b.dataset.e===era)});
+   [].forEach.call($('pav').children,function(b){b.classList.toggle('on',b.dataset.s===sc)});
+  }
+  paint();
+  nameFill($('pan'),function(){return $('pal').value},$('pal'));
+  async function save(){
+   if(busy)return;
+   var u=$('pal').value.trim(),nm=$('pan').value.trim(),s=parseSrc(u);
+   if(!s)return ts('Paste a valid YouTube or media link');
+   if(dup(u,kind))return ts('Already saved in '+(kind==='listen'?'Music':'Videos'));
+   if(kind==='listen'&&ty===5&&!window.__PODOK)return ts('Podcast is not allowed for you');
+   busy=1;var sb=$('pas');if(sb)sb.disabled=true;
+   if(!nm&&s.t==='yt'){
+    try{nm=await Promise.race([ytName(u),new Promise(function(r){setTimeout(function(){r('')},1500)})])||''}catch(x){}
+   }
+   if(!nm)nm=kind==='listen'?'New song':'New video';
+   var id=Date.now();
+   FAV.unshift({id:id,kind:kind,title:nm.slice(0,100),url:u,scope:sc,type:kind==='listen'?ty:0,era:(kind==='listen'&&ty===2)?era:''});
+   favSave();mpSync();closeS();ts('Saved');
+   if(kind==='listen'&&o.play){var i=MT.findIndex(function(t){return t.fid===id});if(i>=0)mpGo(i,1)}
+   try{if($('fv').classList.contains('on')){FS.kind=kind;[].forEach.call($('fvkind').children,function(x){x.classList.toggle('on',x.dataset.k===kind)});fvDraw()}}catch(x){}
+   try{if(ET.pane==='saved')etSaved()}catch(x){}
+  }
+  $('sh').onclick=function(e){
+   var b=e.target.closest('button');if(!b)return;
+   if(b.dataset.k){kind=b.dataset.k;LS('znx_pad_k',kind);return paint()}
+   if(b.dataset.t){ty=+b.dataset.t;LS('znx_pad_t',String(ty));return paint()}
+   if(b.dataset.e){era=b.dataset.e;return paint()}
+   if(b.dataset.s){sc=b.dataset.s;return paint()}
+   if(b.id==='pas')save();
+  };
+  ['pal','pan'].forEach(function(i){$(i).addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();save()}})});
+  if(!o.url)setTimeout(function(){var f=$('pal');if(f&&!matchMedia('(pointer:coarse)').matches)f.focus()},350);
+ }
+
+ /* ---------- hook it everywhere ---------- */
+ var lastK=function(){return LS('znx_pad_k')==='listen'?'listen':'watch'};
+ mpAdd=function(){pa({kind:'listen',play:true})};
+ $('fvadd').onclick=function(){if(FS.kind==='pl')plForm(null);else pa({kind:FS.kind==='watch'?'watch':'listen'})};
+ $('etst').onclick=function(){
+  var s=parseSrc($('etlink').value)||ET.cur;if(!s)return ts('Paste a link first');
+  var u=$('etlink').value.trim()||(s.t==='yt'?'https://youtu.be/'+s.id:s.url);
+  pa({url:u,name:ET.title||'',kind:ET.kind==='listen'?'listen':'watch'});
+ };
+ window.addEventListener('click',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var f=t.closest('#etp_yt [data-yf]');
+  if(f){
+   e.stopImmediatePropagation();e.preventDefault();
+   var c=f.closest('.ytc'),b=c&&c.querySelector('.mt b');
+   pa({url:'https://youtu.be/'+f.dataset.yf,name:b?b.textContent:'',kind:lastK()});
+   return;
+  }
+  if(t.closest('#etp_yt #ytst')){
+   e.stopImmediatePropagation();e.preventDefault();
+   var s=ET.cur;if(!s||s.t!=='yt')return ts('Play a video first, then save it');
+   pa({url:'https://youtu.be/'+s.id,name:ET.title||'',kind:lastK()});
+  }
+ },true);
+
+ /* ---------- podcast icon ---------- */
+ var PI='<svg viewBox="0 0 24 24" data-pi="1"><circle cx="12" cy="10.5" r="2" fill="currentColor"/><path d="M8.4 7a5.1 5.1 0 000 7M15.6 7a5.1 5.1 0 010 7M5.3 4.6a9.2 9.2 0 000 11.8M18.7 4.6a9.2 9.2 0 010 11.8M12 13.5v7M9.5 20.5h5"/></svg>';
+ setInterval(function(){var b=$('mppod');if(b&&!b.querySelector('[data-pi]'))b.innerHTML=PI},700);
+})()}catch(err){console.error('ZNX pad patch',err)}
+
 
 })();</script><script>
 
