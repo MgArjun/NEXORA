@@ -8679,7 +8679,7 @@ D.head.appendChild(st);
 
 var hd=D.createElement('div');hd.id='znxFh';hd.setAttribute('role','status');hd.setAttribute('aria-live','polite');D.body.appendChild(hd);
 var ht=0;
-function hint(t,ms){hd.textContent=t;hd.classList.add('on');clearTimeout(ht);ht=setTimeout(function(){hd.classList.remove('on')},ms||2200)}
+function hint(t,ms){return;hd.textContent=t;hd.classList.add('on');clearTimeout(ht);ht=setTimeout(function(){hd.classList.remove('on')},ms||2200)}
 function toast(m){var t=$('ts');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('on')},1800)}
 function isFs(){return !!(D.fullscreenElement||D.webkitFullscreenElement)}
 function enter(){var f=H.requestFullscreen||H.webkitRequestFullscreen;if(!f)return Promise.resolve(false);try{return Promise.resolve(f.call(H,{navigationUI:'hide'})).then(function(){try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}return true},function(){return false})}catch(e){return Promise.resolve(false)}}
@@ -8692,10 +8692,10 @@ function firstTap(){
  if(IOS||auto||tries>=4)return;
  tries++;
  enter().then(function(ok){if(ok){auto=1;hint('Full screen on. The pink box on top hides by itself. Double-tap the top to switch.',2600)}})}
-D.addEventListener('pointerup',firstTap,true);
-D.addEventListener('click',firstTap,true);
+/*ZNX-NOAUTOFS*/
+/*ZNX-NOAUTOFS2*/
 /* tap on Continue / Log in / Guest = go full screen right now, inside that tap */
-['go','gs'].forEach(function(id){var el=$(id);if(el)el.addEventListener('click',function(){if(IOS||isFs())return;enter().then(function(ok){if(ok){auto=1;hint('Full screen on. The pink box hides by itself. Double-tap the top to switch.',2600)}})},true)});
+['go','gs'].forEach(function(id){var el=$(id);if(el)el.addEventListener('click',function(){return;enter().then(function(ok){if(ok){auto=1;hint('Full screen on. The pink box hides by itself. Double-tap the top to switch.',2600)}})},true)});
 
 /* 2. double tap near the top of ANY screen (chats, calls, games, player) */
 var lt=0,lx=0,ly=0;
