@@ -8414,7 +8414,7 @@ function list(q,label){
  }).catch(function(){if(my===seq){L.textContent='';L.appendChild(mk('div','empty','Could not load videos. Check your connection.'))}})}
 function play(id,title,fromList){
  if(!/^[\w-]{11}$/.test(id||''))return;
- F.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0&modestbranding=1';
+ F.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0&modestbranding=1&fs=0';
  $('zyT').textContent=title||'';P.classList.add('on','pl');
  if(!fromList)P.dataset.h=P.dataset.h||'0';
  if(title)list(title,'Up next');
@@ -8597,4 +8597,86 @@ var busy=0;function inj(){var L=D.querySelector('#tlR .glist');if(L&&L.querySele
 new MutationObserver(function(){if(busy)return;busy=1;requestAnimationFrame(function(){busy=0;inj()})}).observe(D.body,{childList:true,subtree:true});inj();
 })();
 </script>
+<!--ZNX-FS1--><script id="znx-fs1">(function PATCH(){try{
+var D=document,H=D.documentElement,$=function(i){return D.getElementById(i)};
+var IOS=/iP(hone|ad|od)/.test(navigator.userAgent);
+
+var st=D.createElement('style');st.id='znx-fs1-css';
+st.textContent=
+'#fsb{display:none!important}'+
+'#znxFh{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);transform:translate(-50%,16px);z-index:600;max-width:min(92vw,380px);padding:9px 16px;border-radius:20px;font:600 12.5px var(--font-ui,system-ui,sans-serif);text-align:center;color:var(--tx);background:color-mix(in srgb,var(--sf) 94%,transparent);border:1px solid var(--ln);box-shadow:0 14px 30px -12px var(--ac);opacity:0;pointer-events:none;transition:opacity .25s,transform .4s cubic-bezier(.2,.9,.3,1.3)}'+
+'#znxFh.on{opacity:1;transform:translate(-50%,0)}'+
+/* empty chat list: no big block, just a soft line after 2.5 s */
+'.znx-cat svg,.znx-cat b,.znx-cat small,.znx-cat .pri{display:none!important}'+
+'.znx-cat{padding:80px 10px!important}'+
+'.znx-cat::after{content:"Tap + to start a chat";color:var(--mu);font-size:13px;opacity:0;animation:znxFi .6s 2.5s forwards}'+
+'@keyframes znxFi{to{opacity:.85}}'+
+/* video viewer: own fullscreen, perfectly centered */
+'.zyv{position:relative}'+
+'#zyFs{position:absolute;top:8px;right:8px;z-index:3;width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(14,16,26,.55);border:1px solid rgba(255,255,255,.2)}'+
+'#zyFs svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}'+
+'.zyv:fullscreen{width:100vw!important;height:100vh!important;margin:0!important;border-radius:0!important;aspect-ratio:auto!important;background:#000;animation:none!important}'+
+'.zyv:-webkit-full-screen{width:100vw!important;height:100vh!important;margin:0!important;border-radius:0!important;aspect-ratio:auto!important;background:#000}'+
+'.zyv:fullscreen iframe{width:100%;height:100%}'+
+'#etsp{font:700 11px ui-monospace,Menlo,monospace!important;color:#fff}';
+D.head.appendChild(st);
+
+var hd=D.createElement('div');hd.id='znxFh';hd.setAttribute('role','status');hd.setAttribute('aria-live','polite');D.body.appendChild(hd);
+var ht=0;
+function hint(t,ms){hd.textContent=t;hd.classList.add('on');clearTimeout(ht);ht=setTimeout(function(){hd.classList.remove('on')},ms||2200)}
+function toast(m){var t=$('ts');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('on')},1800)}
+function isFs(){return !!(D.fullscreenElement||D.webkitFullscreenElement)}
+function enter(){var f=H.requestFullscreen||H.webkitRequestFullscreen;if(!f)return Promise.resolve(false);try{return Promise.resolve(f.call(H,{navigationUI:'hide'})).then(function(){try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}return true},function(){return false})}catch(e){return Promise.resolve(false)}}
+function leave(){try{(D.exitFullscreen||D.webkitExitFullscreen).call(D)}catch(e){}}
+
+/* 1. automatic full screen on the first tap after login (browsers need one tap) */
+var auto=0,tries=0;
+function ready(){var a=$('app');return !!a&&!a.classList.contains('hide')}
+function firstTap(){
+ if(IOS||auto||tries>=4||!ready())return;
+ tries++;
+ enter().then(function(ok){if(ok){auto=1;hint('Full screen on. The pink box on top hides by itself. Double-tap the top to switch.',2600)}})}
+D.addEventListener('pointerup',firstTap,true);
+D.addEventListener('click',firstTap,true);
+
+/* 2. double tap near the top of ANY screen (chats, calls, games, player) */
+var lt=0,lx=0,ly=0;
+D.addEventListener('pointerup',function(e){
+ if(IOS||e.clientY>90)return;
+ if(e.target.closest&&e.target.closest('button,input,textarea,a,select,.ib,#znxFh'))return;
+ var n=Date.now();
+ if(n-lt<320&&Math.hypot(e.clientX-lx,e.clientY-ly)<45){
+  lt=0;
+  if(isFs()){leave();hint('Full screen off. Double-tap the top to turn it on.')}
+  else enter().then(function(ok){if(ok)hint('Full screen on. Double-tap the top to switch.')})
+ }else{lt=n;lx=e.clientX;ly=e.clientY}},true);
+
+/* 3. if full screen is lost by accident, tell how to get it back */
+var was=false;
+D.addEventListener('fullscreenchange',function(){var f=isFs();if(was&&!f)hint('Double-tap the top to go full screen again',2400);was=f});
+
+/* 4. video viewer: own fullscreen button (centered, no shift) */
+var F=$('zyF'),V=D.querySelector('#zyP .zyv');
+if(V&&!$('zyFs')){
+ var b=D.createElement('button');b.id='zyFs';b.setAttribute('aria-label','Full screen');
+ b.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+ b.onclick=function(e){e.stopPropagation();
+  if((D.fullscreenElement||D.webkitFullscreenElement)===V){leave();return}
+  var f=V.requestFullscreen||V.webkitRequestFullscreen;if(!f)return toast('Full screen is not supported here');
+  try{Promise.resolve(f.call(V)).then(function(){try{screen.orientation.lock('landscape').catch(function(){})}catch(x){}},function(){toast('Full screen blocked')})}catch(x){}};
+ V.appendChild(b)}
+
+/* 5. Enjoy / Watch player: playback speed */
+var fb=$('etfs');
+if(fb&&!$('etsp')){
+ var sp=D.createElement('button');sp.className='ib';sp.id='etsp';sp.textContent='1x';sp.setAttribute('aria-label','Playback speed');
+ fb.parentNode.insertBefore(sp,fb);
+ var SP=[1,1.25,1.5,2,.75],si=0;
+ sp.onclick=function(e){e.stopPropagation();
+  if(D.querySelectorAll('#etstk .ava').length>1){toast('Speed is off while watching together');return}
+  si=(si+1)%SP.length;var r=SP[si],v=$('etv');
+  if(v&&getComputedStyle(v).display!=='none')v.playbackRate=r;
+  else{var i=D.querySelector('#etyw iframe');try{if(i&&i.contentWindow)i.contentWindow.postMessage(JSON.stringify({event:'command',func:'setPlaybackRate',args:[r]}),'*')}catch(x){}}
+  sp.textContent=r+'x';toast('Speed '+r+'x')}}
+}catch(err){console.error('ZNX fullscreen patch',err)}})()</script>
 </body></html>
