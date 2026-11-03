@@ -6606,6 +6606,62 @@ try{(function PATCH(){
 })()}catch(err){console.error('ZNX pad patch',err)}
 
 
+
+/*ZNX-PZ2*/
+try{(function(){
+var D=document,gum=(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)?navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices):null;
+var st=D.createElement('style');
+st.textContent='html body [data-m="1"].ib{color:var(--mu)!important;box-shadow:none!important}html body [data-m="2"].ib{color:var(--ac)!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--ac) 50%,transparent),0 0 18px -4px var(--ac)!important}';
+D.head.appendChild(st);
+/* level of the friend's voice, used to stop echo */
+var far=function(){var m=0;for(var k in VC.vi){var p=VC.vi[k];if(!p||!p.an||!p.d)continue;try{p.an.getByteTimeDomainData(p.d)}catch(e){continue}for(var i=0;i<p.d.length;i++){var v=Math.abs(p.d[i]-128)/128;if(v>m)m=v}}return m};
+/* smart gate: sends only your real voice, blocks speaker leak and game sounds */
+var gate=function(raw){
+ var ac=vcAc();if(!ac)return raw;
+ var src=ac.createMediaStreamSource(raw),hp=ac.createBiquadFilter(),lp=ac.createBiquadFilter(),an=ac.createAnalyser(),g=ac.createGain(),dst=ac.createMediaStreamDestination();
+ hp.type='highpass';hp.frequency.value=130;lp.type='lowpass';lp.frequency.value=5200;an.fftSize=512;g.gain.value=0;
+ src.connect(hp);hp.connect(lp);lp.connect(an);lp.connect(g);g.connect(dst);
+ var buf=new Uint8Array(an.fftSize),floor=.012,hold=0,open=0,tr=dst.stream.getAudioTracks()[0];
+ var iv=setInterval(function(){
+  if(!tr||tr.readyState==='ended'){clearInterval(iv);raw.getTracks().forEach(function(t){t.stop()});try{src.disconnect()}catch(e){}return}
+  if(ac.state==='suspended')ac.resume().catch(function(){});
+  an.getByteTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]-128)/128;if(v>m)m=v}
+  var f=far(),n=performance.now();
+  if(!open&&f<.04)floor=floor*.97+Math.min(m,.06)*.03;
+  var th=Math.max(.03,floor*3),need=f>.05?Math.max(th,f*1.5,.2):th;
+  if(m>need){open=1;hold=n+260}else if(n>hold)open=0;
+  g.gain.setTargetAtTime(open?1:0,ac.currentTime,open?.012:.09)},25);
+ raw.getAudioTracks().forEach(function(t){try{t.applyConstraints({echoCancellation:true,noiseSuppression:true})}catch(e){}});
+ return dst.stream};
+/* game voice always starts connected but muted */
+var _vs=vcSpeak;
+vcSpeak=async function(){
+ if(!gum||VC.key!=='g'||VC.on)return _vs.apply(this,arguments);
+ navigator.mediaDevices.getUserMedia=function(c){return gum(c).then(function(raw){try{return gate(raw)}catch(e){return raw}})};
+ var r;try{r=await _vs.apply(this,arguments)}finally{navigator.mediaDevices.getUserMedia=gum}
+ if(r&&VC.key==='g'&&VC.s){VC.mic=0;VC.s.getAudioTracks().forEach(function(t){t.enabled=false});vcMirror();vcUi()}
+ return r};
+var flip=function(){VC.mic=VC.mic?0:1;VC.s.getAudioTracks().forEach(function(t){t.enabled=!!VC.mic});vcMirror();vcUi();ts(VC.mic?'Mic on. Others can hear you':'Mic off')};
+gvToggle=function(){
+ var r=gvRoom();if(!r)return ts('Voice works in online games');
+ if(VC.on&&VC.key==='g')return flip();
+ vcAttach(r);vcSpeak().then(function(ok){if(ok)ts('Connected. Mic is off. Tap to talk')})};
+/* Ludo mic button: mute / unmute instead of disconnect */
+D.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#ldoR [data-lo="mic"]');if(b&&VC.on&&VC.key==='g'){e.stopImmediatePropagation();e.preventDefault();flip()}},true);
+/* Tic-Tac-Toe and UNO: connect by themselves when the online game starts */
+var tried='';
+setInterval(function(){
+ var code=(UG&&UG.st&&UG.code)||(GMX.ch&&GMX.st&&GMX.code)||'';
+ if(!code){tried='';return}
+ if(tried===code||VC.on||CL.on)return;
+ var r=gvRoom();if(!r)return;tried=code;vcAttach(r);vcSpeak()},1500);
+/* button look: grey = connected but muted, glowing = mic live */
+setInterval(function(){
+ var con=VC.on&&VC.key==='g',m=con?(VC.mic?'2':'1'):'0';
+ D.querySelectorAll('[data-pl="vc"],[data-uo="mic"],#loMic').forEach(function(b){
+  if(b.dataset.m===m)return;b.dataset.m=m;b.innerHTML=(con&&!VC.mic)?CI.micx:CI.mic})},200);
+}catch(e){console.error('ZNX PZ2',e)}
+
 })();</script><script>
 
 (function(){
