@@ -3320,7 +3320,7 @@ function lFly(j,k){const q=lPos(LD.s.pl[j].col,-1,k),v=LD.v[j][k];v.q=[{x:q[0],y
 /* ---- dice and chips ---- */
 function lFace(v){const d=$("loD");if(d)d.innerHTML=Array.from({length:9},(_,i)=>`<s class="${LFC[v].includes(i)?"on":""}"></s>`).join("")}
 function lDice(v,cb){const d=$("loD");LSd.roll();d.classList.add("rl");let n=0;const iv=setInterval(()=>{if(!$("loD"))return clearInterval(iv);lFace(1+(Math.random()*6|0));if(++n>=9){clearInterval(iv);d.classList.remove("rl");lFace(v);LSd.land();if(v===6)setTimeout(LSd.six,150);setTimeout(cb,350)}},75)}
-function lUI(){lUI1();try{lPh()}catch(e){}}
+function lUI(){lUI1();try{lPh()}catch(e){}try{window.__lsU&&window.__lsU()}catch(e){}}
 function lPh(){var S=LD.s,r=$("ldoR");if(!S||!r||S.mode!=="phone")return;
  var w=$("loPh");
  if(!w){var b=r.querySelector(".loB");if(!b)return;r.classList.add("ph");
@@ -3338,8 +3338,8 @@ function lUI1(){const S=LD.s,r=$("ldoR");if(!S||!r)return;r.style.setProperty("-
  const my=S.ph==="roll"&&lMine(),nm=S.pl[S.turn].n,ph=S.mode==="phone";let st=S.ph==="roll"?(my?(ph?nm+", tap the dice":"Your turn · tap the dice"):nm+"'s turn"):S.ph==="rolling"?"Rolling...":S.ph==="pick"?(my?"Choose a token":nm+" is choosing"):S.ph==="over"?"Game over":nm+" is moving";
  $("loD").classList.toggle("my",my);$("loSt").innerHTML=esc(st)+(S.v&&S.ph!=="roll"?`<small>ROLLED ${S.v}</small>`:"")}
 function lKick(){const S=LD.s;if(S&&S.ph==="roll"&&S.pl[S.turn].bot)setTimeout(()=>{if(LD.s===S&&S.ph==="roll"&&S.pl[S.turn].bot)lRoll(1+(Math.random()*6|0))},900)}
-function lAgain(){const S=LD.s;if(!S||S.ph==="over")return;S.ph="roll";lUI();lKick()}
-function lNext(){const S=LD.s;if(!S||S.ph==="over")return;let z=0;do{S.turn=(S.turn+1)%S.pl.length}while(S.pl[S.turn].left&&++z<9);S.ph="roll";S.six=0;lUI();lKick()}
+function lAgain(){const S=LD.s;if(!S||S.ph==="over")return;S.ph="roll";S.ver=(S.ver|0)+1;lUI();lKick()}
+function lNext(){const S=LD.s;if(!S||S.ph==="over")return;let z=0;do{S.turn=(S.turn+1)%S.pl.length}while(S.pl[S.turn].left&&++z<9);S.ph="roll";S.six=0;S.ver=(S.ver|0)+1;lUI();lKick()}
 function lRoll(v){const S=LD.s;if(!S||S.ph!=="roll")return;S.ph="rolling";S.v=v;lUI();
  lDice(v,()=>{if(LD.s!==S)return;S.six=v===6?S.six+1:0;if(S.six>=3){S.six=0;ts("Three sixes! Turn skipped");return setTimeout(()=>LD.s===S&&lNext(),1000)}
   const m=lMoves(S,S.turn,v);S.mv=m;if(!m.length){ts("No move possible");return setTimeout(()=>{if(LD.s===S)v===6?lAgain():lNext()},900)}
@@ -3512,11 +3512,11 @@ lTok=function(x,u,px,py,h,c,hl,t,sc){x.save();x.translate(px*u,(py+.16*sc)*u);co
 
 /* ---- online ---- */
 function lTx(m){if(LD.ch&&LD.live)try{LD.ch.send({type:"broadcast",event:"m",payload:Object.assign({from:clCtx().pid},m)})}catch(e){}}
-function lNetEnd(){clearInterval(LD.rt);if(VC.key==="g")vcDetach();const ch=LD.ch;LD.ch=null;LD.live=0;LD.pl=[];LD.inv=[];LD.host=0;LD.got=0;LD.net=0;if(ch)try{clCtx().sb.removeChannel(ch)}catch(e){}}
+function lNetEnd(){try{localStorage.removeItem("znx_rs")}catch(e){}clearInterval(LD.rt);if(VC.key==="g")vcDetach();const ch=LD.ch;LD.ch=null;LD.live=0;LD.pl=[];LD.inv=[];LD.host=0;LD.got=0;LD.net=0;if(ch)try{clCtx().sb.removeChannel(ch)}catch(e){}}
 function lNetOpen(code,cb){const c=clCtx();if(!c.sb||!c.pid){ts("Not connected yet.");return 0}lNetEnd();const ch=c.sb.channel("ld:"+code,{config:{broadcast:{self:false}}});LD.ch=ch;LD.code=code;
  ch.on("broadcast",{event:"m"},p=>lGot(p.payload)).subscribe(s=>{if(LD.ch!==ch)return;if(s==="SUBSCRIBED"){LD.live=1;cb&&cb()}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")ts("Game connection is weak")});
  LD.room={key:"g",tx:lTx,me:()=>clCtx().pid,ids:()=>LD.pl.filter(p=>p.pid!==clCtx().pid&&!p.left).map(p=>p.pid),ui:lMicUI};return 1}
-function lGot(m){if(!m||!m.t)return;const me=clCtx().pid;
+function lGot(m){if(!m||!m.t)return;const me=clCtx().pid;if(window.__lsH&&window.__lsH(m))return;
  if(m.t==="vsig"){if(LD.pl.some(p=>p.pid===m.from)){vcAttach(LD.room);vcGot(m)}return}
  if(m.t==="join"){if(!LD.host||LD.s||LD.pl.length>=4||!LD.inv.some(u=>u.pid===m.from))return;if(!LD.pl.some(p=>p.pid===m.from)){const u=LD.inv.find(x=>x.pid===m.from);LD.pl.push({pid:m.from,n:u.n});ts(u.n.split(" ")[0]+" joined")}lTx({t:"lob",pl:LD.pl});lLobby();return}
  const fh=m.from===LD.hostPid;
@@ -3542,6 +3542,95 @@ window.ldoHost=function(ids){const c=clCtx(),us=ids.map(i=>U.find(x=>x.id===i)).
  LD.host=1;LD.inv=us;LD.pl=[{pid:c.pid,n:MY.name}];us.forEach(u=>clSig(u.pid,{t:"gminv",g:"ld",code,name:MY.name}));lLobby()};
 function lJoin(m){if(LD.pend!==m.code)return ts("Invite is no longer available");LD.pend="";
  if(!lNetOpen(m.code,()=>{lTx({t:"join"});let k=0;clearInterval(LD.rt);LD.rt=setInterval(()=>{if(LD.got||!LD.ch||++k>8){clearInterval(LD.rt);if(!LD.got&&LD.ch){ts("Lobby not available");lNetEnd()}return}lTx({t:"join"})},1500)}))return;LD.hostPid=m.from;ts("Joining...")}
+/*ZNX-SYNC1 L*/;(function PATCH_L(){
+ try{
+  var KEY="znx_rs",LS={q:[],lr:0,cu:0,sv:-1,bad:0,rj:0,pt:0,ph:""};
+  var T0=function(){return Date.now()};
+  function pidOf(S,pid){return S.pl.findIndex(function(p){return p.pid===pid})}
+  function stable(){var S=LD.s;return !!S&&S.ph==="roll"&&!LD.busy&&!!LD.net&&!!LD.ch&&!!LD.live}
+  function snap(){var S=LD.s;return{t:"snap",ep:LD.ep|0,ver:S.ver|0,turn:S.turn,six:S.six|0,tk:S.tk,left:S.pl.map(function(p){return p.left?1:0}),over:S.ph==="over"?1:0,win:S.ph==="over"?S.win:-1}}
+  function send(){var S=LD.s;if(!S||!LD.net||!LD.ch||!LD.live)return;if(S.ph==="over"||stable())lTx(snap())}
+  function clr(){try{localStorage.removeItem(KEY)}catch(e){}}
+  function save(){var S=LD.s;if(!S||!LD.net||!LD.code)return;
+   try{localStorage.setItem(KEY,JSON.stringify({g:"ludo",me:clCtx().pid,ts:T0(),code:LD.code,host:LD.host?1:0,hostPid:LD.hostPid||"",ep:LD.ep|0,
+    pl:S.pl.map(function(p){return{pid:p.pid,n:p.n,left:p.left?1:0}}),tk:S.tk,turn:S.turn,six:S.six|0,ver:S.ver|0,d:S.d}))}catch(e){}}
+  function apply(m){var S=LD.s;if(!S||!Array.isArray(m.tk)||m.tk.length!==S.tk.length)return false;
+   for(var i=0;i<m.tk.length;i++){var a=m.tk[i];if(!Array.isArray(a)||a.length!==4)return false;for(var k=0;k<4;k++){var v=a[k];if(typeof v!=="number"||v<-1||v>56)return false}}
+   S.tk=m.tk.map(function(a){return a.slice()});S.ver=m.ver|0;S.six=m.six|0;
+   if(typeof m.turn==="number"&&m.turn>=0&&m.turn<S.pl.length)S.turn=m.turn;
+   (m.left||[]).forEach(function(f,i){if(f&&S.pl[i]){S.pl[i].left=1;if(LD.pl[i])LD.pl[i].left=1}});
+   LD.busy=0;LS.q=[];
+   S.pl.forEach(function(p,i){S.tk[i].forEach(function(pos,k){var v=LD.v[i]&&LD.v[i][k];if(!v)return;var q=lPos(p.col,pos,k);v.x=q[0];v.y=q[1];v.h=0;v.q=[];v.on=0;v.cb=null})});
+   var w=(m.over&&m.win>=0&&m.win<S.pl.length)?m.win:S.tk.findIndex(function(a){return a.every(function(p){return p===56})});
+   if(w>=0){lOver(w);return true}
+   S.ph="roll";S.v=0;S.mv=[];var o=document.getElementById("loOv");if(o)o.classList.remove("on");
+   lUI();lKick();return true}
+  function bad(){return !LD.ch||(!!LD.ch.state&&LD.ch.state!=="joined")}
+  function rejoin(){var c=clCtx(),old=LD.ch,code=LD.code;if(!c.sb||!old||!code)return;LD.live=0;
+   Promise.resolve(c.sb.removeChannel(old)).catch(function(){}).then(function(){
+    if(!LD.net||LD.code!==code)return;
+    var ch=c.sb.channel("ld:"+code,{config:{broadcast:{self:false}}});LD.ch=ch;
+    ch.on("broadcast",{event:"m"},function(p){lGot(p.payload)}).subscribe(function(s){if(LD.ch!==ch)return;if(s==="SUBSCRIBED"){LD.live=1;lTx({t:"need"});send()}})})}
+  function refresh(){if(!LD.s||!LD.net){ts("No online game");return}
+   if(bad()){rejoin();ts("Reconnecting...");return}
+   LD.live=1;lTx({t:"need"});send();ts("Syncing...")}
+  function wake(){if(!LD.s||!LD.net)return;if(bad())rejoin();else{lTx({t:"need"});send()}}
+  function resume(o){var c=clCtx();
+   if(!c.sb||!c.pid||o.me!==c.pid||!/^[A-Z0-9]{4,10}$/.test(o.code||"")||!Array.isArray(o.pl)||o.pl.length<2||o.pl.length>4)return false;
+   if(!lNetOpen(o.code,function(){lTx({t:"need"});send()}))return false;
+   LD.host=o.host?1:0;LD.hostPid=o.hostPid||"";LD.got=1;LD.code=o.code;
+   LD.pl=o.pl.map(function(p){return{pid:String(p.pid),n:String(p.n||"Friend").slice(0,30),left:p.left?1:0}});
+   LD.ep=(o.ep|0)-1;
+   lBoot(LD.pl.map(function(p){return{pid:p.pid,n:p.n}}),"net");
+   if(!LD.s)return false;
+   apply({tk:o.tk,turn:o.turn,six:o.six,ver:o.ver,left:o.pl.map(function(p){return p.left?1:0}),over:0,win:-1});
+   return true}
+  /* every new game / restart counts as a new round, so old snapshots never bring back an old board */
+  var _lb=lBoot;lBoot=function(){LD.ep=(LD.ep|0)+1;LS.q=[];LS.sv=-1;return _lb.apply(this,arguments)};
+  var _lo=lNetOpen;lNetOpen=function(){LD.ep=0;return _lo.apply(this,arguments)};
+  /* handles snap / need messages and holds roll / move messages that arrive too early */
+  window.__lsH=function(m){
+   try{
+    var S=LD.s;
+    if(m.t==="roll"||m.t==="mv"){
+     if(m.__q||!S||!LD.net)return false;
+     var i=pidOf(S,m.from);if(i<0||S.ph==="over")return false;
+     var ok=!LS.q.length&&S.turn===i&&((m.t==="roll"&&S.ph==="roll")||(m.t==="mv"&&S.ph==="pick"));
+     if(ok)return false;
+     m.__t=T0();LS.q.push(m);if(LS.q.length>8)LS.q.shift();return true}
+    if(m.t!=="snap"&&m.t!=="need")return false;
+    if(!S||!LD.net)return true;
+    if(pidOf(S,m.from)<0)return true;
+    if(m.t==="need"){send();return true}
+    var ep=m.ep|0,my=LD.ep|0;
+    if(ep<my){if(T0()-LS.lr>1500){LS.lr=T0();send()}return true}
+    if(ep>my){
+     if(T0()-LS.cu>3000){LS.cu=T0();
+      var l=LD.pl.filter(function(p){return !p.left}).map(function(p){return{pid:p.pid,n:p.n}});
+      if(l.length>=2){LD.ep=ep-1;lBoot(l,"net")}}
+     return true}
+    if(S.ph==="over")return true;
+    if(m.over){apply(m);return true}
+    var mv=m.ver|0,lv=S.ver|0;
+    if(mv>lv){if(S.ph==="roll"||T0()-LS.pt>6000)apply(m)}
+    else if(mv<lv&&T0()-LS.lr>1500){LS.lr=T0();send()}
+    return true
+   }catch(e){console.error(e);return false}};
+  /* called after every screen update */
+  window.__lsU=function(){var S=LD.s;if(!S||!LD.net)return;
+   if(S.ph==="over"){clr();return}
+   if(S.ph==="roll"){save();if((S.ver|0)!==LS.sv){LS.sv=S.ver|0;setTimeout(send,400)}}};
+  setInterval(function(){var S=LD.s;if(!S||!LD.net)return;
+   var sg=S.ph+"|"+S.turn+"|"+(S.ver|0);if(sg!==LS.ph){LS.ph=sg;LS.pt=T0()}
+   if(LS.q.length){var m=LS.q[0];
+    if(T0()-m.__t>8000)LS.q.shift();
+    else{var i=pidOf(S,m.from);
+     if(i>=0&&S.turn===i&&((m.t==="roll"&&S.ph==="roll")||(m.t==="mv"&&S.ph==="pick"))){LS.q.shift();m.__q=1;lGot(m)}}}},150);
+  setInterval(function(){var S=LD.s;if(!S||!LD.net||!LD.ch)return;send();
+   if(bad()){if(!LS.bad)LS.bad=T0();else if(T0()-LS.bad>6000&&T0()-LS.rj>10000){LS.rj=T0();rejoin()}}else LS.bad=0},2500);
+  window.__lsX={resume:resume,refresh:refresh,wake:wake};
+ }catch(e){console.error("ZNX sync (ludo)",e)}
+})();
 window.znxGmSig=function(m){
  if(m.t==="gminv"){if(!/^[A-Z0-9]{4,10}$/.test(m.code||""))return;const c=clCtx(),u=c.byPid&&c.byPid[m.from]||null;
   if(!ST2.invite||(u&&BL.includes(u.id))||CL.on||LD.ch||LD.s||UG||GMX.ch){clSig(m.from,{t:"gmdec",g:"ld",code:m.code});return}
@@ -6661,6 +6750,219 @@ setInterval(function(){
  D.querySelectorAll('[data-pl="vc"],[data-uo="mic"],#loMic').forEach(function(b){
   if(b.dataset.m===m)return;b.dataset.m=m;b.innerHTML=(con&&!VC.mic)?CI.micx:CI.mic})},200);
 })()}catch(e){console.error('ZNX PZ2',e)}
+/*ZNX-SYNC1*/;(function PATCH_A(){
+ var D=document,SK="znx_rs";
+ var $$=function(i){return D.getElementById(i)};
+ function ctx(){try{return clCtx()}catch(e){return{}}}
+ function sv(o){try{o.me=ctx().pid||"";o.ts=Date.now();localStorage.setItem(SK,JSON.stringify(o))}catch(e){}}
+ function ld(){try{var o=JSON.parse(localStorage.getItem(SK)||"null");return o&&typeof o==="object"?o:null}catch(e){return null}}
+ function clr(g){var o=ld();if(o&&(!g||o.g===g)){try{localStorage.removeItem(SK)}catch(e){}}}
+ function bad(ch){return !ch||(!!ch.state&&ch.state!=="joined")}
+ function say(m){try{ts(m)}catch(e){}}
+ var RFI='<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 019-9 9.75 9.75 0 016.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>';
+ function rbtn(k){return '<button class="ib zrb" data-zr="'+k+'" aria-label="Refresh and reconnect">'+RFI+'</button>'}
+ try{var st=D.createElement("style");st.textContent=".zrb{color:var(--ac)!important}.zrs svg{animation:zrSp .8s cubic-bezier(.3,.7,.3,1)}@keyframes zrSp{to{transform:rotate(360deg)}}";D.head.appendChild(st)}catch(e){}
+
+ /* ---------- Tic-Tac-Toe ---------- */
+ var TX={rx:0,lr:0,rj:0,bad:0};
+ try{
+  var _gs=gmStart;gmStart=function(){GMX.ep=(GMX.ep|0)+1;TX.rx=Date.now();TX.bad=0;var r=_gs.apply(this,arguments);if(T)T.ep=GMX.ep;return r};
+  var _ge=gmEnd;gmEnd=function(){clr("ttt");return _ge.apply(this,arguments)};
+  var _tp=tPlace;tPlace=function(){var r=_tp.apply(this,arguments);if(T&&T.mode==="net"){tSend();tSave()}return r};
+  var _td=tDraw;tDraw=function(){var r=_td.apply(this,arguments);try{if(T&&T.mode==="net"){var b=D.querySelector('#pg .sb [data-pl="redo"]');if(b&&!D.querySelector("#pg [data-zr]"))b.insertAdjacentHTML("beforebegin",rbtn("ttt"))}}catch(e){}return r};
+  var _gg=gmGot;
+  gmGot=function(m){
+   if(m&&m.from&&GMX.peer&&m.from===GMX.peer.pid){
+    TX.rx=Date.now();
+    if(m.t==="snap"||m.t==="need"){
+     if(!T||T.mode!=="net")return;
+     if(m.t==="need"){tSend();return}
+     var r=tAdopt(m);
+     if(r==="old"||((m.ep|0)===(GMX.ep|0)&&(m.n|0)<tCnt())){if(Date.now()-TX.lr>1200){TX.lr=Date.now();tSend()}}
+     return}}
+   return _gg.apply(this,arguments)};
+ }catch(e){console.error("ZNX sync (ttt)",e)}
+ function tCnt(){return T?T.b.filter(Boolean).length:0}
+ function tStr(){return T.b.map(function(v){return v||"-"}).join("")}
+ function tSend(){if(T&&T.mode==="net"&&GMX.ch&&GMX.live&&GMX.st)gmTx({t:"snap",ep:GMX.ep|0,n:tCnt(),b:tStr()})}
+ function tSet(b){T.b=b.split("").map(function(c){return c==="-"?"":c});var n=tCnt(),w=tWin(T.b);T.win=w||null;T.over=0;if(w)T.over=1;else if(T.b.every(Boolean))T.over=1;T.turn=n%2?"O":"X";T.last=-1;tDraw()}
+ function tAdopt(m){
+  if(!T||T.mode!=="net"||typeof m.b!=="string"||!/^[XO-]{25}$/.test(m.b))return;
+  var ep=m.ep|0,my=GMX.ep|0;
+  if(ep<my)return "old";
+  if(ep>my){GMX.ep=ep-1;gmStart();tSet(m.b);return}
+  var n=m.b.replace(/-/g,"").length;
+  if(n>tCnt())tSet(m.b)}
+ function tSave(){if(!T||T.mode!=="net"||!GMX.peer||!GMX.st)return;if(T.over){clr("ttt");return}sv({g:"ttt",code:GMX.code,sym:GMX.me,ep:GMX.ep|0,b:tStr(),peer:{pid:GMX.peer.pid,n:GMX.peer.n}})}
+ function tRejoin(){var c=ctx(),old=GMX.ch,code=GMX.code;if(!c.sb||!old||!code)return;GMX.live=0;
+  Promise.resolve(c.sb.removeChannel(old)).catch(function(){}).then(function(){
+   if(GMX.code!==code||!GMX.st)return;
+   var ch=c.sb.channel("gm:"+code,{config:{broadcast:{self:false}}});GMX.ch=ch;
+   ch.on("broadcast",{event:"m"},function(p){gmGot(p.payload)}).subscribe(function(s){if(GMX.ch!==ch)return;if(s==="SUBSCRIBED"){GMX.live=1;tSend();gmTx({t:"need"})}})})}
+ function tRefresh(){if(!T||T.mode!=="net"||!GMX.ch){say("No online game");return}
+  if(bad(GMX.ch)){tRejoin();say("Reconnecting...");return}
+  tSend();gmTx({t:"need"});say("Syncing...")}
+ function tResume(o){var c=ctx();
+  if(!c.sb||!c.pid||o.me!==c.pid||!o.peer||!o.peer.pid||!/^[A-Z0-9]{4,10}$/.test(o.code||"")||typeof o.b!=="string"||!/^[XO-]{25}$/.test(o.b))return false;
+  if(!gmOpen(o.code,function(){tSend();gmTx({t:"need"})}))return false;
+  GMX.peer={pid:String(o.peer.pid),n:String(o.peer.n||"Friend").slice(0,30)};GMX.me=o.sym==="O"?"O":"X";GMX.st=1;GMX.ep=(o.ep|0)-1;
+  gmGo();gmStart();tSet(o.b);
+  setTimeout(function(){if(T&&T.mode==="net"&&!T.over&&Date.now()-TX.rx>12000)say("Your friend is not in the game right now")},13000);
+  return true}
+ setInterval(function(){
+  if(!T||T.mode!=="net"||!GMX.ch||!GMX.st)return;
+  tSave();if(T.over)return;tSend();
+  var n=Date.now();
+  if(bad(GMX.ch)||(TX.rx&&n-TX.rx>10000)){
+   if(!TX.bad){TX.bad=n}
+   if(n-TX.rj>10000){TX.rj=n;tRejoin();if(!TX.sh){TX.sh=1;say("Reconnecting...")}}}
+  else if(TX.bad&&n-TX.rx<6000){TX.bad=0;TX.sh=0;say("Reconnected")}
+ },2500);
+
+ /* ---------- UNO ---------- */
+ var UX={rx:0,rj:0};
+ try{
+  var _ut=ugTx;ugTx=function(m){if(m&&m.t==="vw"&&UG&&UG.host)m.hv=UG.hv|0;return _ut.apply(this,arguments)};
+  var _ub=ugBroadcast;ugBroadcast=function(){if(UG)UG.hv=(UG.hv|0)+1;return _ub.apply(this,arguments)};
+  var _ua=ugApply;ugApply=function(m){if(UG)UG.hvSeen=m&&m.hv|0;UX.rx=Date.now();return _ua.apply(this,arguments)};
+  var _ue=ugEnd;ugEnd=function(){clr("uno");return _ue.apply(this,arguments)};
+  var _ud=uoDraw;uoDraw=function(){var r=_ud.apply(this,arguments);try{uAfter()}catch(e){}return r};
+  var _ug=ugGot;
+  ugGot=function(m){
+   if(UG&&m&&m.t){
+    if(m.t==="hb"&&!UG.host&&m.from===UG.hostPid){UX.rx=Date.now();if((UG.hvSeen|0)!==(m.hv|0))ugTx({t:"need"});return}
+    if(m.t==="need"&&UG.host&&UG.st&&UO&&UO.net){var i=UG.pl.findIndex(function(p){return p.pid===m.from});if(i>0&&!UG.pl[i].left)uView(i);return}
+    if(m.from===UG.hostPid)UX.rx=Date.now()}
+   return _ug.apply(this,arguments)};
+ }catch(e){console.error("ZNX sync (uno)",e)}
+ function uView(i){var s=UO&&UO.s;if(!s||!UG||!UG.pl[i])return;ugTx({t:"vw",to:UG.pl[i].pid,me:i,pl:UG.pl.map(function(q){return q.pid}),s:ugView(s,i),ev:null})}
+ function uAfter(){
+  if(!UO||!UO.net||!UG||!UG.st)return;
+  if(UO.s.phase==="over")clr("uno");
+  else if(UG.host)sv({g:"uno",host:1,code:UG.code,mode:UG.mode,pl:UG.pl.map(function(p){return{pid:p.pid,n:p.n,left:p.left?1:0}}),s:UO.s});
+  else sv({g:"uno",host:0,code:UG.code,mode:UG.mode,hostPid:UG.hostPid});
+  var sh=D.querySelector('#uoS .uoT [data-uo="share"]');
+  if(sh&&!D.querySelector("#uoS [data-zr]"))sh.insertAdjacentHTML("beforebegin",rbtn("uno"))}
+ function uRejoin(){var c=ctx(),old=UG&&UG.ch,code=UG&&UG.code;if(!old||!c.sb)return;UG.live=0;
+  Promise.resolve(c.sb.removeChannel(old)).catch(function(){}).then(function(){
+   if(!UG||UG.code!==code)return;
+   var ch=c.sb.channel("gm:"+code,{config:{broadcast:{self:false}}});UG.ch=ch;
+   ch.on("broadcast",{event:"m"},function(p){ugGot(p.payload)}).subscribe(function(s){if(!UG||UG.ch!==ch)return;if(s==="SUBSCRIBED"){UG.live=1;if(UG.host)ugTx({t:"hb",hv:UG.hv|0});else ugTx({t:"need"})}})})}
+ function uRefresh(){if(!UG||!UG.st||!UG.ch){say("No online game");return}
+  if(bad(UG.ch)){uRejoin();say("Reconnecting...");return}
+  if(UG.host&&UO&&UO.net)ugBroadcast(null);else ugTx({t:"need"});
+  say("Syncing...")}
+ function uResume(o){var c=ctx();
+  if(!c.sb||!c.pid||o.me!==c.pid||!/^[A-Z0-9]{4,10}$/.test(o.code||""))return false;
+  var md=o.mode==="nomercy"?"nomercy":"classic";
+  if(o.host){
+   var s=o.s;if(!s||!Array.isArray(s.hands)||!Array.isArray(o.pl)||s.n!==o.pl.length||s.phase==="over")return false;
+   if(!ugOpen(o.code,1,md,function(){ugBroadcast(null)}))return false;
+   UG.pl=o.pl.map(function(p){return{pid:String(p.pid),n:String(p.n||"Friend").slice(0,30),left:p.left?1:0}});UG.inv=[];UG.st=1;UG.hostPid=c.pid;
+   if($$("chat").classList.contains("on"))$$("cb").click();
+   if(UO){clearTimeout(UO.tm);clearTimeout(UO.ct)}
+   UO={v:UG.mode,mode:"online",n:s.n,d:1,ph:0,lv:"medium",s:s,note:"",top:-1,ids:new Set(),cv:-1,busy:0,cover:0,pn:0,lp:-1,cb:null,tg:null,net:1,host:1};
+   inGame=true;uoMount();uoDraw();return true}
+  if(!ugOpen(o.code,0,md,function(){ugTx({t:"need"})}))return false;
+  UG.hostPid=String(o.hostPid||"");UG.st=1;UX.rx=Date.now();
+  var code=o.code;
+  setTimeout(function(){if(UG&&UG.code===code&&!(UO&&UO.net)){say("The host is not in the game right now");ugEnd();clr("uno")}},14000);
+  return true}
+ setInterval(function(){
+  if(!UG||!UG.st||!UG.ch)return;
+  var n=Date.now();
+  if(UG.host&&UO&&UO.net)ugTx({t:"hb",hv:UG.hv|0});
+  else if(!UG.host)ugTx({t:"ka"});
+  var stale=!UG.host&&UX.rx&&n-UX.rx>10000;
+  if(bad(UG.ch)||stale){if(n-UX.rj>10000){UX.rj=n;uRejoin()}}
+ },3000);
+
+ /* ---------- Enjoy Together ---------- */
+ var EX={bad:0,rj:0};
+ function eRejoin(){var c=ctx(),old=ET.ch;if(!c.sb||!old)return;ET.live=0;ET.ch=null;clearInterval(ET.hb);
+  Promise.resolve(c.sb.removeChannel(old)).catch(function(){}).then(function(){if($$("et").classList.contains("on"))etJoin()})}
+ function eRefresh(){if(!ET.ch){say("Not in a room");return}
+  if(bad(ET.ch)){eRejoin();say("Reconnecting...");return}
+  if(!ET.host){ET.got=0;etRaw({t:"hello"})}
+  try{etPresence()}catch(e){}
+  say("Syncing...")}
+ function eOffer(o){
+  if(!/^[A-Z0-9]{4,8}$/.test(o.code||"")){clr("et");return}
+  sheet('<h3>Rejoin your room?</h3><p class="note">You were in an Enjoy Together room.</p><div class="grid" style="grid-template-columns:1fr 1fr"><button id="zeN">No</button><button class="pri" id="zeY">Rejoin</button></div>');
+  $$("sh").onclick=function(e){if(e.target.closest("#zeN")){clr("et");closeS()}else if(e.target.closest("#zeY")){closeS();setTimeout(function(){etOpen(o.code)},300)}}}
+ try{
+  var _ec=etClose;etClose=function(){clr("et");return _ec.apply(this,arguments)};
+  D.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("#etb"))clr("et")},true);
+ }catch(e){}
+ setInterval(function(){
+  var et=$$("et");if(!et||!et.classList.contains("on")||!ET.ch)return;
+  if(!et.classList.contains("zw")&&ET.code)sv({g:"et",code:ET.code});
+  if(bad(ET.ch)){var n=Date.now();if(!EX.bad)EX.bad=n;else if(n-EX.bad>6000&&n-EX.rj>10000){EX.rj=n;eRejoin()}}else EX.bad=0
+ },5000);
+
+ /* ---------- refresh buttons everywhere ---------- */
+ function addChat(){
+  var pl=$$("pl");if(pl&&pl.parentNode&&!pl.parentNode.classList.contains("zrw")&&D.querySelector("#pg .hd")){
+   var w=D.createElement("span");w.className="zrw";w.style.cssText="display:flex;align-items:center;gap:6px";
+   pl.parentNode.insertBefore(w,pl);w.insertAdjacentHTML("beforeend",rbtn("sys"));w.appendChild(pl)}}
+ try{var _sh=show;show=function(){var r=_sh.apply(this,arguments);try{addChat()}catch(e){}return r}}catch(e){}
+ setInterval(function(){
+  try{
+   addChat();
+   var ch=$$("chat"),cv=$$("cv");
+   if(ch&&ch.classList.contains("on")&&cv&&!ch.querySelector("[data-zr]"))cv.insertAdjacentHTML("beforebegin",rbtn("sys"));
+   var lm=$$("loMic");if(lm&&$$("ldoR")&&!$$("ldoR").querySelector("[data-zr]"))lm.insertAdjacentHTML("beforebegin",rbtn("ludo"));
+   var et=$$("et"),mic=$$("etmic");
+   if(et&&et.classList.contains("on")&&!et.classList.contains("zw")&&mic&&!et.querySelector("[data-zr]"))mic.insertAdjacentHTML("beforebegin",rbtn("et"));
+   if(T&&T.mode==="net"&&!D.querySelector("#pg [data-zr]")){var b=D.querySelector('#pg .sb [data-pl="redo"]');if(b)b.insertAdjacentHTML("beforebegin",rbtn("ttt"))}
+  }catch(e){}
+ },700);
+ D.addEventListener("click",function(e){
+  var b=e.target.closest&&e.target.closest("[data-zr]");if(!b)return;
+  e.preventDefault();e.stopPropagation();
+  b.classList.remove("zrs");void b.offsetWidth;b.classList.add("zrs");
+  var k=b.dataset.zr;
+  try{
+   if(k==="ttt")tRefresh();
+   else if(k==="uno")uRefresh();
+   else if(k==="ludo"){if(window.__lsX)window.__lsX.refresh()}
+   else if(k==="et")eRefresh();
+   else{say("Refreshing...");D.dispatchEvent(new Event("visibilitychange"))}
+  }catch(x){console.error(x)}
+ },true);
+
+ /* ---------- come back to the app: reconnect everything ---------- */
+ function wake(){
+  if(D.hidden)return;
+  try{if(T&&T.mode==="net"&&GMX.ch&&GMX.st&&!T.over){if(bad(GMX.ch))tRejoin();else{tSend();gmTx({t:"need"})}}}catch(e){}
+  try{if(UG&&UG.st&&UG.ch){if(bad(UG.ch))uRejoin();else if(UG.host)ugTx({t:"hb",hv:UG.hv|0});else ugTx({t:"need"})}}catch(e){}
+  try{if(window.__lsX)window.__lsX.wake()}catch(e){}
+  try{var et=$$("et");if(et&&et.classList.contains("on")&&ET.ch){if(bad(ET.ch))eRejoin();else if(!ET.host){ET.got=0;etRaw({t:"hello"})}}}catch(e){}}
+ D.addEventListener("visibilitychange",function(){if(!D.hidden)setTimeout(wake,400)});
+ addEventListener("online",function(){setTimeout(wake,800)});
+ addEventListener("pageshow",function(e){if(e.persisted)setTimeout(wake,400)});
+
+ /* ---------- after reload: go back to where you were ---------- */
+ function offer(){
+  var n=0,iv=setInterval(function(){
+   if(++n>60){clearInterval(iv);return}
+   var c=ctx();if(!c.sb||!c.pid)return;
+   clearInterval(iv);
+   var o=ld();if(!o)return;
+   if(o.me!==c.pid||Date.now()-(o.ts||0)>30*60000){clr();return}
+   if(GMX.ch||UG||$$("uoR")||$$("ldoR")||CL.on)return;
+   var ok=false;
+   try{
+    if(o.g==="ttt")ok=tResume(o);
+    else if(o.g==="uno")ok=uResume(o);
+    else if(o.g==="ludo")ok=!!(window.__lsX&&window.__lsX.resume(o));
+    else if(o.g==="et"){eOffer(o);return}
+   }catch(e){console.error("ZNX resume",e)}
+   if(ok)say("Reconnecting to your game...");else clr();
+  },500)}
+ try{var _en=enter;enter=function(){var r=_en.apply(this,arguments);setTimeout(offer,1500);return r}}catch(e){console.error("ZNX resume hook",e)}
+})();
+
 
 })();</script><script>
 
