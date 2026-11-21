@@ -8238,13 +8238,13 @@ async function refine(w,cv,lines){
  return lines}
 
 /* ---------- layout ---------- */
-function fitFs(t,w,hb){var m=mw(t),fh=hb*.85,fw=m>0?w/m*100:fh;if(t.replace(/\s/g,'').length<4||!isFinite(fw))return fh;return Math.max(fh*.55,Math.min(fh*1.7,fw))}
+function fitFs(t,w,hb){var m=mw(t),fh=hb*.85,fw=m>0?w/m*100:fh;if(t.replace(/\s/g,'').length<4||!isFinite(fw))return fh;return Math.max(fh*.8,Math.min(fh*1.15,fw))}
 function layout(wk,lines,W,H){
  var od=wk.getContext('2d').getImageData(0,0,W,H).data,P=paperOf(wk),items=[];
  lines.forEach(function(L){
   var ws;
   if(L.single){var b=L.bbox;ws=[{text:L.text.trim(),confidence:L.confidence,bbox:b}]}
-  else ws=(L.words||[]).filter(function(w){return w.text&&w.text.trim()&&w.bbox&&w.bbox.x1>w.bbox.x0&&(w.confidence==null||w.confidence>=30)});
+  else ws=(L.words||[]).filter(function(w){return w.text&&w.text.trim()&&w.bbox&&w.bbox.x1>w.bbox.x0&&(w.confidence==null||w.confidence>=15)});
   if(!ws.length)return;
   ws.sort(function(a,b){return a.bbox.x0-b.bbox.x0});
   var hs=med(ws.map(function(w){return w.bbox.y1-w.bbox.y0})),gap=Math.max(hs*1.2,12),groups=[],cur=[ws[0]];
@@ -8723,4 +8723,88 @@ var q=0;new MutationObserver(function(){if(!q)q=requestAnimationFrame(function()
 D.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('#tlR button,#cpR button,#gpR button');if(b&&navigator.vibrate)navigator.vibrate(6)},{passive:true,capture:true});
 }catch(e){console.error('ZNX utility polish',e)}})();
 </script>
+<style id="znx-x1-css">/*ZNX-PATCH-X1*/
+/* ---- download card: nothing may leave the card ---- */
+html body #tdc{box-sizing:border-box;max-width:100%;overflow:hidden;grid-template-columns:minmax(0,1fr)}
+html body #tdc *{min-width:0;box-sizing:border-box}
+html body #tdc .tdh small{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+html body #tdc .tdz{flex-wrap:wrap}
+html body #tdc .tdl{overflow-wrap:anywhere}
+html body #tdc .tdb{width:100%}
+html body #tdc .tdb button{width:100%;max-width:100%}
+
+/* ---- Ludo: fixed layout, board never moves ---- */
+html body #ldoR#ldoR{bottom:auto;height:var(--fh,100dvh);overflow:hidden}
+html body #ldoR#ldoR:has(.loC){padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+html body #ldoR #loSt small{display:none!important}
+html body #ldoR#ldoR #loSt{height:44px!important;min-height:44px!important;overflow:hidden}
+html body #ldoR#ldoR:not(.ph) .loM{height:150px!important;flex:none;overflow:visible}
+html body #ldoR#ldoR:not(.ph) .loB{width:min(100%,calc(var(--fh,100dvh) - 390px),640px)!important}
+html body #ldoR#ldoR:not(.ph):has(.loC) .loB{width:min(100%,calc(var(--fh,100dvh) - 450px),640px)!important}
+html body #ldoR#ldoR.ph #loPh{width:min(100%,calc(var(--fh,100dvh) - 380px),620px)}
+/* chat bar floats above the keyboard, game stays the same size */
+html body #ldoR#ldoR .loC{position:fixed;left:12px;right:12px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:7;width:auto;max-width:none;margin:0;padding:6px;border-radius:26px;border:1px solid var(--ln);background:color-mix(in srgb,var(--bg) 94%,transparent)}
+html body .gm{min-height:26px}
+
+/* ---- landscape: game big, extras small ---- */
+@media (orientation:landscape) and (max-height:540px){
+ html body #ldoR#ldoR:not(.ph){display:grid;grid-template-columns:calc(var(--fh,100dvh) - 8px) minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:12px;align-content:start;justify-items:stretch;padding:4px 10px 4px 4px!important}
+ html body #ldoR#ldoR:not(.ph) .loB,html body #ldoR#ldoR:not(.ph):has(.loC) .loB{grid-column:1;grid-row:1/-1;width:calc(var(--fh,100dvh) - 12px)!important;align-self:center;justify-self:start}
+ html body #ldoR#ldoR:not(.ph) .loT{grid-column:2;grid-row:1;max-width:none}
+ html body #ldoR#ldoR:not(.ph) .loP{grid-column:2;grid-row:2;max-width:none;width:100%}
+ html body #ldoR#ldoR:not(.ph) .loM{grid-column:2;grid-row:3;align-self:center;justify-self:center}
+ html body #ldoR#ldoR .loC{left:calc(var(--fh,100dvh) + 8px)}
+ html body #ldoR#ldoR.ph #loPh{width:min(100%,calc(var(--fh,100dvh) - 150px),640px)}
+ html body #uoR .uoTb{--cw:clamp(52px,calc((var(--fh,360px) - 270px)/1.45),92px)}
+ html body #uoR .uopl{min-width:56px;padding:4px 8px}
+ html body #uoR .uopl .ava{width:26px;height:26px}
+ html.znxL.znxT nav,html.znxL.znxT .top{display:none!important}
+ html.znxL.znxT #pg{padding:6px 14px 8px!important}
+ html.znxL.znxT #pg .bd{width:min(78vw,calc(var(--fh,100dvh) - 96px))!important;max-width:none}
+ html.znxL.znxT #pg .note{display:none}
+}</style><script id="znx-x1">/*ZNX-PATCH-X1*/(function znxPayload(){try{
+var D=document,R=D.documentElement;
+
+/* 1. keep a fixed game height, so the keyboard never shrinks the game */
+var ori=innerWidth>innerHeight,fh=innerHeight;
+function setFh(){var a=D.activeElement,typ=a&&/^(INPUT|TEXTAREA)$/.test(a.tagName),o=innerWidth>innerHeight;
+ if(o!==ori||!typ||innerHeight>fh){ori=o;fh=innerHeight}
+ R.style.setProperty('--fh',fh+'px')}
+setFh();
+addEventListener('resize',function(){setTimeout(setFh,60)});
+addEventListener('orientationchange',function(){setTimeout(setFh,350)});
+D.addEventListener('focusout',function(){setTimeout(setFh,300)});
+
+/* 2. landscape: auto full screen on first tap inside a game, hide extra bars */
+function gameOn(){return !!D.querySelector('#ldoR,#uoR,#ldR,#pg .bd')}
+function isFs(){return D.fullscreenElement||D.webkitFullscreenElement}
+function tryFs(){if(isFs()||innerWidth<=innerHeight||!gameOn())return;
+ var f=R.requestFullscreen||R.webkitRequestFullscreen;
+ if(f)try{Promise.resolve(f.call(R,{navigationUI:'hide'})).catch(function(){})}catch(e){}}
+D.addEventListener('pointerdown',tryFs,true);
+addEventListener('orientationchange',function(){setTimeout(tryFs,300)});
+setInterval(function(){var l=innerWidth>innerHeight&&gameOn();
+ R.classList.toggle('znxL',l);R.classList.toggle('znxT',l&&!!D.querySelector('#pg .bd'))},400);
+
+/* 3. Generate PDF: no overlap, text never wider than its original box, no duplicates */
+var mc=D.createElement('canvas').getContext('2d'),
+FAM="'ZNXLat','ZNXDev','Noto Sans','Noto Sans Devanagari',sans-serif";
+function mw(t){mc.font='100px '+FAM;return mc.measureText(t).width}
+function fixItems(M){var it=M&&M.items;if(!it||!it.length)return;
+ var out=[];
+ it.forEach(function(a){if(!out.some(function(b){return b.t===a.t&&Math.abs(b.x-a.x)<a.fs*.4&&Math.abs(b.b-a.b)<a.fs*.4}))out.push(a)});
+ it.length=0;out.forEach(function(a){it.push(a)});
+ it.forEach(function(a){var bw=a.bb?a.bb[2]-a.bb[0]:0,w=mw(a.t)*a.fs/100;
+  if(bw>0&&w>bw*1.04)a.fs*=Math.max(.6,bw*1.04/w)});
+ var rows=[];
+ it.slice().sort(function(a,b){return a.b-b.b}).forEach(function(a){
+  var r=rows[rows.length-1];
+  if(r&&Math.abs(r[0].b-a.b)<Math.min(r[0].fs,a.fs)*.45)r.push(a);else rows.push([a])});
+ rows.forEach(function(r){r.sort(function(a,b){return a.x-b.x});
+  for(var i=0;i<r.length-1;i++){var a=r[i],gap=r[i+1].x-a.x-a.fs*.2,w=mw(a.t)*a.fs/100;
+   if(w>gap&&gap>a.fs)a.fs*=Math.max(.6,gap/w)}});
+ it.sort(function(a,b){return Math.abs(a.b-b.b)<a.fs*.5?a.x-b.x:a.b-b.b})}
+var prev=window.znxSnap;
+window.znxSnap=function(M){try{prev&&prev(M)}catch(e){}try{fixItems(M)}catch(e){console.error(e)}};
+}catch(err){console.error('ZNX patch X1',err)}})()</script>
 </body></html>
