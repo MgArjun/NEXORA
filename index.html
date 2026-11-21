@@ -8807,4 +8807,37 @@ function fixItems(M){var it=M&&M.items;if(!it||!it.length)return;
 var prev=window.znxSnap;
 window.znxSnap=function(M){try{prev&&prev(M)}catch(e){}try{fixItems(M)}catch(e){console.error(e)}};
 }catch(err){console.error('ZNX patch X1',err)}})()</script>
+
+<!--ZNX-CARDS-V1-->
+<style>#znxUh{display:none!important}html body #pg .glist,html body #pg .card2{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}html body #pg>.feat{margin-bottom:4px;animation:znxCu .4s cubic-bezier(.2,.9,.2,1) both}@keyframes znxCu{from{opacity:0;transform:translateY(10px)}}html body #pg .feat .fbx{flex-wrap:wrap}html body #pg .gr[data-ut],html body #pg .gr[data-en]{animation:none!important}html body #pg{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}html body #app::before,html body #app::after{animation:none!important}html body button,html body .row,html body .gr,html body .sr{transition-duration:.15s!important}@media (prefers-reduced-motion:reduce){html body #pg>.feat{animation:none}}</style>
+<script>(function znxCards(){
+ try{
+  var D=document,pg=D.getElementById('pg');if(!pg)return;
+  var sv=function(d){return '<svg viewBox="0 0 24 24">'+d+'</svg>'};
+  var C={
+   Enjoy:{tag:'Together',t:'Enjoy Together',p:'Watch and listen in sync with up to 5 friends',
+    b:[['data-en="together"','Start a room',''],['data-en="yt"','Watch','gh2']],
+    ic:sv('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/>'),sec:'All features'},
+   Utility:{tag:'Document tools',t:'PDF & photo tools',p:'Compress, edit and create. Runs on your phone.',
+    b:[['data-ut="ph"','Compress photo',''],['data-ut="cp"','Create PDF','gh2']],
+    ic:sv('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M9 14h6M9 17h4"/>'),sec:'All tools'}};
+  var q=0;
+  function run(){
+   q=0;
+   var h=pg.querySelector(':scope>.hd h2');if(!h)return;
+   var c=C[(h.textContent||'').trim()];
+   if(!c||pg.querySelector(':scope>.feat'))return;
+   var hd=h.parentNode;
+   hd.insertAdjacentHTML('afterend',
+    '<div class="feat"><span class="tag">'+c.tag+'</span><b>'+c.t+'</b><p>'+c.p+'</p><div class="fbx">'+
+    c.b.map(function(x){return '<button '+x[0]+' class="'+x[2]+'">'+x[1]+'</button>'}).join('')+
+    '</div><i class="fg">'+c.ic+'</i></div>');
+   var l=pg.querySelector(':scope>.glist');
+   if(l&&!(l.previousElementSibling&&l.previousElementSibling.classList.contains('sec')))
+    l.insertAdjacentHTML('beforebegin','<div class="sec">'+c.sec+'</div>');
+  }
+  new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(pg,{childList:true});
+  run();
+ }catch(e){console.error('ZNX cards',e)}
+})();</script>
 </body></html>
