@@ -1177,7 +1177,7 @@ function drawUtil(){/*ZNX-UTIL-DIRECT*/
   ['pc','Compress PDF','Make a PDF smaller','<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M12 11v6M9.5 14.5L12 17l2.5-2.5"/>'],
   ['pe','Edit PDF','Text, photos, resize, zoom','<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M9 18l6-6 2 2-6 6H9z"/>'],
   ['cp','Create PDF','Photos to PDF. Reorder, crop, scan','<path d="M6 3h8l4 4v12H6z"/><path d="M14 3v4h4M3 8v13h11M12 11v6M9 14h6"/>']];
- $('pg').innerHTML='<div class="hd"><h2>Utility</h2></div><div class="glist">'+rows.map(function(r){return '<button class="gr" data-ut="'+r[0]+'"><i>'+A(r[3])+'</i><span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><em>\u203a</em></button>'}).join('')+'</div>';
+ rows.unshift(rows.splice(1,1)[0]);$('pg').innerHTML='<div class="hd"><h2>Utility</h2></div><div class="glist">'+rows.map(function(r){return '<button class="gr" data-ut="'+r[0]+'"><i>'+A(r[3])+'</i><span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><em>\u203a</em></button>'}).join('')+'</div>';
  try{window.__tlApi&&window.__tlApi.pre()}catch(e){}}
 $('pg').addEventListener('click',function(e){
  if(tab!=='util')return;
@@ -1193,11 +1193,11 @@ $('pg').addEventListener('click',function(e){
 
 const VIEWS={util:drawUtil,chats:drawChats,status:drawStatus,play:drawPlay,enjoy:drawEnjoy,me:drawMe};
 const PR3="perspective(900px) ";const pgIn=dir=>{if(root.hasAttribute("data-rm"))return;const p=$("pg");p.scrollTop=0;p.animate([{opacity:0,transform:`translate3d(${dir*34}px,0,0)`},{opacity:1,transform:"none"}],{duration:420,easing:"cubic-bezier(.2,.9,.2,1.05)"})};const appIn=()=>{if(root.hasAttribute("data-rm"))return;$("app").animate([{opacity:0,transform:"scale(.985)"},{opacity:1,transform:"none"}],{duration:560,easing:"cubic-bezier(.2,.9,.2,1.05)"})};
-function streak(dir){const e=$("streak");if(!e)return;e.animate([{transform:`translateX(${dir>0?"105vw":"-45vw"})`,opacity:0},{opacity:1,offset:.45},{transform:`translateX(${dir>0?"-45vw":"105vw"})`,opacity:0}],{duration:640,easing:"cubic-bezier(.3,.7,.2,1)"})}
-function goTab(t,dir){if(navigator.vibrate&&t!==tab)navigator.vibrate(5);const i=ORDER.indexOf(tab),j=ORDER.indexOf(t),p=$("pg");if(t===tab)return show(t);dir=dir||(j>i?1:-1);streak(dir);moveLens(t);setNav(t);
- p.style.transition="transform .13s cubic-bezier(.4,0,1,1),opacity .13s,filter .13s";p.style.transform=`${PR3}translate3d(${-dir*90}px,0,0) rotateY(${dir*18}deg) scale(.92)`;p.style.filter="blur(6px)";p.style.opacity="0";
+function streak(dir,v){const e=$("streak");if(!e||!(v>=1))return;e.animate([{transform:`translateX(${dir>0?"105vw":"-45vw"})`,opacity:0},{opacity:1,offset:.45},{transform:`translateX(${dir>0?"-45vw":"105vw"})`,opacity:0}],{duration:640,easing:"cubic-bezier(.3,.7,.2,1)"})}
+function goTab(t,dir){if(navigator.vibrate&&t!==tab)navigator.vibrate(5);const i=ORDER.indexOf(tab),j=ORDER.indexOf(t),p=$("pg");if(t===tab)return show(t);dir=dir||(j>i?1:-1);streak(dir,arguments[2]);moveLens(t);setNav(t);
+ p.style.transition="transform .09s cubic-bezier(.4,0,1,1),opacity .09s,filter .09s";p.style.transform=`${PR3}translate3d(${-dir*90}px,0,0) rotateY(${dir*18}deg) scale(.92)`;p.style.filter="blur(6px)";p.style.opacity="0";
  setTimeout(()=>{show(t);p.scrollTop=0;p.style.transition="none";p.style.transform=`${PR3}translate3d(${dir*90}px,0,0) rotateY(${-dir*18}deg) scale(.92)`;p.style.filter="blur(6px)";void p.offsetWidth;
-  p.style.transition="transform .5s cubic-bezier(.2,.9,.2,1.06),opacity .3s,filter .4s";p.style.transform="";p.style.filter="";p.style.opacity="1"},120)}
+  p.style.transition="transform .34s cubic-bezier(.2,.9,.2,1.06),opacity .2s,filter .28s";p.style.transform="";p.style.filter="";p.style.opacity="1"},90)}
 {const pe=$("pg");let w=null,at=0;
  const locked=()=>inGame||sub||document.querySelector("#ov.on,#chat.on,#sv.on,#sc.on,#vw.on,#mp.on");
  const lens=(f)=>{const l=$("lens");if(!l)return;l.style.transition=f==null?"":"none";l.style.transform=`translateX(${(f==null?ORDER.indexOf(tab):f)*100}%)`};
@@ -1208,7 +1208,7 @@ function goTab(t,dir){if(navigator.vibrate&&t!==tab)navigator.vibrate(5);const i
   pe.style.transition="none";pe.style.transform=`${PR3}translate3d(${dx*(has?.5:.18)}px,0,0) rotateY(${-dir*k*15}deg) scale(${1-k*.07})`;pe.style.filter=`blur(${k*5}px)`;pe.style.opacity=String(1-k*.5);
   if(has)lens(ORDER.indexOf(tab)+dir*k*.6)});
  const end=e=>{const s2=w;w=null;if(!s2||!s2.lock)return;at=Date.now();const dx=s2.dx,dir=dx<0?1:-1,nx=ORDER.indexOf(tab)+dir,fast=Math.abs(dx)/Math.max(1,Date.now()-s2.t)>.5;
-  if(e.type==="pointerup"&&ORDER[nx]&&(Math.abs(dx)>innerWidth*.2||(fast&&Math.abs(dx)>40)))return goTab(ORDER[nx],dir);
+  if(e.type==="pointerup"&&ORDER[nx]&&(Math.abs(dx)>innerWidth*.2||(fast&&Math.abs(dx)>40)))return goTab(ORDER[nx],dir,Math.abs(dx)/Math.max(1,Date.now()-s2.t));
   lens(null);pe.style.transition="transform .62s cubic-bezier(.2,.9,.2,1.1),opacity .4s,filter .4s";pe.style.transform="";pe.style.filter="";pe.style.opacity="1"};
  pe.addEventListener("pointerup",end);pe.addEventListener("pointercancel",end);
  pe.addEventListener("click",e=>{if(Date.now()-at<350){e.stopImmediatePropagation();e.preventDefault()}},true)}
@@ -7381,14 +7381,14 @@ function ph(){pick('image/*',function(f){var im=new Image();im.onload=function()
   (k?srch(c,k):toBlob(c,$('tq').value/100)).then(function(b){if(!$('tpi'))return;out=b;$('tpi').src=URL.createObjectURL(b);$('tpn').textContent=fsz(f.size)+'  \u2192  '+fsz(b.size)})},150)}
  R.oninput=run;run();$('tdn').onclick=function(){out?dl(out,dlName(f.name,'compressed','jpg'),{o:f.size}):ts('Wait a moment')}};im.src=URL.createObjectURL(f)})}
 /* ---- compress pdf ---- */
-function pc(){pick('application/pdf',function(f){ts('Loading...');Promise.all([ld(),f.arrayBuffer()]).then(function(a){var buf=a[1];
+function pc(){pick('application/pdf',function(f){ts('Loading...');Promise.all([0,f.arrayBuffer()]).then(function(a){var buf=a[1];
  open(head('Compress PDF')+'<p class="note">Pages become images, so text cannot be selected afterwards. Best for scans and photo PDFs.</p><div class="sec">Original size: <b>'+fsz(f.size)+'</b></div><div class="sec">Target size</div><div class="trw"><input id="tgv" inputmode="decimal" placeholder="e.g. 500" maxlength="6" style="flex:1;min-width:0"><div class="seg" id="tgu" style="margin:0;width:120px;flex:none"><button data-u="1024" class="on">KB</button><button data-u="1048576">MB</button></div></div><div class="trw" id="tgp" style="margin-top:8px"><button class="gb" data-p=".5">50%</button><button class="gb" data-p=".25">25%</button><button class="gb" data-p=".1">10%</button></div><p class="note" id="tpn" style="text-align:center;margin:10px 0">We get as close as possible to this size.</p><button class="pri" id="tdn" style="width:100%">Compress and save</button>',close);
  var U=1024;
  $('tgu').onclick=function(e){var b=e.target.closest('[data-u]');if(!b)return;U=+b.dataset.u;[].forEach.call(this.children,function(x){x.classList.toggle('on',x===b)})};
  $('tgp').onclick=function(e){var b=e.target.closest('[data-p]');if(!b)return;var t=f.size*b.dataset.p;if(t>=1048576){U=1048576;$('tgv').value=(t/1048576).toFixed(2)}else{U=1024;$('tgv').value=Math.round(t/1024)}[].forEach.call($('tgu').children,function(x){x.classList.toggle('on',+x.dataset.u===U)})};
  $('tdn').onclick=function(){var b=this,T=parseFloat($('tgv').value)*U;if(!(T>=20000))return ts('Enter a target size (at least 20 KB)');if(T>=f.size)return ts('Target is bigger than the original');b.disabled=true;
   var say=function(t){if($('tpn'))$('tpn').textContent=t},cs=[],dims=[];
-  pdfjsLib.getDocument({data:buf.slice(0)}).promise.then(function(doc){var sc=doc.numPages>30?1.3:doc.numPages>12?1.8:2.4,ch=Promise.resolve();
+  ld().then(function(){return pdfjsLib.getDocument({data:buf.slice(0)}).promise}).then(function(doc){var sc=doc.numPages>30?1.3:doc.numPages>12?1.8:2.4,ch=Promise.resolve();
    for(let n=1;n<=doc.numPages;n++)ch=ch.then(function(){say('Reading page '+n+' / '+doc.numPages);return doc.getPage(n)}).then(function(pg){var v1=pg.getViewport({scale:1}),vp=pg.getViewport({scale:sc}),c=D.createElement('canvas');c.width=vp.width;c.height=vp.height;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);dims.push([v1.width,v1.height]);cs.push(c);return pg.render({canvasContext:x,viewport:vp}).promise});
    return ch}).then(function(){return fitSz(cs,T,say)}).then(function(r){var ch=Promise.resolve();return PDFLib.PDFDocument.create().then(function(out){cs.forEach(function(c,i){ch=ch.then(function(){say('Building page '+(i+1)+' / '+cs.length);return encC(c,r.q,r.k)}).then(function(j){return j.arrayBuffer()}).then(function(ab){return out.embedJpg(ab)}).then(function(jp){out.addPage(dims[i]).drawImage(jp,{x:0,y:0,width:dims[i][0],height:dims[i][1]})})});return ch.then(function(){return out.save()})})}).then(function(u8){var bl=new Blob([u8],{type:'application/pdf'});say(fsz(f.size)+'  to  '+fsz(bl.size));dl(bl,dlName(f.name,'compressed','pdf'),{o:f.size,ob:buf})}).catch(function(){ts('Could not compress this PDF')}).then(function(){b.disabled=false})}}).catch(function(){ts('Could not load. Check your internet')})})}
 function encC(c,q,k){var t=c;if(k<.999){t=D.createElement('canvas');t.width=Math.max(1,Math.round(c.width*k));t.height=Math.max(1,Math.round(c.height*k));var x=t.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(c,0,0,t.width,t.height)}return toBlob(t,q)}
@@ -8329,7 +8329,7 @@ window.znxSnap=function(M){try{prev&&prev(M)}catch(e){}try{fixItems(M)}catch(e){
     b:[['data-en="together"','Start a room',''],['data-en="yt"','Watch','gh2']],
     ic:sv('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/>'),sec:'All features'},
    Utility:{tag:'Document tools',t:'PDF & photo tools',p:'Compress, edit and create. Runs on your phone.',
-    b:[['data-ut="ph"','Compress photo',''],['data-ut="cp"','Create PDF','gh2']],
+    b:[['data-ut="pc"','Compress PDF',''],['data-ut="cp"','Create PDF','gh2']],
     ic:sv('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M9 14h6M9 17h4"/>'),sec:'All tools'}};
   var q=0;
   function run(){
@@ -8517,7 +8517,7 @@ html body #loD .f{outline:1px solid transparent;-webkit-backface-visibility:hidd
 
  /* A. Swipe: the light streak follows your finger, slow swipes feel premium */
  try{
-  var stk=$('streak'),pg=$('pg'),WA=Element.prototype.animate,dragT=0,s=null,clr=0;
+  var stk=null,pg=null,WA=Element.prototype.animate,dragT=0,s=null,clr=0;
   if(stk&&pg){
    stk.animate=function(kf,o){
     if(Date.now()-dragT<800)return{cancel:function(){},finish:function(){}};
@@ -8625,4 +8625,18 @@ html body #loD .f{outline:1px solid transparent;-webkit-backface-visibility:hidd
  }catch(e){console.error('R9 uno',e)}
 })();</script>
 <!--ZNX-R9-END-->
+<!--ZNX-R10-START-->
+<style id="znx-r10-css">
+html body .top.sc,html body #mini{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body .top.sc{background:color-mix(in srgb,var(--bg) 92%,transparent)!important}
+html:not([data-rm]) body #pg>*:nth-child(-n+8){animation-duration:.26s!important;animation-delay:0s!important}
+html body button,html body .row,html body .gr,html body .sr,html body .opt,html body .tile{transition-duration:.16s!important}
+html body #ov.in #sh{transition-duration:.36s!important}
+html body #chat{transition-duration:.32s!important}
+html body #et,html body #mp,html body #cl,html body #fv,html body #ad{transition-duration:.4s!important}
+html body #chat:not(.on),html body #et:not(.on),html body #fv:not(.on),html body #ad:not(.on),html body #mp:not(.on),html body #cl:not(.on){will-change:auto!important}
+</style>
+<script id="znx-r10-js">(function(){function pre(){try{var a=window.__tlApi;if(a&&a.pre)a.pre()}catch(e){}}
+if("requestIdleCallback" in window)requestIdleCallback(pre,{timeout:5000});else setTimeout(pre,3500)})();</script>
+<!--ZNX-R10-END-->
 </body></html>
