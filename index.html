@@ -813,7 +813,7 @@ $("eye").onclick=()=>{const p=$("pw");p.type=p.type==="password"?"text":"passwor
 </div>
 <style>#mpyw iframe{width:200px!important;height:200px!important}</style><div id="mpyw" style="position:fixed;right:0;bottom:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:-1;overflow:hidden"><div id="mpyt0"></div><div id="mpyt1"></div></div><div id="mini"><i id="mio"></i><div class="t"><b id="min"></b><small id="mim"></small></div><button class="ib" id="mip" aria-label="Play or pause"></button><button class="ib" id="mix" aria-label="Hide player"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="et"><div class="eth"><button class="ib" id="etb" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ett"><b>Enjoy Together</b><small id="etc"></small></div><div class="ethr"><div class="stk" id="etstk"></div><button class="ib" id="etmic" aria-label="Voice"></button></div></div>
 <div class="seg" id="ets"><button class="on" data-k="w">Watch</button><button data-k="l">Listen</button></div>
-<div class="etg" id="etg"><div class="etn" id="etn"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>Paste a link below</b><small>YouTube or a video link. Or use a file from your device.</small><button class="pri" id="etpick">From device</button></div><div class="etyw" id="etyw"><div id="etyt"></div></div><video id="etv" playsinline></video><div class="etdim" id="etdim"></div><div class="etcv" id="etcv"><button id="etcb" aria-label="Play"></button></div><div class="etaud" id="etaud"><i></i></div><div class="etgs" id="etgs"></div><div class="ethud" id="ethud"></div><div class="etdb" id="etdb"></div>
+<div class="etg" id="etg"><div class="etn" id="etn"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>Paste a link below</b><small>Paste a YouTube or video link below.</small></div><div class="etyw" id="etyw"><div id="etyt"></div></div><video id="etv" playsinline></video><div class="etdim" id="etdim"></div><div class="etcv" id="etcv"><button id="etcb" aria-label="Play"></button></div><div class="etaud" id="etaud"><i></i></div><div class="etgs" id="etgs"></div><div class="ethud" id="ethud"></div><div class="etdb" id="etdb"></div>
  <div class="etk" id="etk"><button class="ib" id="etp" aria-label="Play or pause"></button><span id="eta">0:00</span><div class="etsk" id="etsk"><i id="etf"></i><b id="etkn"></b></div><span id="etd">0:00</span><button class="ib" id="etzm" aria-label="Fit or fill"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/><rect x="8" y="9" width="8" height="6" rx="1"/></svg></button><button class="ib" id="etfs" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div></div>
 <div class="srcb"><input id="etlink" placeholder="Paste YouTube or video link" autocomplete="off" inputmode="url" autocapitalize="off"><button class="ib" id="etst" aria-label="Save to favourites"><svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></button><button class="ib" id="etgo" aria-label="Play link"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></button></div>
 <div class="seg" id="ettabs"><button class="on" data-p="chat">Chat</button><button data-p="queue">Queue</button><button data-p="saved">Saved</button><button data-p="room">Room</button></div>
@@ -2123,7 +2123,7 @@ function ytLoad(){return new Promise((res,rej)=>{if(window.YT&&YT.Player)return 
 async function etLoad(src,title){if(!etCan())return ts("Only the host controls playback");if(src&&src.t==="yt"&&window.ytRec)window.ytRec(src.id,title);const v=$("etv");ET.cur=src;ET.title=title||ET.title||"";if(src.t==="yt"||!/^blob:/.test(src.url||""))etTx({t:"src",src:src,title:ET.title,kind:ET.kind});else if(ET.ch)ts("Device files play only on your phone");$("etg").classList.add("on");$("etn").style.display="none";$("etg").classList.toggle("aud",ET.kind==="listen");
  if(src.t==="yt"){v.pause();v.removeAttribute("src");v.style.display="none";P2.kind="yt";
   try{await ytLoad();if(P2.yt&&P2.yt.loadVideoById){P2.yt.loadVideoById(src.id)}else{P2.yt=new YT.Player("etyt",{videoId:src.id,playerVars:{controls:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0,fs:0,disablekb:1,autoplay:1},events:{onReady:e=>{e.target.setVolume(P2.vol);e.target.playVideo()},onStateChange:e=>{etMask(e.data);if(e.data===0)etNext()}}})}}
-  catch(x){P2.kind="";ET.cur=null;$("etg").classList.remove("on");$("etn").style.display="";$("etn").innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>YouTube cannot load in this preview</b><small>This preview blocks outside players. On your own site it plays here with your controls.</small><button class="pri" id="etpick">From device</button>'}}
+  catch(x){P2.kind="";ET.cur=null;$("etg").classList.remove("on");$("etn").style.display="";$("etn").innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/></svg><b>YouTube cannot load in this preview</b><small>This preview blocks outside players. On your own site it plays here with your controls.</small>'}}
  else{if(P2.yt)etKill();P2.kind="file";v.style.display="";v.src=src.url;v.volume=P2.vol/100;v.play().catch(()=>{});v.onended=etNext}
  etShow();etUI();if(ET.pane==="queue")etQueue()}
 function etNext(){if(ET.ch&&!ET.host)return;const n=ET.q.shift();if(n&&n.src&&parseSrc(n.src.t==="yt"?"https://youtu.be/"+n.src.id:n.src.url)){etLoad(n.src,n.title);ts("Next: "+(n.title||"queued item"))}etTx({t:"q",q:ET.q});if(ET.pane==="queue")etQueue()}
@@ -2403,7 +2403,7 @@ sync();
 const FS={kind:"watch",scope:"all",q:"",sm:false,sel:new Set(),vis:[]},TYN=["","Soothing","Vibe","Energetic","Bhakti"];
 const fvHost=u=>{try{return new URL(u).hostname.replace("www.","")}catch(e){return"link"}};
 function fvDraw(){$("fvsel").style.display=FS.kind==="pl"?"none":"";if(FS.kind==="pl")return plFv();const l=FAV.filter(x=>(FS.kind==="liked"?x.kind==="listen"&&LKD.has(x.url):x.kind===FS.kind)&&(FS.scope==="all"||x.scope===FS.scope)&&x.title.toLowerCase().includes(FS.q.toLowerCase()));FS.vis=l;$("fvcount").textContent=FAV.length+" SAVED";$("fvsel").textContent=FS.sm?"Done":"Select";
- $("fvlist").innerHTML=l.length?`<div class="glist">${l.map(x=>`<div class="gr"${FS.sm?` data-fs="${x.id}"`:""}>${FS.sm?`<span class="ck${FS.sel.has(x.id)?" on":""}"></span>`:""}<i style="background:${g(x.title)};border:0"></i><span class="t"><b>${esc(x.title)}</b><small class="mono">${x.scope} · ${fvHost(x.url)}${x.type?" · "+TYN[x.type]:""}</small></span>${FS.sm?"":`<button class="gb pri" data-fp="${x.id}">Play</button><button class="ib" data-fm="${x.id}" aria-label="More"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg></button>`}</div>`).join("")}</div>`:`<div class="empty" style="padding:34px 10px">${FAV.some(x=>x.kind===FS.kind)?"Nothing matches.":"No "+(FS.kind==="liked"?"liked songs":FS.kind==="listen"?"songs":"videos")+" saved yet."}<br><small>Tap + to add a link.</small></div>`;
+ $("fvlist").innerHTML=l.length?`<div class="glist">${l.map(x=>`<div class="gr"${FS.sm?` data-fs="${x.id}"`:""}>${FS.sm?`<span class="ck${FS.sel.has(x.id)?" on":""}"></span>`:""}<i class="zfi" style="background:${g(x.title)}">${x.kind==="listen"?IC.aud:IC.vid}</i><span class="t"><b>${esc(x.title)}</b><small class="mono">${x.scope} · ${fvHost(x.url)}${x.type?" · "+TYN[x.type]:""}</small></span>${FS.sm?"":`<button class="ib zfp" data-fp="${x.id}" aria-label="Play">${PL}</button><button class="ib" data-fm="${x.id}" aria-label="More"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg></button>`}</div>`).join("")}</div>`:`<div class="empty" style="padding:34px 10px">${FAV.some(x=>x.kind===FS.kind)?"Nothing matches.":"No "+(FS.kind==="liked"?"liked songs":FS.kind==="listen"?"songs":"videos")+" saved yet."}<br><small>Tap + to add a link.</small></div>`;
  const b=$("fvbar");b.classList.toggle("on",!!FS.sm);if(FS.sm)b.innerHTML=`<b>${FS.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-fb="all">All</button><button class="gb" data-fb="priv">Private</button><button class="gb" data-fb="glob">Global</button><button class="gb" data-fb="pl">Playlist</button><button class="ib" data-fb="del" aria-label="Remove">${IC.trash}</button>`}
 /* ===== Playlists ===== */
 let PLS=[];try{PLS=JSON.parse(localStorage.getItem("znx_pls")||"[]")}catch(e){}
@@ -8400,84 +8400,34 @@ fix();
 </script>
 <!--ZNX-V21-END-->
 
-<!--ZNX-DL-V1-->
-<script id="znx-dl-v1">/*ZNX-DL-V1*/
-(function(){try{
-var D=document,$=function(i){return D.getElementById(i)},K='znx_dl_cfg',cfg={},M='v',Q='720',A='mp3',busy=0;
-try{cfg=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
-function toast(m){var t=$('ts');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('on')},2400)}
-var css='#pg .glist .gr[data-en=dl]>i{--ic:#4de0d0;--ic2:#3b82f6}'
-+'#zdlR{position:fixed;inset:0;z-index:36;display:flex;flex-direction:column;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);overflow:auto;color:var(--tx);background:radial-gradient(80% 36% at 12% 0,color-mix(in srgb,var(--ac) 22%,transparent),transparent 70%),radial-gradient(60% 30% at 100% 8%,rgba(77,224,208,.1),transparent 70%),var(--bg);animation:rise .3s both}'
-+'#zdlR>*{flex:none;width:min(100%,640px);margin-left:auto;margin-right:auto}'
-+'.zdl-t{display:flex;align-items:center;gap:8px}.zdl-t b{flex:1;text-align:center;font:600 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}'
-+'.zdl-in{display:flex;gap:8px}.zdl-in input{flex:1;min-width:0;height:52px;margin:0}'
-+'.zdl-c{display:grid;gap:8px;padding:14px;border-radius:22px;border:1px solid var(--ln);background:var(--sf)}'
-+'.zdl-c label{font:500 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}'
-+'.zdl-c small{color:var(--mu);font-size:12px;line-height:1.45}'
-+'.zdl-c .seg{margin:0;flex-wrap:wrap}.zdl-c .seg button{height:40px;font-size:13px;flex:1 0 auto;min-width:56px}'
-+'.zdl-c input{margin:0;height:48px}'
-+'.zdl-set{display:none}.zdl-set.on{display:grid}'
-+'.zdl-bar{height:4px;border-radius:2px;background:var(--ln);overflow:hidden}.zdl-bar s{display:block;height:100%;width:0;background:linear-gradient(90deg,#8f88ff,#5ec2b7);transition:width .2s}'
-+'#zdlSt{min-height:20px;text-align:center;font-size:13px;color:var(--mu)}#zdlSt.bad{color:var(--danger)}'
-+'#zdlPk{display:grid;gap:8px}#zdlGo{height:54px;border-radius:27px;font-size:15.5px;font-weight:700;box-shadow:0 18px 34px -14px var(--ac)}';
-var s=D.createElement('style');s.id='znx-dl-css';s.textContent=css;D.head.appendChild(s);
-var VQ=[['max','Best'],['2160','4K'],['1440','2K'],['1080','1080p'],['720','720p'],['480','480p'],['360','360p'],['144','144p']],
-AF=[['mp3','MP3'],['best','Best'],['opus','Opus'],['ogg','OGG'],['wav','WAV']];
-function seg(k,a,cur){return '<div class="seg" data-s="'+k+'">'+a.map(function(x){return '<button type="button" data-v="'+x[0]+'"'+(x[0]===cur?' class="on"':'')+'>'+x[1]+'</button>'}).join('')+'</div>'}
-var BK='<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',GR='<svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>';
-function st(t,bad){var e=$('zdlSt');if(e){e.textContent=t;e.className=bad?'bad':''}}
-function bar(p){var e=D.querySelector('#zdlR .zdl-bar s');if(e)e.style.width=Math.round(Math.max(0,Math.min(1,p))*100)+'%'}
-function fsz(b){return b<1048576?(b/1024).toFixed(0)+' KB':(b/1048576).toFixed(1)+' MB'}
-function open(){close();var r=D.createElement('div');r.id='zdlR';r.setAttribute('role','dialog');r.setAttribute('aria-label','Download');
- r.innerHTML='<div class="zdl-t"><button class="ib" data-x aria-label="Back">'+BK+'</button><b>Download</b><button class="ib" data-g aria-label="Server settings">'+GR+'</button></div>'
- +'<div class="zdl-in"><input id="zdlU" placeholder="Paste a link" inputmode="url" autocapitalize="off" autocomplete="off" aria-label="Link"><button class="gb" type="button" data-p>Paste</button></div>'
- +'<div class="zdl-c"><label>Type</label>'+seg('m',[['v','Video'],['a','Audio']],M)
- +'<div id="zdlQ"><label>Video quality</label>'+seg('q',VQ,Q)+'<small>If a quality is not available, the closest one is used.</small></div>'
- +'<div id="zdlA" hidden><label>Audio format</label>'+seg('f',AF,A)+'</div></div>'
- +'<button class="pri" id="zdlGo" type="button">Download</button><div class="zdl-bar"><s></s></div><div id="zdlSt" role="status"></div><div id="zdlPk"></div>'
- +'<div class="zdl-set zdl-c"><label>Download server</label><input id="zdlS" placeholder="https://your-server.example.com" inputmode="url" autocapitalize="off" autocomplete="off" aria-label="Server address"><input id="zdlK" placeholder="API key (only if your server needs it)" autocapitalize="off" autocomplete="off" aria-label="API key"><button class="pri" type="button" data-sv>Save server</button><small>Links cannot be downloaded from inside a browser. This needs your own download server (an open-source cobalt instance works). Paste its address here once.</small></div>';
- D.body.appendChild(r);
- $('zdlS').value=cfg.url||'';$('zdlK').value=cfg.key||'';
- if(!cfg.url)r.querySelector('.zdl-set').classList.add('on');
- r.addEventListener('click',onClick);
- setTimeout(function(){if(!matchMedia('(pointer:coarse)').matches)$('zdlU').focus()},250)}
-function close(){var r=$('zdlR');if(r)r.remove()}
-function msg(c){c=String(c||'error').replace(/^error\.api\./,'').replace(/[._]/g,' ');return 'Server says: '+c}
-function onClick(e){var t=e.target,b;
- if(t.closest('[data-x]'))return close();
- if(t.closest('[data-g]'))return $('zdlR').querySelector('.zdl-set').classList.toggle('on');
- if(t.closest('[data-p]')){if(navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(function(v){$('zdlU').value=v.trim()},function(){toast('Allow clipboard or paste by hand')});else toast('Paste by hand');return}
- if(t.closest('[data-sv]')){var u=$('zdlS').value.trim().replace(/\/+$/,'');if(u&&!/^https?:\/\/\S+$/i.test(u))return toast('Server address must start with https://');cfg.url=u;cfg.key=$('zdlK').value.trim();try{localStorage.setItem(K,JSON.stringify(cfg))}catch(x){}toast('Server saved');$('zdlR').querySelector('.zdl-set').classList.remove('on');return}
- if(b=t.closest('.seg button')){var g=b.parentNode.dataset.s;[].forEach.call(b.parentNode.children,function(x){x.classList.toggle('on',x===b)});
-  if(g==='m'){M=b.dataset.v;$('zdlQ').hidden=M==='a';$('zdlA').hidden=M!=='a'}else if(g==='q')Q=b.dataset.v;else A=b.dataset.v;return}
- if(t.closest('#zdlGo'))go()}
-async function go(){var u=$('zdlU').value.trim(),base=(cfg.url||'').trim().replace(/\/+$/,''),btn=$('zdlGo');if(busy)return;
- if(!/^https?:\/\/\S+$/i.test(u))return st('Paste a full link starting with https://',1);
- if(!base){$('zdlR').querySelector('.zdl-set').classList.add('on');return st('Add your download server first (settings icon)',1)}
- busy=1;btn.disabled=true;st('Fetching...');bar(0);$('zdlPk').textContent='';
- try{var b={url:u,downloadMode:M==='a'?'audio':'auto',filenameStyle:'pretty'};if(M==='a')b.audioFormat=A;else b.videoQuality=Q;
-  var h={'Accept':'application/json','Content-Type':'application/json'};if(cfg.key)h.Authorization='Api-Key '+cfg.key;
-  var res=await fetch(base+'/',{method:'POST',headers:h,body:JSON.stringify(b)}),j=await res.json();
-  if(j.status==='error')throw new Error(msg(j.error&&j.error.code));
-  if(j.status==='picker'&&Array.isArray(j.picker)){st('Choose what to save');var pk=$('zdlPk');
-   j.picker.slice(0,20).forEach(function(it,i){if(!it||!/^https?:\/\//i.test(it.url||''))return;var x=D.createElement('button');x.type='button';x.className='gb';x.textContent='Save item '+(i+1)+' ('+String(it.type||'file')+')';
-    x.onclick=function(){fetchSave(it.url,'item-'+(i+1)+(it.type==='video'?'.mp4':it.type==='gif'?'.gif':'.jpg'))};pk.appendChild(x)})}
-  else if(/^(tunnel|redirect)$/.test(j.status)&&/^https?:\/\//i.test(j.url||''))await fetchSave(j.url,j.filename);
-  else throw new Error('Unexpected reply from the server')
- }catch(e){var m=e&&e.message||'';st(m&&!/failed to fetch|networkerror|load failed/i.test(m)?m:'Could not reach the server. Check its address and that it allows this site (CORS).',1)}
- busy=0;btn.disabled=false}
-async function fetchSave(url,name){name=String(name||'download').replace(/[\\/:*?"<>|]+/g,'_');st('Downloading...');
- try{var r=await fetch(url);if(!r.ok)throw 0;var L=+r.headers.get('content-length')||0,rd=r.body&&r.body.getReader?r.body.getReader():null,ch=[],n=0;
-  if(rd){for(;;){var d=await rd.read();if(d.done)break;ch.push(d.value);n+=d.value.length;if(L){bar(n/L);st('Downloading '+Math.round(n/L*100)+'%')}}}
-  else ch.push(new Uint8Array(await r.arrayBuffer()));
-  var bl=new Blob(ch),a=D.createElement('a');a.href=URL.createObjectURL(bl);a.download=name;D.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},6e4);
-  bar(1);st('Saved '+name+' ('+fsz(bl.size)+')');toast('Download started')}
- catch(e){window.open(url,'_blank');st('Opened in a new tab. Save it from there.')}}
-var q=0;
-function inj(){q=0;var f=D.querySelector('#pg [data-en=fav]');if(!f||D.querySelector('#pg [data-en=dl]'))return;
- f.insertAdjacentHTML('afterend','<button class="gr" data-en="dl"><i><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></i><span class="t"><b>Download</b><small>Save video or audio from a link</small></span><em>\u203a</em></button>')}
-var pg=$('pg');if(pg)new MutationObserver(function(){if(!q)q=requestAnimationFrame(inj)}).observe(pg,{childList:true,subtree:true});inj();
-D.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#pg [data-en=dl]'))open()});
-D.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('zdlR')&&!D.querySelector('#ov.on'))close()});
-}catch(err){console.error('ZNX download',err)}})();</script>
+
+
+<!--ZNX-ENJ-V2-->
+<style id="znx-enj-v2">/*ZNX-ENJ-V2*/html body #ets{display:flex;gap:4px;padding:4px;margin:0;border-radius:999px;background:color-mix(in srgb,var(--sf) 75%,transparent);border:1px solid var(--ln)}html body #ets button{flex:1;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;color:var(--mu);background:none}html body #ets button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}html body #ets button.on{background:var(--bt);color:#fff;box-shadow:0 10px 22px -10px var(--ac)}html body #ettabs{display:flex;gap:2px;padding:0;margin:0;border:0;border-bottom:1px solid var(--ln);border-radius:0;background:none;overflow-x:auto;scrollbar-width:none}html body #ettabs::-webkit-scrollbar{display:none}html body #ettabs button{flex:1 0 auto;height:44px;padding:0 16px;border-radius:0;background:none!important;color:var(--mu);font-weight:600;position:relative;box-shadow:none!important}html body #ettabs button.on{color:var(--tx)}html body #ettabs button.on::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;border-radius:2px;background:var(--ac);box-shadow:0 0 10px var(--ac)}html body #etn{gap:10px}html body #etn svg{width:40px;height:40px;padding:14px;box-sizing:content-box;border-radius:50%;background:color-mix(in srgb,var(--ac) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 30%,transparent)}html body #etn b{font-size:17px;letter-spacing:-.02em}html body #etn .pri{height:40px;padding:0 20px;font-size:13px}html body .etg.zl:not(.on){background:radial-gradient(70% 90% at 50% 0,rgba(77,224,208,.2),transparent 70%),linear-gradient(#05060a,#05060a) padding-box,linear-gradient(140deg,var(--e1),var(--e2) 45%,var(--e3)) border-box}html body .etg.zl #etn svg{color:#4de0d0}html body .etaud{align-content:center;gap:16px}html body .etaud .zq{display:flex;align-items:center;gap:5px;height:34px}html body .etaud .zq s{display:block;width:4px;height:8px;border-radius:2px;background:linear-gradient(#a39cff,#4de0d0);animation:zqe 1.1s ease-in-out infinite;animation-play-state:paused}html body .etg.zp .etaud .zq s{animation-play-state:running}html body .etaud .zq s:nth-child(2n){animation-delay:.2s}html body .etaud .zq s:nth-child(3n){animation-delay:.4s}html body .etaud .zq s:nth-child(5n){animation-delay:.1s}@keyframes zqe{0%,100%{height:6px}50%{height:32px}}html body .etaud .zc{color:#fff;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.24em;opacity:.7}@media (prefers-reduced-motion:reduce){html body .etaud .zq s{animation:none}}html body #fv{gap:14px}html body #fvkind{display:flex;gap:0;padding:0;margin:0;border:0;border-bottom:1px solid var(--ln);border-radius:0;background:none;overflow-x:auto;scrollbar-width:none}html body #fvkind::-webkit-scrollbar{display:none}html body #fvkind button{flex:1 0 auto;height:44px;padding:0 16px;border-radius:0;background:none!important;color:var(--mu);font-weight:600;position:relative;box-shadow:none!important}html body #fvkind button.on{color:var(--tx)}html body #fvkind button.on::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;border-radius:2px;background:var(--ac);box-shadow:0 0 10px var(--ac)}html body #fvsearch{height:46px;margin:0}html body #fvscope{display:flex;gap:8px;padding:0;margin:-4px 0 0;border:0;background:none;justify-content:flex-start}html body #fvscope button{flex:none;height:34px;padding:0 16px;border-radius:17px;border:1px solid var(--ln);background:none!important;color:var(--mu);font-size:12.5px;font-weight:600;box-shadow:none!important}html body #fvscope button.on{color:var(--tx);border-color:color-mix(in srgb,var(--ac) 60%,transparent);background:color-mix(in srgb,var(--ac) 18%,transparent)!important}html body #fvlist .glist{border-radius:24px}html body #fvlist .gr{min-height:70px;padding:12px 14px;gap:12px}html body #fvlist .gr i.zfi{width:46px;height:46px;border:0;border-radius:15px;display:grid;place-items:center;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 10px 18px -10px rgba(0,0,0,.6)}html body #fvlist .gr i.zfi svg{width:22px;height:22px;stroke:#fff}html body #fvlist .gr .t b{font-size:15.5px;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html body #fvlist .zfp{width:42px;height:42px;min-width:42px!important;min-height:42px!important;border-radius:50%;background:var(--bt);color:#fff;box-shadow:0 10px 20px -10px var(--ac)}html body #fvlist .zfp svg{width:18px;height:18px;margin-left:2px}html body #fvlist .empty{padding:60px 10px}</style>
+<script id="znx-enj-v2-js">(function payload(){try{
+ var D=document,$=function(i){return D.getElementById(i)};
+ var S=function(d){return '<svg viewBox="0 0 24 24">'+d+'</svg>'};
+ var IW=S('<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M10 8.5l5 2.5-5 2.5zM8 21h8"/>');
+ var IL=S('<path d="M4 15v-3a8 8 0 0116 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>');
+ var IM=S('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>');
+ function tick(){
+  var g=$('etg');if(!g)return;
+  var p=$('etpick');if(p)p.remove();
+  var on=D.querySelector('#ets button.on'),l=!!on&&on.dataset.k==='l';
+  g.classList.toggle('zl',l);
+  D.querySelectorAll('#ets button').forEach(function(b){
+   if(b.dataset.zi)return;b.dataset.zi='1';
+   var lis=b.dataset.k==='l';b.innerHTML=(lis?IL:IW)+'<span>'+(lis?'Listen':'Watch')+'</span>'});
+  var n=$('etn');
+  if(n&&n.dataset.zk!==(l?'l':'w')){
+   n.dataset.zk=l?'l':'w';
+   n.innerHTML=(l?IM:IW)+'<b>'+(l?'Paste a song link':'Paste a video link')+'</b><small>'+(l?'Listen together in sync. Audio only, no video.':'YouTube or a direct video link. Friends watch in sync.')+'</small><button class="pri" type="button" data-zs="1">'+(l?'Saved songs':'Saved videos')+'</button>'}
+  var a=$('etaud');
+  if(a&&!a.dataset.z){a.dataset.z='1';a.innerHTML='<i></i><div class="zq"><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s></div><small class="zc">AUDIO ONLY</small>'}
+  var b2=$('etp');g.classList.toggle('zp',!!b2&&b2.innerHTML.indexOf('<rect')>=0)}
+ setInterval(tick,400);tick();
+ D.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('[data-zs]');if(!t)return;
+  var tab=D.querySelector('#ettabs [data-p="saved"]');if(tab)tab.click()});
+}catch(err){console.error('ZNX enjoy patch',err)}})();</script>
 </body></html>
