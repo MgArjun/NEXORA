@@ -7759,10 +7759,11 @@ function close(){if(R){R.remove();R=null}P=[];S=null}
 function home(){try{ld().catch(function(){})}catch(e){}open(head('Tools')+'<div class="glist">'+[['ph','Compress photo','Pick the size you want'],['pc','Compress PDF','Make a PDF smaller'],['pe','Edit PDF','Text, photos, resize, zoom']].map(function(r){return '<button class="gr" data-k="'+r[0]+'"><i>'+IC[r[0]]+'</i><span class="t"><b>'+r[1]+'</b><small>'+r[2]+'</small></span><em>\u203a</em></button>'}).join('')+'</div>');
  R.onclick=function(e){var b=e.target.closest('[data-k]');if(b)({ph:ph,pc:pc,pe:pe})[b.dataset.k]()}}
 /* ---- compress photo ---- */
-function srch(c,t){var lo=.1,hi=.95,best=null;return (function s(n){if(n>7)return best?Promise.resolve(best):toBlob(c,.1);var m=(lo+hi)/2;return toBlob(c,m).then(function(b){if(b.size>t)hi=m;else{lo=m;best=b}return s(n+1)})})(0)}
+function parseSz(v){var m=String(v||'').toLowerCase().replace(',','.').match(/([\d.]+)\s*(mb|m|kb|k)?/);if(!m)return 0;var n=parseFloat(m[1]);if(!(n>0))return 0;var u=m[2];return Math.round(n*((u==='mb'||u==='m')?1048576:1024))}
+function srch(c,t){var cur=c;return (function step(n){var lo=.1,hi=.95,best=null;return (function bs(i){if(i>7)return Promise.resolve();var m=(lo+hi)/2;return toBlob(cur,m).then(function(b){if(b.size>t)hi=m;else{lo=m;best=b}return bs(i+1)})})(0).then(function(){if(best||n>=6)return best||toBlob(cur,.1);var x=D.createElement('canvas');x.width=Math.max(1,Math.round(cur.width*.8));x.height=Math.max(1,Math.round(cur.height*.8));x.getContext('2d').drawImage(cur,0,0,x.width,x.height);cur=x;return step(n+1)})})(0)}
 function ph(){pick('image/*',function(f){var im=new Image();im.onload=function(){var mx=Math.max(im.width,im.height),tm=0,out;
- open(head('Compress photo',null)+'<div class="tlv"><img id="tpi" alt=""></div><p class="note" id="tpn" style="text-align:center;margin:8px 0"></p><div class="sec">Quality <b id="tq1"></b></div><input type="range" id="tq" min="10" max="95" value="70"><div class="sec">Longest side <b id="tm1"></b></div><input type="range" id="tm" min="'+Math.min(100,mx)+'" max="'+mx+'" step="10" value="'+mx+'"><div class="sec">Target size in KB (optional)</div><input id="tk" inputmode="numeric" placeholder="e.g. 200" maxlength="5"><button class="pri" id="tdn" style="width:100%;margin-top:14px">Save photo</button>',home);
- function run(){clearTimeout(tm);tm=setTimeout(function(){if(!$('tpi'))return;var s=Math.min(1,+$('tm').value/mx),c=D.createElement('canvas');c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);var k=(+$('tk').value||0)*1024;$('tq1').textContent=$('tq').value+'%';$('tm1').textContent=c.width+'x'+c.height;
+ open(head('Compress photo',null)+'<div class="tlv"><img id="tpi" alt=""></div><p class="note" id="tpn" style="text-align:center;margin:8px 0"></p><div class="sec">Quality <b id="tq1"></b></div><input type="range" id="tq" min="10" max="95" value="70"><div class="sec">Longest side <b id="tm1"></b></div><input type="range" id="tm" min="'+Math.min(100,mx)+'" max="'+mx+'" step="10" value="'+mx+'"><div class="sec">Target size (optional)</div><input id="tk" placeholder="e.g. 200 KB or 1.5 MB" maxlength="12" autocomplete="off"><button class="pri" id="tdn" style="width:100%;margin-top:14px">Save photo</button>',home);
+ function run(){clearTimeout(tm);tm=setTimeout(function(){if(!$('tpi'))return;var s=Math.min(1,+$('tm').value/mx),c=D.createElement('canvas');c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);var k=parseSz($('tk').value);$('tq1').textContent=$('tq').value+'%';$('tm1').textContent=c.width+'x'+c.height;
   (k?srch(c,k):toBlob(c,$('tq').value/100)).then(function(b){if(!$('tpi'))return;out=b;$('tpi').src=URL.createObjectURL(b);$('tpn').textContent=fsz(f.size)+'  \u2192  '+fsz(b.size)})},150)}
  R.oninput=run;run();$('tdn').onclick=function(){out?dl(out,dlName(f.name,'compressed','jpg'),{o:f.size}):ts('Wait a moment')}};im.src=URL.createObjectURL(f)})}
 /* ---- compress pdf ---- */
@@ -9303,10 +9304,10 @@ function layout(wk,lines,W,H){
    var fs=fitFs(t,x1-x0,y1-y0),bases=g.map(function(w){return w.bbox.y1-(/[gjpqyQ,;()\[\]{}|\u0941-\u0944\u094D]/.test(w.text)?.22*fs:0)}),
     col=inkColor(od,W,H,x0,y0,x1,y1,P)||[0,0,0];
    items.push({t:t,x:x0,b:med(bases),fs:fs,c:hex(col[0],col[1],col[2]),conf:cf,bb:[x0,y0,x1,y1]})})});
- var det=detect(wk,od,items,P,W,H);
+ (function(){items.forEach(function(it){var b=it.bb,x0=Math.max(0,b[0]|0),y0=Math.max(0,b[1]|0),x1=Math.min(W,b[2]|0),y1=Math.min(H,b[3]|0),n=0,dk=0,sx=Math.max(1,Math.floor(Math.sqrt(Math.max(1,(x1-x0)*(y1-y0))/9000))),i,xx,yy,dd;for(yy=y0;yy<y1;yy+=sx)for(xx=x0;xx<x1;xx+=sx){i=(yy*W+xx)*4;dd=Math.abs(od[i]-P[0])+Math.abs(od[i+1]-P[1])+Math.abs(od[i+2]-P[2]);n++;if(dd>200)dk++}it.dn=n?dk/n:0});var md=med(items.filter(function(i){return i.conf>=60&&i.t.length>3}).map(function(i){return i.dn}))||.1;items.forEach(function(it){it.bd=(it.dn>md*1.4&&it.dn>.12)?1:0})})();var det=detect(wk,od,items,P,W,H);
  items=items.filter(function(it){var cx=(it.bb[0]+it.bb[2])/2,cy=(it.bb[1]+it.bb[3])/2;if(it.conf>=80)return true;return !det.regs.some(function(r){return cx>r.x&&cx<r.x+r.w&&cy>r.y&&cy<r.y+r.h})});
  items.sort(function(a,b){return Math.abs(a.b-b.b)<a.fs*.5?a.x-b.x:a.b-b.b});
- var imgs=det.regs.map(function(r){var c=D.createElement('canvas');c.width=r.w;c.height=r.h;c.getContext('2d').drawImage(wk,r.x,r.y,r.w,r.h,0,0,r.w,r.h);
+ var imgs=det.regs.map(function(r){var q=(S.src&&S.src.width/wk.width)||1,c=D.createElement('canvas');c.width=Math.max(1,Math.round(r.w*q));c.height=Math.max(1,Math.round(r.h*q));var cx2=c.getContext('2d');cx2.imageSmoothingQuality='high';if(S.src)cx2.drawImage(S.src,r.x*q,r.y*q,r.w*q,r.h*q,0,0,c.width,c.height);else cx2.drawImage(wk,r.x,r.y,r.w,r.h,0,0,c.width,c.height);
   return {x:r.x,y:r.y,w:r.w,h:r.h,u:(r.w*r.h<120000?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.9))}});
  return {W:W,H:H,paper:S.paper==='white'?'#ffffff':hex(P[0],P[1],P[2]),items:items,imgs:imgs,rules:det.rules,wk:wk,ou:null}}
 /* find photos / QR / logos (dense non-text areas) and thin lines */
@@ -9348,7 +9349,7 @@ function findRules(dark,od,W,H,P){
    r.c=hex(best[0],best[1],best[2]);out.push(r)})}
  scan(W,H,function(y,x){return dark[y*W+x]},minH,false);
  scan(H,W,function(x,y){return dark[y*W+x]},minV,true);
- return out.length>300?[]:out}
+ return out.length>40?[]:out.filter(function(r){var m=Math.max(W,H)*.035;return r.x>m&&r.y>m&&r.x+r.w<W-m&&r.y+r.h<H-m})}
 
 /* ---------- progress ---------- */
 function showP(){var p=D.createElement('div');p.id='gpP';p.innerHTML='<div class="gpc"><b id="gpPt">Starting</b><i class="gpbar"><s id="gpPs"></s></i><small>The first run downloads the language data once. Later runs are faster.</small><button id="gpPc">Cancel</button></div>';R.appendChild(p)}
@@ -9377,7 +9378,7 @@ async function generate(){
   setP(95,'Rebuilding layout');await tick();
   M=layout(wk,lines,W,H);
   if(!M.items.length&&!M.imgs.length){hideP();return T('No text found. Try a clearer, brighter photo')}
-  hideP();SEL=null;Z=1;OR=0;review()
+  hideP();SEL=null;Z=1;OR=0;review();if(S.ai!==0)fixAI(1)
  }catch(e){hideP();if(!ST.cancel){console.error(e);T('Could not read this photo. Check internet and try again')}}}
 
 /* ---------- screen 1: setup ---------- */
@@ -9394,12 +9395,12 @@ function setup(){
  +'<label>Page size</label>'+seg('page',[['same','Same as photo'],['a4','A4']])
  +'<label>Paper colour</label>'+seg('paper',[['white','White'],['orig','Original']])
  +'<label>File name</label><input id="gpM" maxlength="60" placeholder="Empty = random name" autocomplete="off"></div>'
- +'<button class="pri" id="gpGo" style="height:50px">Generate PDF</button>';
+ +'<div class="gr" style="min-height:62px;cursor:default"><span class="t"><b>Use with AI</b><small>Fixes unsure words after reading</small></span><button type="button" class="tg'+(S.ai===0?'':' on')+'" id="gpAi" aria-label="Use with AI"></button></div><button class="pri" id="gpGo" style="height:50px">Generate PDF</button>';
  $('gpM').value=S.name||'';drawThumb();
  R.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
   if(b.id==='gpX'){close();return}
   if(b.id==='gpPc'){stopAll();hideP();return}
-  if(b.id==='gpGo'){generate();return}
+  if(b.id==='gpAi'){S.ai=S.ai===0?1:0;b.classList.toggle('on',S.ai!==0);return}if(b.id==='gpGo'){generate();return}
   if(b.dataset.s==='g'||b.dataset.s==='c'){pick(b.dataset.s==='c');return}
   if(b.dataset.rot){S.src=rot90(S.src);drawThumb();return}
   var sg=b.closest('.seg');if(sg&&b.dataset.v){S[sg.dataset.g]=b.dataset.v;[].forEach.call(sg.children,function(x){x.classList.toggle('on',x===b)});if(sg.dataset.g==='mode')$('gpH').textContent=HINT[S.mode]}})}
@@ -9428,7 +9429,7 @@ function svgHtml(){
   M.rules.forEach(function(r,i){h+='<rect data-r="'+i+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" fill="'+r.c+'"/>'});
   M.items.forEach(function(it,i){var b=bboxOf({k:'t',i:i});
    h+='<rect class="h" data-i="'+i+'" x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.h+'" fill="transparent"/>';
-   h+='<text class="t" data-i="'+i+'" x="'+it.x+'" y="'+it.b+'" font-size="'+it.fs+'" fill="'+it.c+'" xml:space="preserve" style="font-family:'+FAM+';white-space:pre">'+esc(it.t)+'</text>';
+   h+='<text class="t" data-i="'+i+'" x="'+it.x+'" y="'+it.b+'" font-size="'+it.fs+'" fill="'+it.c+'" stroke="'+it.c+'" stroke-width="'+(it.bd?(it.fs*.03).toFixed(2):0)+'" xml:space="preserve" style="font-family:'+FAM+';white-space:pre">'+esc(it.t)+'</text>';
    if(UI&&it.conf<70)h+='<rect class="f" data-i="'+i+'" x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.h+'" fill="rgba(255,190,40,.16)" stroke="#e9b949" stroke-width="'+Math.max(1,W/900)+'" stroke-dasharray="'+W/150+'" pointer-events="none"/>'})}
  return h+'</svg>'}
 function unsure(){return M.items.filter(function(i){return i.conf<70}).length}
@@ -9438,7 +9439,7 @@ function review(){
  mk();R.id='gpR';R.className='rv';
  R.innerHTML='<div class="gpt"><button class="ib" id="gpB" aria-label="Back">'+IC('<path d="M15 18l-6-6 6-6"/>')+'</button><b>Review <span id="gpN"></span></b><button class="gb pri" id="gpD">Download</button></div>'
  +'<div id="gpW" class="gpw"></div><div id="gpE" class="gpe"></div>'
- +'<div class="gpk"><button data-r="add">+ Text</button><button data-r="nx" id="gpU">Unsure</button><button data-r="or">Original</button><button data-r="zo" aria-label="Zoom out">\u2212</button><button data-r="zi" aria-label="Zoom in">+</button></div>';
+ +'<div class="gpk"><button data-r="add">+ Text</button><button data-r="nx" id="gpU">Unsure</button><button data-r="ai">AI fix</button><button data-r="or">Original</button><button data-r="zo" aria-label="Zoom out">\u2212</button><button data-r="zi" aria-label="Zoom in">+</button></div>';
  render();
  R.addEventListener('click',onClick);R.addEventListener('input',onInput);
  R.addEventListener('pointerdown',dragStart);R.addEventListener('pointermove',dragMove);R.addEventListener('pointerup',dragEnd);R.addEventListener('pointercancel',dragEnd);
@@ -9448,14 +9449,14 @@ function paintSel(){var s=$('gpSv');if(!s)return;var o=s.querySelector('#gpSl');
  s.insertAdjacentHTML('beforeend','<rect id="gpSl" x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.h+'" fill="none" stroke="#8f88ff" stroke-width="'+Math.max(1.5,M.W/500)+'" pointer-events="none"/><circle id="gpHd" cx="'+b.x+'" cy="'+b.y+'" r="'+r+'" fill="#6a62f0" stroke="#fff" stroke-width="'+r/5+'"/>')}
 function refreshItem(i){var s=$('gpSv');if(!s)return;var it=M.items[i],b=bboxOf({k:'t',i:i});
  s.querySelectorAll('[data-i="'+i+'"]').forEach(function(n){
-  if(n.classList.contains('t')){n.setAttribute('x',it.x);n.setAttribute('y',it.b);n.setAttribute('font-size',it.fs);n.setAttribute('fill',it.c);n.textContent=it.t}
+  if(n.classList.contains('t')){n.setAttribute('x',it.x);n.setAttribute('y',it.b);n.setAttribute('font-size',it.fs);n.setAttribute('fill',it.c);n.setAttribute('stroke',it.c);n.setAttribute('stroke-width',it.bd?(it.fs*.03).toFixed(2):0);n.textContent=it.t}
   else{n.setAttribute('x',b.x);n.setAttribute('y',b.y);n.setAttribute('width',b.w);n.setAttribute('height',b.h)}});
  if(it.conf>=70){var f=s.querySelector('.f[data-i="'+i+'"]');if(f)f.remove()}}
 function select(k,i){SEL=k?{k:k,i:i}:null;paintSel();editor()}
 function editor(){var e=$('gpE');if(!e)return;
  if(!SEL||OR){e.className='gpe';e.innerHTML='';return}
  if(SEL.k==='t'){
-  e.innerHTML='<input id="gpTx" autocomplete="off" autocapitalize="off"><div class="gpr"><button data-e="sm">A\u2212</button><button data-e="lg">A+</button><label class="gpcl" title="Colour"><i id="gpCi"></i><input type="color" id="gpCl"></label><button data-e="l" aria-label="Left">\u2190</button><button data-e="r" aria-label="Right">\u2192</button><button data-e="u" aria-label="Up">\u2191</button><button data-e="d" aria-label="Down">\u2193</button></div>'
+  e.innerHTML='<input id="gpTx" autocomplete="off" autocapitalize="off"><div class="gpr"><button data-e="sm">A\u2212</button><button data-e="lg">A+</button><button data-e="bd">B</button><label class="gpcl" title="Colour"><i id="gpCi"></i><input type="color" id="gpCl"></label><button data-e="l" aria-label="Left">\u2190</button><button data-e="r" aria-label="Right">\u2192</button><button data-e="u" aria-label="Up">\u2191</button><button data-e="d" aria-label="Down">\u2193</button></div>'
   +'<div class="gpr">'+SW.map(function(c){return '<button class="gpsw" data-c="'+c+'" style="background:'+c+'" aria-label="Colour '+c+'"></button>'}).join('')+'</div><div class="gpr"><button data-e="dup">Copy</button><button data-e="del">Delete</button><button data-e="x">Done</button></div>';
   var it=M.items[SEL.i];$('gpTx').value=it.t;$('gpCl').value=it.c;$('gpCi').style.background=it.c}
  else e.innerHTML='<div class="gpr"><span style="flex:1;color:var(--mu)">'+(SEL.k==='m'?'Image':'Line')+' selected</span><button data-e="del">Delete</button><button data-e="x">Done</button></div>';
@@ -9476,7 +9477,7 @@ function onClick(e){
  if(b.dataset.c&&SEL&&SEL.k==='t'){var it=M.items[SEL.i];it.c=b.dataset.c;$('gpCl').value=it.c;$('gpCi').style.background=it.c;refreshItem(SEL.i);return}
  var r=b.dataset.r;
  if(r==='zi'||r==='zo'){Z=Math.max(.6,Math.min(4,Z*(r==='zi'?1.3:1/1.3)));render();return}
- if(r==='or'){OR=OR?0:1;b.classList.toggle('on',!!OR);if(OR)select(null);render();return}
+ if(r==='ai'){fixAI(0);return}if(r==='or'){OR=OR?0:1;b.classList.toggle('on',!!OR);if(OR)select(null);render();return}
  if(r==='add'){var fs=med(M.items.map(function(i){return i.fs}))||30,cl=M.items.length?M.items[0].c:'#000000',w=$('gpW'),k=M.W/$('gpSv').getBoundingClientRect().width,y=Math.max(fs,(w.scrollTop+w.clientHeight/3)*k),x=Math.max(10,(w.scrollLeft+20)*k);
   M.items.push({t:'Text',x:x,b:y,fs:fs,c:cl,conf:100,bb:[x,y-fs,x+fs*3,y]});render();select('t',M.items.length-1);setTimeout(function(){var t=$('gpTx');if(t){t.focus();t.select()}},60);return}
  if(r==='nx'){var us=[];M.items.forEach(function(it,i){if(it.conf<70)us.push(i)});if(!us.length)return T('No unsure lines left');
@@ -9487,7 +9488,7 @@ function onClick(e){
  if(a==='del'){var ar=SEL.k==='t'?M.items:SEL.k==='m'?M.imgs:M.rules;ar.splice(SEL.i,1);SEL=null;render();editor();return}
  if(SEL.k!=='t')return;
  var o=M.items[SEL.i];
- if(a==='sm'||a==='lg'){o.fs*=a==='lg'?1.06:.94;refreshItem(SEL.i);paintSel();return}
+ if(a==='bd'){o.bd=o.bd?0:1;refreshItem(SEL.i);return}if(a==='sm'||a==='lg'){o.fs*=a==='lg'?1.06:.94;refreshItem(SEL.i);paintSel();return}
  if(a==='dup'){var c2=JSON.parse(JSON.stringify(o));c2.b+=o.fs*1.3;c2.conf=100;M.items.push(c2);render();select('t',M.items.length-1);return}
  var st=Math.max(1,o.fs*.06);if(a==='l')o.x-=st;else if(a==='r')o.x+=st;else if(a==='u')o.b-=st;else if(a==='d')o.b+=st;refreshItem(SEL.i);paintSel()}
 function jump(i){var w=$('gpW'),s=$('gpSv');if(!w||!s)return;var k=s.getBoundingClientRect().width/M.W,it=M.items[i];w.scrollTo({top:Math.max(0,it.b*k-w.clientHeight/3),left:Math.max(0,it.x*k-w.clientWidth/4),behavior:'smooth'})}
@@ -9498,6 +9499,31 @@ function dragMove(e){if(!DR||!SEL)return;var o=curObj(),nx=DR.ox+(e.clientX-DR.x
  paintSel()}
 function dragEnd(){DR=null}
 
+/*ZNX-PATCH-GENFIX1*/
+var AIB=false;
+async function fixAI(auto){
+ if(!M||AIB)return;
+ var idx=[];M.items.forEach(function(it,i){if(it.conf<85&&it.t.trim().length>2)idx.push(i)});
+ if(!idx.length){if(!auto)T('Text already looks good');return}
+ idx=idx.slice(0,80);AIB=true;T('AI is checking text...');
+ var U0='https://ktwluvpmzisonmootdqc.supabase.co',KEY='sb_publishable_zvKhZR56X0-3Ii1rn9AdFA_rtBalgVm',tk=KEY;
+ try{var c=window.znxCtx&&window.znxCtx();if(c&&c.sb){var s=(await c.sb.auth.getSession()).data.session;if(s)tk=s.access_token}}catch(e){}
+ var HD='[RULES] Fix only OCR spelling mistakes in each line below. Keep the same language and script (Hindi stays Hindi, English stays English). Do not translate, do not add or remove words, do not explain. Reply with the same lines in the same format n|text, one per line, nothing else.\n';
+ var ch=[],cur=[];
+ idx.forEach(function(i){var l=i+'|'+M.items[i].t.replace(/\s+/g,' ').slice(0,160);if(cur.length&&encodeURIComponent(HD+cur.concat(l).join('\n')).length>5200){ch.push(cur);cur=[]}cur.push(l)});
+ if(cur.length)ch.push(cur);
+ var fixed=0;
+ for(var k=0;k<ch.length;k++){
+  try{
+   var m=encodeURIComponent(JSON.stringify([{role:'user',text:HD+ch[k].join('\n')}]));
+   var r=await fetch(U0+'/functions/v1/zexo-ai?m='+m,{headers:{apikey:KEY,Authorization:'Bearer '+tk}});
+   if(!r.ok)throw 0;var tx=await r.text();
+   tx.split('\n').forEach(function(l){var q=l.match(/^\s*(\d+)\s*\|\s*(.+)$/);if(!q)return;var it=M.items[+q[1]];if(!it)return;var n=q[2].trim();
+    if(n&&n!==it.t&&n.length>=it.t.length*.6&&n.length<=it.t.length*1.6){it.t=n;it.conf=100;fixed++}else if(n===it.t)it.conf=100})
+  }catch(e){}
+ }
+ AIB=false;if($('gpW'))render();
+ T(fixed?'AI fixed '+fixed+' line'+(fixed>1?'s':''):'AI found nothing to change')}
 /* ---------- PDF ---------- */
 var DEVRE=/[\u0900-\u097F\u200C\u200D]/;
 function cls(ch,F){var c=ch.codePointAt(0);if(DEVRE.test(ch))return F.dK?'d':'x';if(!F.lK)return 'x';if(c<=32||c===160)return 'l';return F.lK.hasGlyphForCodePoint(c)?'l':'x'}
@@ -9524,7 +9550,7 @@ async function buildPdf(){
   for(var j=0;j<rs.length;j++){
    var r=rs[j],ws=/^\s*$/.test(r.s);
    if(r.c==='l'){
-    if(!ws){try{page.drawText(r.s,{x:pen,y:ph-bt,size:size,font:F.lF,color:col})}catch(e){}}
+    if(!ws){try{page.drawText(r.s,{x:pen,y:ph-bt,size:size,font:F.lF,color:col});if(it.bd){page.drawText(r.s,{x:pen+size*.02,y:ph-bt,size:size,font:F.lF,color:col});page.drawText(r.s,{x:pen,y:ph-bt+size*.012,size:size,font:F.lF,color:col})}}catch(e){}}
     try{pen+=F.lF.widthOfTextAtSize(r.s,size)}catch(e){pen+=mw(r.s)*size/100}}
    else if(r.c==='d'){
     var lo=F.dK.layout(r.s),sc=size/F.dK.unitsPerEm,pp=0,d=[];
@@ -9538,7 +9564,7 @@ async function buildPdf(){
       else if(c.command==='bezierCurveTo')d.push('C'+X(a[0])+' '+Y(a[1])+' '+X(a[2])+' '+Y(a[3])+' '+X(a[4])+' '+Y(a[5]));
       else if(c.command==='closePath')d.push('Z')});
      pp+=ps.xAdvance});
-    if(d.length)page.drawSvgPath(d.join(''),{x:0,y:ph,color:col,borderWidth:0});
+    if(d.length)page.drawSvgPath(d.join(''),it.bd?{x:0,y:ph,color:col,borderColor:col,borderWidth:size*.03}:{x:0,y:ph,color:col,borderWidth:0});
     if(F.dF){try{page.drawText(r.s,{x:pen,y:ph-bt,size:size,font:F.dF,opacity:0})}catch(e){}}
     pen+=pp*sc}
    else{
@@ -9597,13 +9623,13 @@ function fire(n){n.dispatchEvent(new Event('input',{bubbles:true}))}
 var PH={s:[55,1600],b:[74,2400],q:[90,99999]};
 function apply(k){var tq=$('tq'),tm=$('tm');if(!tq||!tm)return;var v=PH[k];tm.value=Math.min(+tm.max,v[1]);tq.value=v[0];if($('tk'))$('tk').value='';fire(tq)}
 function photo(){var tq=$('tq');if(!tq||!$('tpi')||D.querySelector('#tlR .znx-pre'))return;
- var tm=$('tm'),tk=$('tk');[tq,tm,tk].forEach(function(n){adv(n);prevSec(n)});
+ var tm=$('tm'),tk=$('tk');[tq,tm].forEach(function(n){adv(n);prevSec(n)});
  var row=D.createElement('div');row.className='znx-row znx-pre';
  row.innerHTML='<div class="seg" data-zp="1"><button type="button" data-p="s">Small</button><button type="button" data-p="b" class="on">Balanced</button><button type="button" data-p="q">Best</button></div>';
  row.appendChild(gear());tq.parentNode.insertBefore(row,tq.previousElementSibling||tq);apply('b')}
 function pdfc(){var tg=$('tgp');if(!tg||!$('tgv')||tg.querySelector('.znx-gear'))return;
- adv($('tgv').closest('.trw'));
- [].forEach.call($('tlR').querySelectorAll('.sec'),function(s){if(/Target size/i.test(s.textContent))adv(s)});
+ 
+ 
  var n={'.5':'Light','.25':'Balanced','.1':'Smallest'};
  [].forEach.call(tg.querySelectorAll('[data-p]'),function(b){b.textContent=n[b.dataset.p]||b.textContent});
  tg.appendChild(gear());var b=tg.querySelector('[data-p=".25"]');if(b)b.click()}
