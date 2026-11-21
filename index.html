@@ -1095,7 +1095,7 @@ function enter(){bellDot();document.querySelector("main").classList.add("hide");
 
 /* ===== Me tab ===== */
 const MY={role:"user",name:"",user:"",uid:"",bio:"Hey there! I am using ZNEXORA",email:"",guest:false,p:0};
-const D2={theme:"auto",photo:"everyone",bioV:"everyone",seen:"everyone",online:1,typing:1,ticks:1,invite:1,calls:1,noise:1,voice:0,sound:0,vib:0,ds:0,mirror:1,smooth:0,vq:"720",extra:0,msgTone:1,preview:1,banner:1,ringtone:1,vibN:1,dnd:"off",enterSend:1,fontSize:"m",autoDl:"wifi",linkPrev:1,lastPrev:1,applock:0,lockT:"1",rm:0};
+const D2={theme:"auto",photo:"everyone",bioV:"everyone",seen:"everyone",online:1,typing:1,ticks:1,invite:1,calls:1,noise:1,voice:0,sound:0,vib:0,ds:0,mirror:1,smooth:0,vq:"720",extra:0,rnd:1,msgTone:1,preview:1,banner:1,ringtone:1,vibN:1,dnd:"off",enterSend:1,fontSize:"m",autoDl:"wifi",linkPrev:1,lastPrev:1,applock:0,lockT:"1",rm:0};
 let ST2=Object.assign({gyro:"0",gyroS:"1"},D2);try{Object.assign(ST2,JSON.parse(localStorage.getItem("znx_set")||"{}"))}catch(e){}
 const sv2=()=>{try{localStorage.setItem("znx_set",JSON.stringify(ST2))}catch(e){}window.nxSetPush&&window.nxSetPush()};
 const root=document.documentElement,metaT=()=>{ST2.theme==="auto"?root.removeAttribute("data-theme"):root.setAttribute("data-theme",ST2.theme)};
@@ -1132,7 +1132,7 @@ function drawSub(k){sub=k;let b="";
  <div class="card2"><div style="padding:10px 0"><b style="font-size:15px;font-weight:600">Video call quality</b><small style="display:block;color:var(--mu);margin-top:2px">Default 720p. Higher = sharper, more data</small><div class="seg" style="margin:10px 0 2px">${Object.keys(Q).map(v=>`<button data-sg="vq:${v}" class="${ST2.vq===v?"on":""}">${Q[v]}</button>`).join("")}</div></div></div>
  <div class="card2">${tgR("sound","Sound","Soft tap sounds on buttons and games")}${tgR("vib","Vibration","Feedback on actions")}</div>`;
  if(k==="dat")b=`<div class="card2"><div class="pr2"><div class="t"><b>Device storage</b><small id="est">Checking...</small></div></div>${tgR("ds","Data saver for files","On: photos and videos are compressed. Off: original quality")}</div><button class="sr dang" style="padding:0 14px" data-act="cc"><span class="t"><b>Clear cached chats on this phone</b><small>Messages on the server stay</small></span></button><div class="sec">Media in chats</div>${mediaUsage()}`;
- if(k==="adv")b=`<div class="card2">${tgR("extra","Extra features","Random chat, random call and online games with random people")}</div><p class="note">Off = these stay hidden everywhere. When you turn it on, new sections appear in Chats and Enjoy.</p>`;
+ if(k==="adv")b=`<div class="card2">${tgR("rnd","Random chat and call","Meet new people. Turn off to hide")}</div><p class="note">Random chat and Random call show inside the + button in Chats.</p>`;
  if(k==="abt")b=`<div class="card2" style="text-align:center;padding:22px 14px"><div class="brand" style="font-size:34px">Z</div><b style="letter-spacing:.5em;font-weight:300;font-size:13px;padding-left:.5em">NEXORA</b><p class="note" style="margin:14px 0 4px">Version 1.0 · build R7</p><p class="note" style="margin:0">Powered by Suraj Kumar</p></div>
  `;
  if(SUBX[k])b=SUBX[k]();
@@ -1762,7 +1762,7 @@ function reportSheet(id){const u=U.find(x=>x.id===id);if(!u)return;let why="Spam
   if(e.target.closest("#rpsend")){const snap=share?(MSG[id]||[]).filter(x=>x.t).slice(-5).map(x=>x.t):[];REPORTS.unshift({id:Date.now(),by:MY.name,tg:u.n,reason:why,note:$("rpn").value.trim(),snap,st:"open"});window.nxReport&&window.nxReport(u,why,$("rpn").value.trim(),snap);closeS();ts("Report sent. Thank you.")}}}
 /* ===== admin ===== */
 const AU=[];
-const ADC={signups:true,max:40,statusAll:false,fileMb:50,stSec:30,fav:30,bypass:0},AUD=[];
+const ADC={signups:true},AUD=[];
 const AS={tab:"users",sm:false,sel:new Set(),q:"",f:"all",vis:[]};
 const logA=(a,d)=>{AUD.unshift({t:Date.now(),a,d});};
 function adOpen(){AS.sm=false;AS.sel.clear();AS.tab="users";[...$("adt").children].forEach(b=>b.classList.toggle("on",b.dataset.t==="users"));$("ad").classList.add("on");adDraw()}
@@ -1771,9 +1771,9 @@ function adDraw(){const t=AS.tab;$("adsel").style.display=t==="users"?"":"none";
  if(t==="users"){const q=AS.q.toLowerCase(),l=AU.filter(u=>(AS.f==="all"||(AS.f==="banned"?u.banned:u.guest))&&(u.n.toLowerCase().includes(q)||u.user.includes(q)||u.uid.toLowerCase().includes(q)));AS.vis=l;
   $("adm").innerHTML=`<input class="srch" id="adq" placeholder="Search name, username or UID" value="${esc(AS.q)}" autocomplete="off" data-noswipe><div class="seg" id="adf"><button data-f="all" class="${AS.f==="all"?"on":""}">All</button><button data-f="banned" class="${AS.f==="banned"?"on":""}">Banned</button><button data-f="guest" class="${AS.f==="guest"?"on":""}">Guests</button></div>${l.length?(()=>{/*ZNX-ADM24*/const _row=u=>`<div class="gr" data-ai="${u.id}">${AS.sm?`<span class="ck${AS.sel.has(u.id)?" on":""}"></span>`:""}<div class="ava" style="background:${g(u.n)};width:42px;height:42px;font-size:14px;flex:none">${esc(ini(u.n))}</div><span class="t"><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user)} · ${u.uid}</small></span>${u.banned?'<span class="chip red">Banned</span>':u.guest?'<span class="chip">Guest</span>':""}${AS.sm?"":"<em>›</em>"}</div>`;const _n=Date.now()-DAY,_a=l.filter(u=>(window.znxLG||{})[u.pid]).sort((x,y)=>window.znxLG[y.pid][0]-window.znxLG[x.pid][0]),_h=t=>'<div class="sec">'+t+'</div>';return _h("Logged in, last 24 hours ("+_a.length+")")+(_a.length?`<div class="glist">${_a.map(u=>window.znxLR(_row(u),u)).join("")}</div>`:'<div class="empty">No one logged in during the last 24 hours</div>')+_h("All users ("+l.length+")")+`<div class="glist">${l.map(_row).join("")}</div>`})():'<div class="empty">No users found.</div>'}`;
   const q2=$("adq");q2.oninput=e=>{AS.q=e.target.value;const p=e.target.selectionStart;adDraw();const n=$("adq");n.focus();n.setSelectionRange(p,p)};
-  if(AS.sm)bar.innerHTML=`<b>${AS.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-ab="all">All</button><button class="gb" data-ab="st">Status</button><button class="gb" data-ab="fav">Global</button><button class="gb" data-ab="ban">Ban</button><button class="gb" data-ab="unban">Unban</button>`}
+  if(AS.sm)bar.innerHTML=`<b>${AS.sel.size} selected</b><span style="flex:1"></span><button class="gb" data-ab="all">All</button><button class="gb" data-ab="ban">Ban</button><button class="gb" data-ab="unban">Unban</button>`}
  else if(t==="ctl"){const T=(k,n,d)=>`<div class="pr2"><div class="t"><b>${n}</b>${d?`<small>${d}</small>`:""}</div><button class="tg ${ADC[k]?"on":""}" data-ac="${k}" aria-label="${n}"></button></div>`,S=(k,n,o)=>`<div style="padding:10px 0"><b style="font-size:15px;font-weight:600">${n}</b><div class="seg s3" style="margin:8px 0 2px">${o.map(v=>`<button data-as="${k}:${v}" class="${ADC[k]===v?"on":""}">${v}</button>`).join("")}</div></div>`;
-  $("adm").innerHTML=`<div class="card2">${T("signups","New sign-ups","Turn off to close registration")}${T("statusAll","Status for everyone","Off = only people you allow can post")}</div><div class="card2">${S("max","User limit",[20,40,100,200])}${S("fileMb","Max file size (MB)",[10,25,50,100])}${S("stSec","Max status video (sec)",[15,30,60])}${S("fav","Favourites per user",[10,30,100])}</div><p class="note">Changes apply to everyone and are logged in Activity.</p>`}
+  $("adm").innerHTML=`<div class="card2">${T("signups","New sign-ups","Turn off to close registration")}</div><p class="note">Changes apply to everyone and are logged in Activity.</p>`}
  else if(t==="rep"){const l=REPORTS;$("adm").innerHTML=l.length?`<div class="glist">${l.map(r=>`<div class="gr" style="align-items:flex-start;flex-wrap:wrap"><span class="t" style="flex:1 1 100%"><b>${esc(r.tg)} <span class="mono" style="font-weight:500">· ${esc(r.reason)}${r.st!=="open"?" · "+r.st:""}</span></b><small>Reported by ${esc(r.by)}${r.note?" · "+esc(r.note):""}</small>${r.snap.length?`<small class="mono" style="margin-top:6px">Shared by the reporter</small>${r.snap.map(x=>`<small style="margin-top:3px;color:var(--tx)">“${esc(x)}”</small>`).join("")}`:'<small class="mono" style="margin-top:6px">No messages shared</small>'}</span>${r.st==="open"?`<button class="gb" data-ar="d:${r.id}">Dismiss</button><button class="gb" data-ar="w:${r.id}">Warn</button><button class="gb dg" data-ar="b:${r.id}">Ban user</button>`:""}</div>`).join("")}</div>`:'<div class="empty">No reports.</div>'}
  else{$("adm").innerHTML=AUD.length?`<div class="glist">${AUD.map(x=>`<div class="gr"><span class="t"><b>${esc(x.a)}</b><small>${esc(x.d)}</small></span><span class="mono" style="color:var(--mu)">${new Date(x.t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span></div>`).join("")}</div><p class="note">The affected person is notified about each action on their account.</p>`:'<div class="empty">No admin actions yet.<br><small>Everything you change is listed here, and the person is told.</small></div>'}}
 function adEdit(u,kind){const isN=kind==="name";sheet(`<h3>${isN?"Edit name":"Edit username"}</h3><input id="aed" maxlength="${isN?30:20}" value="${esc(isN?u.n:u.user)}" autocapitalize="off" style="margin-bottom:6px"><p class="note">${isN?"2 to 30 characters.":"3 to 20 characters: a-z, 0-9, _"} The person is notified.</p><button class="pri" style="width:100%" id="aek">Save</button>`);
@@ -1784,7 +1784,7 @@ function adEdit(u,kind){const isN=kind==="name";sheet(`<h3>${isN?"Edit name":"Ed
 function adUser(i){const u=AU[i];if(!u)return;
  sheet(`<div class="ci"><div class="ava ciav" style="width:72px;height:72px;font-size:26px;cursor:default;background:${g(u.n)}">${esc(ini(u.n))}</div><b>${esc(u.n)}</b><small class="mono lc">@${esc(u.user)} · ${u.uid}</small><span class="cis">Last active ${u.act}</span></div>
  <div class="glist"><button class="gr" data-a="name"><span class="t"><b>Edit name</b><small>${esc(u.n)}</small></span><em>›</em></button><button class="gr" data-a="user"><span class="t"><b>Edit username</b><small>@${esc(u.user)}</small></span><em>›</em></button></div>
- <div class="sec">Permissions</div><div class="glist"><div class="gr"><span class="t"><b>Can post status</b></span><button class="tg${u.canSt?" on":""}" data-a="st" aria-label="Status"></button></div><div class="gr"><span class="t"><b>Can add global favourites</b></span><button class="tg${u.canFav?" on":""}" data-a="fav" aria-label="Global favourites"></button></div></div>
+ 
  <div class="glist" style="margin-top:12px"><button class="gr" data-a="av"><span class="t"><b>Remove profile photo</b></span></button><button class="gr dang" data-a="ban"><span class="t"><b>${u.banned?"Unban":"Ban"} user</b></span></button></div><p class="note" style="margin-top:12px">Every action is logged and the person is told. Admins cannot read chats, calls, media or private favourites.</p>`);
  $("sh").onclick=e=>{const b=e.target.closest("[data-a]");if(!b)return;const k=b.dataset.a;
   if(k==="name"||k==="user")return adEdit(u,k==="name"?"name":"user");
@@ -4373,7 +4373,7 @@ window.addEventListener("pagehide",()=>setPres(false));
 
 /* add friend */
 addSheet=()=>{
- sheet(`<h3>Add friend</h3><input id="au" placeholder="Exact @username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Type the exact username or UID.</div></div>`);
+ sheet(`<h3>Add friend</h3>${ST2.rnd!==0?rdRows():""}<input id="au" placeholder="Exact @username or UID (MG1002)" autocapitalize="off" autocomplete="off" style="margin-bottom:6px"><div id="ar" style="min-height:120px"><div class="empty" style="padding:26px 10px">Type the exact username or UID.</div></div>`);
  let tm=0,seq=0,res=[];
  const isF=pid=>FRS.some(f=>f.status==="accepted"&&(f.requester_id===pid||f.addressee_id===pid)),inc=pid=>FRS.find(f=>f.status==="pending"&&f.requester_id===pid&&f.addressee_id===PID);
  const draw=()=>{const box=$("ar");if(!box)return;box.innerHTML=res.length?res.map(d=>{const fr=isF(d.id),sn=SENT.has(d.id),rq=inc(d.id),nm=d.display_name||d.username||"User",lab=fr?"Friends":rq?"Accept":sn?"Sent":"Add";
@@ -6517,7 +6517,7 @@ setInterval(function(){
  function bad(ch){return !ch||(!!ch.state&&ch.state!=="joined")}
  function say(m){try{ts(m)}catch(e){}}
  var RFI='<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 019-9 9.75 9.75 0 016.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>';
- function rbtn(k){return '<button class="ib zrb" data-zr="'+k+'" aria-label="Refresh and reconnect">'+RFI+'</button>'}
+ function rbtn(k){return '';var _x='<button class="ib zrb" data-zr="'+k+'" aria-label="Refresh and reconnect">'+RFI+'</button>'}
  try{var st=D.createElement("style");st.textContent=".zrb{color:var(--ac)!important}.zrs svg{animation:zrSp .8s cubic-bezier(.3,.7,.3,1)}@keyframes zrSp{to{transform:rotate(360deg)}}";D.head.appendChild(st)}catch(e){}
 
  /* ---------- Tic-Tac-Toe ---------- */
@@ -8664,7 +8664,7 @@ function util(){var pg=$('pg');if(!pg||$('znxUh'))return;var l=pg.querySelector(
  h.innerHTML='<b>Document tools</b><p>Compress, edit and create PDFs. Everything runs on your phone.</p><div class="znx-ch"><span>On-device</span><span>No upload</span><span>Free</span></div>';
  l.parentNode.insertBefore(h,l);
  var g=function(k){return l.querySelector('[data-ut="'+k+'"]')},mk=function(t,ks){var s=D.createElement('div');s.className='sec';s.textContent=t;var gl=D.createElement('div');gl.className='glist';ks.forEach(function(k){var e=g(k);if(e)gl.appendChild(e)});return[s,gl]};
- var a=mk('Photos',['ph','cp','gp']),b=mk('PDF',['pc','pe']);
+ return;var a=mk('Photos',['ph','cp','gp']),b=mk('PDF',['pc','pe']);
  l.parentNode.insertBefore(a[0],l);l.parentNode.insertBefore(a[1],l);l.parentNode.insertBefore(b[0],l);l.parentNode.insertBefore(b[1],l);l.remove()}
 var q=0;new MutationObserver(function(){if(!q)q=requestAnimationFrame(function(){q=0;util()})}).observe($('pg'),{childList:true,subtree:true});util();
 }catch(e){console.error('ZNX utility patch',e)}})();
