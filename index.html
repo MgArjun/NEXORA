@@ -8399,4 +8399,85 @@ fix();
 }catch(e){console.error("ZNX v2.1",e)}})();
 </script>
 <!--ZNX-V21-END-->
+
+<!--ZNX-DL-V1-->
+<script id="znx-dl-v1">/*ZNX-DL-V1*/
+(function(){try{
+var D=document,$=function(i){return D.getElementById(i)},K='znx_dl_cfg',cfg={},M='v',Q='720',A='mp3',busy=0;
+try{cfg=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+function toast(m){var t=$('ts');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('on')},2400)}
+var css='#pg .glist .gr[data-en=dl]>i{--ic:#4de0d0;--ic2:#3b82f6}'
++'#zdlR{position:fixed;inset:0;z-index:36;display:flex;flex-direction:column;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);overflow:auto;color:var(--tx);background:radial-gradient(80% 36% at 12% 0,color-mix(in srgb,var(--ac) 22%,transparent),transparent 70%),radial-gradient(60% 30% at 100% 8%,rgba(77,224,208,.1),transparent 70%),var(--bg);animation:rise .3s both}'
++'#zdlR>*{flex:none;width:min(100%,640px);margin-left:auto;margin-right:auto}'
++'.zdl-t{display:flex;align-items:center;gap:8px}.zdl-t b{flex:1;text-align:center;font:600 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}'
++'.zdl-in{display:flex;gap:8px}.zdl-in input{flex:1;min-width:0;height:52px;margin:0}'
++'.zdl-c{display:grid;gap:8px;padding:14px;border-radius:22px;border:1px solid var(--ln);background:var(--sf)}'
++'.zdl-c label{font:500 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}'
++'.zdl-c small{color:var(--mu);font-size:12px;line-height:1.45}'
++'.zdl-c .seg{margin:0;flex-wrap:wrap}.zdl-c .seg button{height:40px;font-size:13px;flex:1 0 auto;min-width:56px}'
++'.zdl-c input{margin:0;height:48px}'
++'.zdl-set{display:none}.zdl-set.on{display:grid}'
++'.zdl-bar{height:4px;border-radius:2px;background:var(--ln);overflow:hidden}.zdl-bar s{display:block;height:100%;width:0;background:linear-gradient(90deg,#8f88ff,#5ec2b7);transition:width .2s}'
++'#zdlSt{min-height:20px;text-align:center;font-size:13px;color:var(--mu)}#zdlSt.bad{color:var(--danger)}'
++'#zdlPk{display:grid;gap:8px}#zdlGo{height:54px;border-radius:27px;font-size:15.5px;font-weight:700;box-shadow:0 18px 34px -14px var(--ac)}';
+var s=D.createElement('style');s.id='znx-dl-css';s.textContent=css;D.head.appendChild(s);
+var VQ=[['max','Best'],['2160','4K'],['1440','2K'],['1080','1080p'],['720','720p'],['480','480p'],['360','360p'],['144','144p']],
+AF=[['mp3','MP3'],['best','Best'],['opus','Opus'],['ogg','OGG'],['wav','WAV']];
+function seg(k,a,cur){return '<div class="seg" data-s="'+k+'">'+a.map(function(x){return '<button type="button" data-v="'+x[0]+'"'+(x[0]===cur?' class="on"':'')+'>'+x[1]+'</button>'}).join('')+'</div>'}
+var BK='<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',GR='<svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>';
+function st(t,bad){var e=$('zdlSt');if(e){e.textContent=t;e.className=bad?'bad':''}}
+function bar(p){var e=D.querySelector('#zdlR .zdl-bar s');if(e)e.style.width=Math.round(Math.max(0,Math.min(1,p))*100)+'%'}
+function fsz(b){return b<1048576?(b/1024).toFixed(0)+' KB':(b/1048576).toFixed(1)+' MB'}
+function open(){close();var r=D.createElement('div');r.id='zdlR';r.setAttribute('role','dialog');r.setAttribute('aria-label','Download');
+ r.innerHTML='<div class="zdl-t"><button class="ib" data-x aria-label="Back">'+BK+'</button><b>Download</b><button class="ib" data-g aria-label="Server settings">'+GR+'</button></div>'
+ +'<div class="zdl-in"><input id="zdlU" placeholder="Paste a link" inputmode="url" autocapitalize="off" autocomplete="off" aria-label="Link"><button class="gb" type="button" data-p>Paste</button></div>'
+ +'<div class="zdl-c"><label>Type</label>'+seg('m',[['v','Video'],['a','Audio']],M)
+ +'<div id="zdlQ"><label>Video quality</label>'+seg('q',VQ,Q)+'<small>If a quality is not available, the closest one is used.</small></div>'
+ +'<div id="zdlA" hidden><label>Audio format</label>'+seg('f',AF,A)+'</div></div>'
+ +'<button class="pri" id="zdlGo" type="button">Download</button><div class="zdl-bar"><s></s></div><div id="zdlSt" role="status"></div><div id="zdlPk"></div>'
+ +'<div class="zdl-set zdl-c"><label>Download server</label><input id="zdlS" placeholder="https://your-server.example.com" inputmode="url" autocapitalize="off" autocomplete="off" aria-label="Server address"><input id="zdlK" placeholder="API key (only if your server needs it)" autocapitalize="off" autocomplete="off" aria-label="API key"><button class="pri" type="button" data-sv>Save server</button><small>Links cannot be downloaded from inside a browser. This needs your own download server (an open-source cobalt instance works). Paste its address here once.</small></div>';
+ D.body.appendChild(r);
+ $('zdlS').value=cfg.url||'';$('zdlK').value=cfg.key||'';
+ if(!cfg.url)r.querySelector('.zdl-set').classList.add('on');
+ r.addEventListener('click',onClick);
+ setTimeout(function(){if(!matchMedia('(pointer:coarse)').matches)$('zdlU').focus()},250)}
+function close(){var r=$('zdlR');if(r)r.remove()}
+function msg(c){c=String(c||'error').replace(/^error\.api\./,'').replace(/[._]/g,' ');return 'Server says: '+c}
+function onClick(e){var t=e.target,b;
+ if(t.closest('[data-x]'))return close();
+ if(t.closest('[data-g]'))return $('zdlR').querySelector('.zdl-set').classList.toggle('on');
+ if(t.closest('[data-p]')){if(navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(function(v){$('zdlU').value=v.trim()},function(){toast('Allow clipboard or paste by hand')});else toast('Paste by hand');return}
+ if(t.closest('[data-sv]')){var u=$('zdlS').value.trim().replace(/\/+$/,'');if(u&&!/^https?:\/\/\S+$/i.test(u))return toast('Server address must start with https://');cfg.url=u;cfg.key=$('zdlK').value.trim();try{localStorage.setItem(K,JSON.stringify(cfg))}catch(x){}toast('Server saved');$('zdlR').querySelector('.zdl-set').classList.remove('on');return}
+ if(b=t.closest('.seg button')){var g=b.parentNode.dataset.s;[].forEach.call(b.parentNode.children,function(x){x.classList.toggle('on',x===b)});
+  if(g==='m'){M=b.dataset.v;$('zdlQ').hidden=M==='a';$('zdlA').hidden=M!=='a'}else if(g==='q')Q=b.dataset.v;else A=b.dataset.v;return}
+ if(t.closest('#zdlGo'))go()}
+async function go(){var u=$('zdlU').value.trim(),base=(cfg.url||'').trim().replace(/\/+$/,''),btn=$('zdlGo');if(busy)return;
+ if(!/^https?:\/\/\S+$/i.test(u))return st('Paste a full link starting with https://',1);
+ if(!base){$('zdlR').querySelector('.zdl-set').classList.add('on');return st('Add your download server first (settings icon)',1)}
+ busy=1;btn.disabled=true;st('Fetching...');bar(0);$('zdlPk').textContent='';
+ try{var b={url:u,downloadMode:M==='a'?'audio':'auto',filenameStyle:'pretty'};if(M==='a')b.audioFormat=A;else b.videoQuality=Q;
+  var h={'Accept':'application/json','Content-Type':'application/json'};if(cfg.key)h.Authorization='Api-Key '+cfg.key;
+  var res=await fetch(base+'/',{method:'POST',headers:h,body:JSON.stringify(b)}),j=await res.json();
+  if(j.status==='error')throw new Error(msg(j.error&&j.error.code));
+  if(j.status==='picker'&&Array.isArray(j.picker)){st('Choose what to save');var pk=$('zdlPk');
+   j.picker.slice(0,20).forEach(function(it,i){if(!it||!/^https?:\/\//i.test(it.url||''))return;var x=D.createElement('button');x.type='button';x.className='gb';x.textContent='Save item '+(i+1)+' ('+String(it.type||'file')+')';
+    x.onclick=function(){fetchSave(it.url,'item-'+(i+1)+(it.type==='video'?'.mp4':it.type==='gif'?'.gif':'.jpg'))};pk.appendChild(x)})}
+  else if(/^(tunnel|redirect)$/.test(j.status)&&/^https?:\/\//i.test(j.url||''))await fetchSave(j.url,j.filename);
+  else throw new Error('Unexpected reply from the server')
+ }catch(e){var m=e&&e.message||'';st(m&&!/failed to fetch|networkerror|load failed/i.test(m)?m:'Could not reach the server. Check its address and that it allows this site (CORS).',1)}
+ busy=0;btn.disabled=false}
+async function fetchSave(url,name){name=String(name||'download').replace(/[\\/:*?"<>|]+/g,'_');st('Downloading...');
+ try{var r=await fetch(url);if(!r.ok)throw 0;var L=+r.headers.get('content-length')||0,rd=r.body&&r.body.getReader?r.body.getReader():null,ch=[],n=0;
+  if(rd){for(;;){var d=await rd.read();if(d.done)break;ch.push(d.value);n+=d.value.length;if(L){bar(n/L);st('Downloading '+Math.round(n/L*100)+'%')}}}
+  else ch.push(new Uint8Array(await r.arrayBuffer()));
+  var bl=new Blob(ch),a=D.createElement('a');a.href=URL.createObjectURL(bl);a.download=name;D.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},6e4);
+  bar(1);st('Saved '+name+' ('+fsz(bl.size)+')');toast('Download started')}
+ catch(e){window.open(url,'_blank');st('Opened in a new tab. Save it from there.')}}
+var q=0;
+function inj(){q=0;var f=D.querySelector('#pg [data-en=fav]');if(!f||D.querySelector('#pg [data-en=dl]'))return;
+ f.insertAdjacentHTML('afterend','<button class="gr" data-en="dl"><i><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></i><span class="t"><b>Download</b><small>Save video or audio from a link</small></span><em>\u203a</em></button>')}
+var pg=$('pg');if(pg)new MutationObserver(function(){if(!q)q=requestAnimationFrame(inj)}).observe(pg,{childList:true,subtree:true});inj();
+D.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#pg [data-en=dl]'))open()});
+D.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('zdlR')&&!D.querySelector('#ov.on'))close()});
+}catch(err){console.error('ZNX download',err)}})();</script>
 </body></html>
