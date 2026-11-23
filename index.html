@@ -3733,7 +3733,7 @@ function eCodeShow(c){sheet(`<h3>Your backup code</h3><p class="note">Save this 
  $("sh").onclick=e=>{if(e.target.closest("#e2c"))return navigator.clipboard&&navigator.clipboard.writeText(c).then(()=>ts("Code copied"),()=>ts("Copy failed"));if(e.target.closest("#e2d"))closeS()}}
 const eNewCode=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>ALF[v%32]).join("").replace(/(.{4})(?=.)/g,"$1-");
 async function eWrap(code){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},await eKdf(code,salt),TXT.encode(JSON.stringify(E.priv)));return{s:b64(salt),i:b64(iv),c:b64(ct)}}
-async function e2eSetup(){try{await eGen();const code=eNewCode(),bk=await eWrap(code),r=await SB.from("profiles").update({pub_key:E.pub,key_backup:bk}).eq("id",PID);if(r.error)throw r.error;E.pr=Object.assign(E.pr||{},{pub_key:E.pub,key_backup:bk});eCodeShow(code)}catch(e){E.k=null;try{localStorage.removeItem(EK+"code_"+PID);localStorage.removeItem(EK+PID)}catch(x){}ts("Could not turn on encryption. Run the SQL step first.")}}
+async function e2eSetup(){try{await eGen();const code=eNewCode(),bk=await eWrap(code),r=await SB.from("profiles").update({pub_key:E.pub,key_backup:bk}).eq("id",PID);if(r.error)throw r.error;E.pr=Object.assign(E.pr||{},{pub_key:E.pub,key_backup:bk});/*ZNX-NOBACKUPPOP*/}catch(e){E.k=null;try{localStorage.removeItem(EK+"code_"+PID);localStorage.removeItem(EK+PID)}catch(x){}ts("Could not turn on encryption. Run the SQL step first.")}}
 function e2eBackup(){
  if(!E.k){sheet(`<h3>Chat backup</h3><p class="note">Encryption is not set up on this phone yet.</p><button class="pri" style="width:100%" id="e2s">Set up now</button>`);$("sh").onclick=e=>{if(e.target.closest("#e2s")){closeS();e2ePrompt()}};return}
  sheet(`<h3>Chat backup</h3><p class="note">Your backup code is shown only once, when you create it. We cannot show it again. If you lost it, make a new one and keep it safe.</p><button class="pri" style="width:100%" id="e2g">Make a new code</button><p class="note">A new code makes the old one stop working.</p>`);
@@ -3751,7 +3751,7 @@ const e2ePrompt=()=>{if(E.pr&&E.pr.pub_key&&E.pr.key_backup)e2eRestore();else if
 async function e2eInit(pr){E.k=null;try{localStorage.removeItem(EK+"code_"+PID)}catch(e){}E.sh={};E.pr=pr;const s=pr.pub_key;
  if(await eLoad()&&(!s||(s.x===E.pub.x&&s.y===E.pub.y))){if(!s)await e2eSetup();return}
  try{localStorage.removeItem(EK+PID)}catch(e){}E.k=null;
- if(s)e2eRestore();else await e2eSetup()}
+ if(s){/*ZNX-NOBACKUPPOP*/setTimeout(function(){try{ts("Old chats are locked. Restore in Me > Security > Chat backup")}catch(e){}},2500)}else await e2eSetup()}
 const mapMsg=r=>{const mine=r.sender_id===PID;return{d:mine?"out":"in",t:(r.message_type&&r.message_type!=="text")?"["+r.message_type+"]":(r.message||""),tm:fT(r.created_at),r:[],ts:Date.parse(r.created_at),st:mine?(r.read_at?2:1):2,rd:!mine&&!!r.read_at,sid:r.id}};
 const markRead=u=>{if(!SB||!u||!(cur===u&&chatOn()&&vis()))return;const t=(MSG[u.id]||[]).filter(x=>x.d==="in"&&x.sid&&!x.rd).slice(0,40);
  t.forEach(x=>{x.rd=true;SB.rpc("nexora_mark_message_read",{target_message:x.sid}).then(()=>{},()=>{x.rd=false})});if(t.length)u.u=0};
