@@ -657,7 +657,7 @@ mark{background:color-mix(in srgb,var(--ac) 50%,transparent);color:inherit;borde
 
 </style><style id="znx-smooth">/*ZNX-PATCH-DH-V1*/html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}button,.row,.gr,.sr,.opt,.tile,.fo,.cct,nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}button,.row,.gr,.sr{transition:transform .28s cubic-bezier(.22,1,.36,1),background-color .2s,opacity .2s,box-shadow .25s}button:active,.sr:active,.gr:active{transform:scale(.97)}.card{animation:znxIn .5s cubic-bezier(.22,1,.36,1) both}@keyframes znxIn{from{opacity:0;transform:translateY(14px) scale(.985)}}#pg,#msgs,#sh{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}#sh{will-change:transform}#chat,#et,#fv,#ad,#mp,#cl{will-change:transform;backface-visibility:hidden}.lowfx *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}</style>
 <style id="znx-smooth">/*ZNX-PATCH-TH-V2*/html{-webkit-text-size-adjust:100%}button,.row,.gr,.sr,.opt,nav button{touch-action:manipulation;transition:transform .25s cubic-bezier(.22,1,.36,1),background-color .2s,opacity .2s}button:active,.sr:active,.gr:active{transform:scale(.97)}#pg,#msgs,#sh{overscroll-behavior:contain}.lowfx *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}</style>
-<style id="znx-util-direct-css">#pg .glist .gr[data-ut=ph]>i{--ic:#4de0d0;--ic2:#3b82f6}#pg .glist .gr[data-ut=pc]>i{--ic:#ffb347;--ic2:#ff6b6b}#pg .glist .gr[data-ut=pe]>i{--ic:#a78bfa;--ic2:#ff6b9d}#pg .glist .gr[data-ut=cp]>i{--ic:#ff6b9d;--ic2:#ffb347}#pg .glist .gr[data-ut=gp]>i{--ic:#4cc9a0;--ic2:#4de0d0}</style></head><body><script>/*ZNX-FIX-ERR*/addEventListener("error",function(e){if(e.target&&e.target!==window)return;var d=document.getElementById("znxErr");if(!d){d=document.createElement("div");d.id="znxErr";d.style.cssText="position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;padding:8px 10px;border-radius:10px;background:#3a0f14;color:#ffb4b4;font:11px monospace;word-break:break-word";(document.body||document.documentElement).appendChild(d)}d.textContent="JS error: "+(e.message||"")+(e.lineno?" (line "+e.lineno+")":"")});</script>
+<style id="znx-util-direct-css">#pg .glist .gr[data-ut=ph]>i{--ic:#4de0d0;--ic2:#3b82f6}#pg .glist .gr[data-ut=pc]>i{--ic:#ffb347;--ic2:#ff6b6b}#pg .glist .gr[data-ut=pe]>i{--ic:#a78bfa;--ic2:#ff6b9d}#pg .glist .gr[data-ut=cp]>i{--ic:#ff6b9d;--ic2:#ffb347}#pg .glist .gr[data-ut=gp]>i{--ic:#4cc9a0;--ic2:#4de0d0}</style></head><body><script>/*ZNX-FIX-ERR*/addEventListener("error",function(e){try{console.warn("JS error:",e&&e.message)}catch(x){}return;if(e.target&&e.target!==window)return;var d=document.getElementById("znxErr");if(!d){d=document.createElement("div");d.id="znxErr";d.style.cssText="position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;padding:8px 10px;border-radius:10px;background:#3a0f14;color:#ffb4b4;font:11px monospace;word-break:break-word";(document.body||document.documentElement).appendChild(d)}d.textContent="JS error: "+(e.message||"")+(e.lineno?" (line "+e.lineno+")":"")});</script>
 <style id="znx-sv-css">
 #znxSV{position:fixed;inset:0;z-index:300;display:grid;grid-template-rows:auto 1fr auto;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 14px) 20px calc(env(safe-area-inset-bottom,0px) + 18px);background:radial-gradient(90% 55% at 50% 28%,rgba(124,108,255,.30),transparent 70%),radial-gradient(60% 40% at 100% 100%,rgba(77,224,208,.14),transparent 70%),#0b0d13;color:#eceef6;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 #znxSV .svb{text-align:center;font:italic 400 24px/1 Didot,"Bodoni MT",Georgia,serif}
@@ -1700,7 +1700,7 @@ const AU=[];
 const ADC={signups:true},AUD=[];
 const AS={tab:"users",sm:false,sel:new Set(),q:"",f:"all",vis:[]};
 const logA=(a,d)=>{AUD.unshift({t:Date.now(),a,d});};
-function adOpen(){AS.sm=false;AS.sel.clear();AS.tab="users";[...$("adt").children].forEach(b=>b.classList.toggle("on",b.dataset.t==="users"));$("ad").classList.add("on");adDraw()}
+function adOpen(){try{window.znxAdR&&window.znxAdR()}catch(e){}AS.sm=false;AS.sel.clear();AS.tab="users";[...$("adt").children].forEach(b=>b.classList.toggle("on",b.dataset.t==="users"));$("ad").classList.add("on");adDraw()}
 function adDraw(){const t=AS.tab;$("adsel").style.display=t==="users"?"":"none";$("adsel").textContent=AS.sm?"Done":"Select";$("adc").textContent=({users:AU.length+" USERS",ctl:"CONTROLS",rep:REPORTS.filter(r=>r.st==="open").length+" OPEN",log:AUD.length+" ACTIONS"})[t];
  const bar=$("adbar");bar.classList.toggle("on",t==="users"&&AS.sm);
  if(t==="users"){const q=AS.q.toLowerCase(),l=AU.filter(u=>(AS.f==="all"||(AS.f==="banned"?u.banned:u.guest))&&(u.n.toLowerCase().includes(q)||u.user.includes(q)||u.uid.toLowerCase().includes(q)));AS.vis=l;
@@ -3908,7 +3908,7 @@ window.znxFavSync=()=>{clearTimeout(FAVT);FAVT=setTimeout(async()=>{if(!SB||!PID
 setInterval(()=>{if(PID&&FAV.some(x=>!x.sid&&!x.tried&&(x.rt||0)<4))window.znxFavSync()},15000);
 /* admin: real user list */
 const loadAdmin=async()=>{try{const r=await SB.from("profiles").select("id,username,display_name,uid,is_guest,online,last_seen,created_at").order("created_at",{ascending:false}).limit(500);if(r.error)return;
- AU.length=0;(r.data||[]).forEach((p,i)=>AU.push({id:i,pid:p.id,n:p.display_name||"User",user:p.username||"",uid:String(p.uid||"").replace(/^NX-?/,"MG"),ref:0,cr:p.created_at?+new Date(p.created_at):0,guest:!!p.is_guest,canSt:false,canFav:false,banned:false,act:p.online?"Online":(p.last_seen?fL(p.last_seen):"")}))}catch(e){}};
+ AU.length=0;(r.data||[]).filter(function(p){var n=String(p.display_name||"").trim(),u=String(p.username||"").trim();return n.length>=2&&!!u&&!/^(guest|nexora user|new user|user|nexora)(\s*[-_#]?\s*\d*)?$/i.test(n)&&!/^(nx_[a-z0-9]{4,}|guest_?\d*|user_?\d+)$/i.test(u)/*ZNX-PL-DONE*/}).forEach((p,i)=>AU.push({id:i,pid:p.id,n:p.display_name||"User",user:p.username||"",uid:String(p.uid||"").replace(/^NX-?/,"MG"),ref:0,cr:p.created_at?+new Date(p.created_at):0,guest:!!p.is_guest,canSt:false,canFav:false,banned:false,act:p.online?"Online":(p.last_seen?fL(p.last_seen):"")}))}catch(e){}};
 
 /* login */
 
@@ -3928,7 +3928,7 @@ async function nxAdminLoad(){await loadAdmin();
   const ids=[...new Set((r.data||[]).flatMap(x=>[x.reporter,x.target]))],nm={};
   if(ids.length){const p=await SB.from("profiles").select("id,display_name").in("id",ids);(p.data||[]).forEach(z=>nm[z.id]=z.display_name||"User")}
   REPORTS.length=0;(r.data||[]).forEach(x=>REPORTS.push({id:x.id,sid:x.id,sv:x.status,by:nm[x.reporter]||"User",tg:nm[x.target]||"User",reason:x.reason,note:x.note||"",snap:Array.isArray(x.snap)?x.snap:[],st:x.status}))}catch(e){}}
-async function nxAdminSync(){
+window.znxAdR=function(){return nxAdminLoad().then(function(){try{if($("ad").classList.contains("on"))adDraw()}catch(e){}})};setInterval(function(){try{if($("ad").classList.contains("on")&&AS.tab==="users"&&!AS.sm&&!$("ov").classList.contains("on")&&document.activeElement!==$("adq"))window.znxAdR()}catch(e){}},20000);async function nxAdminSync(){
  for(const u of AU){if(!u.pid)continue;const b=!!u.banned;if(b!==NXBAN.has(u.pid)){b?NXBAN.add(u.pid):NXBAN.delete(u.pid);const r=b?await SB.from("nx_bans").upsert({user_id:u.pid,by:PID}):await SB.from("nx_bans").delete().eq("user_id",u.pid);if(r.error)ts("Ban not saved")}}
  for(const x of REPORTS){if(x.sid&&x.st!==x.sv){x.sv=x.st;await SB.from("nx_reports").update({status:x.st}).eq("id",x.sid)}}}
 setInterval(async()=>{if(!SB||!PID)return;
@@ -8168,4 +8168,5 @@ var t=0;
 gs.addEventListener("pointerdown",function(){gs.classList.add("ld");clearTimeout(t);t=setTimeout(function(){gs.classList.remove("ld")},15000)});
 if(m)new MutationObserver(function(){var s=(m.textContent||"").trim(),bad=!!s&&!/\.\.\.$/.test(s);m.classList.toggle("zerr",bad);if(bad)gs.classList.remove("ld")}).observe(m,{childList:true,characterData:true,subtree:true});
 }catch(e){console.error("ZNX guest button",e)}})();</script>
+<style id="znx-pl-css">#znxErr{display:none!important}</style>
 </body></html>
