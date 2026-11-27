@@ -4999,6 +4999,58 @@ setTimeout(apply,0);
 })()}catch(e){console.error("ZNX zoom5",e)}
 
 
+/*ZNX-GATE-V1*/
+try{(function(){
+var D=document,G=function(i){return D.getElementById(i)},ov=null,busy=0,cu="",tm=0,okU=0,RS=[Math.floor(10+Math.random()*90),Math.floor(100+Math.random()*900),Math.floor(1000+Math.random()*9000)];
+var BN=/^(guest|nexora user|new user|user|nexora)(\s*[-_#]?\s*\d*)?$/i,BU=/^(nx_[a-z0-9]{4,}|guest_?\d*|user_?\d+)$/i;
+function cx(){return window.znxCtx?window.znxCtx():{}}
+function need(){var n=String(MY.name||"").trim(),u=String(MY.user||"").trim();return n.length<2||BN.test(n)||!u||BU.test(u)}
+function ready(){var a=G("app"),c=cx();return !!a&&!a.classList.contains("hide")&&!!c.pid&&!!c.sb}
+function slug(n){var s=String(n).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,14);return s.length>=3?s:"friend"}
+function sug(n){var b=slug(n),a=[b,b+RS[0],b+"_"+RS[1],b+RS[2]];return a.filter(function(x,i){return /^[a-z0-9_]{3,20}$/.test(x)&&!BU.test(x)&&a.indexOf(x)===i}).slice(0,4)}
+function msg(t,c){var m=G("zgM");if(!m)return;m.textContent=t||"";m.className="zgx"+(c?" "+c:"")}
+function paint(){var s=G("zgS"),n=G("zgN").value.trim();s.innerHTML=n.length>=2?sug(n).map(function(x){return '<button type="button" data-s="'+x+'">@'+x+'</button>'}).join(""):""}
+function val(){return G("zgU").value.trim().toLowerCase().replace(/^@/,"")}
+function chk(){var u=val();okU=0;if(!u){msg("");return}
+ if(!/^[a-z0-9_]{3,20}$/.test(u)){msg("Use 3 to 20 letters, digits or _","err");return}
+ if(/^nx_/.test(u)||BU.test(u)){msg("Choose a more personal username.","err");return}
+ var c=cx();if(!c.sb)return;cu=u;msg("Checking...");
+ c.sb.from("profiles").select("id").ilike("username",u.replace(/_/g,"\\_")).neq("id",c.pid).limit(1).then(function(r){if(cu!==u||!ov)return;if(r.error){msg("");return}if(r.data&&r.data.length){okU=-1;msg("Username already taken.","err")}else{okU=1;msg("Available","ok")}},function(){if(cu===u)msg("")})}
+function shut(){if(!ov)return;ov.remove();ov=null;busy=0;try{G("app").inert=false}catch(e){}}
+async function go(){
+ if(busy)return;var n=G("zgN").value.trim(),u=val(),c=cx(),b=G("zgG");
+ if(n.length<2)return msg("Name needs 2 or more letters.","err");
+ if(BN.test(n))return msg("Enter your real name.","err");
+ if(!/^[a-z0-9_]{3,20}$/.test(u))return msg("Username: 3 to 20 letters, digits or _","err");
+ if(/^nx_/.test(u)||BU.test(u))return msg("Choose a more personal username.","err");
+ if(okU<0)return msg("Username already taken.","err");
+ if(!c.sb)return msg("Not connected. Check your internet.","err");
+ busy=1;b.disabled=true;msg("Saving...");
+ var r;try{r=await c.sb.rpc("nexora_set_username",{new_username:u,new_display_name:n})}catch(e){r={error:e}}
+ var er=(r&&r.error&&r.error.message)||(r&&r.data&&r.data.error)||"";
+ if(er){busy=0;b.disabled=false;msg(/duplicate|already|taken|unique/i.test(String(er))?"Username already taken.":String(er).slice(0,90),"err");return}
+ MY.name=n;MY.user=u;try{top2()}catch(e){}
+ try{c.sb.auth.updateUser({data:{onb:1,display_name:n}})}catch(e){}
+ shut();ts("Profile ready");try{if(tab==="me")show("me")}catch(e){}}
+function open(){if(ov)return;
+ ov=D.createElement("div");ov.id="znxGate";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");ov.setAttribute("aria-label","Create your profile");
+ ov.innerHTML='<div class="zgc"><div class="lkm"><span>Z</span></div><h2>Create your profile</h2><p>Add your name and pick a username. Friends use it to find you.</p><label class="lf"><input id="zgN" maxlength="30" autocomplete="name" placeholder=" "><span>Name</span></label><label class="lf"><input id="zgU" maxlength="20" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder=" "><span>Username</span></label><div class="chips" id="zgS"></div><div class="zgx" id="zgM" role="alert"></div><button class="pri" id="zgG" type="button">Continue</button><button class="lk" id="zgO" type="button">Log out</button></div>';
+ D.body.appendChild(ov);try{G("app").inert=true}catch(e){}
+ var N=G("zgN"),U=G("zgU"),nm=String(MY.name||"").trim();
+ if(nm&&!BN.test(nm))N.value=nm;
+ paint();
+ N.addEventListener("input",paint);
+ U.addEventListener("input",function(){clearTimeout(tm);okU=0;tm=setTimeout(chk,450)});
+ G("zgS").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b){U.value=b.dataset.s;chk()}});
+ G("zgG").onclick=go;
+ G("zgO").onclick=function(){if(window.znxOut)window.znxOut()};
+ N.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();U.focus()}});
+ U.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();go()}});
+ setTimeout(function(){(N.value?U:N).focus()},300)}
+function tick(){if(ov||!ready())return;if(need())open()}
+try{var _e=enter;enter=function(){var r=_e.apply(this,arguments);try{tick()}catch(x){}return r}}catch(e){}
+setInterval(function(){try{tick()}catch(e){}},1200);
+})()}catch(err){console.error("ZNX gate",err)}
 /*ZNX-ONB-V1*/
 try{(function(){
 var D=document,shown=0,GB=/^(guest|nexora user|user)$/i,R=[Math.floor(10+Math.random()*90),Math.floor(100+Math.random()*900),Math.floor(1000+Math.random()*9000)];
@@ -5034,7 +5086,7 @@ function open(){
   try{if(tab==="me")show("me")}catch(e){}
  };
  setTimeout(function(){(N.value?U:N).focus()},300)}
-var chk=0;setInterval(function(){if(shown||chk)return;var c=ctx(),a=D.getElementById("app");if(!c.pid||!MY.uid||!a||a.classList.contains("hide"))return;chk=1;var key="znx_onb_"+c.pid;try{if(localStorage.getItem(key)){shown=1;return}}catch(e){}c.sb.auth.getUser().then(function(r){var u=r&&r.data&&r.data.user;if(!u){chk=0;return}var md=u.user_metadata||{},fresh=Date.now()-Date.parse(u.created_at)<864e5;if(md.onb||!fresh||!need()){shown=1;try{localStorage.setItem(key,"1")}catch(e){}return}open()},function(){chk=0})},1000);
+var chk=0;setInterval(function(){if(1||shown||chk)return;var c=ctx(),a=D.getElementById("app");if(!c.pid||!MY.uid||!a||a.classList.contains("hide"))return;chk=1;var key="znx_onb_"+c.pid;try{if(localStorage.getItem(key)){shown=1;return}}catch(e){}c.sb.auth.getUser().then(function(r){var u=r&&r.data&&r.data.user;if(!u){chk=0;return}var md=u.user_metadata||{},fresh=Date.now()-Date.parse(u.created_at)<864e5;if(md.onb||!fresh||!need()){shown=1;try{localStorage.setItem(key,"1")}catch(e){}return}open()},function(){chk=0})},1000);
 })()}catch(e){console.error("ZNX onboarding",e)}
 
 
@@ -8075,4 +8127,45 @@ D.addEventListener("pointerdown",function(e){
 }catch(err){console.error("ZNX v2.2",err)}})();
 </script>
 <!--ZNX-V22-END-->
+<style id="znx-gate-css">/*ZNX-GATE-V1*/
+html body #gs.gbig{display:flex;align-items:center;gap:14px;width:100%;height:auto;min-height:74px;padding:14px 16px;border:0;border-radius:22px;text-align:left;color:#fff;font-size:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,#7a72ff 0%,#5b54e0 48%,#2fb9ae 100%);box-shadow:0 24px 46px -18px var(--ac),inset 0 1px 0 rgba(255,255,255,.4)}
+html body #gs.gbig::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);transform:translateX(-120%);animation:shm 3.8s ease-in-out infinite;pointer-events:none}
+html body #gs.gbig .gi{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+html body #gs.gbig svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html body #gs.gbig .gt{flex:1;min-width:0}
+html body #gs.gbig .gt b{display:block;font-size:17px;font-weight:700;letter-spacing:-.02em;color:#fff}
+html body #gs.gbig .gt small{display:block;margin-top:3px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.85)}
+html body #gs.gbig .ga{display:grid;place-items:center;width:28px;height:28px;flex:none}
+html body #gs.gbig .ga svg{width:20px;height:20px}
+html body #gs.gbig.ld .ga svg{display:none}
+html body #gs.gbig.ld .ga::after{content:"";width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;animation:zgsp .8s linear infinite}
+@keyframes zgsp{to{transform:rotate(360deg)}}
+.gdv{display:flex;align-items:center;gap:12px;font:600 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mu)}
+.gdv::before,.gdv::after{content:"";flex:1;height:1px;background:var(--ln)}
+.card:has(.gl.on2) #gdv{display:none}
+html body .card:not(:has(.gl.on2)) #go{background:var(--sf);color:var(--tx);border:1px solid var(--ln);box-shadow:none;height:50px}
+html body .card:not(:has(.gl.on2)) #go::after{display:none}
+html body .alt{justify-content:center}
+#msg.zerr{color:var(--danger);font-weight:600;font-size:13.5px}
+@media (max-height:720px){.emb{height:92px}.emf{width:84px;height:84px;border-radius:26px}.emf .logo{width:58px}}
+#znxGate{position:fixed;inset:0;z-index:96;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(70% 45% at 50% 16%,rgba(124,108,255,.30),transparent 70%),radial-gradient(60% 40% at 90% 100%,rgba(77,224,208,.14),transparent 70%),var(--bg);animation:fd2 .3s ease}
+#znxGate .zgc{width:min(400px,100%);display:grid;gap:12px}
+#znxGate .lkm{margin:0 auto}
+#znxGate h2{margin:6px 0 0;text-align:center;font-size:28px;letter-spacing:-.045em}
+#znxGate p{margin:0 0 6px;text-align:center;color:var(--mu);font-size:14px;line-height:1.45}
+#znxGate .chips{flex-wrap:wrap;justify-content:center;overflow:visible}
+#znxGate .zgx{min-height:20px;text-align:center;font-size:13px;color:var(--mu)}
+#znxGate .zgx.err{color:var(--danger)}
+#znxGate .zgx.ok{color:var(--ok)}
+</style><script id="znx-gate-login">(function(){try{
+var D=document,gs=D.getElementById("gs"),gl=D.getElementById("gl"),m=D.getElementById("msg");
+if(!gs||!gl||!gl.parentNode||gs.dataset.z)return;gs.dataset.z="1";
+gs.className="gbig";gs.type="button";
+gs.innerHTML='<span class="gi"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span><span class="gt"><b>Continue as guest</b><small>One tap. No email, no password.</small></span><span class="ga"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>';
+var dv=D.createElement("div");dv.id="gdv";dv.className="gdv";dv.innerHTML="<span>or use email</span>";
+gl.parentNode.insertBefore(gs,gl);gl.parentNode.insertBefore(dv,gl);
+var t=0;
+gs.addEventListener("pointerdown",function(){gs.classList.add("ld");clearTimeout(t);t=setTimeout(function(){gs.classList.remove("ld")},15000)});
+if(m)new MutationObserver(function(){var s=(m.textContent||"").trim(),bad=!!s&&!/\.\.\.$/.test(s);m.classList.toggle("zerr",bad);if(bad)gs.classList.remove("ld")}).observe(m,{childList:true,characterData:true,subtree:true});
+}catch(e){console.error("ZNX guest button",e)}})();</script>
 </body></html>
